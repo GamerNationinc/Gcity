@@ -75,6 +75,172 @@ func snapshot() -> Dictionary:
 	}
 
 
+# ---------------------------------------------------------------- restore
+
+## Loads bases, modifiers, tags and inheritance from a snapshot produced by
+## [method snapshot] on a resolver with the same registered stats and classes. The
+## input is untrusted (standards §5.1): every field is type-checked and the resolver is
+## untouched unless the whole snapshot is valid.
+func restore(state: Dictionary) -> Error:
+	var expected: Array[String] = ["stats", "classes", "bases", "modifiers", "tags", "inherits", "next_handle"]
+	if state.size() != expected.size():
+		return _restore_fail("wrong key set")
+	for key: String in expected:
+		if not state.has(key):
+			return _restore_fail("missing '%s'" % key)
+	var stats_v: Variant = state["stats"]
+	var classes_v: Variant = state["classes"]
+	var bases_v: Variant = state["bases"]
+	var mods_v: Variant = state["modifiers"]
+	var tags_v: Variant = state["tags"]
+	var inherits_v: Variant = state["inherits"]
+	var next_v: Variant = state["next_handle"]
+	if typeof(stats_v) != TYPE_DICTIONARY or typeof(classes_v) != TYPE_DICTIONARY or typeof(bases_v) != TYPE_DICTIONARY \
+			or typeof(mods_v) != TYPE_DICTIONARY or typeof(tags_v) != TYPE_DICTIONARY or typeof(inherits_v) != TYPE_DICTIONARY \
+			or typeof(next_v) != TYPE_INT:
+		return _restore_fail("field types")
+	# stats and classes must match what code registered; content and code are not save data
+	var stats_in: Dictionary = stats_v
+	if stats_in.size() != _stats.size():
+		return _restore_fail("stat set differs")
+	for key: Variant in stats_in:
+		var id: StringName = _as_name(key)
+		if id.is_empty() or not _stats.has(id) or typeof(stats_in[key]) != TYPE_INT or _stats[id] != stats_in[key]:
+			return _restore_fail("stat '%s' differs" % id)
+	var classes_in: Dictionary = classes_v
+	if classes_in.size() != _classes.size():
+		return _restore_fail("class set differs")
+	for key: Variant in classes_in:
+		var id: StringName = _as_name(key)
+		if id.is_empty() or not _classes.has(id):
+			return _restore_fail("class '%s' unknown" % id)
+		var entry: Dictionary = _classes[id]
+		if typeof(classes_in[key]) != TYPE_INT or entry["order"] != classes_in[key]:
+			return _restore_fail("class '%s' order differs" % id)
+	var new_bases: Dictionary = {}
+	var bases_in: Dictionary = bases_v
+	for ek: Variant in bases_in:
+		if typeof(ek) != TYPE_INT or typeof(bases_in[ek]) != TYPE_DICTIONARY:
+			return _restore_fail("bases shape")
+		var per: Dictionary = bases_in[ek]
+		var out: Dictionary = {}
+		for sk: Variant in per:
+			var id: StringName = _as_name(sk)
+			if id.is_empty() or not _stats.has(id) or typeof(per[sk]) != TYPE_INT:
+				return _restore_fail("base for unknown stat or non-int")
+			out[id] = per[sk]
+		new_bases[ek] = out
+	var new_mods: Dictionary = {}
+	var max_handle: int = 0
+	var mods_in: Dictionary = mods_v
+	for hk: Variant in mods_in:
+		if typeof(hk) != TYPE_INT or hk < 1 or typeof(mods_in[hk]) != TYPE_DICTIONARY:
+			return _restore_fail("modifier handle or shape")
+		var m: Dictionary = mods_in[hk]
+		if m.size() != 6 or typeof(m.get("entity")) != TYPE_INT or typeof(m.get("value")) != TYPE_INT or typeof(m.get("tags")) != TYPE_ARRAY:
+			return _restore_fail("modifier %d fields" % hk)
+		var stat: StringName = _as_name(m.get("stat"))
+		var cls: StringName = _as_name(m.get("class"))
+		var source: StringName = _as_name(m.get("source"))
+		if not _stats.has(stat) or not _classes.has(cls) or source.is_empty() or not _id_regex.search(String(source)):
+			return _restore_fail("modifier %d names" % hk)
+		var tags_arr: Array = m["tags"]
+		var tags: Array[String] = []
+		for t: Variant in tags_arr:
+			var tn: StringName = _as_name(t)
+			if tn.is_empty() or not _id_regex.search(String(tn)) or tags.has(String(tn)):
+				return _restore_fail("modifier %d tags" % hk)
+			tags.append(String(tn))
+		var sorted_tags: Array[String] = tags.duplicate()
+		sorted_tags.sort()
+		if sorted_tags != tags:
+			return _restore_fail("modifier %d tags not canonical" % hk)
+		var handle: int = hk
+		max_handle = maxi(max_handle, handle)
+		new_mods[handle] = {"entity": m["entity"], "stat": stat, "class": cls, "value": m["value"], "source": source, "tags": tags}
+	if next_v <= max_handle:
+		return _restore_fail("next_handle must exceed every handle")
+	var new_tags: Dictionary = {}
+	var tags_in: Dictionary = tags_v
+	for ek: Variant in tags_in:
+		if typeof(ek) != TYPE_INT or typeof(tags_in[ek]) != TYPE_ARRAY:
+			return _restore_fail("tags shape")
+		var arr: Array = tags_in[ek]
+		var list: Array[String] = []
+		for t: Variant in arr:
+			var tn: StringName = _as_name(t)
+			if tn.is_empty() or not _id_regex.search(String(tn)) or list.has(String(tn)):
+				return _restore_fail("entity %d tags" % ek)
+			list.append(String(tn))
+		var sorted_list: Array[String] = list.duplicate()
+		sorted_list.sort()
+		if list.is_empty() or sorted_list != list:
+			return _restore_fail("entity %d tags not canonical" % ek)
+		new_tags[ek] = list
+	var new_inherits: Dictionary = {}
+	var inherits_in: Dictionary = inherits_v
+	for ek: Variant in inherits_in:
+		if typeof(ek) != TYPE_INT or typeof(inherits_in[ek]) != TYPE_INT or inherits_in[ek] < 0 or inherits_in[ek] == ek:
+			return _restore_fail("inherits shape")
+		new_inherits[ek] = inherits_in[ek]
+	for ek: Variant in new_inherits:
+		var walk: int = new_inherits[ek]
+		var depth: int = 0
+		while new_inherits.has(walk):
+			walk = new_inherits[walk]
+			depth += 1
+			if walk == ek or depth >= MAX_INHERIT_DEPTH:
+				return _restore_fail("inheritance cycle")
+	# commit
+	_bases = new_bases
+	_modifiers = new_mods
+	_tags = new_tags
+	_inherits = new_inherits
+	_next_handle = next_v
+	_index.clear()
+	for handle: int in _modifiers:
+		var m: Dictionary = _modifiers[handle]
+		var entity: int = m["entity"]
+		var stat: StringName = m["stat"]
+		if not _index.has(entity):
+			_index[entity] = {}
+		var per_entity: Dictionary = _index[entity]
+		if not per_entity.has(stat):
+			per_entity[stat] = [] as Array[int]
+		var handles: Array[int] = per_entity[stat]
+		handles.append(handle)
+	for entity: int in _index:
+		var per_entity: Dictionary = _index[entity]
+		for stat: StringName in per_entity:
+			var handles: Array[int] = per_entity[stat]
+			handles.sort()
+	_children.clear()
+	for child: int in _inherits:
+		var parent: int = _inherits[child]
+		if not _children.has(parent):
+			_children[parent] = []
+		var kids: Array = _children[parent]
+		kids.append(child)
+	_cache.clear()
+	return OK
+
+
+func _restore_fail(reason: String) -> Error:
+	push_error("StatResolver.restore: rejected snapshot: %s" % reason)
+	return ERR_INVALID_DATA
+
+
+static func _as_name(v: Variant) -> StringName:
+	match typeof(v):
+		TYPE_STRING_NAME:
+			return v
+		TYPE_STRING:
+			var s: String = v
+			return StringName(s)
+		_:
+			return &""
+
+
 # ---------------------------------------------------------------- registration
 
 ## Registers a stat with the base every entity has until set_base() says otherwise.

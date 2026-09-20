@@ -62,9 +62,13 @@ file (design doc §16). Nothing else is built.
    identical in every stat, 10 000 generated cases. Every instance has a sim-unique
    integer id issued by the item system; ids are never reused within a run.
 7. **A weapon is a frame plus sockets** (design doc §11.1). A frame declares sockets by
-   kind (`barrel`, `slide`, `optic`, `magazine`, `power_cell`); a part declares the
-   socket kind it fits and the modifiers it contributes to the weapon's stats via the
-   resolver. Attaching, detaching and the resulting handling stats (`damage`,
+   kind (`barrel`, `slide`, `optic`, `magazine`, `power_cell`, each a `weapon_socket`
+   content file); a part declares the socket kind it fits and the modifiers it
+   contributes to the weapon's stats via the resolver. A socket file may declare
+   `contains: ammo`, which makes its parts round containers with a capacity; that is
+   what a magazine is, and no code names "magazine". Parts attach and detach through
+   `&"weapon.attach"` / `&"weapon.detach"`; container-socket parts go through the
+   reload commands only. Attaching, detaching and the resulting handling stats (`damage`,
    `recoil`, `ergonomics`, `sway`, `aim_in_ticks`) are all resolver reads; there is
    no per-weapon code path. The one frame is `content/weapon_frame/g19.json`, a
    compact semi-auto 9 mm analog with no gimmick (design doc §11.2), with one barrel,
@@ -77,8 +81,10 @@ file (design doc §16). Nothing else is built.
    `&"magazine.unload"` (pop one), `&"weapon.reload_tactical"` (swap in a named
    magazine; the partial one returns to the actor's inventory), and
    `&"weapon.reload_emergency"` (swap in; the partial one is dropped to the world
-   container). Each reload has a duration in ticks read through the resolver
-   (`reload_ticks`), during which further weapon commands are rejected.
+   container). A reload chambers the magazine's top round if the chamber was empty
+   (no separate racking command at M1). Each reload has a duration in ticks read
+   through the resolver (`reload_ticks`), during which further weapon commands are
+   rejected.
 9. **Items are conserved.** Property tests over ≥10 000 generated sequences of load,
    unload, reload, fire and attach/detach: the multiset of item instance ids across
    all containers (inventory, magazines, chamber, world) never gains or loses an id
@@ -86,9 +92,10 @@ file (design doc §16). Nothing else is built.
    explicit spawn; no id is ever in two containers at once.
 10. **Item state survives a save round-trip with partial magazines** (ADR-009
     verification, G1). `ItemSystem.snapshot()` followed by
-    `ItemSystem.restore(snapshot)` on a fresh instance yields an equal snapshot and an
-    equal `SimRoot.state_hash()` for generated states that include partially loaded
-    magazines and a chambered round. `restore` treats its input as untrusted
+    `ItemSystem.restore(snapshot)` on a fresh instance (with the resolver and the id
+    allocator restored from theirs) yields equal system snapshots and an equal hash of
+    the sim's `systems` state for states that include partially loaded magazines and a
+    chambered round; the root's own counters and RNG are full save/load, G2. `restore` treats its input as untrusted
     (standards §5.1) and returns an `Error` on any malformed field. Full sim save/load
     remains G2 scope.
 

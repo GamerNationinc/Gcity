@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "Standard 15-round magazine.",
+	"socket": "magazine",
+	"fits": ["g19"],
+	"calibre": "9x19",
+	"capacity": 15,
+	"modifiers": [
+		{"stat": "ergonomics", "class": "add", "value": -300}
+	]
+}

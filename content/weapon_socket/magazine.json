@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"description": "Magazine well. Parts here are ordered containers of rounds (ADR-009).",
+	"contains": "ammo"
+}

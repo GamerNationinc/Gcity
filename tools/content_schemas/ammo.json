@@ -1,0 +1,15 @@
+{
+	"schema_version": 1,
+	"description": "A round template. Rounds are item instances (ADR-009); their stats resolve on the round entity, which inherits the weapon's tags when chambered.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"calibre": {"type": "string", "ref": "calibre"},
+		"tags": {"type": "array", "max_length": 16, "items": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}},
+		"stats": {"type": "array", "max_length": 32, "items": {"type": "object",
+			"properties": {"stat": {"type": "string", "ref": "stat"}, "value": {"type": "int", "min": -1000000000, "max": 1000000000}},
+			"required": ["stat", "value"], "additional_properties": false}}
+	},
+	"required": ["schema_version", "description", "calibre", "tags", "stats"],
+	"additional_properties": false
+}

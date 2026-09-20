@@ -32,3 +32,8 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | Kind | Since | Fields |
 |---|---|---|
 | `stat` | M1 | `default_base` (int, milli-units), `description` |
+| `calibre` | M1 | `description` |
+| `weapon_socket` | M1 | `description`, optional `contains` (a content kind; only `ammo` at M1) |
+| `weapon_frame` | M1 | `calibre` (ref), `sockets` (refs), `tags`, `stats` (`{stat: ref, value}`) |
+| `weapon_part` | M1 | `socket` (ref), `fits` (frame refs), `modifiers` (`{stat: ref, class, value}`), `capacity` + `calibre` for container sockets |
+| `ammo` | M1 | `calibre` (ref), `tags`, `stats` |

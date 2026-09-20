@@ -21,7 +21,7 @@ func test_real_content_loads_and_registers_every_stat() -> void:
 	assert_eq(db.ids(&"stat"), expected, "every stat file is an entry")
 	var sim: SimRoot = SimAssembly.build(SEED, db)
 	assert_true(sim != null, "assembly succeeds")
-	assert_eq(sim.system_ids(), [&"content", &"stats"] as Array[StringName], "fixed system order")
+	assert_eq(sim.system_ids(), [&"content", &"entities", &"stats", &"items"] as Array[StringName], "fixed system order")
 	var stats: StatResolver = SimAssembly.stats_of(sim)
 	assert_eq(stats.stat_ids(), expected, "resolver registered every stat")
 	var entry: Dictionary = db.get_entry(&"stat", &"damage")
@@ -55,3 +55,18 @@ func test_assembly_refuses_bad_content() -> void:
 
 func test_stats_of_requires_an_assembled_sim() -> void:
 	assert_true(SimAssembly.stats_of(SimRoot.new(SEED)) == null, "bare sim has no resolver")
+	assert_true(SimAssembly.items_of(SimRoot.new(SEED)) == null, "bare sim has no items")
+	assert_true(SimAssembly.entities_of(SimRoot.new(SEED)) == null, "bare sim has no id allocator")
+
+
+func test_commands_are_registered_by_the_item_system() -> void:
+	var sim: SimRoot = SimAssembly.build(SEED, _content())
+	assert_eq(sim.commands().kinds(), [&"item.spawn", &"magazine.load", &"magazine.unload", &"weapon.attach",
+		&"weapon.detach", &"weapon.reload_emergency", &"weapon.reload_tactical"] as Array[StringName], "lexical kinds")
+
+
+func test_assembly_refuses_content_the_item_system_cannot_use() -> void:
+	var db := _content()
+	assert_eq(db.add(&"weapon_part", &"zz_bad", {"schema_version": 1, "description": "x", "socket": "barrel", "fits": ["g19"],
+		"modifiers": [{"stat": "recoil", "class": "pow", "value": 1}]}), OK, "db accepts shape")
+	assert_true(SimAssembly.build(SEED, db) == null, "an unregistered modifier class stops assembly")

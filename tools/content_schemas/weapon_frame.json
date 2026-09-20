@@ -1,0 +1,16 @@
+{
+	"schema_version": 1,
+	"description": "A weapon frame: calibre, the sockets it offers, its tags and its base stats (design doc §11.1).",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"calibre": {"type": "string", "ref": "calibre"},
+		"sockets": {"type": "array", "min_length": 1, "max_length": 16, "items": {"type": "string", "ref": "weapon_socket"}},
+		"tags": {"type": "array", "max_length": 16, "items": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}},
+		"stats": {"type": "array", "max_length": 32, "items": {"type": "object",
+			"properties": {"stat": {"type": "string", "ref": "stat"}, "value": {"type": "int", "min": -1000000000, "max": 1000000000}},
+			"required": ["stat", "value"], "additional_properties": false}}
+	},
+	"required": ["schema_version", "description", "calibre", "sockets", "tags", "stats"],
+	"additional_properties": false
+}

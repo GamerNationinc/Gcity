@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "Stock 102 mm barrel.",
+	"socket": "barrel",
+	"fits": ["g19"],
+	"modifiers": [
+		{"stat": "hit_chance", "class": "add", "value": 20000}
+	]
+}

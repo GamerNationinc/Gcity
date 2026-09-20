@@ -320,3 +320,79 @@ func test_property_cache_matches_fresh_resolution() -> void:
 			if failures <= 3:
 				fail("case %d: snapshots differ between cached and fresh resolvers" % case)
 	assert_eq(failures, 0, "cache consistent in all %d cases" % PROPERTY_CASES)
+
+
+# ---------------------------------------------------------------- restore
+
+func test_restore_round_trips_and_rejects_hostile_input() -> void:
+	var a := _resolver()
+	assert_eq(a.set_base(1, &"damage", 5), OK, "base")
+	assert_eq(a.set_tags(2, [&"t", &"a"]), OK, "tags")
+	assert_eq(a.set_inherits(2, 1), OK, "inherit")
+	var h1: int = a.add_modifier(1, _mod(&"damage", &"mul", 1000, [&"t"]))
+	var h2: int = a.add_modifier(2, _mod(&"recoil", &"add", -7))
+	assert_eq(a.remove_modifier(h1), OK, "remove one so next_handle is ahead of the live handles")
+	assert_true(h2 >= 1, "h2")
+	var snap: Dictionary = a.snapshot()
+	var b := _resolver()
+	assert_eq(b.restore(snap), OK, "restore")
+	assert_eq(StateHash.of(b.snapshot()), StateHash.of(snap), "identical snapshot after restore")
+	for entity: int in [1, 2]:
+		for stat: StringName in STATS:
+			assert_eq(b.resolve(entity, stat), a.resolve(entity, stat), "resolve %d %s" % [entity, stat])
+	var h3a: int = a.add_modifier(1, _mod(&"sway", &"add", 1))
+	var h3b: int = b.add_modifier(1, _mod(&"sway", &"add", 1))
+	assert_eq(h3a, h3b, "handles continue identically")
+	# string keys (as a JSON round trip would produce) are accepted
+	var stringy: Dictionary = snap.duplicate(true)
+	var stats_s: Dictionary = {}
+	var stats_in: Dictionary = stringy["stats"]
+	for key: StringName in stats_in:
+		stats_s[String(key)] = stats_in[key]
+	stringy["stats"] = stats_s
+	var c := _resolver()
+	assert_eq(c.restore(stringy), OK, "String keys accepted")
+	assert_eq(StateHash.of(c.snapshot()), StateHash.of(snap), "and canonicalised back")
+	var hostile: Array[Dictionary] = []
+	var d: Dictionary
+	d = snap.duplicate(true)
+	d.erase("tags")
+	hostile.append(d)
+	d = snap.duplicate(true)
+	d["next_handle"] = 1
+	hostile.append(d)
+	d = snap.duplicate(true)
+	_sub(d, "stats")[&"damage"] = 999
+	hostile.append(d)
+	d = snap.duplicate(true)
+	_sub(d, "classes")[&"pow"] = 5
+	hostile.append(d)
+	d = snap.duplicate(true)
+	_sub(d, "bases")[1] = {&"nope": 1}
+	hostile.append(d)
+	d = snap.duplicate(true)
+	_sub(d, "modifiers")[h2] = {"entity": 2, "stat": &"recoil", "class": &"add", "value": 1.5, "source": &"s", "tags": []}
+	hostile.append(d)
+	d = snap.duplicate(true)
+	_sub(d, "modifiers")[h2] = {"entity": 2, "stat": &"recoil", "class": &"add", "value": 1, "source": &"s", "tags": ["b", "a"]}
+	hostile.append(d)
+	d = snap.duplicate(true)
+	_sub(d, "tags")[2] = ["t", "a"]
+	hostile.append(d)
+	d = snap.duplicate(true)
+	_sub(d, "inherits")[1] = 2
+	hostile.append(d)
+	d = snap.duplicate(true)
+	_sub(d, "inherits")[3] = 3
+	hostile.append(d)
+	var i: int = 0
+	for bad: Dictionary in hostile:
+		var e := _resolver()
+		assert_eq(e.restore(bad), ERR_INVALID_DATA, "hostile %d rejected" % i)
+		assert_eq(StateHash.of(e.snapshot()), StateHash.of(_resolver().snapshot()), "hostile %d left it pristine" % i)
+		i += 1
+
+
+static func _sub(dict: Dictionary, key: String) -> Dictionary:
+	var out: Dictionary = dict[key]
+	return out
