@@ -40,4 +40,4 @@ The M0 gate passes with a repository containing no code that predates this ADR.
 
 ## Sign-off
 
-Approver: Lukas Williams — _pending_
+Approver: CEOGG — _pending_
