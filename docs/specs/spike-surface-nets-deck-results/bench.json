@@ -1,0 +1,180 @@
+{
+  "all_equal": true,
+  "engine": "4.6.1-stable (official)",
+  "gdscript_total_us": 1162081.0,
+  "mode": "bench",
+  "pass_5x_equal_output": true,
+  "ratio": 169.271252112102,
+  "rows": [
+    {
+      "coord": [
+        9,
+        -1,
+        0
+      ],
+      "equal": true,
+      "gdscript_us": 97442.0,
+      "max_position_dev": 0.000000238418579101562,
+      "ratio": 188.694810224632,
+      "rust_us": 516.4,
+      "triangles": 2320.0,
+      "vertices": 1229
+    },
+    {
+      "coord": [
+        8,
+        -1,
+        6
+      ],
+      "equal": true,
+      "gdscript_us": 104187.0,
+      "max_position_dev": 0.00000095367431640625,
+      "ratio": 156.2023988006,
+      "rust_us": 667.0,
+      "triangles": 4710.0,
+      "vertices": 2565
+    },
+    {
+      "coord": [
+        3,
+        0,
+        7
+      ],
+      "equal": true,
+      "gdscript_us": 88737.0,
+      "max_position_dev": 0.000000119209289550781,
+      "ratio": 178.689085783327,
+      "rust_us": 496.6,
+      "triangles": 1408.0,
+      "vertices": 1033
+    },
+    {
+      "coord": [
+        -2,
+        -1,
+        1
+      ],
+      "equal": true,
+      "gdscript_us": 98499.0,
+      "max_position_dev": 0.00000095367431640625,
+      "ratio": 179.154237904693,
+      "rust_us": 549.8,
+      "triangles": 2952.0,
+      "vertices": 1584
+    },
+    {
+      "coord": [
+        -5,
+        -1,
+        -8
+      ],
+      "equal": true,
+      "gdscript_us": 102181.0,
+      "max_position_dev": 0.000000480548010273196,
+      "ratio": 161.627649478013,
+      "rust_us": 632.2,
+      "triangles": 4624.0,
+      "vertices": 2549
+    },
+    {
+      "coord": [
+        -3,
+        0,
+        -13
+      ],
+      "equal": true,
+      "gdscript_us": 93540.0,
+      "max_position_dev": 0.000000238418579101562,
+      "ratio": 176.357466063348,
+      "rust_us": 530.4,
+      "triangles": 2604.0,
+      "vertices": 1379
+    },
+    {
+      "coord": [
+        2,
+        0,
+        -12
+      ],
+      "equal": true,
+      "gdscript_us": 90768.0,
+      "max_position_dev": 0.00000191107028513215,
+      "ratio": 176.728971962617,
+      "rust_us": 513.6,
+      "triangles": 2250.0,
+      "vertices": 1252
+    },
+    {
+      "coord": [
+        9,
+        0,
+        -5
+      ],
+      "equal": true,
+      "gdscript_us": 91897.0,
+      "max_position_dev": 0.000000238418579101562,
+      "ratio": 172.285339332583,
+      "rust_us": 533.4,
+      "triangles": 2654.0,
+      "vertices": 1479
+    },
+    {
+      "coord": [
+        16,
+        -1,
+        1
+      ],
+      "equal": true,
+      "gdscript_us": 102274.0,
+      "max_position_dev": 0.000000238418579101562,
+      "ratio": 160.757623388871,
+      "rust_us": 636.2,
+      "triangles": 4832.0,
+      "vertices": 2594
+    },
+    {
+      "coord": [
+        19,
+        -1,
+        2
+      ],
+      "equal": true,
+      "gdscript_us": 101615.0,
+      "max_position_dev": 0.0000019073486328125,
+      "ratio": 162.740230621397,
+      "rust_us": 624.4,
+      "triangles": 3950.0,
+      "vertices": 2242
+    },
+    {
+      "coord": [
+        18,
+        0,
+        -4
+      ],
+      "equal": true,
+      "gdscript_us": 95206.0,
+      "max_position_dev": 0.00000095367431640625,
+      "ratio": 161.914965986395,
+      "rust_us": 588.0,
+      "triangles": 4110.0,
+      "vertices": 2303
+    },
+    {
+      "coord": [
+        14,
+        0,
+        -13
+      ],
+      "equal": true,
+      "gdscript_us": 95735.0,
+      "max_position_dev": 0.0000019073486328125,
+      "ratio": 165.861053361053,
+      "rust_us": 577.2,
+      "triangles": 3728.0,
+      "vertices": 2031
+    }
+  ],
+  "rust_total_us": 6865.2,
+  "spike": "surface-nets-deck"
+}

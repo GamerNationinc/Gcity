@@ -1,0 +1,36 @@
+Initialize godot-rust (API v4.6.stable.official, runtime v4.6.1.stable.official, safeguards balanced)
+Godot Engine v4.6.1.stable.official.14d19694e - https://godotengine.org
+Vulkan 1.4.330 - Forward+ - Using Device #0: AMD - AMD Custom GPU 0932 (RADV VANGOGH)
+
+spike: soak duration=1800s workers=3 radius=5 vradius=2 uploads=4 speed=8.0 edit_interval=2.0 seed=20260920
+minute  1  fps 348.4  p50 2.78  p99 3.33  p99.9 4.23  over25 0.000  meshing 1.27 ms/40fps-frame  chunks/s 25.3  resident 218  tris 565502  backlog 0
+minute  2  fps 287.9  p50 3.42  p99 4.17  p99.9 5.56  over25 0.000  meshing 0.98 ms/40fps-frame  chunks/s 18.9  resident 197  tris 615852  backlog 0
+minute  3  fps 292.3  p50 3.36  p99 4.17  p99.9 5.00  over25 0.000  meshing 1.04 ms/40fps-frame  chunks/s 20.3  resident 218  tris 637692  backlog 0
+minute  4  fps 344.7  p50 2.78  p99 3.33  p99.9 4.55  over25 0.000  meshing 1.14 ms/40fps-frame  chunks/s 22.1  resident 200  tris 547840  backlog 0
+minute  5  fps 359.9  p50 2.78  p99 3.33  p99.9 4.17  over25 0.000  meshing 1.09 ms/40fps-frame  chunks/s 19.3  resident 206  tris 571094  backlog 7
+minute  6  fps 347.1  p50 2.80  p99 3.38  p99.9 5.27  over25 0.000  meshing 0.97 ms/40fps-frame  chunks/s 17.8  resident 220  tris 573682  backlog 0
+minute  7  fps 301.8  p50 3.33  p99 4.17  p99.9 4.56  over25 0.000  meshing 1.08 ms/40fps-frame  chunks/s 18.7  resident 221  tris 651310  backlog 0
+minute  8  fps 294.3  p50 3.33  p99 4.17  p99.9 4.43  over25 0.000  meshing 1.14 ms/40fps-frame  chunks/s 21.3  resident 223  tris 627088  backlog 0
+minute  9  fps 332.2  p50 3.03  p99 3.70  p99.9 4.55  over25 0.000  meshing 1.21 ms/40fps-frame  chunks/s 22.3  resident 200  tris 571934  backlog 0
+minute 10  fps 351.2  p50 2.78  p99 3.33  p99.9 4.20  over25 0.000  meshing 1.04 ms/40fps-frame  chunks/s 18.5  resident 215  tris 630584  backlog 0
+minute 11  fps 348.4  p50 2.78  p99 3.33  p99.9 4.55  over25 0.000  meshing 1.00 ms/40fps-frame  chunks/s 17.4  resident 203  tris 585400  backlog 0
+minute 12  fps 325.1  p50 3.03  p99 3.70  p99.9 5.56  over25 0.000  meshing 1.03 ms/40fps-frame  chunks/s 18.7  resident 219  tris 641384  backlog 0
+minute 13  fps 288.4  p50 3.37  p99 4.17  p99.9 5.56  over25 0.000  meshing 1.12 ms/40fps-frame  chunks/s 19.6  resident 200  tris 608942  backlog 0
+minute 14  fps 313.8  p50 3.11  p99 4.17  p99.9 5.56  over25 0.000  meshing 1.25 ms/40fps-frame  chunks/s 22.3  resident 199  tris 543468  backlog 0
+minute 15  fps 347.1  p50 2.78  p99 3.33  p99.9 5.56  over25 0.000  meshing 1.13 ms/40fps-frame  chunks/s 20.3  resident 226  tris 637756  backlog 0
+minute 16  fps 359.7  p50 2.78  p99 3.33  p99.9 4.17  over25 0.000  meshing 1.06 ms/40fps-frame  chunks/s 18.2  resident 196  tris 607020  backlog 0
+minute 17  fps 339.2  p50 2.87  p99 3.70  p99.9 4.21  over25 0.000  meshing 1.00 ms/40fps-frame  chunks/s 18.6  resident 222  tris 590648  backlog 0
+minute 18  fps 284.8  p50 3.45  p99 4.17  p99.9 4.89  over25 0.000  meshing 1.16 ms/40fps-frame  chunks/s 19.7  resident 180  tris 571744  backlog 0
+minute 19  fps 300.3  p50 3.33  p99 4.17  p99.9 4.78  over25 0.000  meshing 1.20 ms/40fps-frame  chunks/s 21.4  resident 198  tris 529184  backlog 0
+minute 20  fps 348.6  p50 2.78  p99 3.33  p99.9 4.59  over25 0.000  meshing 1.23 ms/40fps-frame  chunks/s 20.3  resident 227  tris 589128  backlog 0
+minute 21  fps 365.1  p50 2.78  p99 3.15  p99.9 4.27  over25 0.000  meshing 1.03 ms/40fps-frame  chunks/s 18.4  resident 205  tris 606252  backlog 0
+minute 22  fps 346.8  p50 2.83  p99 3.41  p99.9 3.95  over25 0.000  meshing 1.19 ms/40fps-frame  chunks/s 19.5  resident 214  tris 562910  backlog 0
+minute 23  fps 284.5  p50 3.47  p99 4.17  p99.9 4.85  over25 0.000  meshing 1.20 ms/40fps-frame  chunks/s 18.9  resident 193  tris 606130  backlog 0
+minute 24  fps 291.7  p50 3.36  p99 4.17  p99.9 5.56  over25 0.000  meshing 1.18 ms/40fps-frame  chunks/s 21.2  resident 214  tris 601880  backlog 0
+minute 25  fps 346.8  p50 2.78  p99 3.33  p99.9 4.44  over25 0.000  meshing 1.17 ms/40fps-frame  chunks/s 20.3  resident 200  tris 548434  backlog 0
+minute 26  fps 358.9  p50 2.78  p99 3.33  p99.9 4.00  over25 0.000  meshing 1.15 ms/40fps-frame  chunks/s 20.4  resident 212  tris 609214  backlog 0
+minute 27  fps 348.9  p50 2.78  p99 3.35  p99.9 4.31  over25 0.000  meshing 1.06 ms/40fps-frame  chunks/s 18.5  resident 224  tris 570042  backlog 0
+minute 28  fps 297.4  p50 3.35  p99 4.17  p99.9 4.45  over25 0.000  meshing 1.16 ms/40fps-frame  chunks/s 17.8  resident 220  tris 677822  backlog 0
+minute 29  fps 291.8  p50 3.34  p99 4.17  p99.9 5.22  over25 0.000  meshing 1.19 ms/40fps-frame  chunks/s 20.5  resident 199  tris 559864  backlog 47
+minute 30  fps 332.5  p50 3.03  p99 3.70  p99.9 4.76  over25 0.000  meshing 1.22 ms/40fps-frame  chunks/s 23.0  resident 204  tris 578392  backlog 0
+spike: done. final 5 min: p99 4.12 ms (pass), meshing 1.15 ms/frame (pass) -> PASS
