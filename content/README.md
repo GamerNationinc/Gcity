@@ -19,6 +19,7 @@ Kinds so far:
 |---|---|---|
 | `stat` | M1 | `StatResolver` via `SimAssembly.build()`; see `docs/extending-progression.md` |
 | `calibre`, `weapon_socket`, `weapon_frame`, `weapon_part`, `ammo` | M1 | `ItemSystem`; see `docs/extending-items.md` |
+| `combat_stage`, `combat_profile` | M1 | `CombatSystem`, `ActorSystem`; see `docs/extending-items.md` § Combat |
 
 Content reaches the sim as dictionaries through `client/content_loader.gd` into
 `ContentDb`; the sim never opens a file. Integral JSON numbers arrive as ints.

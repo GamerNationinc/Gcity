@@ -22,20 +22,27 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var items: ItemSystem = ItemSystem.new(content, stats, ids)
 	if items.attach(sim) != OK:
 		return null
+	var actors: ActorSystem = ActorSystem.new(content, stats, ids, items)
+	if actors.attach(sim) != OK:
+		return null
+	var events: EventBus = EventBus.new()
+	var combat: CombatSystem = CombatSystem.new(content, stats, items, actors, events)
+	if combat.attach(sim) != OK:
+		return null
 	return sim
 
 
 ## Restores every system of a freshly built sim from a full [method SimRoot.snapshot]
-## taken of another sim built over the same content. The tick, RNG and inbox are not
-## restored here (full save/load is G2); this is the item-and-stats round trip of
-## ADR-009's G1 verification.
+## taken of another sim built over the same content, in registration order. The tick,
+## RNG and inbox are not restored here (full save/load is G2); this is the
+## item-and-stats round trip of ADR-009's G1 verification.
 static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 	var systems_v: Variant = snapshot.get("systems")
 	if typeof(systems_v) != TYPE_DICTIONARY:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -49,6 +56,10 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = stats_of(sim).restore(state)
 			ItemSystem.SYSTEM_ID:
 				err = items_of(sim).restore(state)
+			ActorSystem.SYSTEM_ID:
+				err = actors_of(sim).restore(state)
+			CombatSystem.SYSTEM_ID:
+				err = combat_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -79,3 +90,21 @@ static func entities_of(sim: SimRoot) -> EntityIds:
 		return null
 	var ids: EntityIds = system
 	return ids
+
+
+static func actors_of(sim: SimRoot) -> ActorSystem:
+	var system: SimSystem = sim.get_system(ActorSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % ActorSystem.SYSTEM_ID)
+		return null
+	var actors: ActorSystem = system
+	return actors
+
+
+static func combat_of(sim: SimRoot) -> CombatSystem:
+	var system: SimSystem = sim.get_system(CombatSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % CombatSystem.SYSTEM_ID)
+		return null
+	var combat: CombatSystem = system
+	return combat

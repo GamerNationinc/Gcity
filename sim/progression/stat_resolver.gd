@@ -395,6 +395,34 @@ func get_inherits(entity: int) -> int:
 	return _inherits.get(entity, -1)
 
 
+## Drops everything the resolver holds about an entity that no longer exists: its
+## bases, tags, inheritance link, its own modifiers, and links from entities that
+## inherited from it. Used when an item is consumed.
+func forget_entity(entity: int) -> void:
+	_bases.erase(entity)
+	_tags.erase(entity)
+	_detach_from_parent(entity)
+	var kids: Variant = _children.get(entity)
+	if typeof(kids) == TYPE_ARRAY:
+		var source: Array = kids
+		var arr: Array = source.duplicate()
+		for child: Variant in arr:
+			var child_id: int = child
+			_detach_from_parent(child_id)
+			_invalidate(child_id)
+	var owned: Variant = _index.get(entity)
+	if typeof(owned) == TYPE_DICTIONARY:
+		var per_entity: Dictionary = owned
+		var handles: Array[int] = []
+		for stat: StringName in per_entity:
+			var list: Array[int] = per_entity[stat]
+			handles.append_array(list)
+		for handle: int in handles:
+			_modifiers.erase(handle)
+		_index.erase(entity)
+	_cache.erase(entity)
+
+
 # ---------------------------------------------------------------- modifiers
 
 ## Adds a modifier: {"stat": StringName, "class": StringName, "value": int,

@@ -84,6 +84,30 @@ not hold, wrong calibres, full magazines and busy weapons are all rejected witho
 state change. Until the actor system lands, "actor" is any positive int naming an
 inventory; the actor system will gate it.
 
+## Combat: profiles, stages, actors
+
+The one pipeline (`sim/items/combat_system.gd`, design doc §13.1) runs the stages a
+`content/combat_profile/<id>.json` enables, in the profile's order, on `weapon.fire`
+`{actor, target}`: the shooter's wielded weapon, its chambered round, the target's
+declared range. Then it consumes the round (the only way an item leaves the world),
+chambers the next, makes the weapon busy for `cycle_ticks`, and emits `combat.fire` and
+`combat.hit` on the event bus with the weapon's tags and the range, which is all the
+progression system needs to know.
+
+| To add | Do |
+|---|---|
+| A profile (arcade, sim, range dummy) | one file: `stages`, `range_falloff_per_m`, `health.nodes` (`id`, `max`, `fatal`), `health.routing` (`node`, `weight`). At least one fatal node; every routed node must exist. |
+| A stage name | one file under `content/combat_stage/`. A profile may only enable names that code implements; `CombatSystem.validate_content()` refuses to assemble otherwise, so a typo or an aspirational stage fails at startup, not in play. |
+| A stage implementation | one registration call, `combat.register_stage(&"armour", callable)`, from the system that owns the semantics. The callable gets the shot context dictionary and the sim, reads through the resolver, and writes `hit`, `damage`, `node`, `applied`, `killed`. `tests/items/test_combat_system.gd::test_extension_a_new_stage_is_a_registration_call_and_content_is_checked` is the performed instance. |
+| An actor | `actor.spawn {profile, range_m}` (debug-class until the actor system gates it) and `actor.wield {actor, weapon}` for a frame in its inventory. |
+
+Built-in stages: `hit_roll` (resolved `hit_chance` minus `range_m × range_falloff_per_m`,
+clamped, rolled with `sim.rng()`), `damage` (the round's resolved `damage`), `routing`
+(weighted pick from the routing table, then `ActorSystem.damage_node`). Because a
+chambered round inherits the weapon's tags and the wielded weapon inherits from the
+actor, a perk tagged `weapon_class.handgun` on the actor changes the applied damage by
+exactly its factor with no combat code involved.
+
 ## What you may not do
 
 - Move an item by editing a container array. Every move is `_move()`, which keeps the
@@ -92,3 +116,5 @@ inventory; the actor system will gate it.
   modifiers in the resolver at spawn/attach time; gameplay reads `resolve()`.
 - Add a weapon behaviour as code on a frame. If a frame needs something the data cannot
   express, it is a new socket kind or a new stat, and it goes through the same files.
+- Branch on a profile name in code. Arcade and sim differ only in which stages a file
+  enables and which numbers it carries.

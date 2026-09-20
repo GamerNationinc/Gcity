@@ -37,3 +37,5 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `weapon_frame` | M1 | `calibre` (ref), `sockets` (refs), `tags`, `stats` (`{stat: ref, value}`) |
 | `weapon_part` | M1 | `socket` (ref), `fits` (frame refs), `modifiers` (`{stat: ref, class, value}`), `capacity` + `calibre` for container sockets |
 | `ammo` | M1 | `calibre` (ref), `tags`, `stats` |
+| `combat_stage` | M1 | `description` (a name code may implement) |
+| `combat_profile` | M1 | `stages` (refs), `range_falloff_per_m`, `health` (`nodes` with `id`/`max`/`fatal`, `routing` with `node`/`weight`) |

@@ -26,5 +26,5 @@ offset_right = -32.0
 offset_bottom = -32.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 28
-text = "Gcity M0 skeleton"
+theme_override_font_sizes/font_size = 18
+text = "Gcity M1 range"

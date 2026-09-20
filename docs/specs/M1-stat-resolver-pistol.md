@@ -106,8 +106,9 @@ file (design doc §16). Nothing else is built.
     round, chambers the next from the magazine if any, emits a `fire` event, and runs
     the stages the active `content/combat_profile/<id>.json` enables. M1 implements
     the stages the arcade profile needs and no more: hit resolution (a roll from
-    `sim.rng()` against the resolved `hit_chance` at the target's declared range, since
-    no spatial world exists yet), post-armour damage (the round's resolved `damage`;
+    `sim.rng()` against the resolved `hit_chance` less the profile's
+    `range_falloff_per_m` times the target's declared range, since no spatial world
+    exists yet), post-armour damage (the round's resolved `damage`;
     armour and penetration stages are registered as names but have no
     implementation and are disabled in the shipped profile), and body-part routing
     through the profile's routing table onto the target's health graph. Stage names
@@ -116,7 +117,8 @@ file (design doc §16). Nothing else is built.
 12. **Actors are minimal.** `sim/agents/ActorSystem` owns the player and target dummies
     as entities with an inventory container, a wielded-weapon slot and a health graph
     (design doc §13.2) whose nodes and fatal flags come from the combat profile. The
-    arcade profile's table routes everything to one node. The player and each dummy
+    arcade profile's table routes everything to one node; a `range_dummy` profile with
+    a deep pool exists so a range session can dump magazines into a target. The player and each dummy
     are created by `&"actor.spawn"` commands so that a fixture reproduces its entire
     starting state; the same holds for `&"item.spawn"`. Both kinds are recorded as
     debug-class commands in the debt log: acceptable in solo, to be gated before co-op.

@@ -487,6 +487,48 @@ func _reload(sim: SimRoot, payload: Dictionary, keep_old: bool) -> bool:
 	return true
 
 
+# ---------------------------------------------------------------- for the combat system
+
+## Destroys the chambered round: the one sanctioned way an item leaves the world
+## besides never having been spawned. Returns the consumed round's id, or 0.
+func consume_chambered(weapon: int) -> int:
+	var round: int = chambered(weapon)
+	if round == EntityIds.NONE:
+		return EntityIds.NONE
+	var container: StringName = chamber_container(weapon)
+	var list: Array[int] = _containers[container]
+	list.erase(round)
+	_containers.erase(container)
+	_location.erase(round)
+	_items.erase(round)
+	_stats.forget_entity(round)
+	return round
+
+
+## Moves the seated magazine's top round into an empty chamber. Returns the round, or 0.
+func chamber_next(weapon: int) -> int:
+	if chambered(weapon) != EntityIds.NONE:
+		return EntityIds.NONE
+	var magazine: int = magazine_of(weapon)
+	if magazine == EntityIds.NONE:
+		return EntityIds.NONE
+	var rounds: Array[int] = rounds_in(magazine)
+	if rounds.is_empty():
+		return EntityIds.NONE
+	var round: int = rounds[rounds.size() - 1]
+	_chamber(weapon, round)
+	return round
+
+
+## Marks a weapon busy until a tick (cycling, reloading). Never shortens an existing window.
+func set_busy(weapon: int, until_tick: int) -> void:
+	if not _items.has(weapon):
+		push_error("ItemSystem: set_busy on unknown item %d" % weapon)
+		return
+	var current: int = _busy_until.get(weapon, -1)
+	_busy_until[weapon] = maxi(until_tick, current)
+
+
 # ---------------------------------------------------------------- restore
 
 ## Loads item state from a snapshot produced by [method snapshot]. Untrusted input:
