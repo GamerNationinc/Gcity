@@ -10,6 +10,6 @@ scheduled into a named milestone), or **Rejected**.
 
 | Gate | Milestone | Status |
 |---|---|---|
-| G0 | M0 — Skeleton | evidence package submitted, awaiting review |
-| G1 | M1 — Stat resolver + one pistol | spec written (`docs/specs/M1-stat-resolver-pistol.md`); implementation blocked on G0 sign-off, ADR-003, ADR-009 |
+| G0 | M0 — Skeleton | **Accepted** 2026-09-20 by CEOGG |
+| G1 | M1 — Stat resolver + one pistol | spec written (`docs/specs/M1-stat-resolver-pistol.md`); implementation blocked on ADR-003 only (G0, ADR-002 and ADR-009 signed 2026-09-20) |
 | G2–G8 | see `docs/gcity-engineering-standards.md` §11 | not started |

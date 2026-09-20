@@ -3,7 +3,7 @@
 Milestone: M0 — Skeleton (design doc §16; standards §11 row G0)
 Specification: `docs/specs/M0-skeleton.md`
 Submitted: 2026-09-20 by Claude Code
-Outcome: _pending review_
+Outcome: **Accepted** (2026-09-20, CEOGG; see §6)
 
 ---
 
@@ -140,6 +140,6 @@ versions. `docs/extending-sim-systems.md` documents the minimal diff.
 ## 6. Sign-off
 
 Approver: CEOGG
-Date:
-Outcome: ☐ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
-Conditions:
+Date: 2026-09-20
+Outcome: ☑ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
+Conditions: none. Debt items 1–9 stand as scheduled; item 1 is closed by the ADR-002 sign-off recorded with this gate.
