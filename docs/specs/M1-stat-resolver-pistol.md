@@ -19,17 +19,22 @@ file (design doc §16). Nothing else is built.
 
 ### Stat resolver (`sim/progression/`)
 
-1. **Every number reads through one resolver.** `StatResolver.get(entity, stat_id)`
-   returns the resolved value of a stat for an entity (design doc §10.2). No system
+1. **Every number reads through one resolver.** `StatResolver.resolve(entity, stat_id)`
+   returns the resolved value of a stat for an entity (design doc §10.2; the design
+   doc writes `get`, which GDScript reserves on `Object`). No system
    under `sim/` reads a base value or a modifier directly to compute a gameplay
    number; the fitness function in claim 15 fails CI if one does.
 2. **Bases are never mutated.** A stat is a base plus an ordered stack of modifiers.
    A modifier is `{stat_id, class, value, source, tags}` where `class` is one of the
    registered modifier classes. M1 registers exactly two, both commutative within
    themselves: `add` (flat, integer) and `mul` (integer basis points; 1 000 = ×1.1).
-   Resolution is `(base + Σadd) × Π(1 + mul/10 000)`, integer arithmetic, truncating
-   once at the end. All stat values are integers in milli-units (a damage of 34.5 is
-   `34500`), so resolution is exact, hashable and platform-independent.
+   Modifiers of one class sum; classes fold in registered order:
+   `(base + Σadd) × (10 000 + Σmul) / 10 000`, integer arithmetic, truncating once at
+   the end (a multiplier sum below −10 000 clamps the result to 0). Additive stacking
+   within a class is what makes the class commutative with exact integers; compounding
+   `Π(1 + mul/10 000)` exactly would need 128-bit intermediates. All stat values are
+   integers in milli-units (a damage of 34.5 is `34500`), so resolution is exact,
+   hashable and platform-independent.
 3. **The resolver's invariants hold for all inputs** (standards §3.2), each as a
    property test over ≥10 000 generated cases: (a) applying a set of modifiers in any
    order resolves to the same value; (b) adding then removing a modifier restores the

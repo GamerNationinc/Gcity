@@ -9,6 +9,7 @@ class_name LocalHost extends Node
 @export var seed_override: int = 0
 
 var _sim: SimRoot
+var _content: ContentDb
 
 
 func _ready() -> void:
@@ -17,7 +18,11 @@ func _ready() -> void:
 	assert(Engine.physics_ticks_per_second == SimRoot.TICK_HZ,
 		"physics_ticks_per_second (%d) must equal SimRoot.TICK_HZ (%d)" % [Engine.physics_ticks_per_second, SimRoot.TICK_HZ])
 	var seed: int = seed_override if seed_override != 0 else randi()
-	_sim = SimRoot.new(seed)
+	_content = ContentDb.new()
+	var load_err: Error = ContentLoader.load_all(_content)
+	assert(load_err == OK, "content failed to load: %s" % error_string(load_err))
+	_sim = SimAssembly.build(seed, _content)
+	assert(_sim != null, "sim assembly failed")
 
 
 func _physics_process(_delta: float) -> void:
@@ -26,3 +31,7 @@ func _physics_process(_delta: float) -> void:
 
 func sim() -> SimRoot:
 	return _sim
+
+
+func content() -> ContentDb:
+	return _content

@@ -22,8 +22,12 @@ engine() {
 		GODOT="$(tools/godot.sh)"
 		export GODOT
 	fi
-	if [[ ! -d .godot/imported ]]; then
+	# Always rescan: new class_name scripts are unknown to the analyzer until the
+	# engine's global class cache is rebuilt, and a stale cache fails every dependent
+	# script with "could not find type".
+	if [[ -z "${GCITY_IMPORTED:-}" ]]; then
 		"$GODOT" --headless --path . --import >/dev/null 2>&1 || true
+		export GCITY_IMPORTED=1
 	fi
 }
 

@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Handling quality of a weapon, milli-units. Higher is better."
+}

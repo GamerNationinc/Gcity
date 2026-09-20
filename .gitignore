@@ -9,3 +9,8 @@
 tests/out/
 __pycache__/
 *.pyc
+
+# Engine import by-products under docs/ (a CSV there would become a .translation);
+# the results folders also carry a .gdignore so the importer skips them.
+docs/**/*.translation
+docs/**/*.import

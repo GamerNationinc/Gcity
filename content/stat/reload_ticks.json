@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Ticks a reload takes. Whole ticks at SimRoot.TICK_HZ, in milli-ticks."
+}

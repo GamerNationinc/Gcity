@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Recoil impulse per shot, milli-units. Higher is worse; parts trade it against ergonomics."
+}

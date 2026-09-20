@@ -7,7 +7,8 @@ before touching anything. This file is the short version that must hold on every
 
 ```
 sim/        authoritative state. No rendering, input, UI, audio, wall-clock, OS, global RNG.
-  core/     SimRoot (tick loop, seeded RNG, system + command registries, hashing, replay)
+  assembly.gd  SimAssembly: the one place systems are registered, in one fixed order
+  core/     SimRoot (tick loop, seeded RNG, system + command registries, hashing, replay, ContentDb)
   world/ nav/ land/ agents/ progression/ items/ quests/ threat/   (see each README.md)
 client/     rendering, input, camera, audio, the device. Reads sim state; submits commands.
 content/    data files only. content/<kind>/<id>.json, schema registered in tools/content_schemas/.
