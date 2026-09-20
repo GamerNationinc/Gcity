@@ -1,0 +1,19 @@
+[package]
+name = "surface_nets_spike"
+version = "0.1.0"
+edition = "2021"
+publish = false
+license = "MIT"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+# godot-rust (gdext). MPL-2.0. Pinned exactly; checksum in Cargo.lock.
+godot = { version = "=0.5.5", features = ["api-4-6"] }
+
+[profile.release]
+opt-level = 3
+debug = 1
+lto = "thin"
+codegen-units = 1
