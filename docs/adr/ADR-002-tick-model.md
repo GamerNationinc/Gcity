@@ -1,6 +1,6 @@
 # ADR-002: Deterministic fixed tick vs variable step
 
-Status: proposed
+Status: accepted
 Date: 2026-09-20
 Design doc: §4.1 (D-02); standards §1 principle 3, §3.1
 
@@ -65,4 +65,4 @@ means rewriting every system's time handling.
 
 ## Sign-off
 
-Approver: CEOGG — _pending_
+Approver: CEOGG — accepted 2026-09-20. Option A at 40 Hz, as proposed; C stays open as a later extension if co-op chooses lockstep.

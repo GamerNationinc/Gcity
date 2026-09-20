@@ -1,6 +1,6 @@
 # ADR-009: Magazines as ordered containers
 
-Status: proposed — **blocking; must close before M1** (standards §7)
+Status: accepted
 Date: 2026-09-20
 Design doc: §13.3 (D-09); §11 items; §12 device
 
@@ -48,4 +48,4 @@ Round conservation property across every reload operation, 10 000 generated sequ
 
 ## Sign-off
 
-Approver: CEOGG — _pending_
+Approver: CEOGG — accepted 2026-09-20. Option C, as proposed: ordered containers in the sim, count presentation by default. Unblocks M1 on this decision.
