@@ -14,7 +14,8 @@ Pass metric:  1% low frame time within budget over a 30-minute thermal soak whil
 Fallback:     ADR-003 option C (heightmap plus authored volumetric pockets), with the
               "under" route of the vertical slice as an authored pocket
 Disposal:     spikes/surface_nets_deck/ is deleted or promoted at the ADR sign-off;
-              never left in place
+              never left in place. Done 2026-09-20: code removed from the tree
+              (recoverable at commit cee8f1d), results kept beside this spec
 ```
 
 ## 1. What is measured
@@ -84,7 +85,7 @@ Nothing under `sim/`, `client/`, `tools/` or `tests/` changes for this spike.
 **Outcome: PASS on both pre-declared metrics, in both power profiles, 2026-09-20.**
 Two 30-minute soaks on this Deck (AMD Custom APU 0932, SteamOS, desktop mode), plugged
 in and then on battery, each from a cold start. Raw artifacts under
-`spikes/surface_nets_deck/results/`: `soak-plugged.json`, `soak-battery.json`, the two
+`docs/specs/spike-surface-nets-deck-results/`: `soak-plugged.json`, `soak-battery.json`, the two
 `*-thermal.csv` files, `bench.json`, the logs and the generated tables.
 
 | Pre-declared metric | Plugged | Battery | Budget | Headroom |

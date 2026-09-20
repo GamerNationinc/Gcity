@@ -1,6 +1,6 @@
 # ADR-003: Heightmap carving vs volumetric voxels
 
-Status: proposed — **blocking; must close before M1** (standards §7)
+Status: accepted
 Date: 2026-09-20
 Design doc: §5.5 (D-03); §6.2 vertical parcel rules; §15.2 the "under" route
 
@@ -39,8 +39,16 @@ workload.
 
 ## Decision
 
-Open. The recommended path to a decision is a timeboxed spike (standards §9.1) of B on
-Deck hardware:
+**Accepted: B — volumetric voxels with surface nets** (CEOGG, 2026-09-20), on the
+evidence of the spike below, with two conditions carried into the gates that own them:
+
+1. Colliders and runtime navigation on volumetric chunks are measured at G3 against
+   the physics and navigation rows of standards §4.1.
+2. The isolated worst frames seen in the spike (about 1 in 10⁴ frames at 25–92 ms,
+   uncorrelated with meshing) are traced at frame level before M7, and the streamer
+   promoted from the spike pools its mesh nodes.
+
+The spike that was proposed here was run as written:
 
 ```
 Spike: surface-nets-deck
@@ -62,6 +70,13 @@ that may assume the wrong one.
 
 The spike's pass metric, measured on Deck, recorded in `docs/specs/spike-surface-nets-deck.md`.
 
+Measured 2026-09-20, two 30-minute soaks on the Deck, final 5 minutes: 1% low frame
+time 4.10 ms plugged / 4.12 ms on battery (budget 25 ms); meshing 1.12 / 1.15 ms per
+40 fps frame (budget 3.0 ms); no thermal throttling; Rust mesher ×169 the GDScript port
+with bit-equal output. Raw data under `docs/specs/spike-surface-nets-deck-results/`.
+Spike code disposed at this sign-off per standards §9.1; it is recoverable at commit
+`cee8f1d` (`spikes/surface_nets_deck/`) for promotion into the first native module at M7.
+
 ## Sign-off
 
-Approver: CEOGG — _pending_
+Approver: CEOGG — accepted 2026-09-20, with the two conditions above. Option B. Unblocks M1.
