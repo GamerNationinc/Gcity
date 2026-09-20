@@ -40,8 +40,15 @@ stage_scripts() {
 stage_unit() {
 	echo "== headless tests"
 	engine
-	"$GODOT" --headless --path . -s tests/run_tests.gd 2>&1 | grep -vE '^Godot Engine v|^$'
-	return "${PIPESTATUS[0]}"
+	mkdir -p tests/out
+	local log=tests/out/unit.log
+	"$GODOT" --headless --path . -s tests/run_tests.gd > "$log" 2>&1
+	local status=$?
+	grep -vE '^Godot Engine v|^$' "$log"
+	# A passing assertion count is not enough: any runtime script error, or any engine
+	# error that did not come from a deliberate push_error, fails the stage.
+	python3 tools/check_test_log.py "$log" || status=1
+	return "$status"
 }
 
 stage_replay() {

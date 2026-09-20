@@ -9,6 +9,7 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `check_dependencies.py` | Architectural fitness function: the `sim/` → `client/` rule and the sim's determinism deny-list. |
 | `validate_content.py` | Content layout and schema-registration check for `content/`. |
 | `check_scripts.sh` | Runs the engine's static analyzer (`--check-only`) over every script; typed-GDScript enforcement. |
+| `check_test_log.py` | Fails the unit stage on any `SCRIPT ERROR` or any engine error not raised by `push_error`; a test that passes while the engine logs a bug underneath it is a failure. |
 | `replay_hash.gd` | Replays one fixture headless and prints its state hash. CI runs it twice and diffs. |
 | `test.sh` | The whole verification run, in the order CI uses it. Run this before presenting any work. |
 | `tests/` | Unit tests for the Python tools (`python3 -m unittest discover tools/tests`). |
