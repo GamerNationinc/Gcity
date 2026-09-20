@@ -1,0 +1,3 @@
+# Pinned engine (engineering standards §5.4). Upgrade both lines together.
+GODOT_VERSION=4.6.1-stable
+GODOT_LINUX_SHA256=cecd0cb6b55e931318a9d7237dc4197d69ea914966787a454808523626e2789f
