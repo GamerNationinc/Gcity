@@ -45,4 +45,4 @@ loss across death, corpse, and recovery); an M6 replay fixture with a death in i
 
 ## Sign-off
 
-Approver: Lukas Williams — _pending_
+Approver: CEOGG — _pending_

@@ -64,4 +64,4 @@ The spike's pass metric, measured on Deck, recorded in `docs/specs/spike-surface
 
 ## Sign-off
 
-Approver: Lukas Williams — _pending_
+Approver: CEOGG — _pending_

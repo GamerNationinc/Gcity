@@ -6,7 +6,7 @@ Companion to `gcity-design.md`. That document says *what* to build. This one say
 No milestone begins until the previous milestone's gate is signed. No exceptions, including
 for "small" work.
 
-Authority: Lukas Williams is the sole approver. Claude Code is the implementer. Nothing is
+Authority: CEOGG is the sole approver. Claude Code is the implementer. Nothing is
 "done" because the implementer says so.
 
 ---
@@ -54,7 +54,7 @@ together as an **evidence package** before review:
 |---|---|
 | **Specification** | What this milestone claims to do, written *before* implementation, in the design doc's terms. |
 | **Verification report** | Test results, coverage, property test seeds, fuzz corpus size, benchmark numbers on Deck hardware. |
-| **Demo script** | A numbered, reproducible sequence of actions Lukas performs on his own Deck to see the claims hold. Includes expected observation at each step. |
+| **Demo script** | A numbered, reproducible sequence of actions CEOGG performs on their own Deck to see the claims hold. Includes expected observation at each step. |
 | **Debt and deviation log** | Everything knowingly left incomplete, every deviation from the design doc, every assumption made in the absence of a decision. |
 
 ### 2.2 Gate outcomes
@@ -314,7 +314,7 @@ Verification: how we will know the decision was right
 ```
 
 Rules:
-- No ADR is closed without Lukas's sign-off.
+- No ADR is closed without CEOGG's sign-off.
 - **D-03 (terrain representation) and D-09 (magazine model) must be closed before M1**, per
   the design doc. They get more expensive weekly.
 - A decision that turns out wrong is superseded by a new ADR, never edited in place. The

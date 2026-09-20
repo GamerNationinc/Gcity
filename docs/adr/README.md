@@ -1,7 +1,7 @@
 # Architecture Decision Records
 
 The open decisions from `docs/gcity-design.md` §17, one file each, in the format from
-`docs/gcity-engineering-standards.md` §7. Status is `proposed` until Lukas Williams
+`docs/gcity-engineering-standards.md` §7. Status is `proposed` until CEOGG
 signs the file; a wrong decision is superseded by a new ADR, never edited in place.
 
 | ADR | Decision | Blocks | Status |

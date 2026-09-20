@@ -79,7 +79,7 @@ The pinned engine is in `tools/godot.pin`; `tools/godot.sh` downloads and verifi
 
 ## Milestone process
 
-No milestone starts before the previous gate is signed by Lukas Williams in
+No milestone starts before the previous gate is signed by CEOGG in
 `docs/gates/M<n>-gate.md`. Each milestone: spec in `docs/specs/` first, then tests and
 code, then the four-part evidence package in the gate file. Open decisions are ADRs in
 `docs/adr/`; a decision is closed only by a signed ADR, and a wrong one is superseded,

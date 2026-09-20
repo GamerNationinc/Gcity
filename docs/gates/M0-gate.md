@@ -110,7 +110,7 @@ observation follows each step.
 | 3 | `tools/validate_content.py` checks layout, kind registration, JSON well-formedness and `schema_version` only. Structural validation against a schema lands with the first content kind. Zero content exists, so nothing is unvalidated today. | deliberate incompleteness | M1 |
 | 4 | The M0 replay fixture exercises the tick loop, RNG state and inbox only, because no sim system exists outside test doubles. Fixtures with real systems begin at M1. | scope | M1 |
 | 5 | No Deck measurement. M0 has no frame-budget claim. First Deck numbers are due at G4; first Deck smoke run of the Linux export is due at G1 (standards §8.1). | scope | G1 |
-| 6 | Steamworks app registration, `dev`/`gate` depot branches (standards §12 item 4) are not in the repository's control. | external action | Lukas, before G1 |
+| 6 | Steamworks app registration, `dev`/`gate` depot branches (standards §12 item 4) are not in the repository's control. | external action | CEOGG, before G1 |
 | 7 | Mutation testing (standards §3.6) not run; target is G6. | scope | G6 |
 | 8 | Renderer left at the Godot default (Forward+). The GodotSteam overlay note (standards §8.2) is to be verified at the M5 spike. | assumption | M5 |
 | 9 | `tests/` and `tools/` may declare global `class_name`s (`GcityTest`, `CounterSystemDouble`). They are not shipped; the export preset at G1 must exclude `tests/` and `tools/`. | note | G1 |
@@ -139,7 +139,7 @@ versions. `docs/extending-sim-systems.md` documents the minimal diff.
 
 ## 6. Sign-off
 
-Approver: Lukas Williams
+Approver: CEOGG
 Date:
 Outcome: ☐ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
 Conditions:

@@ -47,4 +47,4 @@ Recorded at G7.
 
 ## Sign-off
 
-Approver: Lukas Williams — _pending_
+Approver: CEOGG — _pending_
