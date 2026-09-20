@@ -81,18 +81,19 @@ Nothing under `sim/`, `client/`, `tools/` or `tests/` changes for this spike.
 
 ## 5. Results
 
-**Outcome: PASS on both pre-declared metrics, plugged-in profile, 2026-09-20.** Run on
-this Deck (AMD Custom APU 0932, SteamOS, desktop mode) from a cold start into a
-30-minute soak. Raw artifacts: `spikes/surface_nets_deck/results/soak-plugged.json`,
-`soak-plugged-thermal.csv`, `bench.json`, `soak-plugged.log`.
+**Outcome: PASS on both pre-declared metrics, in both power profiles, 2026-09-20.**
+Two 30-minute soaks on this Deck (AMD Custom APU 0932, SteamOS, desktop mode), plugged
+in and then on battery, each from a cold start. Raw artifacts under
+`spikes/surface_nets_deck/results/`: `soak-plugged.json`, `soak-battery.json`, the two
+`*-thermal.csv` files, `bench.json`, the logs and the generated tables.
 
-| Pre-declared metric | Result | Budget | Headroom |
-|---|---|---|---|
-| Frame time 1% low, final 5 min | 4.10 ms | ≤ 25.0 ms | 6.1× |
-| Meshing amortised per 40 fps frame, final 5 min | 1.12 ms | ≤ 3.0 ms | 2.7× |
-| Tier 1: Rust vs GDScript, same algorithm, equal output | ×169, all 12 chunks bit-equal | ≥ 5× | |
+| Pre-declared metric | Plugged | Battery | Budget | Headroom |
+|---|---|---|---|---|
+| Frame time 1% low, final 5 min | 4.10 ms | 4.12 ms | ≤ 25.0 ms | 6.1× |
+| Meshing amortised per 40 fps frame, final 5 min | 1.12 ms | 1.15 ms | ≤ 3.0 ms | 2.6× |
+| Tier 1: Rust vs GDScript, same algorithm, equal output | ×169, all 12 chunks bit-equal | | ≥ 5× | |
 
-### 5.1 Soak
+### 5.1 Soak, plugged in
 
 Run: `results/soak-plugged.json` — Godot 4.6.1-stable (official), 1800 s, 3 workers, radius 5/±2 chunks, ≤4 uploads/frame, 8.0 m/s, dig every 2.0 s, seed 20260920, vsync disabled, uncapped.
 
@@ -162,7 +163,49 @@ Per minute:
 | Memory available (MB) | 7217 | 10150 | 6635 (min) |
 | Battery status during run | Discharging, Not charging | | |
 
-### 5.2 Rust vs GDScript (standards §9.2 Tier 1)
+### 5.2 Soak, on battery
+
+Same harness, same seed and parameters, charger disconnected for the whole run
+(`ACAD/online = 0`, battery status `Discharging` in all 357 samples). Plugged and battery
+side by side, final 5 minutes:
+
+| Final 5 min | plugged | battery |
+|---|---|---|
+| Frame time 1% low (p99) | 4.10 ms | 4.12 ms |
+| Frame time 0.1% low (p99.9) | 4.76 ms | 4.76 ms |
+| Frames over 25 ms | 0.004 % | 0.005 % |
+| Average frame rate | 323 fps | 325 fps |
+| Meshing per 40 fps frame | 1.12 ms | 1.15 ms |
+| Worker time per chunk | 2.08 ms | 2.15 ms |
+| Upload per chunk | 0.16 ms | 0.16 ms |
+| Chunks per second | 20.0 | 20.0 |
+| SoC edge temperature | 71.6 °C | 71.4 °C |
+| CPU clock, mean of 8 threads | 2134 MHz | 2228 MHz |
+| GPU clock | 1564 MHz | 1529 MHz |
+| GPU/SoC power | 14.85 W | 14.39 W |
+| Battery charge start → end | 79 % → 79 % | 79 % → 57 % |
+| Pass (both metrics) | yes | yes |
+
+Battery-run thermals over the whole run:
+
+| Sensor | first 5 min (mean) | last 5 min (mean) | peak |
+|---|---|---|---|
+| SoC edge temperature (amdgpu) | 70.2 | 71.4 | 74.0 |
+| ACPI thermal zone | 70.6 | 72.0 | 73.0 |
+| CPU clock, mean of 8 threads (MHz) | 2207 | 2228 | 2425 |
+| GPU clock (MHz) | 1533 | 1529 | 1600 |
+| GPU/SoC power (W) | 14.59 | 14.39 | 17.08 |
+| Memory available (MB) | 10426 | 10422 | 10351 (min) |
+| Battery status during run | Discharging | | |
+
+The two profiles are indistinguishable on every gameplay-relevant number: the p99 frame
+times differ by 0.02 ms and the meshing cost by 0.03 ms per frame. On battery the SoC
+ran the CPU slightly higher and the GPU slightly lower at 0.5 W less, which is the
+firmware rebalancing within the same 15 W envelope, not a throttle. The run consumed
+22 % of the battery in 30 minutes at an uncapped 325 fps; a 40 fps cap would draw far
+less. Full per-minute table: `results/soak-battery-tables.md`.
+
+### 5.3 Rust vs GDScript (standards §9.2 Tier 1)
 
 Rust vs GDScript, same algorithm, same 12 chunks (mean of 5 Rust runs each):
 
@@ -184,10 +227,10 @@ Rust vs GDScript, same algorithm, same 12 chunks (mean of 5 Rust runs each):
 
 Tier 1 criterion (≥5× with equal output): **pass**.
 
-### 5.3 Observations
+### 5.4 Observations
 
-- **Steady state is flat.** Minutes 2 through 30 sit between 0.99 and 1.30 ms of
-  meshing per 40 fps frame and 3.2 to 4.2 ms p99 frame time, with no trend. Clocks and
+- **Steady state is flat, in both profiles.** Minutes 2 through 30 sit between 0.99
+  and 1.30 ms of meshing per 40 fps frame and 3.2 to 4.2 ms p99 frame time, with no trend. Clocks and
   temperature are identical in the first and last five minutes (≈71.5 °C, ≈2135 MHz
   CPU, ≈1560 MHz GPU, ≈14.9 W), so the 15 W part did not throttle under this load.
 - **Per-chunk cost is dominated by density generation, not meshing.** 1.61 ms to sample
@@ -213,33 +256,32 @@ Tier 1 criterion (≥5× with equal output): **pass**.
   desktop process released memory; the spike itself held ≈475 chunks of densities
   (≈80 MB) plus ≈600 k triangles of meshes without visible growth.
 
-### 5.4 Deviations from the protocol
+### 5.5 Deviations from the protocol
 
 - Desktop mode, not gamescope; usual desktop processes resident (Steam, browser).
   Pessimistic for CPU and memory, as stated in §4.
-- **Battery profile not run.** Standards §4.2 asks for both. The Deck was plugged in
-  for the whole run (one transient "Discharging" sample at 79 %; charge stayed at 79 %).
-  Unplugging is a physical action; the battery soak is the one open item of this spike
-  and the harness runs it unchanged (`README.md`).
+- Both power profiles were run (standards §4.2), sequentially rather than interleaved;
+  the battery run started from 79 % charge, not full.
 - No colliders, no LOD, no navigation on the generated mesh; those are M2/M3/M7 costs
   whichever terrain option wins and are outside the ADR-003 claim.
 - Frame times were captured with the engine's process delta, not Tracy. The JSON
   artifact carries per-minute distributions rather than a per-frame trace.
 
-### 5.5 Recommendation for ADR-003
+### 5.6 Recommendation for ADR-003
 
 The claim holds with margin: naive surface nets over 1 m voxels, streamed at a 160 m
 radius with continuous digging, costs about a third of its frame budget on the target
-hardware and does not degrade over 30 minutes. Nothing measured here argues for the
+hardware, does not degrade over 30 minutes, and does not change when the charger is
+pulled. Nothing measured here argues for the
 heightmap fallback. Recommend **option B (volumetric, surface nets)** be accepted, with
-three conditions carried into the gates that own them:
+two open conditions carried into the gates that own them (the third is closed):
 
 1. Colliders and runtime navigation on volumetric chunks are measured at G3 against
    the physics and navigation rows of standards §4.1.
 2. The isolated worst frames above are traced at frame level before M7 and the
    streamer promoted from this spike pools its mesh nodes.
-3. The battery-profile soak is run and appended here before ADR-003 is signed, or its
-   absence is written into the ADR as an accepted condition.
+3. (Closed 2026-09-20.) The battery-profile soak was run and is in §5.2; both profiles
+   pass with the same margin.
 
 **Disposal:** if ADR-003 accepts B, the Rust mesher and worker pool are promoted into
 the project's first native module at M7 (their tests come with them) and the harness is

@@ -108,10 +108,54 @@ def bench_table(path):
     return out
 
 
+def compare_table(runs):
+    """runs: list of (label, soak_json_path, thermal_csv_path)."""
+    loaded = []
+    for label, jp, cp in runs:
+        d = json.load(open(jp))
+        rows = list(csv.DictReader(open(cp)))
+        last = rows[-max(1, len(rows) // 6):]
+        def mean(name, last=last):  # bind per run; a late-bound closure would read the final run's rows
+            v = []
+            for r in last:
+                try:
+                    v.append(float(r[name]))
+                except (ValueError, KeyError):
+                    pass
+            return statistics.mean(v) if v else float("nan")
+        pcts = [int(r["bat_pct"]) for r in rows if r.get("bat_pct", "").isdigit()]
+        loaded.append((label, d, mean, pcts))
+    head = "| Final 5 min | " + " | ".join(l for l, _, _, _ in loaded) + " |"
+    out = [head, "|---|" + "---|" * len(loaded)]
+    def row(name, f):
+        out.append(f"| {name} | " + " | ".join(f(d, m, p) for _, d, m, p in loaded) + " |")
+    row("Frame time 1% low (p99)", lambda d, m, p: f"{d['final_window']['p99_ms']:.2f} ms")
+    row("Frame time 0.1% low (p99.9)", lambda d, m, p: f"{d['final_window']['p999_ms']:.2f} ms")
+    row("Frames over 25 ms", lambda d, m, p: f"{d['final_window']['over_budget_frac']*100:.3f} %")
+    row("Average frame rate", lambda d, m, p: f"{d['final_window']['fps_avg']:.0f} fps")
+    row("Meshing per 40 fps frame", lambda d, m, p: f"{d['final_window']['meshing_ms_per_40fps_frame']:.2f} ms")
+    row("Worker time per chunk", lambda d, m, p: f"{d['final_window']['worker_us_per_chunk']/1000:.2f} ms")
+    row("Upload per chunk", lambda d, m, p: f"{d['final_window']['upload_us_per_chunk']/1000:.2f} ms")
+    row("Chunks per second", lambda d, m, p: f"{d['final_window']['chunks_per_s']:.1f}")
+    row("SoC edge temperature", lambda d, m, p: f"{m('gpu_edge_c'):.1f} °C")
+    row("CPU clock, mean of 8 threads", lambda d, m, p: f"{m('cpu_mhz_avg'):.0f} MHz")
+    row("GPU clock", lambda d, m, p: f"{m('gpu_mhz'):.0f} MHz")
+    row("GPU/SoC power", lambda d, m, p: f"{m('gpu_power_w'):.2f} W")
+    row("Battery charge start → end", lambda d, m, p: f"{p[0]} % → {p[-1]} %" if p else "n/a")
+    row("Pass (both metrics)", lambda d, m, p: "yes" if d["pass"]["overall"] else "NO")
+    out.append("")
+    return out
+
+
 if __name__ == "__main__":
     args = sys.argv[1:]
     if not args:
         sys.exit(__doc__)
+    if args[0] == "compare":
+        # analyze.py compare label1 soak1.json thermal1.csv label2 soak2.json thermal2.csv ...
+        trip = args[1:]
+        print("\n".join(compare_table([tuple(trip[i:i + 3]) for i in range(0, len(trip), 3)])))
+        sys.exit(0)
     lines, _ = soak_tables(args[0])
     print("\n".join(lines))
     if len(args) > 1 and args[1].endswith(".csv"):
