@@ -3,7 +3,7 @@
 Milestone: M1 — Stat resolver + one pistol (design doc §16; standards §11 row G1)
 Specification: `docs/specs/M1-stat-resolver-pistol.md`
 Submitted: 2026-09-20 by Claude Code, on branch `m1-stat-resolver-pistol` (PR #4)
-Outcome: _pending review_
+Outcome: **Accepted** (2026-09-20, CEOGG; see §6)
 
 ---
 
@@ -219,6 +219,6 @@ snapshot schema carries a version. Extension points are documented in
 ## 6. Sign-off
 
 Approver: CEOGG
-Date:
-Outcome: ☐ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
-Conditions:
+Date: 2026-09-20
+Outcome: ☑ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
+Conditions: none. Debt items 1–18 stand as scheduled; items 4 and 5 (debug-class spawn commands; commands not tied to a player) are noted as the security deferrals to close before any networked client exists.
