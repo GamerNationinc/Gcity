@@ -471,6 +471,16 @@ func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: 
 	return actor
 
 
+## Turns an agent: movement faces the way it walks (spec claim 9); stances turn it
+## toward what it does. Degrees 0..359, 0 along +x, 90 along +z.
+func set_facing(actor: int, facing: int) -> bool:
+	if not _agents.has(actor) or facing < 0 or facing > 359:
+		return false
+	var rec: Dictionary = _agents[actor]
+	rec["facing"] = facing
+	return true
+
+
 ## Swaps a live agent's profile. The actor's combat profile is fixed at spawn (its
 ## health graph is shaped by it); both M4 guard profiles share one.
 func set_profile(actor: int, profile: StringName) -> bool:
