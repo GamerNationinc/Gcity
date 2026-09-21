@@ -154,6 +154,69 @@ func snapshot() -> Dictionary:
 	}
 
 
+## Restores the root's own state (tick, RNG, inbox, dispatch counters) from a snapshot
+## whose systems have already been restored. The seed must match the one this sim was
+## built with; every queued command must name a registered kind and a future tick.
+## Nothing changes unless the whole snapshot is valid.
+func restore_root(snap: Dictionary) -> Error:
+	var expected: Array[String] = ["schema_version", "seed", "tick", "rng_state", "dispatched", "rejected", "inbox", "systems"]
+	if snap.size() != expected.size():
+		return _restore_fail("key count")
+	for key: String in expected:
+		if not snap.has(key):
+			return _restore_fail("missing '%s'" % key)
+	for key: String in ["schema_version", "seed", "tick", "rng_state", "dispatched", "rejected"]:
+		if typeof(snap[key]) != TYPE_INT:
+			return _restore_fail("'%s' must be an int" % key)
+	if typeof(snap["inbox"]) != TYPE_DICTIONARY or typeof(snap["systems"]) != TYPE_DICTIONARY:
+		return _restore_fail("inbox and systems must be dictionaries")
+	var version: int = snap["schema_version"]
+	if version != SNAPSHOT_SCHEMA_VERSION:
+		return _restore_fail("schema_version %d (expected %d)" % [version, SNAPSHOT_SCHEMA_VERSION])
+	var seed: int = snap["seed"]
+	if seed != _seed:
+		return _restore_fail("seed %d does not match this sim's %d" % [seed, _seed])
+	var tick: int = snap["tick"]
+	var dispatched: int = snap["dispatched"]
+	var rejected: int = snap["rejected"]
+	if tick < 0 or dispatched < 0 or rejected < 0:
+		return _restore_fail("negative counter")
+	var inbox_in: Dictionary = snap["inbox"]
+	var inbox: Dictionary[int, Array] = {}
+	for tk: Variant in inbox_in:
+		if typeof(tk) != TYPE_INT or tk <= tick or typeof(inbox_in[tk]) != TYPE_ARRAY:
+			return _restore_fail("inbox tick %s" % var_to_str(tk))
+		var queue: Array = []
+		var entries: Array = inbox_in[tk]
+		for entry: Variant in entries:
+			if typeof(entry) != TYPE_DICTIONARY:
+				return _restore_fail("inbox entry")
+			var e: Dictionary = entry
+			if e.size() != 2 or typeof(e.get("payload")) != TYPE_DICTIONARY:
+				return _restore_fail("inbox entry shape")
+			var kind_v: Variant = e.get("kind")
+			if typeof(kind_v) != TYPE_STRING and typeof(kind_v) != TYPE_STRING_NAME:
+				return _restore_fail("inbox entry kind")
+			var kind: StringName = StringName(str(kind_v))
+			if not _commands.has(kind):
+				return _restore_fail("inbox names unregistered kind '%s'" % kind)
+			var target: int = tk
+			var payload: Dictionary = e["payload"]
+			queue.append(SimCommand.new(target, kind, payload))
+		inbox[tk] = queue
+	_tick = tick
+	_rng.state = snap["rng_state"]
+	_dispatched = dispatched
+	_rejected = rejected
+	_inbox = inbox
+	return OK
+
+
+func _restore_fail(reason: String) -> Error:
+	push_error("SimRoot.restore_root: rejected: %s" % reason)
+	return ERR_INVALID_DATA
+
+
 ## SHA-256 hex of [method snapshot]. Empty string means a system produced an
 ## unhashable snapshot, which is a programming error already logged by StateHash.
 func state_hash() -> String:

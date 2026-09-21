@@ -41,10 +41,34 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	return sim
 
 
+## Loads a save (M2 spec claim 13): a fresh sim over the same content, every system
+## restored in registration order, then the root. Returns null (after an error) when
+## the content digest differs or any part of the save is rejected.
+static func load_save(file: SaveFile, content: ContentDb) -> SimRoot:
+	if not file.is_valid():
+		push_error("SimAssembly.load_save: invalid save: %s" % file.error)
+		return null
+	if file.content_digest != content.digest():
+		push_error("SimAssembly.load_save: save was made over different content (%s, have %s)" % [file.content_digest, content.digest()])
+		return null
+	var seed_v: Variant = file.snapshot.get("seed")
+	if typeof(seed_v) != TYPE_INT:
+		push_error("SimAssembly.load_save: snapshot has no integer seed")
+		return null
+	var seed: int = seed_v
+	var sim: SimRoot = build(seed, content)
+	if sim == null:
+		return null
+	if restore_systems(sim, file.snapshot) != OK:
+		return null
+	if sim.restore_root(file.snapshot) != OK:
+		return null
+	return sim
+
+
 ## Restores every system of a freshly built sim from a full [method SimRoot.snapshot]
-## taken of another sim built over the same content, in registration order. The tick,
-## RNG and inbox are not restored here (full save/load is G2); this is the
-## item-and-stats round trip of ADR-009's G1 verification.
+## taken of another sim built over the same content, in registration order. The root
+## (tick, RNG, inbox, counters) is restored separately by [method SimRoot.restore_root].
 static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 	var systems_v: Variant = snapshot.get("systems")
 	if typeof(systems_v) != TYPE_DICTIONARY:
