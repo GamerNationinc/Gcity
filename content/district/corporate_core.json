@@ -1,0 +1,14 @@
+{
+	"schema_version": 1,
+	"description": "Corporate core: police in seconds, no informants needed, and nothing is free: non-owners may enter but not carry, and even unowned land may not be built on or looted (design doc §7.2). G2 extension exercise: content only.",
+	"law_index": 950,
+	"wealth_index": 900,
+	"informant_density": 100,
+	"gang_control": {"faction": "", "strength": 0},
+	"covers_unparcelled": false,
+	"rights": {
+		"owner":   {"build": true,  "dig": false, "enter": true, "carry": true,  "loot": true},
+		"other":   {"build": false, "dig": false, "enter": true, "carry": false, "loot": false},
+		"unowned": {"build": false, "dig": false, "enter": true, "carry": true,  "loot": false}
+	}
+}

@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "Hydroponics: racks, pumps and grow lights. Draws 900 W, sheds 700 W, takes 40 L/h of water in and returns 30. Needs a work station to tend it. G2 extension exercise: content only.",
+	"footprint": {"cols": 3, "rows": 2},
+	"mass": 210,
+	"power_draw": 900,
+	"heat_output": 700,
+	"water_in": 40,
+	"water_out": 30,
+	"depends_on": ["work_station"],
+	"emits": ["signal.power_draw", "signal.emissions"]
+}
