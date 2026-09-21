@@ -169,11 +169,18 @@ file (design doc §16). Nothing else is built.
     first Deck smoke run (M0 debt item 5; standards §8.1). No frame-budget claim is
     made; that begins at G4.
 19. **Replay fixtures exercise real systems.** `tests/replay/m1-range.json` spawns the
-    player, the pistol, two magazines, thirty rounds and one dummy, loads, fires,
-    tactical-reloads, fires to empty, emergency-reloads, unlocks the perk and fires
-    again; it reproduces its recorded hash twice in-process and across processes.
-    `tests/replay/m1-perk-off.json` is the same stream without the unlock and its hash
-    differs. The fuzz corpus gains hostile command payloads for every new kind.
+    player, the pistol, two magazines, thirty rounds and one dummy, loads, wields,
+    fits the parts, tactical-reloads, fires a magazine to empty, emergency-reloads,
+    unlocks the perk and fires the second magazine to empty; it reproduces its
+    recorded hash twice in-process and across processes. `tests/replay/m1-perk-off.json`
+    is the same stream without the unlock: same hits, more damage with the perk, a
+    different hash. All fixtures, M0's included, replay against the assembled sim
+    (`SimAssembly` over the shipped content), which is why the M0 hash moved with
+    this milestone. Integral JSON numbers are canonicalised to ints at the fixture and
+    content boundaries (`JsonNumbers`). The fuzz corpus gains
+    `tests/fuzz/commands/hostile_payloads.json`, hostile payloads for every command
+    kind, dispatched against the standard range with the systems' hash asserted
+    unchanged.
 
 ## Out of scope (goes to the debt log if touched)
 

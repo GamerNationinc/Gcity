@@ -112,3 +112,36 @@ class CheckDependenciesTest(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class M1RulesTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self._tmp.cleanup)
+        self.root = Path(self._tmp.name)
+        for d in ("sim/core", "sim/items", "sim/progression", "client", "content"):
+            (self.root / d).mkdir(parents=True)
+
+    def write(self, rel: str, text: str) -> None:
+        (self.root / rel).write_text(text, encoding="utf-8")
+
+    def test_only_the_resolver_reads_bases_and_modifiers(self) -> None:
+        self.write("sim/progression/stat_resolver.gd", "var _bases: Dictionary = {}\nfunc get_base(e: int, s: StringName) -> int:\n\treturn 0\n")
+        self.write("sim/items/item_system.gd", "func f(r: StatResolver) -> int:\n\treturn r.get_base(1, &\"damage\")\n")
+        self.write("sim/core/x.gd", "var _modifiers: Dictionary = {}\n")
+        problems = cd.run(self.root)
+        self.assertEqual(len(problems), 2, problems)
+        self.assertTrue(any("item_system.gd:2" in p and "get_base" in p for p in problems), problems)
+        self.assertTrue(any("x.gd:1" in p and "_modifiers" in p for p in problems), problems)
+
+    def test_client_views_only_submit(self) -> None:
+        self.write("client/local_host.gd", "func _physics_process(_d: float) -> void:\n\t_sim.step()\n\t_sim = SimAssembly.build(1, _content)\n")
+        self.write("client/content_loader.gd", "func load_all(db: ContentDb) -> Error:\n\treturn db.add(&\"a\", &\"b\", {})\n")
+        self.write("client/main.gd", "func _p() -> void:\n\tsim.submit(SimCommand.new(1, &\"x\", {}))\n\tvar v: int = stats.resolve(1, &\"damage\")\n\titems.spawn(&\"ammo\", &\"x\", &\"world\", 1)\n\tsim.step()\n\tstats.set_base(1, &\"damage\", 5)\n")
+        problems = cd.run(self.root)
+        self.assertEqual(len(problems), 3, problems)
+        self.assertTrue(all("client/main.gd" in p for p in problems), problems)
+
+    def test_real_repository_is_clean_under_the_new_rules(self) -> None:
+        repo = Path(__file__).resolve().parent.parent.parent
+        self.assertEqual(cd.run(repo), [])

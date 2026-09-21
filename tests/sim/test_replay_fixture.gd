@@ -28,7 +28,8 @@ func test_valid_fixture_parses() -> void:
 	assert_eq(fixture.commands.size(), 2, "two commands")
 	assert_eq(fixture.commands[0].tick, 3, "command tick")
 	assert_eq(fixture.commands[0].kind, &"counter.add", "command kind")
-	assert_eq(fixture.commands[0].payload, {"amount": 5.0}, "payload passes through as parsed JSON")
+	assert_eq(fixture.commands[0].payload, {"amount": 5}, "integral JSON numbers arrive as ints (JsonNumbers, at the boundary)")
+	assert_eq(typeof(fixture.commands[0].payload["amount"]), TYPE_INT, "an int, not 5.0")
 	assert_eq(fixture.expected_hash, "", "empty hash allowed while recording")
 
 

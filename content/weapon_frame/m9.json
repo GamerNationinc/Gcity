@@ -1,0 +1,16 @@
+{
+	"schema_version": 1,
+	"description": "Full-size semi-automatic 9 mm service pistol. The G1 extension exercise: a second frame with data only.",
+	"calibre": "9x19",
+	"sockets": ["barrel", "slide", "optic", "magazine", "power_cell"],
+	"tags": ["weapon", "weapon_class.handgun"],
+	"stats": [
+		{"stat": "hit_chance", "value": 680000},
+		{"stat": "recoil", "value": 2600},
+		{"stat": "ergonomics", "value": 6500},
+		{"stat": "sway", "value": 1800},
+		{"stat": "aim_in_ticks", "value": 14000},
+		{"stat": "reload_ticks", "value": 90000},
+		{"stat": "cycle_ticks", "value": 7000}
+	]
+}

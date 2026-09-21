@@ -56,6 +56,26 @@ SIM_DENYLIST: list[tuple[str, str]] = [
     (r"\.pick_random\s*\(", "Array.pick_random uses the global RNG; pick with SimRoot.rng()"),
 ]
 
+# M1 spec claim 15: every gameplay number reads through StatResolver.resolve(). Outside
+# the resolver itself nothing under sim/ may read a base or touch modifier storage.
+RESOLVER_FILE = "sim/progression/stat_resolver.gd"
+RESOLVER_ONLY: list[tuple[str, str]] = [
+    (r"\.get_base\s*\(", "bases are the resolver's; gameplay reads resolve()"),
+    (r"\b_bases\b", "modifier/base storage is private to the resolver"),
+    (r"\b_modifiers\b", "modifier/base storage is private to the resolver"),
+]
+
+# M1 spec claim 17: the client reads sim state and submits commands, nothing else. The
+# host files build and step the sim; every other client file is a view.
+CLIENT_HOST_FILES = {"client/local_host.gd", "client/content_loader.gd"}
+CLIENT_DENYLIST: list[tuple[str, str]] = [
+    (r"\.step(_n)?\s*\(", "only the host steps the sim"),
+    (r"\bSimAssembly\.(build|restore_systems)\s*\(", "only the host builds or restores the sim"),
+    (r"\.(spawn|set_base|add_modifier|remove_modifier|set_tags|set_inherits|forget_entity|restore|damage_node"
+     r"|consume_chambered|chamber_next|set_busy|allocate|register_system|register_stat|register_modifier_class"
+     r"|register_stage|register|subscribe|emit|add)\s*\(", "the client mutates sim state only through SimRoot.submit()"),
+]
+
 RES_PATH_RE = re.compile(r'"(res://[^"]*)"')
 CLASS_NAME_RE = re.compile(r"^\s*class_name\s+([A-Za-z_][A-Za-z0-9_]*)", re.MULTILINE)
 COMMENT_RE = re.compile(r"#.*$", re.MULTILINE)
@@ -100,6 +120,24 @@ def check_sim_file(path: Path, rel: str, client_classes: dict[str, Path]) -> lis
                 match = re.search(pattern, line)
                 if match:
                     problems.append(f"{rel}:{line_no}: sim/ uses {match.group(0).strip()}: {reason}")
+            if rel != RESOLVER_FILE:
+                for pattern, reason in RESOLVER_ONLY:
+                    match = re.search(pattern, line)
+                    if match:
+                        problems.append(f"{rel}:{line_no}: {match.group(0).strip()}: {reason}")
+    return problems
+
+
+def check_client_file(path: Path, rel: str) -> list[str]:
+    if path.suffix != ".gd" or rel in CLIENT_HOST_FILES:
+        return []
+    code = strip_comments(path.read_text(encoding="utf-8"))
+    problems: list[str] = []
+    for line_no, line in enumerate(code.splitlines(), start=1):
+        for pattern, reason in CLIENT_DENYLIST:
+            match = re.search(pattern, line)
+            if match:
+                problems.append(f"{rel}:{line_no}: client view calls {match.group(0).strip()}: {reason}")
     return problems
 
 
@@ -117,6 +155,8 @@ def check_content(root: Path) -> list[str]:
 def run(root: Path) -> list[str]:
     client_classes = client_class_names(root)
     problems: list[str] = []
+    for path in collect_files(root, "client"):
+        problems.extend(check_client_file(path, path.relative_to(root).as_posix()))
     for path in collect_files(root, "sim"):
         problems.extend(check_sim_file(path, path.relative_to(root).as_posix(), client_classes))
     problems.extend(check_content(root))

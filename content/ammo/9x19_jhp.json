@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "9×19 mm jacketed hollow point. More damage; the second ammo type of the G1 extension exercise.",
+	"calibre": "9x19",
+	"tags": ["ammo", "ammo.expanding"],
+	"stats": [
+		{"stat": "damage", "value": 41000}
+	]
+}

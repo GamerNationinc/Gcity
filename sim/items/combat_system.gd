@@ -32,6 +32,8 @@ var _stages: Dictionary = {}
 var _shots: int = 0
 var _hits: int = 0
 var _kills: int = 0
+## Sum of damage actually applied to targets, milli-hp.
+var _damage_dealt: int = 0
 var _last: Dictionary = {}
 
 
@@ -56,7 +58,7 @@ func tick(_sim: SimRoot) -> void:
 
 
 func snapshot() -> Dictionary:
-	return {"shots": _shots, "hits": _hits, "kills": _kills, "last": _last.duplicate(true)}
+	return {"shots": _shots, "hits": _hits, "kills": _kills, "damage_dealt": _damage_dealt, "last": _last.duplicate(true)}
 
 
 func events() -> EventBus:
@@ -129,6 +131,10 @@ func kills() -> int:
 	return _kills
 
 
+func damage_dealt() -> int:
+	return _damage_dealt
+
+
 ## The last shot: {tick, shooter, weapon, target, round, hit, damage, node, chance}.
 func last_shot() -> Dictionary:
 	return _last.duplicate(true)
@@ -188,6 +194,8 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 	var killed: bool = ctx["killed"]
 	if killed:
 		_kills += 1
+	var applied: int = ctx["applied"]
+	_damage_dealt += applied
 	_last = {"tick": ctx["tick"], "shooter": shooter, "weapon": weapon, "target": target, "round": round,
 		"hit": hit, "damage": ctx["applied"], "node": ctx["node"], "chance": ctx["chance"], "killed": killed}
 	_events.emit(EVENT_FIRE, {"shooter": shooter, "weapon": weapon, "target": target, "round": round, "tags": tags})
@@ -250,14 +258,16 @@ func _stage_routing(ctx: Dictionary, sim: SimRoot) -> void:
 # ---------------------------------------------------------------- restore
 
 func restore(state: Dictionary) -> Error:
-	if state.size() != 4 or typeof(state.get("shots")) != TYPE_INT or typeof(state.get("hits")) != TYPE_INT \
-			or typeof(state.get("kills")) != TYPE_INT or typeof(state.get("last")) != TYPE_DICTIONARY:
+	if state.size() != 5 or typeof(state.get("shots")) != TYPE_INT or typeof(state.get("hits")) != TYPE_INT \
+			or typeof(state.get("kills")) != TYPE_INT or typeof(state.get("damage_dealt")) != TYPE_INT \
+			or typeof(state.get("last")) != TYPE_DICTIONARY:
 		push_error("CombatSystem.restore: rejected snapshot: shape")
 		return ERR_INVALID_DATA
 	var shots: int = state["shots"]
 	var hits: int = state["hits"]
 	var kills: int = state["kills"]
-	if shots < 0 or hits < 0 or kills < 0 or hits > shots or kills > hits:
+	var dealt: int = state["damage_dealt"]
+	if shots < 0 or hits < 0 or kills < 0 or dealt < 0 or hits > shots or kills > hits:
 		push_error("CombatSystem.restore: rejected snapshot: counters")
 		return ERR_INVALID_DATA
 	var last: Dictionary = state["last"]
@@ -276,6 +286,7 @@ func restore(state: Dictionary) -> Error:
 	_shots = shots
 	_hits = hits
 	_kills = kills
+	_damage_dealt = dealt
 	_last = last.duplicate(true)
 	if not _last.is_empty():
 		var node_v: Variant = _last["node"]

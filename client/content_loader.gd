@@ -48,36 +48,8 @@ static func _load_kind(db: ContentDb, dir_path: String, kind: String) -> Error:
 			push_error("ContentLoader: %s: top level must be an object" % path)
 			return ERR_INVALID_DATA
 		var dict: Dictionary = data
-		_normalise_numbers(dict)
+		JsonNumbers.normalise(dict)
 		var add_err: Error = db.add(StringName(kind), StringName(file.get_basename()), dict)
 		if add_err != OK:
 			return add_err
 	return OK
-
-
-## JSON parses every number as float. Integral floats become ints so that content
-## values are exact and the sim's typed reads (default_base: int) see ints.
-static func _normalise_numbers(value: Variant) -> void:
-	match typeof(value):
-		TYPE_DICTIONARY:
-			var dict: Dictionary = value
-			for key: Variant in dict.keys():
-				var v: Variant = dict[key]
-				if typeof(v) == TYPE_FLOAT:
-					var f: float = v
-					if f == floorf(f) and absf(f) < 9.0e15:
-						dict[key] = int(f)
-				else:
-					_normalise_numbers(v)
-		TYPE_ARRAY:
-			var arr: Array = value
-			for i: int in range(arr.size()):
-				var v: Variant = arr[i]
-				if typeof(v) == TYPE_FLOAT:
-					var f: float = v
-					if f == floorf(f) and absf(f) < 9.0e15:
-						arr[i] = int(f)
-				else:
-					_normalise_numbers(v)
-		_:
-			pass

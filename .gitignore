@@ -14,3 +14,6 @@ __pycache__/
 # the results folders also carry a .gdignore so the importer skips them.
 docs/**/*.translation
 docs/**/*.import
+
+# Export output (tools/export.sh)
+build/
