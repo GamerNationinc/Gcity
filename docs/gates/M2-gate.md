@@ -4,7 +4,7 @@ Milestone: M2 — Land authority + starter plot (design doc §16; standards §11
 Specification: `docs/specs/M2-land-authority-starter-plot.md` (approved 2026-09-21)
 Submitted: 2026-09-21 by Claude Code, on branch `claude/relaxed-franklin-hs29t3`,
 commits `f9934f8` … `3aabed4` plus this package
-Outcome: _pending review_
+Outcome: **Accepted** (2026-09-21, CEOGG; see §6)
 
 ---
 
@@ -180,6 +180,6 @@ registry-style tags; the save and snapshot schemas carry versions.
 ## 6. Sign-off
 
 Approver: CEOGG
-Date:
-Outcome: ☐ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
+Date: 2026-09-21
+Outcome: ☑ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
 Conditions:
