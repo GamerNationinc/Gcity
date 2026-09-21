@@ -1,7 +1,7 @@
 # M3 — Portal graph + build system: specification
 
 Milestone M3 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **approved with claim set P and the feel claim P4** (CEOGG, 2026-09-21); implemented, G3 package in `docs/gates/M3-gate.md`.
+before implementation (standards §2.1, §10.2). Status: **approved with claim set P and the feel claim P4** (CEOGG, 2026-09-21); implemented, G3 accepted 2026-09-21 (`docs/gates/M3-gate.md`).
 
 **Preconditions.** G2 is signed (it is). No ADR blocks M3: ADR-003 (volumetric
 terrain) is accepted and M3 builds on flat parcels, not terrain. One ADR-003

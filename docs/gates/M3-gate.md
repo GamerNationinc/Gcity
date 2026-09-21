@@ -139,7 +139,7 @@ Steps 1–6 on any Linux x86_64 machine; steps 7–14 on the Deck (P5) from
 | 8 | Demo clocks in all views run on sim ticks, not wall time, after a defect in this milestone: wall-clock demos outran the sim under software rendering, and a GDScript lambda captured its clock by value so every action was scheduled at once. The M1 range demo still uses wall time. | defect fixed; M1 residue | M4 (touches `client/main.gd`) |
 | 9 | The plot view overlay draws ground-level pieces only (y = 0); the 3D view shows all. | scope | when needed |
 | 10 | `raid.spawn`, `build.*` from any actor id, `actor.move` for any actor: debug-class like the M1/M2 spawn commands; gated with G1 debt 4. | security | before co-op |
-| 11 | No Deck run yet (P5). This package is incomplete until CEOGG's run and feel notes are in §7. | external | G3 review |
+| 11 | Deck run recorded in §7 (the export's scripted demo on CEOGG's Deck, plugged, desktop mode). No hand-played feel notes were given at sign-off; items 4–6 carry the feel questions forward. | external | closed at G3 |
 | 12 | Mutation testing not run; target G6. Rebuild cost is a container number, not a Deck one. | scope | G6 / G4 |
 
 ## 5. The four standing questions
@@ -165,17 +165,25 @@ relation holds. `docs/extending-building.md` records the procedure.
 ## 6. Sign-off
 
 Approver: CEOGG
-Date:
-Outcome: ☐ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
+Date: 2026-09-21
+Outcome: ☑ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
 Conditions:
 
-## 7. Deck run and feel notes (P5) — to be filled by CEOGG
+## 7. Deck run and feel notes (P5)
 
-Build: `tools/export.sh` output, installed via: ☐ sideload  ☐ Steam client (non-store)
-Date:                    Battery / plugged:
+Build: `tools/export.sh` output at commit 340c5f0 (`build/linux/gcity.x86_64`),
+installed via: ☐ sideload  ☐ Steam client (non-store)  ☑ launched directly from the
+repo checkout on the Deck in desktop mode (SteamOS, Vulkan/RADV, 1280×800).
+Date: 2026-09-21                    Battery / plugged: plugged (charging, 66 %)
+
+Run: the full `tools/test.sh` (158 tests, seven fixtures) and the project itself both
+ran on the Deck; the export then ran the scripted `--demo` path to step 10/10 with a
+screenshot at 12 s matching `M3-world.png`. First launch after the pull spent about a
+minute compiling Vulkan pipelines before the window appeared; warm launches take about
+ten seconds. Demo steps 7–13 were not hand-played at sign-off.
 
 | # | What felt wrong or right | Number changed (file, value) or debt item |
 |---|---|---|
-| 1 | | |
+| 1 | No hand-played feel notes given at sign-off; CEOGG accepted on the scripted run. | debt items 4, 5, 6 stay scheduled (M4 / after feel notes) |
 | 2 | | |
 | 3 | | |
