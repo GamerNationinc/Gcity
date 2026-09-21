@@ -1,0 +1,6 @@
+{
+	"schema_version": 1,
+	"description": "Breaching charge: two cost units per hit point and noise weighs three per milli-unit. G3 extension exercise: content only.",
+	"hp_factor": 2,
+	"noise_weight": 3
+}

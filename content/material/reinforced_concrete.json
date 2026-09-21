@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "Reinforced concrete: 1 600 HP, needs a breaching charge, quieter per point than steel, two pieces of span. G3 extension exercise: content only.",
+	"hp": 1600,
+	"breach_tool": "breacher",
+	"breach_noise": 900,
+	"breach_ticks": 1200,
+	"max_span": 2
+}
