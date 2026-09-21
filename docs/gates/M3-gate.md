@@ -3,7 +3,7 @@
 Milestone: M3 — Portal graph + build system, with claim set P (design doc §16;
 standards §11 row G3; `docs/specs/M3-portal-graph-build-system.md`, approved 2026-09-21)
 Submitted: 2026-09-21 by Claude Code, on branch `claude/relaxed-franklin-hs29t3`,
-commits `a82ed10` … `HEAD`
+commits `a82ed10` … `c4f9c1e` plus the screenshot commit
 Outcome: _pending review_ — **needs the G3 Deck run and feel notes from CEOGG (P5)**
 
 ---
@@ -31,7 +31,7 @@ tokens re-plan on every build change (a strengthening the killbox fixture depend
 | P2 grey-box 3D | `client/world_view.gd` + scene, input map with stick axes | client commit |
 | P3 walk fixture | `tests/replay/m3-walk.json` | client commit |
 | P4 feel: pistol from the 3D view, distance-based hit roll | `sim/items/combat_system.gd` (one line), `client/world_view.gd`, metamorphic test in `tests/agents/test_movement_system.gd` | `9623013` |
-| Q4 extension exercise | `content/material/reinforced_concrete.json`, `content/tool_class/breacher.json`, `content/build_piece/concrete_wall.json`, `tests/land/test_extension_building.gd` | extension commit |
+| Q4 extension exercise | `content/material/reinforced_concrete.json`, `content/tool_class/breacher.json`, `content/build_piece/concrete_wall.json`, `tests/land/test_extension_building.gd` | `c4f9c1e` |
 
 ## 2. Verification report
 
@@ -100,7 +100,7 @@ Steps 1–6 on any Linux x86_64 machine; steps 7–14 on the Deck (P5) from
 `tools/export.sh`'s build, sideloaded or added to the Steam client as a non-store game.
 
 1. `tools/test.sh` → `158 tests, … 0 failed`, seven `ok` replay lines, `all stages passed`.
-2. `git show --stat <extension commit>` → three content files, one test, seven fixture
+2. `git show --stat c4f9c1e` → three content files, one test, seven fixture
    hash lines; nothing under `sim/`, `client/` or `tools/` (Q4).
 3. Raise `hp` in `content/material/scrap_steel.json` to 4000; `tools/test.sh unit` →
    the portal tests that assert 1 100 fail, the metamorphic tests still pass, and every
