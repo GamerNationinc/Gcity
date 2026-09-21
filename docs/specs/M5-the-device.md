@@ -1,17 +1,14 @@
 # M5 — The device: specification
 
 Milestone M5 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **draft, awaiting approval**
-(submitted 2026-09-21).
+before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG,
+2026-09-21); implementation on branch `m5-the-device`, PR #7.
 
-**Preconditions.** G4 is signed in `docs/gates/M4-gate.md` (it is). One ADR blocks
-this milestone and is still `proposed`: **ADR-006** (does the device pause time?),
-proposed as **C**, pause only inside owned or safe parcels. This spec is written
-against C because the design doc's terminal-hack tension (§15.2) and the "caught
-with everything empty" failure state (§13.3) both depend on it. **No code starts
-until it carries CEOGG's signature.** If it closes as A or B, claims 6–8 are
-rewritten before any code (A removes the predicate; B removes the command).
-ADR-007 (death cost) and ADR-010 (hub interiors) do not block M5.
+**Preconditions.** G4 is signed in `docs/gates/M4-gate.md` (it is). **ADR-006** (does the
+device pause time?) is `accepted` as **C** (CEOGG, 2026-09-21), pause only inside
+owned or safe parcels, as this spec assumed: the design doc's terminal-hack tension
+(§15.2) and the "caught with everything empty" failure state (§13.3) both depend on
+it. ADR-007 (death cost) and ADR-010 (hub interiors) do not block M5.
 
 **The claim of the milestone.** The device is the entire UI layer and holds no state
 of its own (design doc §12.1): every pane renders sim state and every button submits
@@ -168,7 +165,7 @@ do not exist yet, controller remapping UI (Steam Input's own), localisation.
 
 ## Open points
 
-- **ADR-006** must be accepted before code (see Preconditions). Proposed as C.
+- ADR-006: accepted as C together with this spec (2026-09-21).
 - **The Steam app id**: the test app (480) until CEOGG registers the Steamworks app
   (standards §12 item 4, still open); `SteamHost` reads it from `tools/godotsteam.pin`.
 - **GodotSteam release availability** for Godot 4.6.1: verified at the start of the
