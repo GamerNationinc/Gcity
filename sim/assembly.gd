@@ -42,6 +42,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var build: BuildSystem = BuildSystem.new(content, stats, ids, land, actors, events)
 	if build.attach(sim) != OK:
 		return null
+	var portals: PortalGraph = PortalGraph.new(content, stats, build)
+	if portals.attach(sim, events) != OK:
+		return null
 	return sim
 
 
@@ -79,7 +82,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -105,6 +108,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = structures_of(sim).restore(state)
 			BuildSystem.SYSTEM_ID:
 				err = build_of(sim).restore(state)
+			PortalGraph.SYSTEM_ID:
+				err = portals_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -189,3 +194,12 @@ static func build_of(sim: SimRoot) -> BuildSystem:
 		return null
 	var build: BuildSystem = system
 	return build
+
+
+static func portals_of(sim: SimRoot) -> PortalGraph:
+	var system: SimSystem = sim.get_system(PortalGraph.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % PortalGraph.SYSTEM_ID)
+		return null
+	var portals: PortalGraph = system
+	return portals
