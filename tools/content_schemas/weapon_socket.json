@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "A socket kind a frame can declare and a part can fit. A socket with `contains` holds items of that content kind: its parts are containers with a capacity (magazines hold ammo).",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"contains": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"}
+	},
+	"required": ["schema_version", "description"],
+	"additional_properties": false
+}

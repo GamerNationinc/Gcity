@@ -1,0 +1,642 @@
+{
+	"schema_version": 1,
+	"name": "m1-range",
+	"seed": 20260920,
+	"ticks": 600,
+	"commands": [
+		{
+			"tick": 1,
+			"kind": "actor.spawn",
+			"payload": {
+				"profile": "arcade",
+				"range_m": 0
+			}
+		},
+		{
+			"tick": 1,
+			"kind": "actor.spawn",
+			"payload": {
+				"profile": "range_dummy",
+				"range_m": 18
+			}
+		},
+		{
+			"tick": 2,
+			"kind": "item.spawn",
+			"payload": {
+				"kind": "weapon_frame",
+				"template": "g19",
+				"container": "inv.1",
+				"seed": 1,
+				"count": 1
+			}
+		},
+		{
+			"tick": 2,
+			"kind": "item.spawn",
+			"payload": {
+				"kind": "weapon_part",
+				"template": "g19_barrel",
+				"container": "inv.1",
+				"seed": 2,
+				"count": 1
+			}
+		},
+		{
+			"tick": 2,
+			"kind": "item.spawn",
+			"payload": {
+				"kind": "weapon_part",
+				"template": "g19_slide",
+				"container": "inv.1",
+				"seed": 3,
+				"count": 1
+			}
+		},
+		{
+			"tick": 2,
+			"kind": "item.spawn",
+			"payload": {
+				"kind": "weapon_part",
+				"template": "g19_mag_15",
+				"container": "inv.1",
+				"seed": 4,
+				"count": 2
+			}
+		},
+		{
+			"tick": 2,
+			"kind": "item.spawn",
+			"payload": {
+				"kind": "ammo",
+				"template": "9x19_fmj",
+				"container": "inv.1",
+				"seed": 100,
+				"count": 30
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "actor.wield",
+			"payload": {
+				"actor": 1,
+				"weapon": 3
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "weapon.attach",
+			"payload": {
+				"actor": 1,
+				"weapon": 3,
+				"part": 4
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "weapon.attach",
+			"payload": {
+				"actor": 1,
+				"weapon": 3,
+				"part": 5
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 8
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 9
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 10
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 11
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 12
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 13
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 14
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 15
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 16
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 17
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 18
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 19
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 20
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 21
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 6,
+				"round": 22
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 23
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 24
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 25
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 26
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 27
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 28
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 29
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 30
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 31
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 32
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 33
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 34
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 35
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 36
+			}
+		},
+		{
+			"tick": 3,
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 7,
+				"round": 37
+			}
+		},
+		{
+			"tick": 4,
+			"kind": "weapon.reload_tactical",
+			"payload": {
+				"actor": 1,
+				"weapon": 3,
+				"magazine": 6
+			}
+		},
+		{
+			"tick": 100,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 110,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 120,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 130,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 140,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 150,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 160,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 170,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 180,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 190,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 200,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 210,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 220,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 230,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 240,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 300,
+			"kind": "weapon.reload_emergency",
+			"payload": {
+				"actor": 1,
+				"weapon": 3,
+				"magazine": 7
+			}
+		},
+		{
+			"tick": 310,
+			"kind": "perk.unlock",
+			"payload": {
+				"actor": 1,
+				"perk": "handgun_focus"
+			}
+		},
+		{
+			"tick": 400,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 410,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 420,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 430,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 440,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 450,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 460,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 470,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 480,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 490,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 500,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 510,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 520,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 530,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		},
+		{
+			"tick": 540,
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 2
+			}
+		}
+	],
+	"expected_hash": "b961e4d54e5a2570deda1d85109ba7ab2b986899175098b16d9197df1fbf0e2d"
+}

@@ -22,8 +22,12 @@ engine() {
 		GODOT="$(tools/godot.sh)"
 		export GODOT
 	fi
-	if [[ ! -d .godot/imported ]]; then
+	# Always rescan: new class_name scripts are unknown to the analyzer until the
+	# engine's global class cache is rebuilt, and a stale cache fails every dependent
+	# script with "could not find type".
+	if [[ -z "${GCITY_IMPORTED:-}" ]]; then
 		"$GODOT" --headless --path . --import >/dev/null 2>&1 || true
+		export GCITY_IMPORTED=1
 	fi
 }
 
@@ -36,8 +40,15 @@ stage_scripts() {
 stage_unit() {
 	echo "== headless tests"
 	engine
-	"$GODOT" --headless --path . -s tests/run_tests.gd 2>&1 | grep -vE '^Godot Engine v|^$'
-	return "${PIPESTATUS[0]}"
+	mkdir -p tests/out
+	local log=tests/out/unit.log
+	"$GODOT" --headless --path . -s tests/run_tests.gd > "$log" 2>&1
+	local status=$?
+	grep -vE '^Godot Engine v|^$' "$log"
+	# A passing assertion count is not enough: any runtime script error, or any engine
+	# error that did not come from a deliberate push_error, fails the stage.
+	python3 tools/check_test_log.py "$log" || status=1
+	return "$status"
 }
 
 stage_replay() {

@@ -115,6 +115,8 @@ func _load_command(raw: Variant, index: int) -> String:
 	if typeof(entry["payload"]) != TYPE_DICTIONARY:
 		return "commands[%d]: payload must be an object" % index
 	var payload: Dictionary = entry["payload"]
+	# JSON numbers are floats; integral ones become ints here, once, at the boundary.
+	JsonNumbers.normalise(payload)
 	commands.append(SimCommand.new(_int_of(entry["tick"]), StringName(kind), payload))
 	return ""
 

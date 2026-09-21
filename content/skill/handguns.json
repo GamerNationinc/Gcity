@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "Handguns. Credited by every confirmed hit with a handgun.",
+	"xp": [
+		{"event": "combat.hit", "credit": "shooter", "tags_any": ["weapon_class.handgun"], "amount": 100}
+	],
+	"levels": [0, 300, 800, 1500, 2500, 4000],
+	"points_per_level": 1
+}

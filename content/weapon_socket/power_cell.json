@@ -1,0 +1,4 @@
+{
+	"schema_version": 1,
+	"description": "Power cell. Feeds electronics on the frame; nothing uses it at M1."
+}

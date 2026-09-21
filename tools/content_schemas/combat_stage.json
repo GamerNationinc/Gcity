@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "A named stage of the one combat pipeline (design doc §13.1). A profile enables a subset; the combat system refuses to assemble a profile that enables a stage no code implements.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240}
+	},
+	"required": ["schema_version", "description"],
+	"additional_properties": false
+}

@@ -19,17 +19,22 @@ file (design doc §16). Nothing else is built.
 
 ### Stat resolver (`sim/progression/`)
 
-1. **Every number reads through one resolver.** `StatResolver.get(entity, stat_id)`
-   returns the resolved value of a stat for an entity (design doc §10.2). No system
+1. **Every number reads through one resolver.** `StatResolver.resolve(entity, stat_id)`
+   returns the resolved value of a stat for an entity (design doc §10.2; the design
+   doc writes `get`, which GDScript reserves on `Object`). No system
    under `sim/` reads a base value or a modifier directly to compute a gameplay
    number; the fitness function in claim 15 fails CI if one does.
 2. **Bases are never mutated.** A stat is a base plus an ordered stack of modifiers.
    A modifier is `{stat_id, class, value, source, tags}` where `class` is one of the
    registered modifier classes. M1 registers exactly two, both commutative within
    themselves: `add` (flat, integer) and `mul` (integer basis points; 1 000 = ×1.1).
-   Resolution is `(base + Σadd) × Π(1 + mul/10 000)`, integer arithmetic, truncating
-   once at the end. All stat values are integers in milli-units (a damage of 34.5 is
-   `34500`), so resolution is exact, hashable and platform-independent.
+   Modifiers of one class sum; classes fold in registered order:
+   `(base + Σadd) × (10 000 + Σmul) / 10 000`, integer arithmetic, truncating once at
+   the end (a multiplier sum below −10 000 clamps the result to 0). Additive stacking
+   within a class is what makes the class commutative with exact integers; compounding
+   `Π(1 + mul/10 000)` exactly would need 128-bit intermediates. All stat values are
+   integers in milli-units (a damage of 34.5 is `34500`), so resolution is exact,
+   hashable and platform-independent.
 3. **The resolver's invariants hold for all inputs** (standards §3.2), each as a
    property test over ≥10 000 generated cases: (a) applying a set of modifiers in any
    order resolves to the same value; (b) adding then removing a modifier restores the
@@ -57,9 +62,13 @@ file (design doc §16). Nothing else is built.
    identical in every stat, 10 000 generated cases. Every instance has a sim-unique
    integer id issued by the item system; ids are never reused within a run.
 7. **A weapon is a frame plus sockets** (design doc §11.1). A frame declares sockets by
-   kind (`barrel`, `slide`, `optic`, `magazine`, `power_cell`); a part declares the
-   socket kind it fits and the modifiers it contributes to the weapon's stats via the
-   resolver. Attaching, detaching and the resulting handling stats (`damage`,
+   kind (`barrel`, `slide`, `optic`, `magazine`, `power_cell`, each a `weapon_socket`
+   content file); a part declares the socket kind it fits and the modifiers it
+   contributes to the weapon's stats via the resolver. A socket file may declare
+   `contains: ammo`, which makes its parts round containers with a capacity; that is
+   what a magazine is, and no code names "magazine". Parts attach and detach through
+   `&"weapon.attach"` / `&"weapon.detach"`; container-socket parts go through the
+   reload commands only. Attaching, detaching and the resulting handling stats (`damage`,
    `recoil`, `ergonomics`, `sway`, `aim_in_ticks`) are all resolver reads; there is
    no per-weapon code path. The one frame is `content/weapon_frame/g19.json`, a
    compact semi-auto 9 mm analog with no gimmick (design doc §11.2), with one barrel,
@@ -72,8 +81,10 @@ file (design doc §16). Nothing else is built.
    `&"magazine.unload"` (pop one), `&"weapon.reload_tactical"` (swap in a named
    magazine; the partial one returns to the actor's inventory), and
    `&"weapon.reload_emergency"` (swap in; the partial one is dropped to the world
-   container). Each reload has a duration in ticks read through the resolver
-   (`reload_ticks`), during which further weapon commands are rejected.
+   container). A reload chambers the magazine's top round if the chamber was empty
+   (no separate racking command at M1). Each reload has a duration in ticks read
+   through the resolver (`reload_ticks`), during which further weapon commands are
+   rejected.
 9. **Items are conserved.** Property tests over ≥10 000 generated sequences of load,
    unload, reload, fire and attach/detach: the multiset of item instance ids across
    all containers (inventory, magazines, chamber, world) never gains or loses an id
@@ -81,9 +92,10 @@ file (design doc §16). Nothing else is built.
    explicit spawn; no id is ever in two containers at once.
 10. **Item state survives a save round-trip with partial magazines** (ADR-009
     verification, G1). `ItemSystem.snapshot()` followed by
-    `ItemSystem.restore(snapshot)` on a fresh instance yields an equal snapshot and an
-    equal `SimRoot.state_hash()` for generated states that include partially loaded
-    magazines and a chambered round. `restore` treats its input as untrusted
+    `ItemSystem.restore(snapshot)` on a fresh instance (with the resolver and the id
+    allocator restored from theirs) yields equal system snapshots and an equal hash of
+    the sim's `systems` state for states that include partially loaded magazines and a
+    chambered round; the root's own counters and RNG are full save/load, G2. `restore` treats its input as untrusted
     (standards §5.1) and returns an `Error` on any malformed field. Full sim save/load
     remains G2 scope.
 
@@ -94,8 +106,9 @@ file (design doc §16). Nothing else is built.
     round, chambers the next from the magazine if any, emits a `fire` event, and runs
     the stages the active `content/combat_profile/<id>.json` enables. M1 implements
     the stages the arcade profile needs and no more: hit resolution (a roll from
-    `sim.rng()` against the resolved `hit_chance` at the target's declared range, since
-    no spatial world exists yet), post-armour damage (the round's resolved `damage`;
+    `sim.rng()` against the resolved `hit_chance` less the profile's
+    `range_falloff_per_m` times the target's declared range, since no spatial world
+    exists yet), post-armour damage (the round's resolved `damage`;
     armour and penetration stages are registered as names but have no
     implementation and are disabled in the shipped profile), and body-part routing
     through the profile's routing table onto the target's health graph. Stage names
@@ -104,7 +117,8 @@ file (design doc §16). Nothing else is built.
 12. **Actors are minimal.** `sim/agents/ActorSystem` owns the player and target dummies
     as entities with an inventory container, a wielded-weapon slot and a health graph
     (design doc §13.2) whose nodes and fatal flags come from the combat profile. The
-    arcade profile's table routes everything to one node. The player and each dummy
+    arcade profile's table routes everything to one node; a `range_dummy` profile with
+    a deep pool exists so a range session can dump magazines into a target. The player and each dummy
     are created by `&"actor.spawn"` commands so that a fixture reproduces its entire
     starting state; the same holds for `&"item.spawn"`. Both kinds are recorded as
     debug-class commands in the debt log: acceptable in solo, to be gated before co-op.
@@ -155,11 +169,18 @@ file (design doc §16). Nothing else is built.
     first Deck smoke run (M0 debt item 5; standards §8.1). No frame-budget claim is
     made; that begins at G4.
 19. **Replay fixtures exercise real systems.** `tests/replay/m1-range.json` spawns the
-    player, the pistol, two magazines, thirty rounds and one dummy, loads, fires,
-    tactical-reloads, fires to empty, emergency-reloads, unlocks the perk and fires
-    again; it reproduces its recorded hash twice in-process and across processes.
-    `tests/replay/m1-perk-off.json` is the same stream without the unlock and its hash
-    differs. The fuzz corpus gains hostile command payloads for every new kind.
+    player, the pistol, two magazines, thirty rounds and one dummy, loads, wields,
+    fits the parts, tactical-reloads, fires a magazine to empty, emergency-reloads,
+    unlocks the perk and fires the second magazine to empty; it reproduces its
+    recorded hash twice in-process and across processes. `tests/replay/m1-perk-off.json`
+    is the same stream without the unlock: same hits, more damage with the perk, a
+    different hash. All fixtures, M0's included, replay against the assembled sim
+    (`SimAssembly` over the shipped content), which is why the M0 hash moved with
+    this milestone. Integral JSON numbers are canonicalised to ints at the fixture and
+    content boundaries (`JsonNumbers`). The fuzz corpus gains
+    `tests/fuzz/commands/hostile_payloads.json`, hostile payloads for every command
+    kind, dispatched against the standard range with the systems' hash asserted
+    unchanged.
 
 ## Out of scope (goes to the debt log if touched)
 

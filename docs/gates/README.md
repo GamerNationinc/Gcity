@@ -11,5 +11,6 @@ scheduled into a named milestone), or **Rejected**.
 | Gate | Milestone | Status |
 |---|---|---|
 | G0 | M0 — Skeleton | **Accepted** 2026-09-20 by CEOGG |
-| G1 | M1 — Stat resolver + one pistol | spec written (`docs/specs/M1-stat-resolver-pistol.md`); unblocked: G0, ADR-002, ADR-003 and ADR-009 all signed 2026-09-20; implementation may start |
-| G2–G8 | see `docs/gcity-engineering-standards.md` §11 | not started |
+| G1 | M1 — Stat resolver + one pistol | **Accepted** 2026-09-20 by CEOGG |
+| G2 | M2 — Land authority + starter plot | not started (spec first) |
+| G3–G8 | see `docs/gcity-engineering-standards.md` §11 | not started |

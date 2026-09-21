@@ -1,0 +1,17 @@
+{
+	"schema_version": 1,
+	"description": "A part that fits one socket kind on listed frames and contributes modifiers to the weapon's stats. Parts for a socket that `contains` items are containers: they carry capacity and calibre.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"socket": {"type": "string", "ref": "weapon_socket"},
+		"fits": {"type": "array", "min_length": 1, "max_length": 64, "items": {"type": "string", "ref": "weapon_frame"}},
+		"modifiers": {"type": "array", "max_length": 32, "items": {"type": "object",
+			"properties": {"stat": {"type": "string", "ref": "stat"}, "class": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}, "value": {"type": "int", "min": -1000000000, "max": 1000000000}},
+			"required": ["stat", "class", "value"], "additional_properties": false}},
+		"capacity": {"type": "int", "min": 1, "max": 1000},
+		"calibre": {"type": "string", "ref": "calibre"}
+	},
+	"required": ["schema_version", "description", "socket", "fits", "modifiers"],
+	"additional_properties": false
+}

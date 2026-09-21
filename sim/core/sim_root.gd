@@ -78,6 +78,14 @@ func register_system(system: SimSystem) -> Error:
 	return OK
 
 
+## The registered system with this id, or null.
+func get_system(id: StringName) -> SimSystem:
+	for system: SimSystem in _systems:
+		if system.system_id() == id:
+			return system
+	return null
+
+
 func system_ids() -> Array[StringName]:
 	var result: Array[StringName] = []
 	for system: SimSystem in _systems:

@@ -1,3 +1,5 @@
 # Pinned engine (engineering standards §5.4). Upgrade both lines together.
 GODOT_VERSION=4.6.1-stable
 GODOT_LINUX_SHA256=cecd0cb6b55e931318a9d7237dc4197d69ea914966787a454808523626e2789f
+# Export templates for the same release (tools/export.sh). SHA-512 from the release's SHA512-SUMS.txt.
+GODOT_TEMPLATES_SHA512=d80001711c07973b1fd3e88077ba99644e19db7c9e52627e16f38a2937879f809f94dbd8493936fb8204908bbc57a521d41173dce5208061fe4c99772490c541

@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Ticks between shots on a semi-automatic weapon, in milli-ticks at SimRoot.TICK_HZ."
+}

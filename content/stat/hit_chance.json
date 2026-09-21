@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Probability that a fired round hits its target at the declared range, in basis points of a percent (1 000 000 = 100 %)."
+}

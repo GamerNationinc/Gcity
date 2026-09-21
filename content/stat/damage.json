@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Damage delivered by one hit, milli-hit-points. A weapon's frame and ammo set the base; parts and perks modify it."
+}

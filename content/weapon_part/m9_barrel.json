@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "Stock 125 mm barrel for the M9.",
+	"socket": "barrel",
+	"fits": ["m9"],
+	"modifiers": [
+		{"stat": "hit_chance", "class": "add", "value": 30000}
+	]
+}

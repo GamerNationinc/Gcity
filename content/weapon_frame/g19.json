@@ -1,0 +1,46 @@
+{
+	"schema_version": 1,
+	"description": "Compact semi-automatic 9 mm handgun. Boring on purpose (design doc §11.2).",
+	"calibre": "9x19",
+	"sockets": [
+		"barrel",
+		"slide",
+		"optic",
+		"magazine",
+		"power_cell"
+	],
+	"tags": [
+		"weapon",
+		"weapon_class.handgun"
+	],
+	"stats": [
+		{
+			"stat": "hit_chance",
+			"value": 650000
+		},
+		{
+			"stat": "recoil",
+			"value": 3000
+		},
+		{
+			"stat": "ergonomics",
+			"value": 7000
+		},
+		{
+			"stat": "sway",
+			"value": 2000
+		},
+		{
+			"stat": "aim_in_ticks",
+			"value": 12000
+		},
+		{
+			"stat": "reload_ticks",
+			"value": 80000
+		},
+		{
+			"stat": "cycle_ticks",
+			"value": 6000
+		}
+	]
+}
