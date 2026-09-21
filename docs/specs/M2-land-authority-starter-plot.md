@@ -1,7 +1,7 @@
 # M2 — Land authority + starter plot: specification
 
 Milestone M2 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG, 2026-09-21).
+before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG, 2026-09-21); implemented, G2 package in `docs/gates/M2-gate.md`.
 
 **Preconditions.** G1 is signed in `docs/gates/M1-gate.md` (it is). ADR-003 is
 `accepted` as B, volumetric (it is), so parcels have a real vertical extent and the
@@ -175,6 +175,9 @@ attached to route graph nodes (M7); any performance number.
 
 ## Assumptions to record in the gate
 
+- Owners are tags (`player`, `npc.<name>`, `faction.<id>`), not actor ids, because the
+  design lets factions and the city-state own land (§9.4); actors act as the owner they
+  are identified with via `land.identify`. Amended during implementation; G2 debt 1.
 - Positions are integer millimetres. The design doc uses feet for the plot; content
   stores millimetres and the 2 ft socket pitch is rounded to 610 mm. Alternative
   rejected: floats, for the same reason as M1's milli-unit stats.

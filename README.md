@@ -14,10 +14,11 @@ test that would fail if it were false.
 
 ## Status
 
-**M0 — Skeleton.** Sim/client split with a CI-enforced dependency rule, a headless
-test harness, a fixed-tick deterministic sim root with canonical state hashing, and
-record-and-replay fixtures. No gameplay. See `docs/specs/M0-skeleton.md` and
-`docs/gates/M0-gate.md`.
+**M2 — Land authority + starter plot**, evidence package submitted (`docs/gates/M2-gate.md`).
+G0 and G1 are accepted. The sim has a total `rights_at()` over polygon parcels, a
+container with modules on a shared power and heat budget through the stat resolver,
+and a validated save format round-tripped as a property. The main scene is the plot
+view; the M1 range is `client/main.tscn`.
 
 ## Running
 

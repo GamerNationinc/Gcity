@@ -59,24 +59,20 @@ func _build_demo_script() -> Array:
 		script.append([t, action])
 		t += 0.15
 	add.call("place")
-	add.call("install")           # power rack at (0, 0)
-	add.call("next_module")       # sustainment
-	add.call("next_module")       # work station
+	add.call("select:power_cell_rack")
+	add.call("install")           # rack at (0, 0)
+	add.call("select:work_station")
 	add.call("right"); add.call("right")
 	add.call("install")           # work station at (2, 0)
-	add.call("next_module")       # hydroponics
-	add.call("next_module")       # power rack
-	add.call("next_module")       # sustainment
+	add.call("select:sustainment")
 	add.call("right"); add.call("right"); add.call("right")
 	add.call("install")           # sustainment at (5, 0)
 	for _i: int in 5:
 		add.call("left")
 	add.call("up")
 	add.call("install")           # sustainment at (0, 1)
-	add.call("next_module")       # hydroponics
-	add.call("install")           # refused: no room
-	add.call("next_module"); add.call("next_module"); add.call("next_module")
-	add.call("next_module")       # hydroponics again after a full cycle
+	add.call("select:hydroponics")
+	add.call("install")           # refused: cells occupied
 	add.call("remove")            # sustainment at (0, 1) goes
 	add.call("install")           # hydroponics at (0, 1)
 	add.call("transfer")
@@ -194,6 +190,13 @@ func _perform(action: String) -> void:
 			_submit(sim, &"module.remove", {"actor": _player, "structure": s, "module": module_id})
 		"next_module":
 			_template_index = (_template_index + 1) % _templates.size()
+		var selection when selection.begins_with("select:"):
+			var wanted: StringName = StringName(selection.trim_prefix("select:"))
+			var index: int = _templates.find(wanted)
+			if index < 0:
+				_note("no module kind %s" % wanted)
+				return
+			_template_index = index
 		"transfer":
 			_submit(sim, &"land.transfer", {"parcel": String(EAST), "owner": "player"})
 		"save":
