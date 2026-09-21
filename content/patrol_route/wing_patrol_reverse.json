@@ -3,32 +3,32 @@
 	"description": "The wing patrol the other way round, so two patrollers stay apart.",
 	"cells": [
 		[
-			8,
+			10,
 			0,
 			16
 		],
 		[
-			5,
+			7,
 			0,
 			16
 		],
 		[
-			2,
+			4,
 			0,
 			16
 		],
 		[
-			5,
+			7,
 			0,
 			16
 		],
 		[
-			5,
+			7,
 			0,
 			12
 		],
 		[
-			5,
+			7,
 			0,
 			16
 		]

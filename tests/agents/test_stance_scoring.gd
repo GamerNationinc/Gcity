@@ -148,12 +148,12 @@ func test_a_heard_shot_is_investigated_then_forgotten_back_to_hold() -> void:
 	_sim.step_n(StanceSystem.SCORE_EVERY)
 	assert_eq(_stances.stance_of(guard), &"investigate", "a noise with nothing in sight: investigate")
 	var arrived: int = -1
-	for i: int in 200:
+	for i: int in 300:
 		_sim.step()
 		if BuildSystem.cell_of(_actors.position_of(guard)) == _cell(10, 0):
 			arrived = i
 			break
-	assert_true(arrived >= 0, "walked to where the shot came from")
+	assert_true(arrived >= 0, "walked to where the shot came from (10 m at a walking pace)")
 	assert_eq(_perception.facing_of(guard), 0, "faced the way it walked")
 	_sim.step_n(420)  # memory of the shot fades
 	assert_eq(_stances.stance_of(guard), &"hold", "nothing found, nothing remembered: back to hold")
@@ -200,7 +200,9 @@ func test_hysteresis_keeps_a_stance_for_its_minimum_duration() -> void:
 	_combat.events().emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": guard, "round": 0, "tags": []})
 	_sim.step_n(StanceSystem.SCORE_EVERY)
 	assert_eq(_stances.stance_of(guard), &"hold", "investigate would win, but hold has not run its minimum")
-	_sim.step_n(StanceSystem.MIN_STANCE_TICKS)
+	_sim.step_n(12)
+	_combat.events().emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": guard, "round": 0, "tags": []})  # a second shot keeps the noise worth a look
+	_sim.step_n(StanceSystem.MIN_STANCE_TICKS - 12)
 	assert_eq(_stances.stance_of(guard), &"investigate", "after the minimum it switches")
 
 

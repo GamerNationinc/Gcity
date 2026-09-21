@@ -172,10 +172,12 @@ func tick(_sim: SimRoot) -> void:
 		_aim[agent] = rec
 
 
-## The visible contact the agent is most aware of; ties go to the lowest id.
+## The visible contact the agent is most aware of; ties go to the lowest id. An
+## actor it has no awareness of at all (a squadmate, or a stranger it has not
+## noticed) is never a target.
 func _best_target(agent: int) -> int:
 	var best: int = EntityIds.NONE
-	var best_aw: int = -1
+	var best_aw: int = 0
 	for contact: int in _actors.actor_ids():
 		if contact == agent or not _actors.is_alive(contact):
 			continue

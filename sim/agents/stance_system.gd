@@ -32,6 +32,8 @@ const ENGAGE_CELLS: int = 5
 const FLANK_CELLS: int = 4
 const RETREAT_CELLS: int = 6
 const SURRENDER_MM: int = 8000
+## Below this awareness a remembered contact is a flicker, not worth starting a look.
+const INVESTIGATE_MIN: int = 200_000
 
 var _content: ContentDb
 var _actors: ActorSystem
@@ -229,6 +231,7 @@ func context_of(agent: int) -> Dictionary:
 ## HYSTERESIS unless the current stance has become disallowed.
 func choose(allowed: Array[Dictionary], ctx: Dictionary, current: StringName, ran: int) -> Dictionary:
 	var routed: bool = ctx["routed"]
+	ctx["current"] = current
 	var best: StringName = &""
 	var best_score: int = -1
 	var current_score: int = -1
@@ -270,8 +273,8 @@ func _score_hold(ctx: Dictionary) -> int:
 
 
 func _score_advance(ctx: Dictionary) -> int:
-	var known: bool = ctx["known"]
-	if not known:
+	var alerted: bool = ctx["alerted"]
+	if not alerted:
 		return 0
 	var awareness: int = ctx["awareness"]
 	var stress: int = ctx["stress"]
@@ -280,9 +283,9 @@ func _score_advance(ctx: Dictionary) -> int:
 
 
 func _score_flank(ctx: Dictionary) -> int:
-	var known: bool = ctx["known"]
+	var alerted: bool = ctx["alerted"]
 	var visible: bool = ctx["visible"]
-	if not known or visible:
+	if not alerted or visible:
 		return 0
 	var awareness: int = ctx["awareness"]
 	var stress: int = ctx["stress"]
@@ -304,9 +307,14 @@ func _score_investigate(ctx: Dictionary) -> int:
 	var known: bool = ctx["known"]
 	var visible: bool = ctx["visible"]
 	var alerted: bool = ctx["alerted"]
+	var awareness: int = ctx["awareness"]
+	var current: StringName = ctx.get("current", &"")
 	if not known or visible or alerted:
 		return 0
-	var awareness: int = ctx["awareness"]
+	# a look is started on real awareness, and once started it is finished while the
+	# contact is remembered at all, however faint the awareness has grown
+	if awareness < INVESTIGATE_MIN and current != STANCE_INVESTIGATE:
+		return 0
 	return 500_000 + awareness / 4
 
 

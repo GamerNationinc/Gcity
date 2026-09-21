@@ -3,32 +3,32 @@
 	"description": "Up the M4 corridor, into room A, back, into room B, back.",
 	"cells": [
 		[
-			5,
+			7,
 			0,
 			12
 		],
 		[
-			5,
+			7,
 			0,
 			16
 		],
 		[
-			2,
+			4,
 			0,
 			16
 		],
 		[
-			5,
+			7,
 			0,
 			16
 		],
 		[
-			8,
+			10,
 			0,
 			16
 		],
 		[
-			5,
+			7,
 			0,
 			16
 		]
