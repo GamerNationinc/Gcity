@@ -108,7 +108,7 @@ func test_restore_round_trip_and_rejections() -> void:
 	_sub(_sub(c, "actors"), a)["wielded"] = 12345
 	bad.append(c)
 	c = good.duplicate(true)
-	_sub(_sub(c, "actors"), a)["range_m"] = -3
+	_sub(_sub(c, "actors"), a)["pos"] = [1, 2]
 	bad.append(c)
 	c = good.duplicate(true)
 	c["extra"] = 1

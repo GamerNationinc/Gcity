@@ -45,6 +45,12 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var portals: PortalGraph = PortalGraph.new(content, stats, build)
 	if portals.attach(sim, events) != OK:
 		return null
+	var movement: MovementSystem = MovementSystem.new(content, actors, land, build)
+	if movement.attach(sim) != OK:
+		return null
+	var raids: RaidTokenSystem = RaidTokenSystem.new(content, build, portals, events)
+	if raids.attach(sim) != OK:
+		return null
 	return sim
 
 
@@ -82,7 +88,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -110,6 +116,10 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = build_of(sim).restore(state)
 			PortalGraph.SYSTEM_ID:
 				err = portals_of(sim).restore(state)
+			MovementSystem.SYSTEM_ID:
+				err = movement_of(sim).restore(state)
+			RaidTokenSystem.SYSTEM_ID:
+				err = raids_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -203,3 +213,21 @@ static func portals_of(sim: SimRoot) -> PortalGraph:
 		return null
 	var portals: PortalGraph = system
 	return portals
+
+
+static func movement_of(sim: SimRoot) -> MovementSystem:
+	var system: SimSystem = sim.get_system(MovementSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % MovementSystem.SYSTEM_ID)
+		return null
+	var movement: MovementSystem = system
+	return movement
+
+
+static func raids_of(sim: SimRoot) -> RaidTokenSystem:
+	var system: SimSystem = sim.get_system(RaidTokenSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % RaidTokenSystem.SYSTEM_ID)
+		return null
+	var raids: RaidTokenSystem = system
+	return raids

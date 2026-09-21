@@ -82,6 +82,16 @@
 		{"kind": "build.place", "payload": {"actor": 1, "piece": "foundation_block", "x": 1e12, "y": 500, "z": 500, "facing": ""}},
 		{"kind": "build.remove", "payload": {}},
 		{"kind": "build.remove", "payload": {"actor": 1, "piece_id": 999}},
-		{"kind": "build.remove", "payload": {"actor": 1, "piece_id": "3"}}
+		{"kind": "build.remove", "payload": {"actor": 1, "piece_id": "3"}},
+		{"kind": "actor.move", "payload": {}},
+		{"kind": "actor.move", "payload": {"actor": 1, "dx": 100}},
+		{"kind": "actor.move", "payload": {"actor": 1, "dx": 100000, "dz": 0}},
+		{"kind": "actor.move", "payload": {"actor": 2, "dx": 1, "dz": 0}},
+		{"kind": "actor.move", "payload": {"actor": 99, "dx": 1, "dz": 0}},
+		{"kind": "actor.move", "payload": {"actor": 1, "dx": 0, "dz": 0}},
+		{"kind": "raid.spawn", "payload": {}},
+		{"kind": "raid.spawn", "payload": {"tool": "spoon"}},
+		{"kind": "raid.spawn", "payload": {"tool": "cutter"}},
+		{"kind": "raid.spawn", "payload": {"tool": "cutter", "x": 1}}
 	]
 }

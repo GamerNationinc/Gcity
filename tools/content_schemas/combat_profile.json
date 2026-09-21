@@ -6,6 +6,7 @@
 		"description": {"type": "string", "min_length": 1, "max_length": 240},
 		"stages": {"type": "array", "min_length": 1, "max_length": 16, "items": {"type": "string", "ref": "combat_stage"}},
 		"range_falloff_per_m": {"type": "int", "min": 0, "max": 1000000},
+		"speed_mm_per_tick": {"type": "int", "min": 0, "max": 10000},
 		"health": {"type": "object", "properties": {
 			"nodes": {"type": "array", "min_length": 1, "max_length": 32, "items": {"type": "object",
 				"properties": {"id": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"}, "max": {"type": "int", "min": 1, "max": 1000000000}, "fatal": {"type": "bool"}},
@@ -15,6 +16,6 @@
 				"required": ["node", "weight"], "additional_properties": false}}
 		}, "required": ["nodes", "routing"], "additional_properties": false}
 	},
-	"required": ["schema_version", "description", "stages", "range_falloff_per_m", "health"],
+	"required": ["schema_version", "description", "stages", "range_falloff_per_m", "speed_mm_per_tick", "health"],
 	"additional_properties": false
 }

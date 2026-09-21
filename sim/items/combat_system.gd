@@ -169,7 +169,7 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 	var profile: Dictionary = _actors.profile_data(shooter)
 	var ctx: Dictionary = {
 		"tick": sim.get_tick(), "shooter": shooter, "weapon": weapon, "round": round, "target": target,
-		"range_m": _actors.range_of(target), "profile": profile, "hit": false, "damage": 0, "applied": 0,
+		"range_m": ActorSystem.metres_between(_actors.position_of(shooter), _actors.position_of(target)), "profile": profile, "hit": false, "damage": 0, "applied": 0,
 		"node": &"", "chance": 0, "killed": false,
 	}
 	var stages: Array = profile["stages"]
