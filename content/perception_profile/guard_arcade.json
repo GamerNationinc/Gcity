@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"description": "Arcade guard (ADR-008 A): the same perception with a wider cone and 12 ticks (0.3 s) to the alert threshold; shorter memory.",
+	"sight_range_mm": 30000,
+	"fov_deg": 150,
+	"gain_per_tick": 83400,
+	"speed_gain_per_mm_per_tick": 100,
+	"decay_per_tick": 20000,
+	"alert_threshold": 1000000,
+	"memory_ticks": 200,
+	"hearing_range_mm": 60000,
+	"hearing_gain": 700000
+}

@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "The G4 extension exercise: a machine feels nothing, but backs off when it takes damage.",
+	"near_miss_mm": 0,
+	"gain_fired_at": 0,
+	"gain_hit": 400000,
+	"gain_squadmate_down": 0,
+	"decay_per_tick": 1000,
+	"break_threshold": 700000,
+	"rout_threshold": 1000000,
+	"hit_penalty_at_max": 0
+}

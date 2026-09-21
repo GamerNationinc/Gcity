@@ -1,0 +1,16 @@
+{
+	"schema_version": 1,
+	"description": "Aim quality separate from awareness (design doc §14.2; M4 spec claim 6): an error cone in milli-degrees that starts wide, converges linearly over settle_ticks while the target stays visible, resets when sight breaks, and carries a swing-through penalty for swing_ticks after a target appears. penalty_per_mdeg turns the cone into a hit_chance penalty (basis points of a percent per milli-degree).",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"cone_start_mdeg": {"type": "int", "min": 0, "max": 180000},
+		"cone_settled_mdeg": {"type": "int", "min": 0, "max": 180000},
+		"settle_ticks": {"type": "int", "min": 1, "max": 100000},
+		"swing_penalty_mdeg": {"type": "int", "min": 0, "max": 180000},
+		"swing_ticks": {"type": "int", "min": 0, "max": 100000},
+		"penalty_per_mdeg": {"type": "int", "min": 0, "max": 1000000}
+	},
+	"required": ["schema_version", "description", "cone_start_mdeg", "cone_settled_mdeg", "settle_ticks", "swing_penalty_mdeg", "swing_ticks", "penalty_per_mdeg"],
+	"additional_properties": false
+}

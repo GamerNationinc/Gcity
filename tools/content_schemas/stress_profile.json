@@ -1,0 +1,18 @@
+{
+	"schema_version": 1,
+	"description": "Stress and morale (design doc §14.3; M4 spec claim 8): per-agent stress in milli-units 0..1 000 000, raised by being fired at (a shot at the agent, or one whose line passes within near_miss_mm), by being hit and by a squadmate going down; decayed per tick. hit_penalty_at_max is the hit_chance penalty (basis points of a percent) at full stress, linear below. Above break_threshold the agent prefers to retreat; above rout_threshold it may only retreat or surrender.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 320},
+		"near_miss_mm": {"type": "int", "min": 0, "max": 100000},
+		"gain_fired_at": {"type": "int", "min": 0, "max": 1000000},
+		"gain_hit": {"type": "int", "min": 0, "max": 1000000},
+		"gain_squadmate_down": {"type": "int", "min": 0, "max": 1000000},
+		"decay_per_tick": {"type": "int", "min": 0, "max": 1000000},
+		"break_threshold": {"type": "int", "min": 1, "max": 1000000},
+		"rout_threshold": {"type": "int", "min": 1, "max": 1000000},
+		"hit_penalty_at_max": {"type": "int", "min": 0, "max": 1000000}
+	},
+	"required": ["schema_version", "description", "near_miss_mm", "gain_fired_at", "gain_hit", "gain_squadmate_down", "decay_per_tick", "break_threshold", "rout_threshold", "hit_penalty_at_max"],
+	"additional_properties": false
+}

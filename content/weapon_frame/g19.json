@@ -41,6 +41,10 @@
 		{
 			"stat": "cycle_ticks",
 			"value": 6000
+		},
+		{
+			"stat": "noise",
+			"value": 60000
 		}
 	]
 }

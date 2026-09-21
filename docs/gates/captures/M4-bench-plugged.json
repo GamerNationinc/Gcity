@@ -1,0 +1,57 @@
+{
+	"agent_row_usec": {
+		"p50": 1026,
+		"p99": 1399,
+		"p999": 1444
+	},
+	"agents": {
+		"all": {
+			"count": 12000,
+			"max": 15203,
+			"mean": 1073,
+			"p50": 1038,
+			"p99": 1418,
+			"p999": 12695
+		},
+		"guards": 6,
+		"pieces": 93,
+		"rebuild_ticks": {
+			"count": 30,
+			"max": 15203,
+			"mean": 12075,
+			"p50": 12551,
+			"p99": 15203,
+			"p999": 15203
+		},
+		"rejected": 0,
+		"shots": 90
+	},
+	"budget_usec_per_frame": 25000,
+	"cpu": "AMD Custom APU 0932",
+	"engine": "4.6.1-stable (official)",
+	"no_agents": {
+		"all": {
+			"count": 12000,
+			"max": 12259,
+			"mean": 39,
+			"p50": 12,
+			"p99": 19,
+			"p999": 11251
+		},
+		"guards": 0,
+		"pieces": 93,
+		"rebuild_ticks": {
+			"count": 30,
+			"max": 12259,
+			"mean": 10661,
+			"p50": 11205,
+			"p99": 12259,
+			"p999": 12259
+		},
+		"rejected": 0,
+		"shots": 0
+	},
+	"os": "Linux",
+	"tick_hz": 40,
+	"ticks": 12000
+}

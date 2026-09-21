@@ -1,0 +1,4 @@
+{
+	"schema_version": 1,
+	"description": "Close on a known contact to engagement range, firing when it is in sight."
+}

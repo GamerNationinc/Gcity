@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "Sim guard: a shot at it or within 1.5 m adds 15 %, a hit 30 %, a squadmate down 25 %; recovers from full in 10 s; breaks at 60 %, routs at 90 %; up to 30 % off the hit chance.",
+	"near_miss_mm": 1500,
+	"gain_fired_at": 150000,
+	"gain_hit": 300000,
+	"gain_squadmate_down": 250000,
+	"decay_per_tick": 2500,
+	"break_threshold": 600000,
+	"rout_threshold": 900000,
+	"hit_penalty_at_max": 300000
+}

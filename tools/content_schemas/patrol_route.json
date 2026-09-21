@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "A patrol route (M4 spec claim 14): build cells an agent walks in order, looping, while it holds with nothing to do.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"cells": {"type": "array", "min_length": 1, "max_length": 64, "items": {"type": "array", "min_length": 3, "max_length": 3, "items": {"type": "int", "min": -100000, "max": 100000}}}
+	},
+	"required": ["schema_version", "description", "cells"],
+	"additional_properties": false
+}

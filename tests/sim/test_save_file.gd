@@ -286,9 +286,25 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 	var out: Array = []
 	for _i: int in count:
 		var at: int = rng.randi_range(1, 3)
-		match rng.randi_range(0, 9):
+		match rng.randi_range(0, 15):
 			0:
 				out.append([at, &"actor.spawn", {"profile": "arcade", "range_m": rng.randi_range(0, 20)}])
+			10:
+				# M4 claim 15: agents, with their perception, aim, stress, paths, stances and squads
+				out.append([at, &"agent.spawn", {"profile": ["guard_sim", "guard_arcade", "guard_mute", "nobody"][rng.randi_range(0, 3)], "cell": [rng.randi_range(0, 12), 0, rng.randi_range(0, 12)],
+					"facing": rng.randi_range(0, 359), "squad": rng.randi_range(0, 2), "route": ["", "lobby_round", "wing_patrol", "nowhere"][rng.randi_range(0, 3)]}])
+			11:
+				out.append([at, &"agent.set_profile", {"agent": rng.randi_range(1, 6), "profile": ["guard_sim", "guard_arcade", "nobody"][rng.randi_range(0, 2)]}])
+			12:
+				# M3 claim 11: build and raid commands
+				out.append([at, &"build.place", {"actor": rng.randi_range(1, 3), "piece": ["foundation_block", "wall_panel", "door_frame", "storage_crate"][rng.randi_range(0, 3)],
+					"x": rng.randi_range(0, 12) * M + 500, "y": 500, "z": rng.randi_range(0, 12) * M + 500, "facing": ["", "px", "nz", "py"][rng.randi_range(0, 3)]}])
+			13:
+				out.append([at, &"build.remove", {"actor": rng.randi_range(1, 3), "piece_id": rng.randi_range(1, 20)}])
+			14:
+				out.append([at, &"raid.spawn", {"tool": ["cutter", "nothing"][rng.randi_range(0, 1)]}])
+			15:
+				out.append([at, &"actor.move", {"actor": rng.randi_range(1, 6), "dx": rng.randi_range(-150, 150), "dz": rng.randi_range(-150, 150)}])
 			1:
 				out.append([at, &"item.spawn", {"kind": "weapon_frame", "template": "g19", "container": "inv.%d" % rng.randi_range(1, 3), "seed": rng.randi(), "count": 1}])
 			2:

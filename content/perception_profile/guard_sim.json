@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"description": "Sim-profile guard: 40 m sight in a 120 degree cone, 32 ticks (0.8 s) at rest inside half range to the alert threshold, forgets a contact in 10 s.",
+	"sight_range_mm": 40000,
+	"fov_deg": 120,
+	"gain_per_tick": 31250,
+	"speed_gain_per_mm_per_tick": 60,
+	"decay_per_tick": 10000,
+	"alert_threshold": 1000000,
+	"memory_ticks": 400,
+	"hearing_range_mm": 60000,
+	"hearing_gain": 500000
+}

@@ -1,0 +1,76 @@
+{
+	"schema_version": 1,
+	"description": "An agent is an actor with a combat profile, a perception profile, an aim profile, a stress profile and the stances it may choose with their weights plus its radio (M4 spec claims 1, 6, 8, 10, 11). 1000 is a neutral weight.",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 240
+		},
+		"combat_profile": {
+			"type": "string",
+			"ref": "combat_profile"
+		},
+		"perception_profile": {
+			"type": "string",
+			"ref": "perception_profile"
+		},
+		"aim_profile": {
+			"type": "string",
+			"ref": "aim_profile"
+		},
+		"stress_profile": {
+			"type": "string",
+			"ref": "stress_profile"
+		},
+		"stances": {
+			"type": "array",
+			"min_length": 1,
+			"max_length": 16,
+			"items": {
+				"type": "object",
+				"properties": {
+					"stance": {
+						"type": "string",
+						"ref": "stance"
+					},
+					"weight": {
+						"type": "int",
+						"min": 0,
+						"max": 100000
+					}
+				},
+				"required": [
+					"stance",
+					"weight"
+				],
+				"additional_properties": false
+			}
+		},
+		"radio": {
+			"type": "bool"
+		},
+		"radio_latency_ticks": {
+			"type": "int",
+			"min": 0,
+			"max": 100000
+		}
+	},
+	"required": [
+		"schema_version",
+		"description",
+		"combat_profile",
+		"perception_profile",
+		"aim_profile",
+		"stress_profile",
+		"stances",
+		"radio",
+		"radio_latency_ticks"
+	],
+	"additional_properties": false
+}

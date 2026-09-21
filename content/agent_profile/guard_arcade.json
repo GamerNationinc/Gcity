@@ -1,0 +1,32 @@
+{
+	"schema_version": 1,
+	"description": "The same guard under the arcade tuning (ADR-008 A): no code branch, different numbers.",
+	"combat_profile": "guard",
+	"perception_profile": "guard_arcade",
+	"aim_profile": "guard_arcade",
+	"stress_profile": "guard_arcade",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 1000
+		},
+		{
+			"stance": "advance",
+			"weight": 1000
+		},
+		{
+			"stance": "retreat",
+			"weight": 1000
+		},
+		{
+			"stance": "investigate",
+			"weight": 1000
+		},
+		{
+			"stance": "surrender",
+			"weight": 1000
+		}
+	],
+	"radio": true,
+	"radio_latency_ticks": 4
+}

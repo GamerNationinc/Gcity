@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "Arcade guard (ADR-008 A): low stress sensitivity, fast recovery, breaks late and never routs short of full stress.",
+	"near_miss_mm": 1000,
+	"gain_fired_at": 50000,
+	"gain_hit": 100000,
+	"gain_squadmate_down": 50000,
+	"decay_per_tick": 5000,
+	"break_threshold": 800000,
+	"rout_threshold": 1000000,
+	"hit_penalty_at_max": 150000
+}

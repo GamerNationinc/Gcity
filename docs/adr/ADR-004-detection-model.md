@@ -1,6 +1,6 @@
 # ADR-004: Sensor-gated detection vs instant wanted level
 
-Status: proposed
+Status: accepted
 Date: 2026-09-20
 Design doc: §7.4 (D-04); §14.1 perception
 
@@ -29,7 +29,7 @@ on violation, needs nothing but reads as arbitrary and makes stealth meaningless
 
 ## Decision
 
-Proposed: **A.** Because B is a degenerate configuration of A (all observers, infinite
+**Accepted: A** (CEOGG, 2026-09-21), as proposed. Because B is a degenerate configuration of A (all observers, infinite
 range, instant propagation), A can be shipped with B's numbers for the tutorial and
 scripted city fights if legibility needs it, using the same profile mechanism as
 combat (§13.1).
@@ -48,4 +48,6 @@ unreachable there.
 
 ## Sign-off
 
-Approver: CEOGG — _pending_
+Approver: CEOGG
+Date: 2026-09-21
+Outcome: accepted (verification at the M8 gate: increasing `informant_density` never increases time-to-suspicion; M4 carries the perception half (reduced perception never lowers `time_to_first_shot`))

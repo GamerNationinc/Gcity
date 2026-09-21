@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "Hostile payloads for every M1 and M2 command kind. Each must be rejected by an assembled sim with the standard range set up (player 1, dummy 2, pistol 3, magazines 6 and 7, rounds 8-37) and must leave the system state untouched.",
+	"description": "Hostile payloads for every command kind from M1 on. Each must be rejected by an assembled sim with the standard range set up (player 1, dummy 2, pistol 3, magazines 6 and 7, rounds 8-37) and must leave the system state untouched.",
 	"cases": [
 		{"kind": "actor.spawn", "payload": {}},
 		{"kind": "actor.spawn", "payload": {"profile": "arcade"}},
@@ -92,6 +92,25 @@
 		{"kind": "raid.spawn", "payload": {}},
 		{"kind": "raid.spawn", "payload": {"tool": "spoon"}},
 		{"kind": "raid.spawn", "payload": {"tool": "cutter"}},
-		{"kind": "raid.spawn", "payload": {"tool": "cutter", "x": 1}}
+		{"kind": "raid.spawn", "payload": {"tool": "cutter", "x": 1}},
+		{"kind": "agent.spawn", "payload": {}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [0, 0, 0], "facing": 0, "squad": 0}},
+		{"kind": "agent.spawn", "payload": {"profile": "nobody", "cell": [0, 0, 0], "facing": 0, "squad": 0, "route": ""}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [0, 0], "facing": 0, "squad": 0, "route": ""}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [0, 0.5, 0], "facing": 0, "squad": 0, "route": ""}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [999999999, 0, 0], "facing": 0, "squad": 0, "route": ""}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": "0,0,0", "facing": 0, "squad": 0, "route": ""}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [0, 0, 0], "facing": 360, "squad": 0, "route": ""}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [0, 0, 0], "facing": -1, "squad": 0, "route": ""}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [0, 0, 0], "facing": 0, "squad": -1, "route": ""}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [0, 0, 0], "facing": 0, "squad": 0, "route": "nowhere"}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [0, 0, 0], "facing": 0, "squad": 0, "route": null}},
+		{"kind": "agent.spawn", "payload": {"profile": "guard_sim", "cell": [0, 0, 0], "facing": 0, "squad": 0, "route": "", "hp": 1}},
+		{"kind": "agent.set_profile", "payload": {}},
+		{"kind": "agent.set_profile", "payload": {"agent": 1, "profile": "guard_sim"}},
+		{"kind": "agent.set_profile", "payload": {"agent": 99, "profile": "guard_sim"}},
+		{"kind": "agent.set_profile", "payload": {"agent": "1", "profile": "guard_sim"}},
+		{"kind": "agent.set_profile", "payload": {"agent": 1, "profile": ["guard_sim"]}},
+		{"kind": "agent.set_profile", "payload": {"agent": 1, "profile": "guard_sim", "facing": 0}}
 	]
 }

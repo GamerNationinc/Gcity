@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "Arcade guard (ADR-008 A): a wider cone that never settles below 4 degrees, settling faster with a shorter swing.",
+	"cone_start_mdeg": 12000,
+	"cone_settled_mdeg": 4000,
+	"settle_ticks": 24,
+	"swing_penalty_mdeg": 2000,
+	"swing_ticks": 6,
+	"penalty_per_mdeg": 50
+}

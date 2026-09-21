@@ -11,6 +11,7 @@
 		{"stat": "sway", "value": 1800},
 		{"stat": "aim_in_ticks", "value": 14000},
 		{"stat": "reload_ticks", "value": 90000},
-		{"stat": "cycle_ticks", "value": 7000}
+		{"stat": "cycle_ticks", "value": 7000},
+		{"stat": "noise", "value": 65000}
 	]
 }
