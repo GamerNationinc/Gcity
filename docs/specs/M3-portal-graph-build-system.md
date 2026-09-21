@@ -1,7 +1,7 @@
 # M3 — Portal graph + build system: specification
 
 Milestone M3 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **draft, awaiting approval.**
+before implementation (standards §2.1, §10.2). Status: **approved with claim set P and the feel claim P4** (CEOGG, 2026-09-21).
 
 **Preconditions.** G2 is signed (it is). No ADR blocks M3: ADR-003 (volumetric
 terrain) is accepted and M3 builds on flat parcels, not terrain. One ADR-003
@@ -100,10 +100,11 @@ cheapest path; raising a wall's HP never lowers that path's cost.
     build system (random placement/removal sequences against the partition invariants,
     standards §3.5) is the property of claim 5 with a committed corpus of found cases.
 
-### Optional claim set P — player movement in 3D (accept or strike)
+### Claim set P — player movement and feel in 3D (accepted 2026-09-21)
 
-Not in the design doc's M3; offered because the approver asked how far 3D movement
-is. Costs about a fifth of M3 and touches `sim/agents/` and the client only.
+Not in the design doc's M3; accepted because correctness is proven headless but feel
+is only proven in hand, and nothing was in hand before G6. Touches `sim/agents/`,
+`sim/items/` (a range target in the world) and the client.
 
 P1. `&"actor.move {actor, dx, dz}"` moves an actor by integer millimetres per tick
     with a per-profile speed cap, on flat parcel ground; a move into a wall piece's
@@ -113,8 +114,18 @@ P2. The client gains a grey-box 3D scene: parcels as planes, pieces as boxes, th
     §1), Steam Deck stick and trackpad bindings alongside keyboard. Every step is a
     submitted command; the camera reads the sim's position.
 P3. A replay fixture walks the player through the door of the M3 bunker.
+P4. **Feel.** The M1 pistol is fired from the 3D view at a range dummy standing in the
+    world, with the arcade profile: wield, aim (camera), fire, reload on stick and
+    trigger bindings. No new combat: the hit roll uses the sim's distance between the
+    two actors' positions (P1) in place of the M1 dummy's declared range, which is the
+    one sim change and is covered by a metamorphic test (farther never raises hit
+    chance). The gate package gains a **Feel notes** section: what felt wrong on the
+    Deck, each item either a content number changed in the same package or a debt item.
+P5. **Every gate from G3 on includes a Deck run** of the Linux export, sideloaded or
+    through the Steam client as a local non-store build; the Steam store id and depots
+    are not required for that and remain CEOGG's external action.
 
-If accepted, the "walkable slice" arrives with G3 instead of G6.
+The "walkable slice" therefore arrives with G3 instead of G6.
 
 ## Out of scope (goes to the debt log if touched)
 
@@ -127,9 +138,9 @@ exercise, any performance number claimed as a budget.
 
 - **ADR-003 condition 1** says colliders and runtime navigation on volumetric chunks
   are measured at G3. M3 has no chunks (terrain is M7). Proposed: the condition moves
-  to G7, recorded as an amendment to ADR-003's consequences, signed by CEOGG. Until
-  decided, this spec assumes the move.
-- Whether claim set P is accepted.
+  to G7, recorded as an amendment to ADR-003's consequences. Approved together with
+  this spec (CEOGG, 2026-09-21); the ADR carries the amendment.
+- Claim set P: accepted, with P4 and P5 added at approval.
 
 ## Assumptions to record in the gate
 

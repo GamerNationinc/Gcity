@@ -13,5 +13,5 @@ scheduled into a named milestone), or **Rejected**.
 | G0 | M0 — Skeleton | **Accepted** 2026-09-20 by CEOGG |
 | G1 | M1 — Stat resolver + one pistol | **Accepted** 2026-09-20 by CEOGG |
 | G2 | M2 — Land authority + starter plot | **Accepted** 2026-09-21 by CEOGG |
-| G3 | M3 — Portal graph + build system | spec drafted (`docs/specs/M3-portal-graph-build-system.md`), awaiting approval |
+| G3 | M3 — Portal graph + build system | spec approved 2026-09-21 with claim set P (`docs/specs/M3-portal-graph-build-system.md`); in progress |
 | G4–G8 | see `docs/gcity-engineering-standards.md` §11 | not started |

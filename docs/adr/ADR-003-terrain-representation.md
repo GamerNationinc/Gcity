@@ -42,8 +42,9 @@ workload.
 **Accepted: B — volumetric voxels with surface nets** (CEOGG, 2026-09-20), on the
 evidence of the spike below, with two conditions carried into the gates that own them:
 
-1. Colliders and runtime navigation on volumetric chunks are measured at G3 against
-   the physics and navigation rows of standards §4.1.
+1. Colliders and runtime navigation on volumetric chunks are measured at G7 against
+   the physics and navigation rows of standards §4.1. (Amended 2026-09-21 with the
+   M3 spec approval: chunks do not exist before M7, so G3 cannot measure them.)
 2. The isolated worst frames seen in the spike (about 1 in 10⁴ frames at 25–92 ms,
    uncorrelated with meshing) are traced at frame level before M7, and the streamer
    promoted from the spike pools its mesh nodes.
