@@ -4,9 +4,7 @@ Milestone: M4 — Perception AI (design doc §16; standards §11 row G4;
 `docs/specs/M4-perception-ai.md`, approved 2026-09-21 with ADR-004 and ADR-008 as A)
 Submitted: 2026-09-21 by Claude Code, on branch `m4-perception-ai` (PR #6),
 commits `e8e9f1a` … the package commit
-Outcome: _pending review_ — **needs the G4 Deck feel run from CEOGG (§7); every
-number in §2 is from the approver's own Deck, plugged, so only the battery profile
-and the hand-played feel notes are outstanding**
+Outcome: **Accepted** (CEOGG, 2026-09-21); the Deck run is recorded in §7
 
 ---
 
@@ -201,7 +199,7 @@ Steps 1–4 on any Linux x86_64 machine; steps 5–14 on the Deck from
 | 9 | Lighting is not modelled (assumption recorded in the spec): exposure is distance, cone and movement only. | assumption | M6/M7 |
 | 10 | The player has no aim or stress profile; only agents carry cones and morale. | assumption | M6 |
 | 11 | The stance scorers read `in_cover` but none uses it yet; the flank goal is geometric (beside the contact), not a portal edge. Squad entries only exist for a contact inside an enclosed volume (the roofless lobby is exterior). | scope | M6 |
-| 12 | The battery power profile was not measured: the approver's Deck was on charge for every run. The plugged numbers are in §2; the battery run is the §7 Deck run's first item. | external | G4 review |
+| 12 | The battery power profile was not measured: the approver's Deck was on charge for every run. The plugged numbers are in §2; the battery bench and soak are the first item of the G5 Deck run. | external | G5 |
 | 13 | The M1 range demo (`client/main.gd`) still runs on wall time (G3 debt 8); not touched, since M4's client work was the world view. | residue | M5 |
 | 14 | `time_to_first_shot` is recorded twice: at rest at 10 m in the open (33 ticks, the spec's definition) and on the fixture's walking contact seen through a door (25 ticks). Both are tests. | note | none |
 | 15 | The soak ran while the headless unit suite ran on other cores for its first minutes; the reported final five minutes were undisturbed. | note | none |
@@ -233,17 +231,26 @@ spawns every profile and holds the reduced-perception relation on each.
 ## 6. Sign-off
 
 Approver: CEOGG
-Date:
-Outcome: ☐ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
+Date: 2026-09-21
+Outcome: ☑ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
 Conditions:
 
-## 7. Deck run and feel notes (P5) — to be filled by CEOGG
+## 7. Deck run and feel notes (P5)
 
-Build: `tools/export.sh` output, installed via: ☐ sideload  ☐ Steam client (non-store)
-Date:                    Battery / plugged:
+Build: `tools/export.sh` output at commit `bee55b3` (`build/linux/gcity.x86_64`),
+installed via: ☐ sideload  ☐ Steam client (non-store)  ☑ launched from the repo
+checkout on the Deck in desktop mode (SteamOS, Vulkan/RADV, 1280×800)
+Date: 2026-09-21                    Battery / plugged: plugged (on charge throughout)
+
+Run: the full `tools/test.sh` (211 tests, thirteen fixtures), `tools/bench_agents.gd`
+and the 30-minute soak all ran on the Deck; the scripted `--demo` walked the player
+into the building on five launches, the guards spotted, reported, advanced and killed
+it each time, and the Back restart returned to the street. No hand-played feel notes
+were given at sign-off; CEOGG accepted on the scripted runs and the measured
+numbers. Debt items 9–12 and 14 carry the feel and battery questions forward.
 
 | # | What felt wrong or right | Number changed (file, value) or debt item |
 |---|---|---|
-| 1 | | |
-| 2 | | |
-| 3 | | |
+| 1 | No hand-played feel notes given at sign-off; accepted on the scripted runs. | debt items 9, 10, 11, 14 stay scheduled |
+| 2 | The scripted walk dies in about three hits within a second of the first shot once a guard's cone settles. Whether that is right is the tuning question the spec reserved; every number is content. | feel question, open for the G5 run |
+| 3 | Battery numbers not taken. | debt item 12, G5 |

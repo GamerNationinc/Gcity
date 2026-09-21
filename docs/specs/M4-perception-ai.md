@@ -2,7 +2,7 @@
 
 Milestone M4 of `docs/gcity-design.md` §16, in the terms of that document. Written
 before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG,
-2026-09-21); implemented, G4 package in `docs/gates/M4-gate.md`.
+2026-09-21); implemented, G4 accepted 2026-09-21 (`docs/gates/M4-gate.md`).
 
 **Preconditions.** G3 is signed in `docs/gates/M3-gate.md` (it is). **ADR-004** (sensor-gated
 detection) and **ADR-008** (arcade enemies are the same AI retuned) are `accepted` as
