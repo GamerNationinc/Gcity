@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "Handgun Control: -10 % recoil with handguns. Requires Handgun Focus.",
+	"skill": "handguns",
+	"prerequisites": {"level": 2, "perks": ["handgun_focus"]},
+	"cost": 1,
+	"tags": ["weapon_class.handgun"],
+	"modifiers": [
+		{"stat": "recoil", "class": "mul", "value": -1000}
+	]
+}

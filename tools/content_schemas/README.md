@@ -39,3 +39,5 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `ammo` | M1 | `calibre` (ref), `tags`, `stats` |
 | `combat_stage` | M1 | `description` (a name code may implement) |
 | `combat_profile` | M1 | `stages` (refs), `range_falloff_per_m`, `health` (`nodes` with `id`/`max`/`fatal`, `routing` with `node`/`weight`) |
+| `skill` | M1 | `xp` rules (`event`, `credit`, `tags_any`, `amount`), `levels`, `points_per_level` |
+| `perk` | M1 | `skill` (ref), `prerequisites` (`level`, `perks` refs), `cost`, `tags`, `modifiers` (`{stat: ref, class, value}`) |

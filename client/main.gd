@@ -12,6 +12,8 @@ const DUMMY_PROFILE: StringName = &"range_dummy"
 const DUMMY_RANGE_M: int = 18
 const ROUNDS_PER_MAG: int = 15
 const LOOSE_ROUNDS: int = 30
+const SKILL: StringName = &"handguns"
+const PERK: StringName = &"handgun_focus"
 
 @onready var _host: LocalHost = $LocalHost
 @onready var _status: Label = $Status
@@ -32,7 +34,8 @@ var _demo_script: Array = [
 	[7.5, "fire"], [7.8, "fire"], [8.1, "fire"], [8.4, "fire"], [8.7, "fire"], [9.0, "fire"], [9.3, "fire"],
 	[9.6, "fire"], [9.9, "fire"], [10.2, "fire"], [10.5, "fire"], [10.8, "fire"], [11.1, "fire"], [11.4, "fire"],
 	[11.7, "fire"], [12.0, "fire"],
-	[13.0, "reload_emergency"], [15.5, "fire"], [15.8, "fire"], [16.1, "fire"],
+	[12.5, "unlock_perk"],
+	[13.0, "reload_emergency"], [15.5, "fire"], [15.8, "fire"], [16.1, "fire"], [16.4, "fire"], [16.7, "fire"],
 ]
 
 
@@ -76,6 +79,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		_perform("load_round")
 	elif event.is_action("range_wield"):
 		_perform("wield")
+	elif event.is_action("range_unlock_perk"):
+		_perform("unlock_perk")
 
 
 ## Spawns the range over the first ticks. Ids come from the sim, not from assumptions:
@@ -155,6 +160,13 @@ func _perform(action: String) -> void:
 			var actors: ActorSystem = SimAssembly.actors_of(sim)
 			var weapon: int = 0 if actors.wielded(_player) == _pistol else _pistol
 			_submit(sim, &"actor.wield", {"actor": _player, "weapon": weapon})
+		"unlock_perk":
+			var progression: ProgressionSystem = SimAssembly.progression_of(sim)
+			var blocker: String = progression.unlock_blocker(_player, PERK)
+			if not blocker.is_empty():
+				_note("cannot unlock %s: %s" % [PERK, blocker])
+				return
+			_submit(sim, &"perk.unlock", {"actor": _player, "perk": String(PERK)})
 		_:
 			_note("unknown action " + action)
 
@@ -216,7 +228,7 @@ func _render(sim: SimRoot) -> void:
 		"busy until t%d" % items.busy_until(_pistol) if items.is_busy(_pistol, sim.get_tick()) else "ready"])
 	lines.append("  hit chance %s at %d m (base %s)   damage/round %s   recoil %s   ergonomics %s   sway %s" % [
 		_pct(combat.hit_chance_at(_player, _pistol, DUMMY_RANGE_M)), DUMMY_RANGE_M, _pct(stats.resolve(_pistol, &"hit_chance")),
-		_milli(stats.resolve(chambered, &"damage")) if chambered != 0 else "-",
+		_milli2(stats.resolve(chambered, &"damage")) if chambered != 0 else "-",
 		_milli(stats.resolve(_pistol, &"recoil")), _milli(stats.resolve(_pistol, &"ergonomics")), _milli(stats.resolve(_pistol, &"sway"))])
 	lines.append("  reload %d ticks   cycle %d ticks   aim-in %d ticks" % [
 		stats.resolve(_pistol, &"reload_ticks") / 1000, stats.resolve(_pistol, &"cycle_ticks") / 1000, stats.resolve(_pistol, &"aim_in_ticks") / 1000])
@@ -235,9 +247,20 @@ func _render(sim: SimRoot) -> void:
 		var chance: int = last["chance"]
 		var damage: int = last["damage"]
 		lines.append("  last shot t%d: rolled against %s -> %s%s" % [last["tick"], _pct(chance),
-			"HIT %s for %s" % [last["node"], _milli(damage)] if hit else "miss", "  (kill)" if last["killed"] else ""])
+			"HIT %s for %s" % [last["node"], _milli2(damage)] if hit else "miss", "  (kill)" if last["killed"] else ""])
 	lines.append("")
-	lines.append("[Space / A] fire   [R / X] tactical reload   [E / Y] emergency reload   [L / B] load a round   [W / LB] wield")
+	var progression: ProgressionSystem = SimAssembly.progression_of(sim)
+	var next_xp: int = progression.next_level_xp(_player, SKILL)
+	var perk_names: PackedStringArray = PackedStringArray()
+	for p: StringName in progression.perks_of(_player):
+		perk_names.append(String(p))
+	lines.append("SKILL %s   xp %d   level %d%s   points %d   perks: %s" % [SKILL, progression.xp_of(_player, SKILL),
+		progression.level_of(_player, SKILL), " (next at %d)" % next_xp if next_xp >= 0 else " (max)",
+		progression.points_of(_player, SKILL), ", ".join(perk_names) if not perk_names.is_empty() else "none"])
+	var blocker: String = progression.unlock_blocker(_player, PERK)
+	lines.append("  %s: %s" % [PERK, "unlocked" if progression.has_perk(_player, PERK) else ("available" if blocker.is_empty() else blocker)])
+	lines.append("")
+	lines.append("[Space / A] fire   [R / X] tactical reload   [E / Y] emergency reload   [L / B] load a round   [W / LB] wield   [P / RB] unlock perk")
 	if _demo:
 		lines.append("DEMO %.1fs  step %d/%d" % [_demo_t, _demo_next, _demo_script.size()])
 	for entry: String in _log:
@@ -263,3 +286,7 @@ static func _pct(basis: int) -> String:
 
 static func _milli(value: int) -> String:
 	return "%.1f" % (value / 1000.0)
+
+
+static func _milli2(value: int) -> String:
+	return "%.2f" % (value / 1000.0)

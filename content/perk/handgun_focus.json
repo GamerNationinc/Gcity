@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "Handgun Focus: +10 % damage with handguns.",
+	"skill": "handguns",
+	"prerequisites": {"level": 1, "perks": []},
+	"cost": 1,
+	"tags": ["weapon_class.handgun"],
+	"modifiers": [
+		{"stat": "damage", "class": "mul", "value": 1000}
+	]
+}

@@ -1,8 +1,9 @@
-# Extending: stats and modifiers
+# Extending: stats, modifiers, skills and perks
 
-The minimal diff for each thing the stat resolver (`sim/progression/stat_resolver.gd`)
-can be extended with. Design doc §10.2 and §10.3; M1 spec claims 1–5. Skills and perks
-join this file when their systems land.
+The minimal diff for each thing the progression module can be extended with: the stat
+resolver (`sim/progression/stat_resolver.gd`, design doc §10.2) and the skill/perk
+service (`sim/progression/progression_system.gd`, design doc §10.1, §10.3). M1 spec
+claims 1–5 and 13–14.
 
 ## A new stat: one file
 
@@ -67,6 +68,41 @@ The class id and order are part of the snapshot; the callable is code and theref
 same for every run. `tests/progression/test_stat_resolver.gd::test_extension_a_new_class_is_a_registration_call`
 is the performed instance. Nothing under `sim/progression/stat_resolver.gd` changes.
 
+## A new skill: one file
+
+`content/skill/<id>.json`:
+
+```json
+{
+	"schema_version": 1,
+	"description": "…",
+	"xp": [{"event": "combat.hit", "credit": "shooter", "tags_any": ["weapon_class.handgun"], "amount": 100}],
+	"levels": [0, 300, 800, 1500, 2500, 4000],
+	"points_per_level": 1
+}
+```
+
+- `xp` rules say which event credits the skill, which payload field names the actor to
+  credit, which payload tags (any of them) must be present, and how much. The
+  progression system subscribes to every event named here at assembly; the systems that
+  emit those events never learn of it. A new weapon class is a tag in a frame file and a
+  rule here.
+- `levels` are xp thresholds for level 0, 1, 2…; they start at 0 and strictly increase
+  (`validate_content()` refuses otherwise). Each level gained grants `points_per_level`.
+
+## A new perk: one file
+
+`content/perk/<id>.json`: `skill` (ref), `prerequisites` (`level`, `perks`), `cost`
+(points), `tags` and `modifiers`. `perk.unlock {actor, perk}` checks the actor is alive,
+the perk not owned, the level met, every prerequisite perk owned and the points
+available; then it spends the points and adds each modifier to the actor with source
+`perk.<id>` and the perk's tags, so tagged perks reach wielded items (and their
+chambered rounds) and untagged ones affect the actor alone. `unlock_blocker()` says
+why an unlock would fail, for HUDs. Prerequisite cycles are refused at assembly.
+
+There is no perk-hook category. The first perk that needs behaviour rather than numbers
+creates it, as an event hook, with a debt entry; resist it (design doc §10.3).
+
 ## What you may not do
 
 - Read a base or a modifier directly to compute a gameplay number. Everything goes
@@ -75,3 +111,5 @@ is the performed instance. Nothing under `sim/progression/stat_resolver.gd` chan
   thing itself changes (a different frame, a different round).
 - Encode a stat, class or tag as an enum or a `match` arm. They are registry entries.
 - Store a resolved value anywhere in sim state. Resolve again; it is cached.
+- Make a gameplay system call the progression system. It emits an event; the skill file
+  decides what it is worth.
