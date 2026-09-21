@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "Work Station: bench, tools and a terminal. Draws 800 W, sheds 500 W.",
+	"footprint": {"cols": 3, "rows": 1},
+	"mass": 120,
+	"power_draw": 800,
+	"heat_output": 500,
+	"water_in": 0,
+	"water_out": 0,
+	"depends_on": ["power_cell_rack"],
+	"emits": ["signal.noise"]
+}

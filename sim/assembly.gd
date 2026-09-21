@@ -35,6 +35,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var land: LandSystem = LandSystem.new(content, actors, events)
 	if land.attach(sim) != OK:
 		return null
+	var structures: StructureSystem = StructureSystem.new(content, stats, ids, land, actors)
+	if structures.attach(sim) != OK:
+		return null
 	return sim
 
 
@@ -48,7 +51,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -70,6 +73,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = progression_of(sim).restore(state)
 			LandSystem.SYSTEM_ID:
 				err = land_of(sim).restore(state)
+			StructureSystem.SYSTEM_ID:
+				err = structures_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -136,3 +141,12 @@ static func land_of(sim: SimRoot) -> LandSystem:
 		return null
 	var land: LandSystem = system
 	return land
+
+
+static func structures_of(sim: SimRoot) -> StructureSystem:
+	var system: SimSystem = sim.get_system(StructureSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % StructureSystem.SYSTEM_ID)
+		return null
+	var structures: StructureSystem = system
+	return structures

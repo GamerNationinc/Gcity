@@ -1,0 +1,20 @@
+{
+	"schema_version": 1,
+	"description": "A module that installs on a structure's socket grid (design doc §8.2). power_draw and heat_output are watts (negative power_draw supplies power); water_in / water_out are litres per hour, carried and validated but not budgeted at M2; depends_on names module kinds that must already be installed on the same structure; emits lists signal types the threat director reads from M8.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"footprint": {"type": "object", "properties": {
+			"cols": {"type": "int", "min": 1, "max": 64}, "rows": {"type": "int", "min": 1, "max": 64}},
+			"required": ["cols", "rows"], "additional_properties": false},
+		"mass": {"type": "int", "min": 0, "max": 1000000000},
+		"power_draw": {"type": "int", "min": -1000000000, "max": 1000000000},
+		"heat_output": {"type": "int", "min": 0, "max": 1000000000},
+		"water_in": {"type": "int", "min": 0, "max": 1000000000},
+		"water_out": {"type": "int", "min": 0, "max": 1000000000},
+		"depends_on": {"type": "array", "max_length": 16, "items": {"type": "string", "ref": "module"}},
+		"emits": {"type": "array", "max_length": 16, "items": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}}
+	},
+	"required": ["schema_version", "description", "footprint", "mass", "power_draw", "heat_output", "water_in", "water_out", "depends_on", "emits"],
+	"additional_properties": false
+}

@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A 20 ft ISO container: 6 058 x 2 438 mm exterior, 2 591 mm high, with a 9 x 3 socket grid on 610 mm (2 ft) centres. Budgets: 3 000 W of power, 4 000 W of heat rejection.",
+	"footprint": {"x": 6058, "z": 2438, "height": 2591},
+	"sockets": {"cols": 9, "rows": 3, "pitch": 610},
+	"power_budget": 3000,
+	"heat_budget": 4000
+}

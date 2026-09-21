@@ -54,6 +54,20 @@
 		{"kind": "land.identify", "payload": {"actor": 1, "owner": "no spaces"}},
 		{"kind": "land.identify", "payload": {"actor": "1", "owner": "player"}},
 		{"kind": "land.identify", "payload": {"actor": 1.5, "owner": "player"}},
-		{"kind": "land.identify", "payload": {"actor": 1, "owner": "player", "x": 1}}
+		{"kind": "land.identify", "payload": {"actor": 1, "owner": "player", "x": 1}},
+		{"kind": "structure.place", "payload": {}},
+		{"kind": "structure.place", "payload": {"actor": 1, "template": "container_20ft", "x": 0, "y": 0, "z": 0}},
+		{"kind": "structure.place", "payload": {"actor": 1, "template": "container_20ft", "x": 0, "y": 0, "z": 0, "rotation": 45}},
+		{"kind": "structure.place", "payload": {"actor": 99, "template": "container_20ft", "x": 0, "y": 0, "z": 0, "rotation": 0}},
+		{"kind": "structure.place", "payload": {"actor": 1, "template": "bunker", "x": 0, "y": 0, "z": 0, "rotation": 0}},
+		{"kind": "structure.place", "payload": {"actor": 1, "template": "container_20ft", "x": 1e12, "y": 0, "z": 0, "rotation": 0}},
+		{"kind": "structure.place", "payload": {"actor": 1, "template": "container_20ft", "x": 14000, "y": 0, "z": 4000, "rotation": 0}},
+		{"kind": "module.install", "payload": {}},
+		{"kind": "module.install", "payload": {"actor": 1, "structure": 1, "template": "power_cell_rack", "col": 0, "row": 0}},
+		{"kind": "module.install", "payload": {"actor": 1, "structure": 999, "template": "power_cell_rack", "col": 0, "row": 0}},
+		{"kind": "module.install", "payload": {"actor": 1, "structure": "1", "template": "power_cell_rack", "col": 0, "row": 0}},
+		{"kind": "module.remove", "payload": {}},
+		{"kind": "module.remove", "payload": {"actor": 1, "structure": 999, "module": 1}},
+		{"kind": "module.remove", "payload": {"actor": 1, "structure": 1, "module": 1, "x": 1}}
 	]
 }

@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "Sustainment: bunk, galley and water handling. Draws 1 200 W, sheds 900 W, moves 20 L/h of water each way.",
+	"footprint": {"cols": 3, "rows": 2},
+	"mass": 260,
+	"power_draw": 1200,
+	"heat_output": 900,
+	"water_in": 20,
+	"water_out": 20,
+	"depends_on": ["power_cell_rack"],
+	"emits": ["signal.emissions"]
+}

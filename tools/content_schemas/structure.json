@@ -1,0 +1,18 @@
+{
+	"schema_version": 1,
+	"description": "A placeable structure kind (design doc §8.1, §8.2): an axis-aligned exterior footprint in millimetres, an interior socket grid on a fixed pitch, and the shared power and heat budgets every module installed in it draws on. M2 ships the 20 ft container.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"footprint": {"type": "object", "properties": {
+			"x": {"type": "int", "min": 1, "max": 100000}, "z": {"type": "int", "min": 1, "max": 100000}, "height": {"type": "int", "min": 1, "max": 100000}},
+			"required": ["x", "z", "height"], "additional_properties": false},
+		"sockets": {"type": "object", "properties": {
+			"cols": {"type": "int", "min": 1, "max": 64}, "rows": {"type": "int", "min": 1, "max": 64}, "pitch": {"type": "int", "min": 1, "max": 10000}},
+			"required": ["cols", "rows", "pitch"], "additional_properties": false},
+		"power_budget": {"type": "int", "min": 0, "max": 1000000000},
+		"heat_budget": {"type": "int", "min": 0, "max": 1000000000}
+	},
+	"required": ["schema_version", "description", "footprint", "sockets", "power_budget", "heat_budget"],
+	"additional_properties": false
+}

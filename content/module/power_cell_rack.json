@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "Power: a rack of cells that supplies 2 500 W and sheds 600 W of heat. Everything else depends on it.",
+	"footprint": {"cols": 2, "rows": 1},
+	"mass": 180,
+	"power_draw": -2500,
+	"heat_output": 600,
+	"water_in": 0,
+	"water_out": 0,
+	"depends_on": [],
+	"emits": ["signal.power_draw"]
+}

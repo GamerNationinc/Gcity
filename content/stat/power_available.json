@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Watts a structure can still supply: its power budget as the base, each installed module's draw as a negative add modifier. Negative means over budget, which install refuses."
+}

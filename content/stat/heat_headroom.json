@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Watts of heat a structure can still reject: its heat budget as the base, each installed module's output as a negative add modifier. Negative means over budget, which install refuses."
+}
