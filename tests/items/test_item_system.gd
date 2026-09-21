@@ -19,6 +19,11 @@ func _build() -> void:
 	assert_true(_sim != null, "assembly")
 	_items = SimAssembly.items_of(_sim)
 	_stats = SimAssembly.stats_of(_sim)
+	# M2 spec claim 17: item commands name a live actor. ACTOR and OTHER_ACTOR are the
+	# first two entities, so item ids start at 3.
+	var actors: ActorSystem = SimAssembly.actors_of(_sim)
+	assert_eq(actors.spawn(&"arcade", 0), ACTOR, "actor 1")
+	assert_eq(actors.spawn(&"arcade", 0), OTHER_ACTOR, "actor 2")
 
 
 ## Submits a command for the next tick and steps once. Returns true if it was applied.
@@ -90,6 +95,7 @@ func test_attach_and_detach_move_the_part_and_its_modifiers() -> void:
 	assert_false(_do(&"weapon.attach", {"actor": ACTOR, "weapon": pistol, "part": barrel}), "part no longer loose")
 	var slide: int = k["slide"]
 	assert_false(_do(&"weapon.attach", {"actor": OTHER_ACTOR, "weapon": pistol, "part": slide}), "other actor does not own them")
+	assert_false(_do(&"weapon.attach", {"actor": 99, "weapon": pistol, "part": slide}), "an actor that does not exist may do nothing (M2 claim 17)")
 	assert_false(_do(&"weapon.attach", {"actor": ACTOR, "weapon": pistol, "part": k["mag_a"]}), "magazines never attach; they reload")
 	assert_true(_do(&"weapon.detach", {"actor": ACTOR, "weapon": pistol, "socket": "barrel"}), "detach")
 	assert_eq(_items.socket_part(pistol, &"barrel"), 0, "socket empty")
@@ -296,14 +302,9 @@ func test_property_hostile_payloads_are_rejected_without_damage() -> void:
 		var kind: StringName = kinds[rng.randi_range(0, kinds.size() - 1)]
 		var before: int = _items.item_count()
 		if _do(kind, payload) and kind == &"item.spawn":
-			var added: int = _items.item_count() - before
-			spawned += added
-			for i: int in range(added):
-				ids.append(before + i + 1 + (ids.size() - before))
-		var all_ids: Array[int] = []
-		for id: int in range(1, _items.item_count() + 1):
-			all_ids.append(id)
-		var problem: String = _placement_ok(all_ids)
+			spawned += _items.item_count() - before
+			ids = _items.item_ids()
+		var problem: String = _placement_ok(_items.item_ids())
 		if not problem.is_empty():
 			failures += 1
 			if failures <= 3:

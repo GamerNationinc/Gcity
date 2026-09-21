@@ -33,5 +33,12 @@ func sim() -> SimRoot:
 	return _sim
 
 
+## Replaces the running sim with one loaded from a save (M2 spec claims 13, 20). The
+## old sim is dropped; the client re-reads everything from the new one.
+func adopt(loaded: SimRoot) -> void:
+	assert(loaded != null, "adopt needs a sim")
+	_sim = loaded
+
+
 func content() -> ContentDb:
 	return _content

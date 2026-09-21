@@ -35,6 +35,9 @@ const STAT_RELOAD_TICKS: StringName = &"reload_ticks"
 var _content: ContentDb
 var _stats: StatResolver
 var _ids: EntityIds
+## `func(actor: int) -> bool`, set by the assembly once the actor system exists: every
+## command that names an actor is rejected unless that actor is live (M2 spec claim 17).
+var _actor_exists: Callable = Callable()
 var _name_regex: RegEx = RegEx.create_from_string("^[a-z0-9][a-z0-9_.]*$")
 
 ## item id -> {"kind": StringName, "template": StringName, "seed": int, "affixes": Array}
@@ -60,6 +63,28 @@ func _init(content: ContentDb, stats: StatResolver, ids: EntityIds) -> void:
 
 func system_id() -> StringName:
 	return SYSTEM_ID
+
+
+## Installs the actor-existence check. The assembly calls this before the first tick;
+## a sim whose item system has no check refuses every actor command loudly.
+func set_actor_check(check: Callable) -> void:
+	_actor_exists = check
+
+
+func _actor_ok(actor: int) -> bool:
+	if not _actor_exists.is_valid():
+		push_error("ItemSystem: no actor check installed; rejecting command for actor %d" % actor)
+		return false
+	var result: Variant = _actor_exists.call(actor)
+	return typeof(result) == TYPE_BOOL and result
+
+
+## Every item id, ascending.
+func item_ids() -> Array[int]:
+	var out: Array[int] = []
+	out.assign(_items.keys())
+	out.sort()
+	return out
 
 
 func tick(_sim: SimRoot) -> void:
@@ -343,6 +368,8 @@ func _on_load(_sim: SimRoot, payload: Dictionary) -> bool:
 	if not _keys_are(payload, ["actor", "magazine", "round"]) or not _ints(payload, ["actor", "magazine", "round"]):
 		return false
 	var actor: int = payload["actor"]
+	if not _actor_ok(actor):
+		return false
 	var magazine: int = payload["magazine"]
 	var round: int = payload["round"]
 	var inv: StringName = inventory_of(actor)
@@ -366,6 +393,8 @@ func _on_unload(_sim: SimRoot, payload: Dictionary) -> bool:
 	if not _keys_are(payload, ["actor", "magazine"]) or not _ints(payload, ["actor", "magazine"]):
 		return false
 	var actor: int = payload["actor"]
+	if not _actor_ok(actor):
+		return false
 	var magazine: int = payload["magazine"]
 	var inv: StringName = inventory_of(actor)
 	if _location.get(magazine) != inv or not _is_magazine(magazine):
@@ -383,6 +412,8 @@ func _on_attach(sim: SimRoot, payload: Dictionary) -> bool:
 	if not _keys_are(payload, ["actor", "weapon", "part"]) or not _ints(payload, ["actor", "weapon", "part"]):
 		return false
 	var actor: int = payload["actor"]
+	if not _actor_ok(actor):
+		return false
 	var weapon: int = payload["weapon"]
 	var part: int = payload["part"]
 	var inv: StringName = inventory_of(actor)
@@ -418,6 +449,8 @@ func _on_detach(sim: SimRoot, payload: Dictionary) -> bool:
 	if not _keys_are(payload, ["actor", "weapon", "socket"]) or not _ints(payload, ["actor", "weapon"]):
 		return false
 	var actor: int = payload["actor"]
+	if not _actor_ok(actor):
+		return false
 	var weapon: int = payload["weapon"]
 	var socket: StringName = _payload_name(payload, "socket")
 	var inv: StringName = inventory_of(actor)
@@ -448,6 +481,8 @@ func _reload(sim: SimRoot, payload: Dictionary, keep_old: bool) -> bool:
 	if not _keys_are(payload, ["actor", "weapon", "magazine"]) or not _ints(payload, ["actor", "weapon", "magazine"]):
 		return false
 	var actor: int = payload["actor"]
+	if not _actor_ok(actor):
+		return false
 	var weapon: int = payload["weapon"]
 	var magazine: int = payload["magazine"]
 	var inv: StringName = inventory_of(actor)

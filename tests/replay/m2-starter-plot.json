@@ -1,0 +1,24 @@
+{
+	"schema_version": 1,
+	"name": "m2-starter-plot",
+	"seed": 20260921,
+	"ticks": 400,
+	"commands": [
+		{"tick": 1, "kind": "actor.spawn", "payload": {"profile": "arcade", "range_m": 0}},
+		{"tick": 2, "kind": "land.identify", "payload": {"actor": 1, "owner": "player"}},
+		{"tick": 2, "kind": "land.transfer", "payload": {"parcel": "starter_plot", "owner": "player"}},
+		{"tick": 3, "kind": "structure.place", "payload": {"actor": 1, "template": "container_20ft", "x": 2000, "y": 0, "z": 4000, "rotation": 0}},
+		{"tick": 10, "kind": "module.install", "payload": {"actor": 1, "structure": 2, "template": "power_cell_rack", "col": 0, "row": 0}},
+		{"tick": 20, "kind": "module.install", "payload": {"actor": 1, "structure": 2, "template": "work_station", "col": 2, "row": 0}},
+		{"tick": 30, "kind": "module.install", "payload": {"actor": 1, "structure": 2, "template": "sustainment", "col": 5, "row": 0}},
+		{"tick": 40, "kind": "module.install", "payload": {"actor": 1, "structure": 2, "template": "sustainment", "col": 0, "row": 1}},
+		{"tick": 50, "kind": "module.install", "payload": {"actor": 1, "structure": 2, "template": "sustainment", "col": 3, "row": 1}},
+		{"tick": 60, "kind": "module.remove", "payload": {"actor": 1, "structure": 2, "module": 5}},
+		{"tick": 70, "kind": "module.install", "payload": {"actor": 1, "structure": 2, "template": "sustainment", "col": 5, "row": 0}},
+		{"tick": 100, "kind": "structure.place", "payload": {"actor": 1, "template": "container_20ft", "x": 14000, "y": 0, "z": 4000, "rotation": 0}},
+		{"tick": 110, "kind": "land.transfer", "payload": {"parcel": "neighbour_east", "owner": "player"}},
+		{"tick": 120, "kind": "structure.place", "payload": {"actor": 1, "template": "container_20ft", "x": 14000, "y": 0, "z": 4000, "rotation": 0}},
+		{"tick": 200, "kind": "module.install", "payload": {"actor": 1, "structure": 8, "template": "power_cell_rack", "col": 7, "row": 2}}
+	],
+	"expected_hash": "7ef5416722184c6d6e685a41944ad5981e6ee68b9bf446200db2cb717493ccde"
+}

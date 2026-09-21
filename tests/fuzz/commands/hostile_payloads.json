@@ -68,6 +68,9 @@
 		{"kind": "module.install", "payload": {"actor": 1, "structure": "1", "template": "power_cell_rack", "col": 0, "row": 0}},
 		{"kind": "module.remove", "payload": {}},
 		{"kind": "module.remove", "payload": {"actor": 1, "structure": 999, "module": 1}},
-		{"kind": "module.remove", "payload": {"actor": 1, "structure": 1, "module": 1, "x": 1}}
+		{"kind": "module.remove", "payload": {"actor": 1, "structure": 1, "module": 1, "x": 1}},
+		{"kind": "magazine.load", "payload": {"actor": 99, "magazine": 6, "round": 8}},
+		{"kind": "weapon.reload_tactical", "payload": {"actor": 99, "weapon": 3, "magazine": 6}},
+		{"kind": "perk.unlock", "payload": {"actor": 99, "perk": "handgun_focus"}}
 	]
 }
