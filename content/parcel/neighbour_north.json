@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "The plot north of the starter plot (larger, L-shaped around the alley). Owned by an NPC landlord.",
+	"district": "starter_ghetto",
+	"owner": "npc.landlord_north",
+	"footprint": [[0, 12192], [24384, 12192], [24384, 18288], [12192, 18288], [12192, 24384], [0, 24384]],
+	"floor_y": -3000,
+	"ceiling_y": 9000
+}

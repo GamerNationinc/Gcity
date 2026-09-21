@@ -32,6 +32,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var progression: ProgressionSystem = ProgressionSystem.new(content, stats, actors, events)
 	if progression.attach(sim) != OK:
 		return null
+	var land: LandSystem = LandSystem.new(content, actors, events)
+	if land.attach(sim) != OK:
+		return null
 	return sim
 
 
@@ -45,7 +48,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -65,6 +68,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = combat_of(sim).restore(state)
 			ProgressionSystem.SYSTEM_ID:
 				err = progression_of(sim).restore(state)
+			LandSystem.SYSTEM_ID:
+				err = land_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -122,3 +127,12 @@ static func progression_of(sim: SimRoot) -> ProgressionSystem:
 		return null
 	var progression: ProgressionSystem = system
 	return progression
+
+
+static func land_of(sim: SimRoot) -> LandSystem:
+	var system: SimSystem = sim.get_system(LandSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % LandSystem.SYSTEM_ID)
+		return null
+	var land: LandSystem = system
+	return land

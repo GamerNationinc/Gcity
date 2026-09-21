@@ -21,7 +21,7 @@ func test_real_content_loads_and_registers_every_stat() -> void:
 	assert_eq(db.ids(&"stat"), expected, "every stat file is an entry")
 	var sim: SimRoot = SimAssembly.build(SEED, db)
 	assert_true(sim != null, "assembly succeeds")
-	assert_eq(sim.system_ids(), [&"content", &"entities", &"stats", &"items", &"actors", &"combat", &"progression"] as Array[StringName], "fixed system order")
+	assert_eq(sim.system_ids(), [&"content", &"entities", &"stats", &"items", &"actors", &"combat", &"progression", &"land"] as Array[StringName], "fixed system order")
 	var stats: StatResolver = SimAssembly.stats_of(sim)
 	assert_eq(stats.stat_ids(), expected, "resolver registered every stat")
 	var entry: Dictionary = db.get_entry(&"stat", &"damage")
@@ -61,7 +61,7 @@ func test_stats_of_requires_an_assembled_sim() -> void:
 
 func test_commands_are_registered_by_the_item_system() -> void:
 	var sim: SimRoot = SimAssembly.build(SEED, _content())
-	assert_eq(sim.commands().kinds(), [&"actor.spawn", &"actor.wield", &"item.spawn", &"magazine.load", &"magazine.unload",
+	assert_eq(sim.commands().kinds(), [&"actor.spawn", &"actor.wield", &"item.spawn", &"land.identify", &"land.transfer", &"magazine.load", &"magazine.unload",
 		&"perk.unlock", &"weapon.attach", &"weapon.detach", &"weapon.fire", &"weapon.reload_emergency", &"weapon.reload_tactical"] as Array[StringName], "lexical kinds")
 
 

@@ -1,0 +1,29 @@
+{
+	"schema_version": 1,
+	"description": "A district record (design doc §7.2): the indices that drive police response, raid frequency and informant propagation, and the rights table that LandSystem.rights_at() reads for parcels in it. Indices are milli-units (0-1000). Exactly one district has covers_unparcelled=true and answers for positions inside no parcel.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"law_index": {"type": "int", "min": 0, "max": 1000},
+		"wealth_index": {"type": "int", "min": 0, "max": 1000},
+		"informant_density": {"type": "int", "min": 0, "max": 1000},
+		"gang_control": {"type": "object", "properties": {
+			"faction": {"type": "string", "pattern": "([a-z0-9][a-z0-9_.]*)?"},
+			"strength": {"type": "int", "min": 0, "max": 1000}},
+			"required": ["faction", "strength"], "additional_properties": false},
+		"covers_unparcelled": {"type": "bool"},
+		"rights": {"type": "object", "properties": {
+			"owner": {"type": "object", "properties": {
+				"build": {"type": "bool"}, "dig": {"type": "bool"}, "enter": {"type": "bool"}, "carry": {"type": "bool"}, "loot": {"type": "bool"}},
+				"required": ["build", "dig", "enter", "carry", "loot"], "additional_properties": false},
+			"other": {"type": "object", "properties": {
+				"build": {"type": "bool"}, "dig": {"type": "bool"}, "enter": {"type": "bool"}, "carry": {"type": "bool"}, "loot": {"type": "bool"}},
+				"required": ["build", "dig", "enter", "carry", "loot"], "additional_properties": false},
+			"unowned": {"type": "object", "properties": {
+				"build": {"type": "bool"}, "dig": {"type": "bool"}, "enter": {"type": "bool"}, "carry": {"type": "bool"}, "loot": {"type": "bool"}},
+				"required": ["build", "dig", "enter", "carry", "loot"], "additional_properties": false}},
+			"required": ["owner", "other", "unowned"], "additional_properties": false}
+	},
+	"required": ["schema_version", "description", "law_index", "wealth_index", "informant_density", "gang_control", "covers_unparcelled", "rights"],
+	"additional_properties": false
+}

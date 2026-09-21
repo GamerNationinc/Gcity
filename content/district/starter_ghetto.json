@@ -1,0 +1,14 @@
+{
+	"schema_version": 1,
+	"description": "Starter ghetto: slow police response, dense informants; neighbours notice a rich resident at once (design doc §7.2). Non-owners may enter and carry but not build, dig or loot.",
+	"law_index": 250,
+	"wealth_index": 150,
+	"informant_density": 800,
+	"gang_control": {"faction": "faction.scrapline", "strength": 600},
+	"covers_unparcelled": false,
+	"rights": {
+		"owner":   {"build": true,  "dig": true,  "enter": true, "carry": true, "loot": true},
+		"other":   {"build": false, "dig": false, "enter": true, "carry": true, "loot": false},
+		"unowned": {"build": false, "dig": false, "enter": true, "carry": true, "loot": true}
+	}
+}

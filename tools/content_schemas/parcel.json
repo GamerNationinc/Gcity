@@ -1,0 +1,15 @@
+{
+	"schema_version": 1,
+	"description": "An authored parcel (design doc §7.1): a simple polygon footprint in integer millimetres on the x/z plane, a vertical extent, the district whose rights table applies, and the owner tag it starts with ('' = unowned). Generated parcels (M7) use the same record shape.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"district": {"type": "string", "ref": "district"},
+		"owner": {"type": "string", "pattern": "([a-z0-9][a-z0-9_.]*)?"},
+		"footprint": {"type": "array", "min_length": 3, "max_length": 64, "items": {"type": "array", "min_length": 2, "max_length": 2, "items": {"type": "int", "min": -100000000, "max": 100000000}}},
+		"floor_y": {"type": "int", "min": -100000000, "max": 100000000},
+		"ceiling_y": {"type": "int", "min": -100000000, "max": 100000000}
+	},
+	"required": ["schema_version", "description", "district", "owner", "footprint", "floor_y", "ceiling_y"],
+	"additional_properties": false
+}

@@ -1,0 +1,14 @@
+{
+	"schema_version": 1,
+	"description": "Badlands outskirts: nobody comes when you scream and nobody investigates your workshop (design doc §7.2). Covers every position inside no parcel; unowned land there is free to build, dig and loot.",
+	"law_index": 50,
+	"wealth_index": 100,
+	"informant_density": 300,
+	"gang_control": {"faction": "faction.dustrunners", "strength": 700},
+	"covers_unparcelled": true,
+	"rights": {
+		"owner":   {"build": true,  "dig": true,  "enter": true, "carry": true, "loot": true},
+		"other":   {"build": false, "dig": false, "enter": true, "carry": true, "loot": true},
+		"unowned": {"build": true,  "dig": true,  "enter": true, "carry": true, "loot": true}
+	}
+}

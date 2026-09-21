@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "Hostile payloads for every M1 command kind. Each must be rejected by an assembled sim with the standard range set up (player 1, dummy 2, pistol 3, magazines 6 and 7, rounds 8-37) and must leave the system state untouched.",
+	"description": "Hostile payloads for every M1 and M2 command kind. Each must be rejected by an assembled sim with the standard range set up (player 1, dummy 2, pistol 3, magazines 6 and 7, rounds 8-37) and must leave the system state untouched.",
 	"cases": [
 		{"kind": "actor.spawn", "payload": {}},
 		{"kind": "actor.spawn", "payload": {"profile": "arcade"}},
@@ -42,6 +42,18 @@
 		{"kind": "perk.unlock", "payload": {"actor": 1, "perk": ""}},
 		{"kind": "perk.unlock", "payload": {"actor": 2, "perk": "handgun_focus", "free": true}},
 		{"kind": "no.such.kind", "payload": {}},
-		{"kind": "counter.add", "payload": {"amount": 1}}
+		{"kind": "counter.add", "payload": {"amount": 1}},
+		{"kind": "land.transfer", "payload": {}},
+		{"kind": "land.transfer", "payload": {"parcel": "nowhere", "owner": "player"}},
+		{"kind": "land.transfer", "payload": {"parcel": "starter_plot", "owner": "Player One"}},
+		{"kind": "land.transfer", "payload": {"parcel": "starter_plot", "owner": 1}},
+		{"kind": "land.transfer", "payload": {"parcel": ["starter_plot"], "owner": "player"}},
+		{"kind": "land.transfer", "payload": {"parcel": "starter_plot", "owner": "player", "price": 0}},
+		{"kind": "land.identify", "payload": {}},
+		{"kind": "land.identify", "payload": {"actor": 99, "owner": "player"}},
+		{"kind": "land.identify", "payload": {"actor": 1, "owner": "no spaces"}},
+		{"kind": "land.identify", "payload": {"actor": "1", "owner": "player"}},
+		{"kind": "land.identify", "payload": {"actor": 1.5, "owner": "player"}},
+		{"kind": "land.identify", "payload": {"actor": 1, "owner": "player", "x": 1}}
 	]
 }

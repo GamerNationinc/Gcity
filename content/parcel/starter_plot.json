@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "The player's starter plot (design doc §8.1): 40 x 40 ft (12 192 mm square) in the starter ghetto, floor 3 m below grade, ceiling 9 m above. Starts unowned; the client transfers it to the player at setup.",
+	"district": "starter_ghetto",
+	"owner": "",
+	"footprint": [[0, 0], [12192, 0], [12192, 12192], [0, 12192]],
+	"floor_y": -3000,
+	"ceiling_y": 9000
+}
