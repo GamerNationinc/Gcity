@@ -1,6 +1,6 @@
 # ADR-005: Claimed base keeps player structure vs faction template
 
-Status: proposed
+Status: accepted
 Date: 2026-09-20
 Design doc: §9.4 (D-05); §5.6 save overlay
 
@@ -26,7 +26,7 @@ becomes a faction POI. What is on the parcel afterward is the open question.
 
 ## Decision
 
-Proposed: **A.** The portal graph is the reason it costs nothing: faction agents plan on
+**Accepted: A** (CEOGG, 2026-09-21), as proposed. The portal graph is the reason it costs nothing: faction agents plan on
 it exactly as raiders did.
 
 ## Consequences
@@ -43,4 +43,6 @@ invariant).
 
 ## Sign-off
 
-Approver: CEOGG — _pending_
+Approver: CEOGG
+Date: 2026-09-21
+Outcome: accepted

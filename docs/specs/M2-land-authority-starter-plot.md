@@ -1,12 +1,12 @@
 # M2 — Land authority + starter plot: specification
 
 Milestone M2 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **draft, awaiting approval.**
+before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG, 2026-09-21).
 
 **Preconditions.** G1 is signed in `docs/gates/M1-gate.md` (it is). ADR-003 is
 `accepted` as B, volumetric (it is), so parcels have a real vertical extent and the
 "dig under the neighbour" rule is a live requirement, not a placeholder. ADR-005 is
-`proposed`; this spec assumes it closes as proposed (structures are owner-agnostic
+`accepted` (2026-09-21, option A) as this spec assumed (structures are owner-agnostic
 records) because M2 writes the first structure and parcel records into the save
 overlay and cannot leave their owner field undefined. If ADR-005 closes otherwise,
 claims 9–10 are rewritten before any code.
