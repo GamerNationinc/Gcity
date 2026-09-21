@@ -54,6 +54,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var perception: PerceptionSystem = PerceptionSystem.new(content, stats, actors, build, events)
 	if perception.attach(sim) != OK:
 		return null
+	var aim: AimSystem = AimSystem.new(content, stats, actors, perception)
+	if aim.attach(sim) != OK:
+		return null
 	return sim
 
 
@@ -91,7 +94,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -125,6 +128,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = raids_of(sim).restore(state)
 			PerceptionSystem.SYSTEM_ID:
 				err = perception_of(sim).restore(state)
+			AimSystem.SYSTEM_ID:
+				err = aim_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -245,3 +250,12 @@ static func perception_of(sim: SimRoot) -> PerceptionSystem:
 		return null
 	var perception: PerceptionSystem = system
 	return perception
+
+
+static func aim_of(sim: SimRoot) -> AimSystem:
+	var system: SimSystem = sim.get_system(AimSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % AimSystem.SYSTEM_ID)
+		return null
+	var aim: AimSystem = system
+	return aim

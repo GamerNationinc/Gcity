@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "Sim guard: an 8 degree cone settling to 1 degree over 1.2 s, a 4 degree swing for 0.3 s; 50 basis points of hit chance per milli-degree (40 % unsettled, 5 % settled).",
+	"cone_start_mdeg": 8000,
+	"cone_settled_mdeg": 1000,
+	"settle_ticks": 48,
+	"swing_penalty_mdeg": 4000,
+	"swing_ticks": 12,
+	"penalty_per_mdeg": 50
+}

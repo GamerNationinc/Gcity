@@ -215,8 +215,8 @@ func test_metamorphic_reduced_perception_never_lowers_time_to_alert() -> void:
 		assert_eq(ContentLoader.load_all(db), OK, "content loads")
 		db.add(&"perception_profile", &"t_base", base)
 		db.add(&"perception_profile", &"t_less", less)
-		db.add(&"agent_profile", &"t_base", {"schema_version": 1, "description": "generated", "combat_profile": "arcade", "perception_profile": "t_base"})
-		db.add(&"agent_profile", &"t_less", {"schema_version": 1, "description": "generated", "combat_profile": "arcade", "perception_profile": "t_less"})
+		db.add(&"agent_profile", &"t_base", {"schema_version": 1, "description": "generated", "combat_profile": "arcade", "perception_profile": "t_base", "aim_profile": "guard_sim"})
+		db.add(&"agent_profile", &"t_less", {"schema_version": 1, "description": "generated", "combat_profile": "arcade", "perception_profile": "t_less", "aim_profile": "guard_sim"})
 		# most contacts start inside the base range and its cone, so that many cases alert
 		var facing: int = rng.randi_range(0, 359)
 		var bearing: int = facing + rng.randi_range(-fov / 2, fov / 2) if rng.randi_range(0, 3) > 0 else rng.randi_range(0, 359)

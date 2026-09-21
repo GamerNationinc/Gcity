@@ -21,7 +21,7 @@ Kinds so far:
 | `calibre`, `weapon_socket`, `weapon_frame`, `weapon_part`, `ammo` | M1 | `ItemSystem`; see `docs/extending-items.md` |
 | `combat_stage`, `combat_profile` | M1 | `CombatSystem`, `ActorSystem`; see `docs/extending-items.md` § Combat |
 | `skill`, `perk` | M1 | `ProgressionSystem`; see `docs/extending-progression.md` |
-| `perception_profile`, `agent_profile` | M4 | `PerceptionSystem` (`sim/agents/README.md`) |
+| `perception_profile`, `aim_profile`, `agent_profile` | M4 | `PerceptionSystem`, `AimSystem` (`sim/agents/README.md`) |
 
 Content reaches the sim as dictionaries through `client/content_loader.gd` into
 `ContentDb`; the sim never opens a file. Integral JSON numbers arrive as ints.
