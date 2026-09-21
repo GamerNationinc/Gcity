@@ -1,5 +1,9 @@
 extends GcityTest
 
+## M4 spec claim 8: per-agent stress rises when fired at, hit or bereaved, decays per
+## tick, degrades aim through the resolver and marks the agent broken or routed.
+## Metamorphic: more stress never improves aim.
+##
 ## M4 spec claim 6: an agent's error cone converges while its target stays visible,
 ## resets on broken contact, swings on a target that appears, and reaches combat as
 ## a hit_chance modifier through the stat resolver. Metamorphic (standards §3.4):
@@ -17,6 +21,7 @@ var _sim: SimRoot
 var _actors: ActorSystem
 var _perception: PerceptionSystem
 var _aim: AimSystem
+var _stress: StressSystem
 var _combat: CombatSystem
 var _items: ItemSystem
 var _player: int = 0
@@ -31,6 +36,7 @@ func _setup(db: ContentDb = null) -> void:
 	_actors = SimAssembly.actors_of(_sim)
 	_perception = SimAssembly.perception_of(_sim)
 	_aim = SimAssembly.aim_of(_sim)
+	_stress = SimAssembly.stress_of(_sim)
 	_combat = SimAssembly.combat_of(_sim)
 	_items = SimAssembly.items_of(_sim)
 	_player = _actors.spawn(&"arcade", 0)
@@ -169,7 +175,7 @@ func test_metamorphic_hit_chance_over_random_profiles_in_the_sim() -> void:
 		var db := ContentDb.new()
 		assert_eq(ContentLoader.load_all(db), OK, "content loads")
 		db.add(&"aim_profile", &"t_aim", aim)
-		db.add(&"agent_profile", &"t_agent", {"schema_version": 1, "description": "generated", "combat_profile": "arcade", "perception_profile": "guard_sim", "aim_profile": "t_aim"})
+		db.add(&"agent_profile", &"t_agent", {"schema_version": 1, "description": "generated", "combat_profile": "arcade", "perception_profile": "guard_sim", "aim_profile": "t_aim", "stress_profile": "guard_sim"})
 		_setup(db)
 		var armed: Array[int] = _armed_guard(&"t_agent")
 		var guard: int = armed[0]
@@ -223,3 +229,120 @@ func test_restore_round_trip_and_rejections() -> void:
 	rec["value"] = 5
 	assert_eq(aim.restore(bad), ERR_INVALID_DATA, "a positive aim modifier")
 	assert_eq(aim.snapshot(), state, "rejections leave the state untouched")
+
+
+# ---------------------------------------------------------------- claim 8: stress
+
+func _fire_event(shooter: int, target: int) -> void:
+	SimAssembly.combat_of(_sim).events().emit(CombatSystem.EVENT_FIRE, {"shooter": shooter, "weapon": 0, "target": target, "round": 0, "tags": []})
+
+
+func _hit_event(shooter: int, target: int, killed: bool) -> void:
+	SimAssembly.combat_of(_sim).events().emit(CombatSystem.EVENT_HIT, {"shooter": shooter, "weapon": 0, "target": target, "node": &"body", "damage": 1, "range_m": 5, "tags": [], "killed": killed})
+
+
+func test_stress_rises_when_fired_at_hit_or_bereaved_and_decays() -> void:
+	_setup()
+	var a: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 1, "")
+	var b: int = _perception.spawn(&"guard_sim", _cell(0, 1), 0, 1, "")  # 1 m beside the player's line to a
+	var c: int = _perception.spawn(&"guard_sim", _cell(0, 4), 0, 1, "")  # 4 m off it
+	var d: int = _perception.spawn(&"guard_sim", _cell(5, 5), 0, 2, "")  # another squad
+	_actors.set_position(_player, _at(10, 0))
+	_fire_event(_player, a)
+	assert_eq(_stress.stress_of(a), 150000, "fired at")
+	assert_eq(_stress.stress_of(b), 150000, "a near miss within 1.5 m of the line")
+	assert_eq(_stress.stress_of(c), 0, "4 m off the line: nothing")
+	assert_eq(_stress.stress_of(d), 0, "nowhere near")
+	_hit_event(_player, a, false)
+	assert_eq(_stress.stress_of(a), 450000, "hit")
+	assert_false(_stress.is_broken(a), "not yet broken at 45 %")
+	_hit_event(_player, a, true)
+	assert_eq(_stress.stress_of(a), 750000, "hit again")
+	assert_true(_stress.is_broken(a), "broken at 75 %")
+	assert_false(_stress.is_routed(a), "not routed")
+	assert_eq(_stress.stress_of(b), 400000, "b: a squadmate went down")
+	assert_eq(_stress.stress_of(c), 250000, "c too")
+	assert_eq(_stress.stress_of(d), 0, "another squad is unmoved")
+	_fire_event(a, _player)
+	assert_eq(_stress.stress_of(b), 400000, "a squadmate's own fire past you is not a near miss")
+	_sim.step()
+	assert_eq(_stress.stress_of(a), 747500, "decays per tick")
+	_hit_event(_player, a, false)
+	_hit_event(_player, a, false)
+	assert_eq(_stress.stress_of(a), StressSystem.STRESS_MAX, "clamped")
+	assert_true(_stress.is_routed(a), "routed at full stress")
+	_sim.step_n(400)
+	assert_eq(_stress.stress_of(a), 0, "recovered in 10 s")
+	assert_eq(StressSystem.distance_to_segment_mm(Vector3i(0, 0, 1500), Vector3i(-5000, 0, 0), Vector3i(5000, 0, 0)), 1500, "distance to a segment")
+	assert_eq(StressSystem.distance_to_segment_mm(Vector3i(8000, 0, 0), Vector3i(0, 0, 0), Vector3i(5000, 0, 0)), 3000, "past its end")
+
+
+func test_stress_degrades_aim_through_the_resolver_and_never_improves_it() -> void:
+	_setup()
+	var armed: Array[int] = _armed_guard()
+	var guard: int = armed[0]
+	var pistol: int = armed[1]
+	_sim.step_n(70)
+	assert_eq(_chance(guard, pistol), 550000, "settled, calm")
+	_hit_event(_player, guard, false)
+	_sim.step()
+	assert_eq(_stress.stress_of(guard), 297500, "hit, one tick of decay")
+	assert_eq(_stress.penalty_of(guard), 89250, "30 % of the penalty at 29.75 % stress")
+	assert_eq(_chance(guard, pistol), 550000 - 89250, "the hit chance carries the stress penalty")
+	var previous: int = _chance(guard, pistol)
+	for i: int in 30:
+		_hit_event(_player, guard, false)
+		_sim.step()
+		var now: int = _chance(guard, pistol)
+		assert_true(now <= previous or _stress.stress_of(guard) < 300000, "more stress never improves aim (tick %d: %d -> %d)" % [i, previous, now])
+		previous = now
+	assert_eq(_stress.stress_of(guard), 997500, "full stress less one tick of decay")
+	assert_eq(_chance(guard, pistol), 550000 - 299250, "29.925 % off")
+	var own: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(_player), 1)
+	assert_eq(_combat.hit_chance_at(_player, own, 10), 600000, "the player, without a profile, is untouched")
+
+
+func test_property_stress_penalty_is_monotone() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SEED_PROPERTY
+	var violations: int = 0
+	for case: int in PROPERTY_CASES:
+		var p: Dictionary = {"hit_penalty_at_max": rng.randi_range(0, 1000000)}
+		var low: int = rng.randi_range(0, StressSystem.STRESS_MAX)
+		var high: int = rng.randi_range(low, StressSystem.STRESS_MAX)
+		var at_max: int = p["hit_penalty_at_max"]
+		if StressSystem.penalty(p, high) < StressSystem.penalty(p, low) or StressSystem.penalty(p, StressSystem.STRESS_MAX) != at_max or StressSystem.penalty(p, 0) != 0:
+			violations += 1
+			if violations <= 3:
+				fail("case %d: %d at %d, %d at %d" % [case, StressSystem.penalty(p, low), low, StressSystem.penalty(p, high), high])
+	assert_eq(violations, 0, "more stress never lowers the penalty")
+
+
+func test_stress_restore_round_trip_and_rejections() -> void:
+	_setup()
+	var guard: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 1, "")
+	_hit_event(_player, guard, false)
+	_sim.step_n(3)
+	var snap: Dictionary = _sim.snapshot()
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "restored")
+	assert_eq(other.restore_root(snap), OK, "root restored")
+	var stress: StressSystem = SimAssembly.stress_of(other)
+	assert_eq(stress.stress_of(guard), 292500, "stress carried over")
+	_sim.step()
+	other.step()
+	assert_eq(other.state_hash(), _sim.state_hash(), "steps on together")
+	var state: Dictionary = _stress.snapshot()
+	assert_eq(stress.restore({}), ERR_INVALID_DATA, "empty")
+	var bad: Dictionary = state.duplicate(true)
+	var records: Dictionary = bad["stress"]
+	var rec: Dictionary = records[guard]
+	rec["stress"] = StressSystem.STRESS_MAX + 1
+	assert_eq(stress.restore(bad), ERR_INVALID_DATA, "over the maximum")
+	bad = state.duplicate(true)
+	records = bad["stress"]
+	records[_player] = records[guard]
+	assert_eq(stress.restore(bad), ERR_INVALID_DATA, "a record for a non-agent")
+	assert_eq(stress.snapshot(), state, "rejections leave the state untouched")

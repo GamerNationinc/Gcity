@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "An agent is an actor with a combat profile, a perception profile and an aim profile (M4 spec claims 1, 6). Stress and stance lists join this record in later M4 sessions.",
+	"description": "An agent is an actor with a combat profile, a perception profile, an aim profile and a stress profile (M4 spec claims 1, 6, 8). The stance list joins this record in a later M4 session.",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -23,6 +23,10 @@
 		"aim_profile": {
 			"type": "string",
 			"ref": "aim_profile"
+		},
+		"stress_profile": {
+			"type": "string",
+			"ref": "stress_profile"
 		}
 	},
 	"required": [
@@ -30,7 +34,8 @@
 		"description",
 		"combat_profile",
 		"perception_profile",
-		"aim_profile"
+		"aim_profile",
+		"stress_profile"
 	],
 	"additional_properties": false
 }
