@@ -64,7 +64,10 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var pathing: PathingSystem = PathingSystem.new(actors, build, movement, perception, events)
 	if pathing.attach(sim) != OK:
 		return null
-	var stances: StanceSystem = StanceSystem.new(content, actors, items, perception, aim, stress, pathing)
+	var squads: SquadSystem = SquadSystem.new(content, actors, perception, portals, build, events)
+	if squads.attach(sim) != OK:
+		return null
+	var stances: StanceSystem = StanceSystem.new(content, actors, items, perception, aim, stress, pathing, squads)
 	if stances.attach(sim) != OK:
 		return null
 	return sim
@@ -104,7 +107,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -144,6 +147,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = stress_of(sim).restore(state)
 			PathingSystem.SYSTEM_ID:
 				err = pathing_of(sim).restore(state)
+			SquadSystem.SYSTEM_ID:
+				err = squads_of(sim).restore(state)
 			StanceSystem.SYSTEM_ID:
 				err = stances_of(sim).restore(state)
 		if err != OK:
@@ -302,3 +307,12 @@ static func stances_of(sim: SimRoot) -> StanceSystem:
 		return null
 	var stances: StanceSystem = system
 	return stances
+
+
+static func squads_of(sim: SimRoot) -> SquadSystem:
+	var system: SimSystem = sim.get_system(SquadSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % SquadSystem.SYSTEM_ID)
+		return null
+	var squads: SquadSystem = system
+	return squads

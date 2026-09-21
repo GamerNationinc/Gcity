@@ -449,6 +449,41 @@ func _on_fire(payload: Dictionary) -> void:
 		_heard[observer] = heard
 
 
+# ---------------------------------------------------------------- reports
+
+## A squad report reaches this agent (spec claim 11): it learns the contact's
+## position as last known, keeps it for its memory, and rises to its own alert
+## threshold and is alerted at once (the event fires now, with `tick_now`). Returns
+## false when the agent already knew as much, or is not an agent, or the contact is
+## not an actor.
+func receive_report(agent: int, contact: int, position: Vector3i, tick_now: int) -> bool:
+	if not _agents.has(agent) or not _actors.has_actor(contact) or agent == contact:
+		return false
+	var p: Dictionary = perception_of(agent)
+	var stored: Variant = _contacts.get(agent)
+	var table: Dictionary = stored if typeof(stored) == TYPE_DICTIONARY else {}
+	var rec_v: Variant = table.get(contact)
+	var rec: Dictionary = rec_v if typeof(rec_v) == TYPE_DICTIONARY else {"aw": 0, "last": [] as Array[int], "memory": 0, "alerted": false}
+	var aw: int = rec["aw"]
+	var threshold: int = p["alert_threshold"]
+	var already: bool = rec["alerted"]
+	rec["aw"] = maxi(aw, threshold)
+	rec["last"] = [position.x, position.y, position.z] as Array[int]
+	rec["memory"] = p["memory_ticks"]
+	rec["alerted"] = true
+	table[contact] = rec
+	_contacts[agent] = table
+	var heard_v: Variant = _heard.get(agent)
+	var heard: Dictionary = heard_v if typeof(heard_v) == TYPE_DICTIONARY else {}
+	heard[contact] = true
+	_heard[agent] = heard
+	if already:
+		return false
+	_alerts += 1
+	_events.emit(EVENT_ALERTED, {"observer": agent, "contact": contact, "tick": tick_now})
+	return true
+
+
 # ---------------------------------------------------------------- mutation
 
 ## Spawns an actor of the profile's combat profile at the centre of `cell` on the

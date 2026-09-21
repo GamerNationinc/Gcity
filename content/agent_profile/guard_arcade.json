@@ -26,5 +26,7 @@
 			"stance": "surrender",
 			"weight": 1000
 		}
-	]
+	],
+	"radio": true,
+	"radio_latency_ticks": 4
 }

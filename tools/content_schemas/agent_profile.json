@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "An agent is an actor with a combat profile, a perception profile, an aim profile, a stress profile and the stances it may choose with their weights (M4 spec claims 1, 6, 8, 10). 1000 is a neutral weight.",
+	"description": "An agent is an actor with a combat profile, a perception profile, an aim profile, a stress profile and the stances it may choose with their weights plus its radio (M4 spec claims 1, 6, 8, 10, 11). 1000 is a neutral weight.",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -51,6 +51,14 @@
 				],
 				"additional_properties": false
 			}
+		},
+		"radio": {
+			"type": "bool"
+		},
+		"radio_latency_ticks": {
+			"type": "int",
+			"min": 0,
+			"max": 100000
 		}
 	},
 	"required": [
@@ -60,7 +68,9 @@
 		"perception_profile",
 		"aim_profile",
 		"stress_profile",
-		"stances"
+		"stances",
+		"radio",
+		"radio_latency_ticks"
 	],
 	"additional_properties": false
 }

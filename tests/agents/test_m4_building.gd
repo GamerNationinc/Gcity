@@ -32,7 +32,7 @@ func test_the_building_raises_and_the_guards_take_their_posts() -> void:
 	assert_eq(build.piece_ids().size(), commands.size(), "%d pieces stand" % commands.size())
 	for id: int in build.piece_ids():
 		assert_true(build.is_supported(id), "piece %d is supported" % id)
-	assert_eq(portals.volume_count(), 0, "no roof: nothing is enclosed, every room is open to the sky")
+	assert_eq(portals.volume_count(), 2, "the two roofed rooms behind their doors are volumes; the corridor opens into the roofless lobby and is exterior")
 	assert_eq(perception.agent_ids().size(), 4, "four guards")
 	var post: int = perception.agent_ids()[0]
 	assert_eq(perception.route_of(post), "", "the post has no route")

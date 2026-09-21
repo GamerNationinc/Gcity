@@ -53,7 +53,7 @@ func _setup() -> void:
 	assert_eq(ContentLoader.load_all(db), OK, "content loads")
 	# a guard that never fires of its own accord: the test's fire commands are the only shots
 	db.add(&"agent_profile", &"guard_passive", {"schema_version": 1, "description": "test", "combat_profile": "arcade", "perception_profile": "guard_sim",
-		"aim_profile": "guard_sim", "stress_profile": "guard_sim", "stances": [{"stance": "surrender", "weight": 1000}]})
+		"aim_profile": "guard_sim", "stress_profile": "guard_sim", "stances": [{"stance": "surrender", "weight": 1000}], "radio": false, "radio_latency_ticks": 0})
 	_sim = SimAssembly.build(SEED, db)
 	assert_true(_sim != null, "assembly")
 	_actors = SimAssembly.actors_of(_sim)

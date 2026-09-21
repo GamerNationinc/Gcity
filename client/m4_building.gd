@@ -20,6 +20,7 @@ const WALL: String = "wall_panel"
 const DOOR: String = "door_frame"
 const WINDOW: String = "window_frame"
 const FOUNDATION: String = "foundation_block"
+const ROOF: String = "floor_panel"
 
 
 ## The build.place payloads, foundations first, then walls in an order that keeps
@@ -59,6 +60,15 @@ static func commands(actor: int) -> Array[Dictionary]:
 		place.call(WALL, Vector3i(x, 0, 9), "pz")
 	for z: int in range(7, 10):
 		place.call(WINDOW if z == 8 else WALL, Vector3i(6, 0, z), "px")
+	# roofs over the corridor and both rooms, so they are enclosed volumes with entry
+	# edges for the squad planner; the lobby is a courtyard (its middle is beyond span)
+	for z: int in range(4, 10):
+		place.call(ROOF, Vector3i(2, 0, z), "py")
+	for z: int in range(7, 10):
+		for x: int in range(-2, 2):
+			place.call(ROOF, Vector3i(x, 0, z), "py")
+		for x: int in range(3, 7):
+			place.call(ROOF, Vector3i(x, 0, z), "py")
 	return out
 
 

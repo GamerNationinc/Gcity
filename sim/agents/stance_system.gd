@@ -9,8 +9,9 @@
 ## the ticks where `tick % SCORE_EVERY == i % SCORE_EVERY`. Execution runs every
 ## tick: the agent faces what it sees, fires through `weapon.fire` (the client's
 ## command path, submitted for the next tick) at an alerted target it can see, and
-## walks through PathingSystem toward the stance's goal. A routed agent may only
-## retreat or surrender.
+## walks through PathingSystem toward the stance's goal, or toward the squad's
+## assigned entry edge when it has one (claim 11). A routed agent may only retreat
+## or surrender.
 class_name StanceSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"stances"
@@ -39,6 +40,7 @@ var _perception: PerceptionSystem
 var _aim: AimSystem
 var _stress: StressSystem
 var _pathing: PathingSystem
+var _squads: SquadSystem
 ## stance name -> Callable(ctx: Dictionary) -> int (0..1 000 000)
 var _scorers: Dictionary = {}
 ## agent -> {"stance": StringName, "since": int, "score": int, "waypoint": int, "goal": [] | [x, y, z]}
@@ -47,7 +49,7 @@ var _fires: int = 0
 var _scored: int = 0
 
 
-func _init(content: ContentDb, actors: ActorSystem, items: ItemSystem, perception: PerceptionSystem, aim: AimSystem, stress: StressSystem, pathing: PathingSystem) -> void:
+func _init(content: ContentDb, actors: ActorSystem, items: ItemSystem, perception: PerceptionSystem, aim: AimSystem, stress: StressSystem, pathing: PathingSystem, squads: SquadSystem) -> void:
 	_content = content
 	_actors = actors
 	_items = items
@@ -55,6 +57,7 @@ func _init(content: ContentDb, actors: ActorSystem, items: ItemSystem, perceptio
 	_aim = aim
 	_stress = stress
 	_pathing = pathing
+	_squads = squads
 	var errs: Array[Error] = [
 		register_scorer(STANCE_HOLD, _score_hold), register_scorer(STANCE_ADVANCE, _score_advance),
 		register_scorer(STANCE_FLANK, _score_flank), register_scorer(STANCE_RETREAT, _score_retreat),
@@ -369,13 +372,20 @@ func _execute(sim: SimRoot, agent: int, rec: Dictionary) -> void:
 					goal = PathingSystem._vec(route[waypoint])
 				wants_goal = true
 		STANCE_ADVANCE:
-			if contact != EntityIds.NONE:
+			if _squads.has_assignment(agent):
+				# the squad planner's entry edge: take the door, or cover the window
+				goal = _squads.assignment_of(agent)
+				wants_goal = goal != here
+			elif contact != EntityIds.NONE:
 				var there: Vector3i = _contact_cell(agent, contact)
 				if PathingSystem._manhattan(here, there) > ENGAGE_CELLS:
 					goal = there
 					wants_goal = true
 		STANCE_FLANK:
-			if contact != EntityIds.NONE:
+			if _squads.has_assignment(agent):
+				goal = _squads.assignment_of(agent)
+				wants_goal = goal != here
+			elif contact != EntityIds.NONE:
 				var there: Vector3i = _contact_cell(agent, contact)
 				var toward: Vector3i = _dominant(there - here)
 				goal = there + Vector3i(-toward.z, 0, toward.x) * FLANK_CELLS

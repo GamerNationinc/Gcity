@@ -85,7 +85,7 @@ func test_stances_are_content_with_registered_scorers() -> void:
 	var db: ContentDb = _db()
 	db.add(&"stance", &"dance", {"schema_version": 1, "description": "no scorer"})
 	db.add(&"agent_profile", &"dancer", {"schema_version": 1, "description": "x", "combat_profile": "arcade", "perception_profile": "guard_sim",
-		"aim_profile": "guard_sim", "stress_profile": "guard_sim", "stances": [{"stance": "dance", "weight": 1000}]})
+		"aim_profile": "guard_sim", "stress_profile": "guard_sim", "stances": [{"stance": "dance", "weight": 1000}], "radio": false, "radio_latency_ticks": 0})
 	assert_true(SimAssembly.build(SEED, db) == null, "a profile naming a stance with no scorer fails assembly")
 	assert_eq(_stances.allowed_stances(_perception.spawn(&"guard_arcade", _cell(0, 0), 0, 1, "")).size(), 5, "the arcade profile allows five stances: no flank")
 
