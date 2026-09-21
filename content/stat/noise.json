@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "How far a shot from this weapon carries, in milli-units of a metre (millimetres). Perception hears it within the smaller of this and the listener's hearing range (M4 spec claim 4)."
+}

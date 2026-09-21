@@ -38,6 +38,8 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `weapon_part` | M1 | `socket` (ref), `fits` (frame refs), `modifiers` (`{stat: ref, class, value}`), `capacity` + `calibre` for container sockets |
 | `ammo` | M1 | `calibre` (ref), `tags`, `stats` |
 | `combat_stage` | M1 | `description` (a name code may implement) |
+| `perception_profile` | M4 | `sight_range_mm`, `fov_deg`, `gain_per_tick`, `speed_gain_per_mm_per_tick`, `decay_per_tick`, `alert_threshold`, `memory_ticks`, `hearing_range_mm`, `hearing_gain` (all int) |
+| `agent_profile` | M4 | `combat_profile` (ref), `perception_profile` (ref) |
 | `combat_profile` | M1 | `stages` (refs), `range_falloff_per_m`, `health` (`nodes` with `id`/`max`/`fatal`, `routing` with `node`/`weight`) |
 | `skill` | M1 | `xp` rules (`event`, `credit`, `tags_any`, `amount`), `levels`, `points_per_level` |
 | `perk` | M1 | `skill` (ref), `prerequisites` (`level`, `perks` refs), `cost`, `tags`, `modifiers` (`{stat: ref, class, value}`) |

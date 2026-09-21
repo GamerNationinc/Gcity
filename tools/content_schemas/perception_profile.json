@@ -1,0 +1,19 @@
+{
+	"schema_version": 1,
+	"description": "How an agent accumulates awareness of a contact (design doc §14.1; M4 spec claims 1-5). Sight is a cone and a range; awareness is milli-units 0..1 000 000 gained per tick of exposure and lost per tick without; noise is heard within the smaller of hearing range and the shot's loudness. All integers.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"sight_range_mm": {"type": "int", "min": 1, "max": 100000},
+		"fov_deg": {"type": "int", "min": 1, "max": 360},
+		"gain_per_tick": {"type": "int", "min": 0, "max": 1000000},
+		"speed_gain_per_mm_per_tick": {"type": "int", "min": 0, "max": 1000000},
+		"decay_per_tick": {"type": "int", "min": 0, "max": 1000000},
+		"alert_threshold": {"type": "int", "min": 1, "max": 1000000},
+		"memory_ticks": {"type": "int", "min": 0, "max": 1000000},
+		"hearing_range_mm": {"type": "int", "min": 0, "max": 100000},
+		"hearing_gain": {"type": "int", "min": 0, "max": 1000000}
+	},
+	"required": ["schema_version", "description", "sight_range_mm", "fov_deg", "gain_per_tick", "speed_gain_per_mm_per_tick", "decay_per_tick", "alert_threshold", "memory_ticks", "hearing_range_mm", "hearing_gain"],
+	"additional_properties": false
+}

@@ -1,0 +1,6 @@
+{
+	"schema_version": 1,
+	"description": "The same guard under the arcade tuning (ADR-008 A): no code branch, different numbers.",
+	"combat_profile": "arcade",
+	"perception_profile": "guard_arcade"
+}
