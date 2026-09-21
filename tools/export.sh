@@ -11,7 +11,8 @@ godot="$(tools/godot.sh)"
 out="${1:-build/linux/gcity.x86_64}"
 
 cache="${GODOT_CACHE_DIR:-$root/.cache/godot}"
-templates_dir="${XDG_DATA_HOME:-$HOME/.local/share}/godot/export_templates/${GODOT_VERSION}"
+# The engine names the templates folder with dots: 4.6.1-stable -> 4.6.1.stable
+templates_dir="${XDG_DATA_HOME:-$HOME/.local/share}/godot/export_templates/${GODOT_VERSION/-/.}"
 archive="$cache/Godot_v${GODOT_VERSION}_export_templates.tpz"
 if [[ ! -f "$templates_dir/linux_release.x86_64" ]]; then
 	if [[ ! -f "$archive" ]]; then
