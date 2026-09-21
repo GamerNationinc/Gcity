@@ -37,6 +37,9 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `weapon_frame` | M1 | `calibre` (ref), `sockets` (refs), `tags`, `stats` (`{stat: ref, value}`) |
 | `weapon_part` | M1 | `socket` (ref), `fits` (frame refs), `modifiers` (`{stat: ref, class, value}`), `capacity` + `calibre` for container sockets |
 | `ammo` | M1 | `calibre` (ref), `tags`, `stats` |
+| `device_frame` | M5 | `sockets` (device_socket refs), `tags`, `stats` |
+| `device_socket` | M5 | `description` |
+| `device_module` | M5 | `socket` (ref), `fits` (device_frame refs), `modifiers`, `provides` (tags) |
 | `combat_stage` | M1 | `description` (a name code may implement) |
 | `perception_profile` | M4 | `sight_range_mm`, `fov_deg`, `gain_per_tick`, `speed_gain_per_mm_per_tick`, `decay_per_tick`, `alert_threshold`, `memory_ticks`, `hearing_range_mm`, `hearing_gain` (all int) |
 | `aim_profile` | M4 | `cone_start_mdeg`, `cone_settled_mdeg`, `settle_ticks`, `swing_penalty_mdeg`, `swing_ticks`, `penalty_per_mdeg` (all int) |

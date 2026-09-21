@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 1000,
+	"description": "Daemons the device can run at once, milli-units (1000 = one). Feeds the hacking app (M6)."
+}

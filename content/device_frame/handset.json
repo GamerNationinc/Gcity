@@ -1,0 +1,25 @@
+{
+	"schema_version": 1,
+	"description": "The base personal device (design doc §12): inventory, map, quests and comms on its own; apps needing hardware wait for a module in a bay.",
+	"sockets": [
+		"radio",
+		"coprocessor"
+	],
+	"tags": [
+		"device"
+	],
+	"stats": [
+		{
+			"stat": "memory_capacity",
+			"value": 1000
+		},
+		{
+			"stat": "antenna_gain",
+			"value": 0
+		},
+		{
+			"stat": "battery_reserve",
+			"value": 1000
+		}
+	]
+}

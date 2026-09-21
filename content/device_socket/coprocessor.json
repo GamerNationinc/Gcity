@@ -1,0 +1,4 @@
+{
+	"schema_version": 1,
+	"description": "The device's coprocessor bay: a daemon coprocessor here provides `daemon_coprocessor` (design doc §12.2)."
+}

@@ -1,0 +1,74 @@
+{
+	"schema_version": 1,
+	"description": "A module for a device bay (design doc §12.2; M5 spec claim 1): modifiers through the stat resolver and the `provides` tags apps may require.",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 240
+		},
+		"socket": {
+			"type": "string",
+			"ref": "device_socket"
+		},
+		"fits": {
+			"type": "array",
+			"min_length": 1,
+			"max_length": 64,
+			"items": {
+				"type": "string",
+				"ref": "device_frame"
+			}
+		},
+		"modifiers": {
+			"type": "array",
+			"max_length": 32,
+			"items": {
+				"type": "object",
+				"properties": {
+					"stat": {
+						"type": "string",
+						"ref": "stat"
+					},
+					"class": {
+						"type": "string",
+						"pattern": "[a-z0-9][a-z0-9_.]*"
+					},
+					"value": {
+						"type": "int",
+						"min": -1000000000,
+						"max": 1000000000
+					}
+				},
+				"required": [
+					"stat",
+					"class",
+					"value"
+				],
+				"additional_properties": false
+			}
+		},
+		"provides": {
+			"type": "array",
+			"max_length": 16,
+			"items": {
+				"type": "string",
+				"pattern": "[a-z0-9][a-z0-9_.]*"
+			}
+		}
+	},
+	"required": [
+		"schema_version",
+		"description",
+		"socket",
+		"fits",
+		"modifiers",
+		"provides"
+	],
+	"additional_properties": false
+}

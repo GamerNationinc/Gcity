@@ -8,6 +8,9 @@ const SYSTEM_ID: StringName = &"actors"
 const KIND_PROFILE: StringName = &"combat_profile"
 const COMMAND_SPAWN: StringName = &"actor.spawn"
 const COMMAND_WIELD: StringName = &"actor.wield"
+## The personal device an actor carries (design doc §12; M5 spec claim 2): one device
+## frame in its inventory, inheriting its modifiers like a wielded weapon.
+const COMMAND_EQUIP_DEVICE: StringName = &"actor.equip_device"
 const MAX_RANGE_M: int = 10_000
 const MAX_COORD: int = 100_000_000
 
@@ -15,7 +18,7 @@ var _content: ContentDb
 var _stats: StatResolver
 var _ids: EntityIds
 var _items: ItemSystem
-## actor id -> {"profile": StringName, "health": {node: int}, "wielded": int, "pos": [x, y, z] mm, "alive": bool}
+## actor id -> {"profile": StringName, "health": {node: int}, "wielded": int, "device": int, "pos": [x, y, z] mm, "alive": bool}
 ## Positions are integer millimetres (M3 claim set P1). `actor.spawn`'s range_m places
 ## the actor at (range_m × 1000, 0, 0) so the M1 range keeps its meaning.
 var _actors: Dictionary = {}
@@ -50,7 +53,10 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.commands().register(COMMAND_SPAWN, _on_spawn)
 	if err != OK:
 		return err
-	return sim.commands().register(COMMAND_WIELD, _on_wield)
+	err = sim.commands().register(COMMAND_WIELD, _on_wield)
+	if err != OK:
+		return err
+	return sim.commands().register(COMMAND_EQUIP_DEVICE, _on_equip_device)
 
 
 ## Health nodes must be unique and every routing entry must name one.
@@ -149,6 +155,14 @@ func wielded(actor: int) -> int:
 	return rec["wielded"]
 
 
+## The device an actor carries, or NONE.
+func device_of(actor: int) -> int:
+	if not _actors.has(actor):
+		return EntityIds.NONE
+	var rec: Dictionary = _actors[actor]
+	return rec["device"]
+
+
 ## Whole metres from the origin: what "range" meant at M1. Combat reads distances
 ## between positions instead (M3 claim P4).
 func range_of(actor: int) -> int:
@@ -220,7 +234,7 @@ func spawn(profile: StringName, range_m: int) -> int:
 		var id_s: String = nd["id"]
 		health[StringName(id_s)] = nd["max"]
 	var id: int = _ids.allocate()
-	_actors[id] = {"profile": profile, "health": health, "wielded": EntityIds.NONE, "pos": [range_m * 1000, 0, 0] as Array[int], "alive": true}
+	_actors[id] = {"profile": profile, "health": health, "wielded": EntityIds.NONE, "device": EntityIds.NONE, "pos": [range_m * 1000, 0, 0] as Array[int], "alive": true}
 	return id
 
 
@@ -300,6 +314,34 @@ func _on_wield(_sim: SimRoot, payload: Dictionary) -> bool:
 	return true
 
 
+## {"actor": int, "device": int}: carry a device frame from the inventory (0 puts it away).
+func _on_equip_device(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("device")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	var device: int = payload["device"]
+	if not _actors.has(actor) or not is_alive(actor):
+		return false
+	var rec: Dictionary = _actors[actor]
+	var current: int = rec["device"]
+	if device == EntityIds.NONE:
+		if current == EntityIds.NONE:
+			return false
+		_stats.set_inherits(current, -1)
+		rec["device"] = EntityIds.NONE
+		return true
+	if _items.item_kind(device) != ItemSystem.KIND_DEVICE_FRAME or _items.container_of(device) != ItemSystem.inventory_of(actor):
+		return false
+	if current == device:
+		return false
+	if current != EntityIds.NONE:
+		_stats.set_inherits(current, -1)
+	if _stats.set_inherits(device, actor) != OK:
+		return false
+	rec["device"] = device
+	return true
+
+
 # ---------------------------------------------------------------- restore
 
 func restore(state: Dictionary) -> Error:
@@ -311,8 +353,8 @@ func restore(state: Dictionary) -> Error:
 		if typeof(ak) != TYPE_INT or ak < 1 or typeof(actors_in[ak]) != TYPE_DICTIONARY:
 			return _restore_fail("actor key or record")
 		var rec: Dictionary = actors_in[ak]
-		if rec.size() != 5 or typeof(rec.get("health")) != TYPE_DICTIONARY or typeof(rec.get("wielded")) != TYPE_INT \
-				or typeof(rec.get("pos")) != TYPE_ARRAY or typeof(rec.get("alive")) != TYPE_BOOL:
+		if rec.size() != 6 or typeof(rec.get("health")) != TYPE_DICTIONARY or typeof(rec.get("wielded")) != TYPE_INT \
+				or typeof(rec.get("device")) != TYPE_INT or typeof(rec.get("pos")) != TYPE_ARRAY or typeof(rec.get("alive")) != TYPE_BOOL:
 			return _restore_fail("actor %d fields" % ak)
 		var profile: StringName = _as_name(rec.get("profile"))
 		if not _content.has(KIND_PROFILE, profile):
@@ -344,7 +386,10 @@ func restore(state: Dictionary) -> Error:
 		var actor_id: int = ak
 		if wielded_v != EntityIds.NONE and (_items.item_kind(wielded_v) != ItemSystem.KIND_FRAME or _items.container_of(wielded_v) != ItemSystem.inventory_of(actor_id)):
 			return _restore_fail("actor %d wields something it does not hold" % ak)
-		out[ak] = {"profile": profile, "health": health, "wielded": wielded_v, "pos": [px, py, pz] as Array[int], "alive": rec["alive"]}
+		var device_v: int = rec["device"]
+		if device_v != EntityIds.NONE and (_items.item_kind(device_v) != ItemSystem.KIND_DEVICE_FRAME or _items.container_of(device_v) != ItemSystem.inventory_of(actor_id)):
+			return _restore_fail("actor %d carries a device it does not hold" % ak)
+		out[ak] = {"profile": profile, "health": health, "wielded": wielded_v, "device": device_v, "pos": [px, py, pz] as Array[int], "alive": rec["alive"]}
 	_actors = out
 	return OK
 

@@ -1,0 +1,21 @@
+{
+	"schema_version": 1,
+	"description": "A bay on a device frame (design doc §12.2). Modules fit sockets by id; a device socket never contains rounds.",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 240
+		}
+	},
+	"required": [
+		"schema_version",
+		"description"
+	],
+	"additional_properties": false
+}

@@ -1,0 +1,9 @@
+# Pinned Steamworks binding (engineering standards §5.4, §8.2). Upgrade every line together:
+# GodotSteam's GDExtension releases are built against one Steamworks SDK.
+GODOTSTEAM_VERSION=4.22.1
+GODOTSTEAM_GODOT_CPP=4.4
+GODOTSTEAM_STEAMWORKS_SDK=1.65
+GODOTSTEAM_URL=https://codeberg.org/godotsteam/godotsteam/releases/download/v4.22.1-gde/godotsteam-4.22.1-gdextension-plugin-4.4.zip
+GODOTSTEAM_SHA256=2b12b3499434c50da16104a0d22b725aee15cc5cd41223c1cea825bae59bfa8f
+# The Steam app id the client initialises with: Valve's test app until CEOGG registers ours.
+STEAM_APP_ID=480

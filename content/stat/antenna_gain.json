@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Radio reach of the device, milli-units of a metre: drone link range (M7) and, at M5, the comms app's reach."
+}

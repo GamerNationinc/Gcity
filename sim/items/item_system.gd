@@ -19,13 +19,21 @@ const KIND_PART: StringName = &"weapon_part"
 const KIND_AMMO: StringName = &"ammo"
 const KIND_SOCKET: StringName = &"weapon_socket"
 const KIND_CALIBRE: StringName = &"calibre"
-const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO]
+## The device is a second socketed frame family (design doc §12.2; M5 spec claim 1):
+## the same socket machinery, its own kinds, no container socket, no chamber.
+const KIND_DEVICE_FRAME: StringName = &"device_frame"
+const KIND_DEVICE_MODULE: StringName = &"device_module"
+const KIND_DEVICE_SOCKET: StringName = &"device_socket"
+const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
 const COMMAND_LOAD: StringName = &"magazine.load"
 const COMMAND_UNLOAD: StringName = &"magazine.unload"
 const COMMAND_ATTACH: StringName = &"weapon.attach"
 const COMMAND_DETACH: StringName = &"weapon.detach"
+## The same handlers under the names that fit any socketed frame (M5 spec claim 1).
+const COMMAND_ITEM_ATTACH: StringName = &"item.attach"
+const COMMAND_ITEM_DETACH: StringName = &"item.detach"
 const COMMAND_RELOAD_TACTICAL: StringName = &"weapon.reload_tactical"
 const COMMAND_RELOAD_EMERGENCY: StringName = &"weapon.reload_emergency"
 
@@ -113,6 +121,7 @@ func attach(sim: SimRoot) -> Error:
 	for pair: Array in [
 		[COMMAND_SPAWN, _on_spawn], [COMMAND_LOAD, _on_load], [COMMAND_UNLOAD, _on_unload],
 		[COMMAND_ATTACH, _on_attach], [COMMAND_DETACH, _on_detach],
+		[COMMAND_ITEM_ATTACH, _on_attach], [COMMAND_ITEM_DETACH, _on_detach],
 		[COMMAND_RELOAD_TACTICAL, _on_reload_tactical], [COMMAND_RELOAD_EMERGENCY, _on_reload_emergency],
 	]:
 		var kind: StringName = pair[0]
@@ -163,6 +172,20 @@ func validate_content() -> Error:
 		var t: Dictionary = _content.get_entry(KIND_AMMO, ammo)
 		if _check_stats_list(t["stats"], "ammo/%s" % ammo) != OK:
 			return ERR_INVALID_DATA
+	for frame: StringName in _content.ids(KIND_DEVICE_FRAME):
+		var t: Dictionary = _content.get_entry(KIND_DEVICE_FRAME, frame)
+		if _check_stats_list(t["stats"], "device_frame/%s" % frame) != OK:
+			return ERR_INVALID_DATA
+	for module: StringName in _content.ids(KIND_DEVICE_MODULE):
+		var t: Dictionary = _content.get_entry(KIND_DEVICE_MODULE, module)
+		var mods: Array = t["modifiers"]
+		for m: Variant in mods:
+			var md: Dictionary = m
+			var cls: StringName = _as_name(md["class"])
+			if not _stats.class_ids().has(cls):
+				return _content_fail("device_module/%s uses unregistered modifier class '%s'" % [module, cls])
+			if not _stats.has_stat(_as_name(md["stat"])):
+				return _content_fail("device_module/%s modifies unregistered stat '%s'" % [module, md["stat"]])
 	return OK
 
 
@@ -419,7 +442,7 @@ func _on_attach(sim: SimRoot, payload: Dictionary) -> bool:
 	var inv: StringName = inventory_of(actor)
 	if _location.get(weapon) != inv or _location.get(part) != inv:
 		return false
-	if item_kind(weapon) != KIND_FRAME or item_kind(part) != KIND_PART or is_busy(weapon, sim.get_tick()):
+	if not is_frame(weapon) or item_kind(part) != part_kind_for(item_kind(weapon)) or is_busy(weapon, sim.get_tick()):
 		return false
 	var part_t: Dictionary = _template_of(part)
 	var socket: StringName = _as_name(part_t["socket"])
@@ -454,7 +477,7 @@ func _on_detach(sim: SimRoot, payload: Dictionary) -> bool:
 	var weapon: int = payload["weapon"]
 	var socket: StringName = _payload_name(payload, "socket")
 	var inv: StringName = inventory_of(actor)
-	if socket.is_empty() or _location.get(weapon) != inv or item_kind(weapon) != KIND_FRAME:
+	if socket.is_empty() or _location.get(weapon) != inv or not is_frame(weapon):
 		return false
 	if not _socket_contains(socket).is_empty() or is_busy(weapon, sim.get_tick()):
 		return false
@@ -620,8 +643,8 @@ func restore(state: Dictionary) -> Error:
 		if typeof(wk) != TYPE_INT or not new_items.has(wk) or typeof(sockets_in[wk]) != TYPE_DICTIONARY:
 			return _restore_fail("socket weapon key")
 		var wrec: Dictionary = new_items[wk]
-		if wrec["kind"] != KIND_FRAME:
-			return _restore_fail("sockets on non-weapon %d" % wk)
+		if wrec["kind"] != KIND_FRAME and wrec["kind"] != KIND_DEVICE_FRAME:
+			return _restore_fail("sockets on non-frame %d" % wk)
 		var per: Dictionary = sockets_in[wk]
 		var out: Dictionary = {}
 		for sk: Variant in per:
@@ -693,6 +716,44 @@ func _template_of(item: int) -> Dictionary:
 	var kind: StringName = rec["kind"]
 	var template: StringName = rec["template"]
 	return _content.get_entry(kind, template)
+
+
+## Whether an item is a socketed frame of either family, and its family's part and
+## socket kinds.
+func is_frame(item: int) -> bool:
+	var kind: StringName = item_kind(item)
+	return kind == KIND_FRAME or kind == KIND_DEVICE_FRAME
+
+
+static func part_kind_for(frame_kind: StringName) -> StringName:
+	return KIND_DEVICE_MODULE if frame_kind == KIND_DEVICE_FRAME else KIND_PART
+
+
+static func socket_kind_for(frame_kind: StringName) -> StringName:
+	return KIND_DEVICE_SOCKET if frame_kind == KIND_DEVICE_FRAME else KIND_SOCKET
+
+
+## The `provides` tags of every module fitted to a device: what its apps may require.
+func provides_of(device: int) -> Array[StringName]:
+	var out: Array[StringName] = []
+	if item_kind(device) != KIND_DEVICE_FRAME:
+		return out
+	var sockets: Variant = _sockets.get(device)
+	if typeof(sockets) != TYPE_DICTIONARY:
+		return out
+	var dict: Dictionary = sockets
+	var keys: Array = dict.keys()
+	keys.sort()
+	for k: Variant in keys:
+		var part: int = dict[k]
+		if part == EntityIds.NONE:
+			continue
+		var t: Dictionary = _template_of(part)
+		for tag: Variant in t["provides"]:
+			var name: StringName = _as_name(tag)
+			if not out.has(name):
+				out.append(name)
+	return out
 
 
 func _socket_contains(socket: StringName) -> StringName:
@@ -799,7 +860,10 @@ func _is_closed_container_name(name: StringName, items: Dictionary) -> bool:
 		"chamber":
 			return parts.size() == 2 and rec["kind"] == KIND_FRAME
 		"socket":
-			return parts.size() == 3 and rec["kind"] == KIND_FRAME and _content.has(KIND_SOCKET, StringName(parts[2]))
+			var frame_kind: StringName = rec["kind"]
+			if frame_kind != KIND_FRAME and frame_kind != KIND_DEVICE_FRAME:
+				return false
+			return parts.size() == 3 and _content.has(socket_kind_for(frame_kind), StringName(parts[2]))
 		_:
 			return false
 
