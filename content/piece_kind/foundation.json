@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A solid ground-level block; the root every supported chain leads back to.",
+	"occupies": "cell",
+	"orientation": "any",
+	"passable": false,
+	"target": false
+}

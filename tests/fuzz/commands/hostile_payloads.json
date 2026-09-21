@@ -71,6 +71,17 @@
 		{"kind": "module.remove", "payload": {"actor": 1, "structure": 1, "module": 1, "x": 1}},
 		{"kind": "magazine.load", "payload": {"actor": 99, "magazine": 6, "round": 8}},
 		{"kind": "weapon.reload_tactical", "payload": {"actor": 99, "weapon": 3, "magazine": 6}},
-		{"kind": "perk.unlock", "payload": {"actor": 99, "perk": "handgun_focus"}}
+		{"kind": "perk.unlock", "payload": {"actor": 99, "perk": "handgun_focus"}},
+		{"kind": "build.place", "payload": {}},
+		{"kind": "build.place", "payload": {"actor": 1, "piece": "foundation_block", "x": 0, "y": 0, "z": 0}},
+		{"kind": "build.place", "payload": {"actor": 1, "piece": "foundation_block", "x": 0, "y": 0, "z": 0, "facing": "px"}},
+		{"kind": "build.place", "payload": {"actor": 1, "piece": "wall_panel", "x": 500, "y": 500, "z": 500, "facing": ""}},
+		{"kind": "build.place", "payload": {"actor": 1, "piece": "wall_panel", "x": 500, "y": 1500, "z": 500, "facing": "px"}},
+		{"kind": "build.place", "payload": {"actor": 99, "piece": "foundation_block", "x": 500, "y": 500, "z": 500, "facing": ""}},
+		{"kind": "build.place", "payload": {"actor": 1, "piece": "foundation_block", "x": 13000, "y": 500, "z": 6000, "facing": ""}},
+		{"kind": "build.place", "payload": {"actor": 1, "piece": "foundation_block", "x": 1e12, "y": 500, "z": 500, "facing": ""}},
+		{"kind": "build.remove", "payload": {}},
+		{"kind": "build.remove", "payload": {"actor": 1, "piece_id": 999}},
+		{"kind": "build.remove", "payload": {"actor": 1, "piece_id": "3"}}
 	]
 }

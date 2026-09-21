@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Noise a breach of this piece makes, milli-units; the material's breach_noise is the base."
+}

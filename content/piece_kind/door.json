@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A vertical opening: closed but passable, a cheap portal edge.",
+	"occupies": "face",
+	"orientation": "vertical",
+	"passable": true,
+	"target": false
+}

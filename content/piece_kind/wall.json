@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A solid vertical face.",
+	"occupies": "face",
+	"orientation": "vertical",
+	"passable": false,
+	"target": false
+}

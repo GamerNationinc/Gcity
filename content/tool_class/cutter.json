@@ -1,0 +1,6 @@
+{
+	"schema_version": 1,
+	"description": "Plasma cutter: one path-cost unit per hit point, and noise weighs one unit per milli-unit.",
+	"hp_factor": 1,
+	"noise_weight": 1
+}

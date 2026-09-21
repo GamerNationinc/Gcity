@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "Scrap steel: the starter material. 400 HP, cut through with a cutter, loud, four pieces of span from a foundation.",
+	"hp": 400,
+	"breach_tool": "cutter",
+	"breach_noise": 700,
+	"breach_ticks": 400,
+	"max_span": 4
+}

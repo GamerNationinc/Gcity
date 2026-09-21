@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Hatch in a scrap steel frame: passing costs 50.",
+	"kind": "hatch",
+	"material": "scrap_steel",
+	"open_cost": 50,
+	"value": 0
+}

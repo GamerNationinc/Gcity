@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Foundation block of scrap steel.",
+	"kind": "foundation",
+	"material": "scrap_steel",
+	"open_cost": 0,
+	"value": 0
+}

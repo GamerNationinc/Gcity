@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "Hit points of a build piece; the material's hp is the base. Breach cost reads it through the resolver so tools and perks can modify it."
+}

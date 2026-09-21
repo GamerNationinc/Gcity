@@ -1,0 +1,15 @@
+{
+	"schema_version": 1,
+	"description": "A build material: hit points, the tool class that breaches it, the noise a breach makes (milli-units), how many ticks a breach takes, and how many pieces a chain may span from a foundation before it is unsupported (M3 spec claims 1, 4, 6).",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"hp": {"type": "int", "min": 1, "max": 1000000000},
+		"breach_tool": {"type": "string", "ref": "tool_class"},
+		"breach_noise": {"type": "int", "min": 0, "max": 1000},
+		"breach_ticks": {"type": "int", "min": 1, "max": 1000000},
+		"max_span": {"type": "int", "min": 1, "max": 64}
+	},
+	"required": ["schema_version", "description", "hp", "breach_tool", "breach_noise", "breach_ticks", "max_span"],
+	"additional_properties": false
+}

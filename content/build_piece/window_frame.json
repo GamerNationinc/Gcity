@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Window in a scrap steel frame: passing costs 60 (it is a squeeze).",
+	"kind": "window",
+	"material": "scrap_steel",
+	"open_cost": 60,
+	"value": 0
+}

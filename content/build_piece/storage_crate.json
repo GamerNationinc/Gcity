@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Storage crate: worth 1000 to a raider.",
+	"kind": "crate",
+	"material": "scrap_steel",
+	"open_cost": 0,
+	"value": 1000
+}

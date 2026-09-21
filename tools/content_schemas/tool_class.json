@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "A class of breaching tool: how much each hit point of a material costs in path terms and how much its noise weighs (M3 spec claim 6: breach_cost = hp * hp_factor + noise * noise_weight, integers).",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"hp_factor": {"type": "int", "min": 1, "max": 1000000},
+		"noise_weight": {"type": "int", "min": 0, "max": 1000000}
+	},
+	"required": ["schema_version", "description", "hp_factor", "noise_weight"],
+	"additional_properties": false
+}

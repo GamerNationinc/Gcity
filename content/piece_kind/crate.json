@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A solid storage block; a raid target with a value.",
+	"occupies": "cell",
+	"orientation": "any",
+	"passable": false,
+	"target": true
+}

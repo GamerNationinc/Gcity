@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Wall panel of scrap steel.",
+	"kind": "wall",
+	"material": "scrap_steel",
+	"open_cost": 0,
+	"value": 0
+}
