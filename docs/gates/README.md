@@ -12,5 +12,5 @@ scheduled into a named milestone), or **Rejected**.
 |---|---|---|
 | G0 | M0 — Skeleton | **Accepted** 2026-09-20 by CEOGG |
 | G1 | M1 — Stat resolver + one pistol | **Accepted** 2026-09-20 by CEOGG |
-| G2 | M2 — Land authority + starter plot | not started (spec first) |
+| G2 | M2 — Land authority + starter plot | spec written (`docs/specs/M2-land-authority.md`); implementation on branch `m2-land-authority` |
 | G3–G8 | see `docs/gcity-engineering-standards.md` §11 | not started |
