@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "The M4 guard: the arcade pipeline and health at a walking pace (2.4 m/s), so patrols read as patrols and an advance can be outrun.",
+	"stages": ["hit_roll", "damage", "routing"],
+	"range_falloff_per_m": 5000,
+	"speed_mm_per_tick": 60,
+	"health": {
+		"nodes": [{"id": "body", "max": 100000, "fatal": true}],
+		"routing": [{"node": "body", "weight": 1}]
+	}
+}

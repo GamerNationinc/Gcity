@@ -40,5 +40,13 @@ func adopt(loaded: SimRoot) -> void:
 	_sim = loaded
 
 
+## A fresh sim over the same content with a new seed (or the override): the client's
+## restart on the Deck. The old sim is dropped.
+func restart() -> void:
+	var seed: int = seed_override if seed_override != 0 else randi()
+	_sim = SimAssembly.build(seed, _content)
+	assert(_sim != null, "sim assembly failed")
+
+
 func content() -> ContentDb:
 	return _content

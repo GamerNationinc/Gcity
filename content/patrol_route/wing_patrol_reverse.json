@@ -1,0 +1,36 @@
+{
+	"schema_version": 1,
+	"description": "The wing patrol the other way round, so two patrollers stay apart.",
+	"cells": [
+		[
+			8,
+			0,
+			16
+		],
+		[
+			5,
+			0,
+			16
+		],
+		[
+			2,
+			0,
+			16
+		],
+		[
+			5,
+			0,
+			16
+		],
+		[
+			5,
+			0,
+			12
+		],
+		[
+			5,
+			0,
+			16
+		]
+	]
+}

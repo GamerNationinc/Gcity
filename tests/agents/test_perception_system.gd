@@ -80,7 +80,7 @@ func test_spawn_binds_the_profiles_and_places_the_agent_on_the_ground() -> void:
 	var guard: int = _guard(&"guard_sim", 3, 4, 90, 2)
 	assert_true(_perception.is_agent(guard), "registered")
 	assert_false(_perception.is_agent(_player), "the player is not an agent")
-	assert_eq(_actors.profile_of(guard), &"arcade", "combat profile from the agent profile")
+	assert_eq(_actors.profile_of(guard), &"guard", "combat profile from the agent profile")
 	assert_eq(_perception.profile_of(guard), &"guard_sim", "agent profile")
 	assert_eq(_perception.facing_of(guard), 90, "facing")
 	assert_eq(_perception.squad_of(guard), 2, "squad")

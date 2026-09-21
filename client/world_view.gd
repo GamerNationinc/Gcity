@@ -1,7 +1,11 @@
-## The M3 grey-box world (spec claim set P): parcels as slabs, build pieces as boxes,
-## the player as a capsule, a third-person camera with a first-person toggle. Every
-## step, shot, reload and piece is a submitted command; the camera and the meshes read
-## the sim. This is where feel is judged (P4); correctness is judged headless.
+## The grey-box world (M3 spec claim set P; M4 spec claim 18): parcels as slabs, build
+## pieces as boxes, actors as capsules with a nose for their facing, a third-person
+## camera with a first-person toggle. The M4 building stands north of the start with
+## four armed guards in it, drawn in their stance's colour with an awareness bar, a
+## last-known-position marker and a sight line to the player; D-pad up swaps every
+## guard's profile, D-pad down hides the overlay, Back restarts. Every step, shot,
+## reload and piece is a submitted command; the camera and the meshes read the sim.
+## This is where feel is judged (P4, time_to_first_shot); correctness is judged headless.
 ##
 ## `--demo` after `--` plays a scripted sequence through the same action path;
 ## `--demo-quit=<s>`, `--screenshot=<path>`, `--screenshot-at=<s>` as in the other views.
@@ -9,8 +13,14 @@ class_name WorldView extends Node3D
 
 const M: float = 1000.0
 const PROFILE: StringName = &"arcade"
-const DUMMY_PROFILE: StringName = &"range_dummy"
+const GUARD_PROFILES: Array[String] = ["guard_sim", "guard_arcade"]
 const CUTTER: String = "cutter"
+const READY: int = 6
+const KIT_ITEMS: int = 17
+const STANCE_COLOURS: Dictionary = {
+	&"hold": Color(0.55, 0.65, 0.5), &"advance": Color(0.95, 0.5, 0.15), &"flank": Color(0.7, 0.35, 0.85),
+	&"retreat": Color(0.3, 0.55, 0.95), &"investigate": Color(0.95, 0.85, 0.25), &"surrender": Color(0.95, 0.95, 0.95),
+}
 const EYE_HEIGHT: float = 1.6
 const THIRD_PERSON_BACK: float = 4.0
 const THIRD_PERSON_UP: float = 2.2
@@ -23,10 +33,12 @@ const SAVE_DIR: String = "user://saves/world"
 @onready var _camera: Camera3D = $Camera3D
 
 var _player: int = 0
-var _dummy: int = 0
 var _pistol: int = 0
+var _guards: Array[int] = []
+var _guard_profile: int = 0
+var _overlay: bool = true
 var _setup_stage: int = 0
-## Facing +z at start: the dummy stands 18 m down the z axis.
+## Facing +z at start: the building's door is ten metres down the z axis.
 var _yaw: float = PI
 var _first_person: bool = false
 var _piece_templates: Array[StringName] = []
@@ -35,6 +47,9 @@ var _log: Array[String] = []
 var _piece_nodes: Dictionary = {}
 var _token_nodes: Dictionary = {}
 var _actor_nodes: Dictionary = {}
+var _bar_nodes: Dictionary = {}
+var _line_nodes: Dictionary = {}
+var _marker_nodes: Dictionary = {}
 var _demo: bool = false
 var _demo_quit_s: float = -1.0
 var _demo_t: float = 0.0
@@ -65,14 +80,14 @@ func _build_demo_script() -> Array:
 	# [gap before the action in seconds of sim time, action]
 	var steps: Array = [
 		[1.0, "wield"],
-		[0.2, "walk:30"],
-		[2.2, "fire"],   # the setup reload keeps the pistol busy for 2 s
-		[0.4, "fire"], [0.4, "fire"],
+		[0.2, "walk:33"],   # up the street beside the lobby
+		[1.1, "look:90"],   # face +x
+		[0.1, "walk:20"],   # in front of the door: the post inside starts to notice
+		[0.7, "look:-90"],  # face +z
+		[0.1, "walk:20"],   # through the door
+		[0.8, "fire"], [0.4, "fire"], [0.4, "fire"],
 		[0.4, "reload"],
-		[0.5, "build_room"],
-		[0.8, "raid"],
-		[0.3, "look:45"],
-		[0.3, "walk:20"],
+		[6.8, "restart"],   # the Deck's own way back after a death
 	]
 	var script: Array = []
 	var t: float = 0.0
@@ -163,6 +178,10 @@ func _capsule(colour: Color) -> MeshInstance3D:
 	mesh.height = 1.8
 	node.mesh = mesh
 	node.material_override = _material(colour)
+	var nose: MeshInstance3D = _box(Vector3(0.25, 0.12, 0.12), Color(0.1, 0.1, 0.1))
+	nose.name = "nose"
+	nose.position = Vector3(0.38, 0.55, 0.0)
+	node.add_child(nose)
 	return node
 
 
@@ -184,6 +203,8 @@ func _sync_scene(sim: SimRoot) -> void:
 			node.queue_free()
 			_piece_nodes.erase(id)
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var perception: PerceptionSystem = SimAssembly.perception_of(sim)
+	var stances: StanceSystem = SimAssembly.stances_of(sim)
 	for actor: int in actors.actor_ids():
 		if not _actor_nodes.has(actor):
 			var node: MeshInstance3D = _capsule(Color(0.2, 0.6, 0.9) if actor == _player else Color(0.85, 0.3, 0.25))
@@ -192,7 +213,22 @@ func _sync_scene(sim: SimRoot) -> void:
 		var capsule: MeshInstance3D = _actor_nodes[actor]
 		var p: Vector3i = actors.position_of(actor)
 		capsule.position = Vector3(float(p.x) / M, 0.9, float(p.z) / M)
-		capsule.visible = actors.is_alive(actor) and not (_first_person and actor == _player)
+		var alive: bool = actors.is_alive(actor)
+		capsule.visible = not (_first_person and actor == _player)
+		if not alive:
+			# down: a dark slab where the body fell
+			capsule.position.y = 0.15
+			capsule.scale = Vector3(1.0, 0.15, 1.0)
+			capsule.material_override = _material(Color(0.15, 0.13, 0.13))
+		if actor == _player:
+			capsule.rotation.y = _yaw + PI / 2.0
+		elif perception.is_agent(actor):
+			capsule.rotation.y = -deg_to_rad(float(perception.facing_of(actor)))
+			if alive:
+				var stance: StringName = stances.stance_of(actor)
+				var colour: Color = STANCE_COLOURS[stance] if STANCE_COLOURS.has(stance) else Color(0.85, 0.3, 0.25)
+				capsule.material_override = _material(colour)
+			_sync_guard_overlay(actor, alive, p, perception)
 	var raids: RaidTokenSystem = SimAssembly.raids_of(sim)
 	var tokens: Dictionary = {}
 	for token: int in raids.token_ids():
@@ -206,6 +242,48 @@ func _sync_scene(sim: SimRoot) -> void:
 		cube.position = Vector3(float(c.x) + 0.5, float(c.y) + 0.5, float(c.z) + 0.5)
 		var state: String = raids.state_of(token)
 		cube.material_override = _material(Color(1.0, 0.85, 0.2) if state == "moving" else (Color(0.9, 0.2, 0.2) if state == "arrived" else Color(0.5, 0.5, 0.5)))
+
+
+## The awareness bar over a guard, its sight line to the player, and where it last
+## knew the player to be (M4 spec claim 18).
+func _sync_guard_overlay(guard: int, alive: bool, p: Vector3i, perception: PerceptionSystem) -> void:
+	if not _bar_nodes.has(guard):
+		var new_bar: MeshInstance3D = _box(Vector3(1.0, 0.08, 0.08), Color(0.3, 0.9, 0.3))
+		var new_line: MeshInstance3D = _box(Vector3(0.04, 0.04, 1.0), Color(1.0, 0.3, 0.2))
+		var new_marker: MeshInstance3D = _box(Vector3(0.3, 0.3, 0.3), Color(0.95, 0.85, 0.25))
+		_bar_nodes[guard] = new_bar
+		_line_nodes[guard] = new_line
+		_marker_nodes[guard] = new_marker
+		add_child(new_bar)
+		add_child(new_line)
+		add_child(new_marker)
+	var bar: MeshInstance3D = _bar_nodes[guard]
+	var line: MeshInstance3D = _line_nodes[guard]
+	var marker: MeshInstance3D = _marker_nodes[guard]
+	var show: bool = _overlay and alive and _player != 0
+	bar.visible = show
+	line.visible = false
+	marker.visible = false
+	if not show:
+		return
+	var fraction: float = float(perception.awareness_of(guard, _player)) / float(PerceptionSystem.AWARENESS_MAX)
+	bar.position = Vector3(float(p.x) / M, 2.1, float(p.z) / M)
+	bar.scale = Vector3(maxf(fraction, 0.02), 1.0, 1.0)
+	bar.material_override = _material(Color(0.95, 0.2, 0.2) if perception.is_alerted(guard, _player) else Color(0.3, 0.9, 0.3).lerp(Color(0.95, 0.6, 0.1), fraction))
+	if perception.can_see(guard, _player):
+		var me: Vector3i = SimAssembly.actors_of(_host.sim()).position_of(_player)
+		var a: Vector3 = Vector3(float(p.x) / M, 1.5, float(p.z) / M)
+		var b: Vector3 = Vector3(float(me.x) / M, 1.2, float(me.z) / M)
+		var length: float = a.distance_to(b)
+		if length > 0.05:
+			line.visible = true
+			line.position = (a + b) / 2.0
+			line.scale = Vector3(1.0, 1.0, length)
+			line.look_at(b, Vector3.UP)
+	elif perception.has_last_known(guard, _player):
+		var last: Vector3i = perception.last_known(guard, _player)
+		marker.visible = true
+		marker.position = Vector3(float(last.x) / M, 0.15, float(last.z) / M)
 
 
 func _piece_mesh(build: BuildSystem, id: int) -> MeshInstance3D:
@@ -272,7 +350,7 @@ func _process(delta: float) -> void:
 func _physics_process(_delta: float) -> void:
 	if _demo:
 		_demo_t += 1.0 / SimRoot.TICK_HZ  # sim-driven demo clock, see plot_view
-	if _setup_stage < 4:
+	if _setup_stage < READY:
 		return
 	var sim: SimRoot = _host.sim()
 	var input: Vector2 = Vector2.ZERO
@@ -282,7 +360,7 @@ func _physics_process(_delta: float) -> void:
 			input = _demo_walk_dir
 	else:
 		input = Input.get_vector("world_move_left", "world_move_right", "world_move_forward", "world_move_back")
-	if input.length_squared() < 0.01:
+	if input.length_squared() < 0.01 or not SimAssembly.actors_of(sim).is_alive(_player):
 		return
 	var speed: int = SimAssembly.movement_of(sim).speed_of(_player)
 	var forward: Vector2 = Vector2(-sin(_yaw), -cos(_yaw))
@@ -323,7 +401,7 @@ func _save_screenshot() -> void:
 func _unhandled_input(event: InputEvent) -> void:
 	if not event.is_pressed() or event.is_echo():
 		return
-	for action: String in ["fire", "reload", "wield", "camera", "build_place", "build_remove", "build_next", "raid", "save", "load"]:
+	for action: String in ["fire", "reload", "wield", "camera", "build_place", "build_remove", "build_next", "raid", "save", "load", "profile", "overlay", "restart"]:
 		if event.is_action("world_" + action):
 			_perform(action)
 			return
@@ -331,72 +409,131 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # ---------------------------------------------------------------- setup and actions
 
-## The player on the plot with the pistol kit, a dummy 18 m away, the plot owned.
+## The player on the street with the pistol kit and both parcels owned; the M4
+## building raised from `M4Building.commands`; four guards spawned and armed the same
+## way the player is, through commands. Stages wait for the sim to catch up.
 func _advance_setup(sim: SimRoot) -> void:
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
 	var items: ItemSystem = SimAssembly.items_of(sim)
 	match _setup_stage:
 		0:
 			_submit(sim, &"actor.spawn", {"profile": String(PROFILE), "range_m": 0})
-			_submit(sim, &"actor.spawn", {"profile": String(DUMMY_PROFILE), "range_m": 0})
 			_setup_stage = 1
 		1:
 			var ids: Array[int] = actors.actor_ids()
-			if ids.size() < 2:
+			if ids.is_empty():
 				return
 			_player = ids[0]
-			_dummy = ids[1]
-			actors.set_position(_player, Vector3i(3000, 0, 3000))
-			actors.set_position(_dummy, Vector3i(3000, 0, 21000))
-			var inv: String = String(ItemSystem.inventory_of(_player))
+			actors.set_position(_player, M4Building.PLAYER_START)
 			_submit(sim, &"land.identify", {"actor": _player, "owner": "player"})
 			_submit(sim, &"land.transfer", {"parcel": "starter_plot", "owner": "player"})
 			_submit(sim, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"})
-			_submit(sim, &"item.spawn", {"kind": "weapon_frame", "template": "g19", "container": inv, "seed": 1, "count": 1})
-			_submit(sim, &"item.spawn", {"kind": "weapon_part", "template": "g19_mag_15", "container": inv, "seed": 4, "count": 2})
-			_submit(sim, &"item.spawn", {"kind": "ammo", "template": "9x19_fmj", "container": inv, "seed": 100, "count": 30})
+			for command: Dictionary in M4Building.commands(_player):
+				_submit(sim, &"build.place", command)
+			for guard: Dictionary in M4Building.guards(GUARD_PROFILES[_guard_profile]):
+				_submit(sim, &"agent.spawn", guard)
+			_submit_kit(sim, _player, 1, 2, 30)
 			_setup_stage = 2
 		2:
-			var inventory: Array[int] = items.items_in(ItemSystem.inventory_of(_player))
-			if inventory.size() < 33:
+			var ids: Array[int] = actors.actor_ids()
+			if ids.size() < 5:
 				return
-			var mags: Array[int] = []
-			var rounds: Array[int] = []
-			for id: int in inventory:
-				if items.item_kind(id) == &"weapon_frame":
-					_pistol = id
-				elif items.item_kind(id) == &"weapon_part":
-					mags.append(id)
-				else:
-					rounds.append(id)
-			for i: int in 15:
-				_submit(sim, &"magazine.load", {"actor": _player, "magazine": mags[0], "round": rounds[i]})
-			for i: int in range(15, 30):
-				_submit(sim, &"magazine.load", {"actor": _player, "magazine": mags[1], "round": rounds[i]})
+			_guards = []
+			for id: int in ids:
+				if id != _player:
+					_guards.append(id)
+			for i: int in _guards.size():
+				_submit_kit(sim, _guards[i], 10 + i * 100, 11 + i * 100, 15)
 			_setup_stage = 3
 		3:
-			var mags: Array[int] = _loose_mags(items)
+			if items.items_in(ItemSystem.inventory_of(_player)).size() < 3 + 30:
+				return
+			for guard: int in _guards:
+				if items.items_in(ItemSystem.inventory_of(guard)).size() < KIT_ITEMS:
+					return
+			_pistol = _load_all_mags(items, _player)
+			for guard: int in _guards:
+				_load_all_mags(items, guard)
+			_setup_stage = 4
+		4:
+			var mags: Array[int] = _loose_mags(items, _player)
 			if mags.is_empty() or items.rounds_in(mags[0]).size() < 15:
 				return
+			for guard: int in _guards:
+				var gm: Array[int] = _loose_mags(items, guard)
+				if gm.is_empty() or items.rounds_in(gm[0]).size() < 15:
+					return
 			_submit(sim, &"weapon.reload_tactical", {"actor": _player, "weapon": _pistol, "magazine": mags[0]})
-			_note("t%d ready: player %d, dummy %d at 18 m, pistol %d" % [sim.get_tick(), _player, _dummy, _pistol])
-			_setup_stage = 4
+			for guard: int in _guards:
+				var gm: Array[int] = _loose_mags(items, guard)
+				_submit(sim, &"actor.wield", {"actor": guard, "weapon": _frame_of(items, guard)})
+				_submit(sim, &"weapon.reload_tactical", {"actor": guard, "weapon": _frame_of(items, guard), "magazine": gm[0]})
+			_setup_stage = 5
+		5:
+			for guard: int in _guards:
+				if actors.wielded(guard) == 0:
+					return
+			_note("t%d ready: player %d, %d guards armed (%s), %d pieces, %d rejected" % [sim.get_tick(), _player, _guards.size(), GUARD_PROFILES[_guard_profile], SimAssembly.build_of(sim).piece_ids().size(), sim.rejected_count()])
+			_setup_stage = READY
 
 
-func _loose_mags(items: ItemSystem) -> Array[int]:
+## A G19, magazines and rounds into an actor's inventory. Seeds only need to differ
+## per item within one actor's kit.
+func _submit_kit(sim: SimRoot, actor: int, frame_seed: int, mag_seed: int, rounds: int) -> void:
+	var inv: String = String(ItemSystem.inventory_of(actor))
+	_submit(sim, &"item.spawn", {"kind": "weapon_frame", "template": "g19", "container": inv, "seed": frame_seed, "count": 1})
+	_submit(sim, &"item.spawn", {"kind": "weapon_part", "template": "g19_mag_15", "container": inv, "seed": mag_seed, "count": rounds / 15})
+	_submit(sim, &"item.spawn", {"kind": "ammo", "template": "9x19_fmj", "container": inv, "seed": 100 + frame_seed, "count": rounds})
+
+
+## Loads every magazine in the actor's inventory fifteen at a time; returns the frame.
+func _load_all_mags(items: ItemSystem, actor: int) -> int:
+	var sim: SimRoot = _host.sim()
+	var frame: int = 0
+	var mags: Array[int] = []
+	var rounds: Array[int] = []
+	for id: int in items.items_in(ItemSystem.inventory_of(actor)):
+		if items.item_kind(id) == &"weapon_frame":
+			frame = id
+		elif items.item_kind(id) == &"weapon_part":
+			mags.append(id)
+		else:
+			rounds.append(id)
+	for m: int in mags.size():
+		for i: int in 15:
+			var index: int = m * 15 + i
+			if index < rounds.size():
+				_submit(sim, &"magazine.load", {"actor": actor, "magazine": mags[m], "round": rounds[index]})
+	return frame
+
+
+func _frame_of(items: ItemSystem, actor: int) -> int:
+	for id: int in items.items_in(ItemSystem.inventory_of(actor)):
+		if items.item_kind(id) == &"weapon_frame":
+			return id
+	return 0
+
+
+func _loose_mags(items: ItemSystem, actor: int = _player) -> Array[int]:
 	var out: Array[int] = []
-	for id: int in items.items_in(ItemSystem.inventory_of(_player)):
+	for id: int in items.items_in(ItemSystem.inventory_of(actor)):
 		if items.item_kind(id) == &"weapon_part":
 			out.append(id)
 	return out
 
 
 func _perform(action: String) -> void:
-	if _setup_stage < 4:
+	if action == "restart":
+		_restart()
+		return
+	if _setup_stage < READY:
 		return
 	var sim: SimRoot = _host.sim()
 	var items: ItemSystem = SimAssembly.items_of(sim)
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	if not actors.is_alive(_player) and ["fire", "reload", "wield", "build_place", "build_remove", "build_room", "raid"].has(action):
+		_note("you are down: restart or load")
+		return
 	match action:
 		"fire":
 			var target: int = _aimed_target(sim)
@@ -443,6 +580,13 @@ func _perform(action: String) -> void:
 			_save_game(sim)
 		"load":
 			_load_game()
+		"profile":
+			_guard_profile = (_guard_profile + 1) % GUARD_PROFILES.size()
+			for guard: int in _guards:
+				_submit(sim, &"agent.set_profile", {"agent": guard, "profile": GUARD_PROFILES[_guard_profile]})
+			_note("guards now %s" % GUARD_PROFILES[_guard_profile])
+		"overlay":
+			_overlay = not _overlay
 		_:
 			if action.begins_with("walk:"):
 				_demo_walk_ticks = action.trim_prefix("walk:").to_int()
@@ -542,6 +686,22 @@ func _note(text: String) -> void:
 		_log.pop_front()
 
 
+## A fresh sim and a fresh scene, for the Deck: no relaunch after a death.
+func _restart() -> void:
+	_host.restart()
+	for table: Dictionary in [_piece_nodes, _token_nodes, _actor_nodes, _bar_nodes, _line_nodes, _marker_nodes]:
+		for node: Node in table.values():
+			node.queue_free()
+		table.clear()
+	_player = 0
+	_pistol = 0
+	_guards = []
+	_setup_stage = 0
+	_yaw = PI
+	_log.clear()
+	_demo_next = _demo_script.size()
+
+
 # ---------------------------------------------------------------- save and load
 
 func _save_game(sim: SimRoot) -> void:
@@ -578,6 +738,9 @@ func _load_game() -> void:
 	for node: MeshInstance3D in _piece_nodes.values():
 		node.queue_free()
 	_piece_nodes.clear()
+	_guards = []
+	for id: int in SimAssembly.perception_of(sim).agent_ids():
+		_guards.append(id)
 	_note("loaded tick %d" % sim.get_tick())
 
 
@@ -585,8 +748,8 @@ func _load_game() -> void:
 
 func _render(sim: SimRoot) -> void:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("Gcity M3 world   tick %d   state %s" % [sim.get_tick(), sim.state_hash().left(12)])
-	if _setup_stage < 4:
+	lines.append("Gcity M4 world   tick %d   state %s" % [sim.get_tick(), sim.state_hash().left(12)])
+	if _setup_stage < READY:
 		lines.append("setting up (stage %d)..." % _setup_stage)
 		_status.text = "\n".join(lines)
 		return
@@ -594,29 +757,39 @@ func _render(sim: SimRoot) -> void:
 	var items: ItemSystem = SimAssembly.items_of(sim)
 	var combat: CombatSystem = SimAssembly.combat_of(sim)
 	var build: BuildSystem = SimAssembly.build_of(sim)
-	var portals: PortalGraph = SimAssembly.portals_of(sim)
-	var raids: RaidTokenSystem = SimAssembly.raids_of(sim)
+	var perception: PerceptionSystem = SimAssembly.perception_of(sim)
+	var stances: StanceSystem = SimAssembly.stances_of(sim)
+	var stress: StressSystem = SimAssembly.stress_of(sim)
 	var p: Vector3i = actors.position_of(_player)
-	lines.append("player at (%d, %d) mm   yaw %d°   %s" % [p.x, p.z, roundi(rad_to_deg(_yaw)), "first person" if _first_person else "third person"])
+	if not actors.is_alive(_player):
+		lines.append("YOU ARE DOWN   [Esc / Back] restart   [F9] load")
+	lines.append("player at (%d, %d) mm   yaw %d°   hp %d   %s" % [p.x, p.z, roundi(rad_to_deg(_yaw)), actors.health_of(_player)["body"] / 1000, "first person" if _first_person else "third person"])
 	var target: int = _aimed_target(sim)
 	var range_m: int = ActorSystem.metres_between(p, actors.position_of(target)) if target != 0 else -1
 	var mag: int = items.magazine_of(_pistol)
 	lines.append("pistol %s   chamber %s   mag %s" % ["wielded" if actors.wielded(_player) == _pistol else "holstered",
 		"loaded" if items.chambered(_pistol) != 0 else "EMPTY", "%d/15" % items.rounds_in(mag).size() if mag != 0 else "none"])
-	lines.append("target %s   hit chance %s" % ["#%d at %d m" % [target, range_m] if target != 0 else "none",
-		"%d%%" % (combat.hit_chance_at(_player, _pistol, range_m) / 10000) if target != 0 else "-"])
-	lines.append("shots %d   hits %d   kills %d   dispatched %d   rejected %d   blocked %d" % [combat.shots(), combat.hits(), combat.kills(), sim.dispatched_count(), sim.rejected_count(), SimAssembly.movement_of(sim).blocked_count()])
-	lines.append("piece to place: %s   facing %s   pieces %d   volumes %d" % [_piece_templates[_piece_index], _facing_ahead(), build.piece_ids().size(), portals.volume_count()])
-	var plan: Dictionary = portals.raid_plan(StringName(CUTTER))
-	var plan_target: int = plan["target"]
-	if plan_target != 0:
-		var plan_pieces: Array[int] = plan["pieces"]
-		lines.append("raid plan: target #%d cost %d via %d crossings" % [plan_target, plan["cost"], plan_pieces.size()])
-	for token: int in raids.token_ids():
-		lines.append("token %d: %s at %s (breached %d)" % [token, raids.state_of(token), raids.cell_of(token), raids.token(token)["breached"]])
+	var last: Dictionary = combat.last_shot()
+	var last_text: String = ""
+	if not last.is_empty():
+		var reason: String = last["reason"]
+		var hit: bool = last["hit"]
+		last_text = "   last shot by #%d: %s" % [last["shooter"], "no line of sight" if reason == CombatSystem.REASON_NO_LOS else ("hit" if hit else "miss")]
+	lines.append("target %s   hit chance %s%s" % ["#%d at %d m" % [target, range_m] if target != 0 else "none",
+		"%d%%" % (combat.hit_chance_at(_player, _pistol, range_m) / 10000) if target != 0 else "-", last_text])
+	lines.append("all shots %d   hits %d   kills %d   of which guard shots %d   rejected %d   blocked %d   pieces %d" % [combat.shots(), combat.hits(), combat.kills(), stances.fire_count(), sim.rejected_count(), SimAssembly.movement_of(sim).blocked_count(), build.piece_ids().size()])
+	for guard: int in _guards:
+		if not actors.is_alive(guard):
+			lines.append("guard #%d: down" % guard)
+			continue
+		var gp: Vector3i = actors.position_of(guard)
+		var sees: bool = perception.can_see(guard, _player)
+		lines.append("guard #%d: %-11s aware %3d%%%s  stress %2d%%  %2d m  %s" % [guard, stances.stance_of(guard), perception.awareness_of(guard, _player) / 10000,
+			"!" if perception.is_alerted(guard, _player) else " ", stress.stress_of(guard) / 10000, ActorSystem.metres_between(p, gp), "sees you" if sees else ("remembers" if perception.has_last_known(guard, _player) else "unaware")])
+	lines.append("guards: %s   overlay %s   piece to place: %s" % [GUARD_PROFILES[_guard_profile], "on" if _overlay else "off", _piece_templates[_piece_index]])
 	lines.append("")
 	lines.append("[WASD / L stick] move  [Q E / R stick] look  [C / L3] camera  [Space / RB] fire  [R / X] reload  [F / Y] wield")
-	lines.append("[Enter / A] place  [Backspace / B] remove  [Tab / LB] next piece  [T / Start] raid  [F5] save  [F9] load")
+	lines.append("[Enter / A] place  [Backspace / B] remove  [Tab / LB] next piece  [P / D-up] guard profile  [O / D-down] overlay  [Esc / Back] restart  [F5] save  [F9] load")
 	if _demo:
 		lines.append("DEMO %.1fs  step %d/%d" % [_demo_t, _demo_next, _demo_script.size()])
 	for entry: String in _log:

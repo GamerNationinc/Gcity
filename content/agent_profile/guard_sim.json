@@ -1,7 +1,7 @@
 {
 	"schema_version": 1,
-	"description": "The M4 guard under the sim tuning. Combat stays on the arcade pipeline until the sim stages exist (M6).",
-	"combat_profile": "arcade",
+	"description": "The M4 guard under the sim tuning. The guard combat profile: the arcade pipeline at walking pace, until the sim stages exist (M6).",
+	"combat_profile": "guard",
 	"perception_profile": "guard_sim",
 	"aim_profile": "guard_sim",
 	"stress_profile": "guard_sim",

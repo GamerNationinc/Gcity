@@ -1,0 +1,36 @@
+{
+	"schema_version": 1,
+	"description": "Up the M4 corridor, into room A, back, into room B, back.",
+	"cells": [
+		[
+			5,
+			0,
+			12
+		],
+		[
+			5,
+			0,
+			16
+		],
+		[
+			2,
+			0,
+			16
+		],
+		[
+			5,
+			0,
+			16
+		],
+		[
+			8,
+			0,
+			16
+		],
+		[
+			5,
+			0,
+			16
+		]
+	]
+}
