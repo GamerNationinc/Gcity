@@ -14,11 +14,12 @@ test that would fail if it were false.
 
 ## Status
 
-**M2 — Land authority + starter plot**, evidence package submitted (`docs/gates/M2-gate.md`).
-G0 and G1 are accepted. The sim has a total `rights_at()` over polygon parcels, a
-container with modules on a shared power and heat budget through the stat resolver,
-and a validated save format round-tripped as a property. The main scene is the plot
-view; the M1 range is `client/main.tscn`.
+**M3 — Portal graph + build system + grey-box 3D**, evidence package submitted
+(`docs/gates/M3-gate.md`); G0–G2 accepted. Build pieces on a 1 m grid with support
+propagation, a portal graph where every wall is a priced edge, raid planning and a dumb
+raid token, actor movement, and a walkable grey-box 3D world with the M1 pistol. The
+main scene is the world view; the plot view is `client/plot_view.tscn` and the M1
+range `client/main.tscn`.
 
 ## Running
 

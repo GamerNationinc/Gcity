@@ -53,44 +53,36 @@ func _ready() -> void:
 ## The scripted sequence: build out the container, hit a refusal, fix it, buy the
 ## neighbour, place a second container, save. Movement is client-side.
 func _build_demo_script() -> Array:
-	var script: Array = []
-	var t: float = 1.0
-	var add: Callable = func(action: String, gap: float = 0.15) -> void:
-		script.append([t, action])
-		t += gap
-	add.call("place")
-	add.call("select:power_cell_rack")
-	add.call("install")           # rack at (0, 0)
-	add.call("select:work_station")
-	add.call("right"); add.call("right")
-	add.call("install")           # work station at (2, 0)
-	add.call("select:sustainment")
-	add.call("right"); add.call("right"); add.call("right")
-	add.call("install")           # sustainment at (5, 0)
-	for _i: int in 5:
-		add.call("left")
-	add.call("up")
-	add.call("install")           # sustainment at (0, 1)
-	add.call("select:hydroponics")
-	add.call("install")           # refused: cells occupied
-	add.call("remove")            # sustainment at (0, 1) goes
-	add.call("install")           # hydroponics at (0, 1)
-	add.call("transfer")
+	# [gap before the action in seconds of sim time, action]
+	var steps: Array = [[1.0, "place"], [0.15, "select:power_cell_rack"], [0.15, "install"],
+		[0.15, "select:work_station"], [0.15, "right"], [0.15, "right"], [0.15, "install"],
+		[0.15, "select:sustainment"], [0.15, "right"], [0.15, "right"], [0.15, "right"], [0.15, "install"],
+		[0.15, "left"], [0.15, "left"], [0.15, "left"], [0.15, "left"], [0.15, "left"], [0.15, "up"], [0.15, "install"],
+		[0.15, "select:hydroponics"], [0.15, "install"], [0.15, "remove"], [0.15, "install"],
+		[0.15, "transfer"]]
 	for _i: int in 20:
-		add.call("right")
-	add.call("down")
-	add.call("place")             # second container on the bought neighbour
-	add.call("build_room", 0.8)
-	add.call("raid", 0.6)
-	add.call("save")
+		steps.append([0.1, "right"])
+	steps.append_array([[0.1, "down"], [0.15, "place"], [0.8, "build_room"], [0.6, "raid"], [0.5, "save"]])
+	var script: Array = []
+	var t: float = 0.0
+	for step: Array in steps:
+		var gap: float = step[0]
+		t += gap
+		script.append([t, step[1]])
 	return script
 
 
-func _process(delta: float) -> void:
+## The demo clock advances with the sim, not the wall clock, so a slow frame under
+## software rendering cannot fire an action before the sim has caught up.
+func _physics_process(_delta: float) -> void:
+	if _demo:
+		_demo_t += 1.0 / SimRoot.TICK_HZ
+
+
+func _process(_delta: float) -> void:
 	var sim: SimRoot = _host.sim()
 	_advance_setup(sim)
 	if _demo:
-		_demo_t += delta
 		# One action per frame: a command submitted this frame applies on the next
 		# tick, and later actions may depend on what it produced.
 		if _demo_next < _demo_script.size():
@@ -192,6 +184,13 @@ func _perform(action: String) -> void:
 			_submit(sim, &"module.remove", {"actor": _player, "structure": s, "module": module_id})
 		"next_module":
 			_template_index = (_template_index + 1) % _templates.size()
+		"build_room":
+			var base: Vector3i = BuildSystem.cell_of(_cursor) + Vector3i(1, 0, 1)
+			for command: Dictionary in WorldView.room_commands(base, _player):
+				_submit(sim, &"build.place", command)
+			_note("bunker queued at cell %s" % base)
+		"raid":
+			_submit(sim, &"raid.spawn", {"tool": "cutter"})
 		var selection when selection.begins_with("select:"):
 			var wanted: StringName = StringName(selection.trim_prefix("select:"))
 			var index: int = _templates.find(wanted)

@@ -62,19 +62,24 @@ func _ready() -> void:
 
 
 func _build_demo_script() -> Array:
+	# [gap before the action in seconds of sim time, action]
+	var steps: Array = [
+		[1.0, "wield"],
+		[0.2, "walk:30"],
+		[2.2, "fire"],   # the setup reload keeps the pistol busy for 2 s
+		[0.4, "fire"], [0.4, "fire"],
+		[0.4, "reload"],
+		[0.5, "build_room"],
+		[0.8, "raid"],
+		[0.3, "look:45"],
+		[0.3, "walk:20"],
+	]
 	var script: Array = []
-	var t: float = 1.0
-	var add: Callable = func(action: String, gap: float = 0.15) -> void:
-		script.append([t, action])
+	var t: float = 0.0
+	for step: Array in steps:
+		var gap: float = step[0]
 		t += gap
-	add.call("wield", 0.2)
-	add.call("walk:30", 2.2)          # the setup reload keeps the pistol busy for 2 s
-	add.call("fire", 0.4); add.call("fire", 0.4); add.call("fire", 0.4)
-	add.call("reload", 0.5)
-	add.call("build_room", 0.8)
-	add.call("raid", 0.3)
-	add.call("look:45", 0.3)
-	add.call("walk:20", 0.6)
+		script.append([t, step[1]])
 	return script
 
 
@@ -240,7 +245,6 @@ func _process(delta: float) -> void:
 	var sim: SimRoot = _host.sim()
 	_advance_setup(sim)
 	if _demo:
-		_demo_t += delta
 		if _demo_next < _demo_script.size():
 			var step: Array = _demo_script[_demo_next]
 			var at: float = step[0]
@@ -266,6 +270,8 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	if _demo:
+		_demo_t += 1.0 / SimRoot.TICK_HZ  # sim-driven demo clock, see plot_view
 	if _setup_stage < 4:
 		return
 	var sim: SimRoot = _host.sim()
@@ -599,7 +605,7 @@ func _render(sim: SimRoot) -> void:
 		"loaded" if items.chambered(_pistol) != 0 else "EMPTY", "%d/15" % items.rounds_in(mag).size() if mag != 0 else "none"])
 	lines.append("target %s   hit chance %s" % ["#%d at %d m" % [target, range_m] if target != 0 else "none",
 		"%d%%" % (combat.hit_chance_at(_player, _pistol, range_m) / 10000) if target != 0 else "-"])
-	lines.append("shots %d   hits %d   kills %d" % [combat.shots(), combat.hits(), combat.kills()])
+	lines.append("shots %d   hits %d   kills %d   dispatched %d   rejected %d   blocked %d" % [combat.shots(), combat.hits(), combat.kills(), sim.dispatched_count(), sim.rejected_count(), SimAssembly.movement_of(sim).blocked_count()])
 	lines.append("piece to place: %s   facing %s   pieces %d   volumes %d" % [_piece_templates[_piece_index], _facing_ahead(), build.piece_ids().size(), portals.volume_count()])
 	var plan: Dictionary = portals.raid_plan(StringName(CUTTER))
 	var plan_target: int = plan["target"]
