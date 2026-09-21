@@ -23,6 +23,9 @@ var _events: EventBus
 ## "crossing": piece or 0, "progress": int, "state": String, "breached": int}
 var _tokens: Dictionary = {}
 var _next_token: int = 1
+## Set by build.changed: every moving token re-plans on its next tick, so a door the
+## player opens (or a wall they seal) changes the token's mind mid-cut.
+var _replan: bool = false
 
 
 func _init(content: ContentDb, build: BuildSystem, portals: PortalGraph, events: EventBus) -> void:
@@ -44,7 +47,14 @@ func attach(sim: SimRoot) -> Error:
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
+	err = _events.subscribe(BuildSystem.EVENT_CHANGED, _on_build_changed)
+	if err != OK:
+		return err
 	return sim.commands().register(COMMAND_SPAWN, _on_spawn)
+
+
+func _on_build_changed(_payload: Dictionary) -> void:
+	_replan = true
 
 
 # ---------------------------------------------------------------- queries
@@ -144,10 +154,15 @@ func _sides(piece: int) -> Array[Vector3i]:
 # ---------------------------------------------------------------- ticking
 
 func tick(_sim: SimRoot) -> void:
+	var replan: bool = _replan
+	_replan = false
 	for id: int in token_ids():
 		var rec: Dictionary = _tokens[id]
 		if rec["state"] != STATE_MOVING:
 			continue
+		if replan:
+			rec["crossing"] = EntityIds.NONE
+			rec["progress"] = 0
 		_advance(id, rec)
 
 

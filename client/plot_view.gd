@@ -55,9 +55,9 @@ func _ready() -> void:
 func _build_demo_script() -> Array:
 	var script: Array = []
 	var t: float = 1.0
-	var add: Callable = func(action: String) -> void:
+	var add: Callable = func(action: String, gap: float = 0.15) -> void:
 		script.append([t, action])
-		t += 0.15
+		t += gap
 	add.call("place")
 	add.call("select:power_cell_rack")
 	add.call("install")           # rack at (0, 0)
@@ -80,6 +80,8 @@ func _build_demo_script() -> Array:
 		add.call("right")
 	add.call("down")
 	add.call("place")             # second container on the bought neighbour
+	add.call("build_room", 0.8)
+	add.call("raid", 0.6)
 	add.call("save")
 	return script
 
@@ -341,9 +343,64 @@ func _draw() -> void:
 					draw_rect(Rect2(cell_tl + Vector2.ONE, cell_size - Vector2(2, 2)), _module_colour(structures.module_template(s, module_id)))
 				draw_rect(Rect2(cell_tl, cell_size), Color(1, 1, 1, 0.25), false, 1.0)
 		draw_string(ThemeDB.fallback_font, top_left + Vector2(4.0, -4.0), "#%d %s" % [s, structures.template_of(s)], HORIZONTAL_ALIGNMENT_LEFT, -1, 13, Color(0.8, 0.9, 1.0))
+	_draw_build(sim)
 	var c: Vector2 = _to_screen(_cursor.x, _cursor.z)
 	draw_line(c + Vector2(-10, 0), c + Vector2(10, 0), Color(1, 0.9, 0.2), 2.0)
 	draw_line(c + Vector2(0, -10), c + Vector2(0, 10), Color(1, 0.9, 0.2), 2.0)
+
+
+## Build pieces at ground level (M3 spec claim 14): each air cell tinted by its portal
+## volume, face pieces as lines, solids as squares, the raid plan's crossings in red,
+## tokens as diamonds.
+func _draw_build(sim: SimRoot) -> void:
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var portals: PortalGraph = SimAssembly.portals_of(sim)
+	var raids: RaidTokenSystem = SimAssembly.raids_of(sim)
+	var ids: Array[int] = build.piece_ids()
+	if ids.is_empty():
+		return
+	var cell_px: float = PX_PER_M
+	var lo: Vector3i = build.cell_of_piece(ids[0])
+	var hi: Vector3i = lo
+	for id: int in ids:
+		for c: Vector3i in build.cells_of_piece(id):
+			lo = Vector3i(mini(lo.x, c.x), 0, mini(lo.z, c.z))
+			hi = Vector3i(maxi(hi.x, c.x), 0, maxi(hi.z, c.z))
+	for x: int in range(lo.x - 1, hi.x + 2):
+		for z: int in range(lo.z - 1, hi.z + 2):
+			var node: int = portals.node_at(Vector3i(x, 0, z))
+			if node <= PortalGraph.EXTERIOR:
+				continue
+			var tl: Vector2 = _to_screen(x * BuildSystem.CELL, (z + 1) * BuildSystem.CELL)
+			draw_rect(Rect2(tl, Vector2(cell_px, cell_px)), Color.from_hsv(float(node * 47 % 360) / 360.0, 0.5, 0.8, 0.35))
+	var plan: Dictionary = portals.raid_plan(StringName("cutter"))
+	var plan_pieces: Array[int] = plan["pieces"]
+	for id: int in ids:
+		var rec: Dictionary = build.piece(id)
+		var face: String = rec["face"]
+		var colour: Color = Color(1.0, 0.3, 0.3) if plan_pieces.has(id) else (Color(0.9, 0.9, 0.9) if not build.kind_data(id)["passable"] else Color(0.8, 0.6, 0.3))
+		var cell: Vector3i = build.cell_of_piece(id)
+		if face.is_empty():
+			var tl: Vector2 = _to_screen(cell.x * BuildSystem.CELL, (cell.z + 1) * BuildSystem.CELL)
+			draw_rect(Rect2(tl + Vector2(3, 3), Vector2(cell_px - 6, cell_px - 6)), colour)
+			continue
+		var axis: String = face.split("|")[1]
+		if axis == "y":
+			continue
+		var a: Vector2
+		var b: Vector2
+		if axis == "x":
+			a = _to_screen((cell.x + 1) * BuildSystem.CELL, cell.z * BuildSystem.CELL)
+			b = _to_screen((cell.x + 1) * BuildSystem.CELL, (cell.z + 1) * BuildSystem.CELL)
+		else:
+			a = _to_screen(cell.x * BuildSystem.CELL, (cell.z + 1) * BuildSystem.CELL)
+			b = _to_screen((cell.x + 1) * BuildSystem.CELL, (cell.z + 1) * BuildSystem.CELL)
+		draw_line(a, b, colour, 3.0)
+	for token: int in raids.token_ids():
+		var c: Vector3i = raids.cell_of(token)
+		var centre: Vector2 = _to_screen(c.x * BuildSystem.CELL + 500, c.z * BuildSystem.CELL + 500)
+		var pts: PackedVector2Array = PackedVector2Array([centre + Vector2(0, -8), centre + Vector2(8, 0), centre + Vector2(0, 8), centre + Vector2(-8, 0)])
+		draw_colored_polygon(pts, Color(1.0, 0.85, 0.2) if raids.state_of(token) == "moving" else Color(0.9, 0.2, 0.2))
 
 
 func _module_colour(template: StringName) -> Color:

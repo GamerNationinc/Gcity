@@ -1,0 +1,372 @@
+{
+	"schema_version": 1,
+	"name": "m3-killbox",
+	"seed": 20261009,
+	"ticks": 220,
+	"commands": [
+		{
+			"tick": 1,
+			"kind": "actor.spawn",
+			"payload": {
+				"profile": "arcade",
+				"range_m": 0
+			}
+		},
+		{
+			"tick": 2,
+			"kind": "land.identify",
+			"payload": {
+				"actor": 1,
+				"owner": "player"
+			}
+		},
+		{
+			"tick": 2,
+			"kind": "land.transfer",
+			"payload": {
+				"parcel": "starter_plot",
+				"owner": "player"
+			}
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "foundation_block",
+				"x": 3500,
+				"y": 500,
+				"z": 3500,
+				"facing": ""
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "foundation_block",
+				"x": 7500,
+				"y": 500,
+				"z": 3500,
+				"facing": ""
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "foundation_block",
+				"x": 3500,
+				"y": 500,
+				"z": 7500,
+				"facing": ""
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "foundation_block",
+				"x": 7500,
+				"y": 500,
+				"z": 7500,
+				"facing": ""
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 500,
+				"z": 4500,
+				"facing": "nx"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 500,
+				"z": 4500,
+				"facing": "px"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 500,
+				"z": 6500,
+				"facing": "pz"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 500,
+				"z": 4500,
+				"facing": "nz"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 500,
+				"z": 5500,
+				"facing": "nx"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 500,
+				"z": 5500,
+				"facing": "px"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 5500,
+				"y": 500,
+				"z": 6500,
+				"facing": "pz"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 5500,
+				"y": 500,
+				"z": 4500,
+				"facing": "nz"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 500,
+				"z": 6500,
+				"facing": "nx"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 500,
+				"z": 6500,
+				"facing": "px"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 500,
+				"z": 6500,
+				"facing": "pz"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 500,
+				"z": 4500,
+				"facing": "nz"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "floor_panel",
+				"x": 4500,
+				"y": 500,
+				"z": 4500,
+				"facing": "py"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "floor_panel",
+				"x": 4500,
+				"y": 500,
+				"z": 5500,
+				"facing": "py"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "floor_panel",
+				"x": 4500,
+				"y": 500,
+				"z": 6500,
+				"facing": "py"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "floor_panel",
+				"x": 5500,
+				"y": 500,
+				"z": 4500,
+				"facing": "py"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "floor_panel",
+				"x": 5500,
+				"y": 500,
+				"z": 5500,
+				"facing": "py"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "floor_panel",
+				"x": 5500,
+				"y": 500,
+				"z": 6500,
+				"facing": "py"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "floor_panel",
+				"x": 6500,
+				"y": 500,
+				"z": 4500,
+				"facing": "py"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "floor_panel",
+				"x": 6500,
+				"y": 500,
+				"z": 5500,
+				"facing": "py"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "floor_panel",
+				"x": 6500,
+				"y": 500,
+				"z": 6500,
+				"facing": "py"
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "storage_crate",
+				"x": 6500,
+				"y": 500,
+				"z": 6500,
+				"facing": ""
+			},
+			"tick": 3
+		},
+		{
+			"tick": 40,
+			"kind": "raid.spawn",
+			"payload": {
+				"tool": "cutter"
+			}
+		},
+		{
+			"tick": 60,
+			"kind": "build.remove",
+			"payload": {
+				"actor": 1,
+				"piece_id": 13
+			}
+		},
+		{
+			"tick": 61,
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"piece": "door_frame",
+				"x": 5500,
+				"y": 500,
+				"z": 4500,
+				"facing": "nz"
+			}
+		}
+	],
+	"expected_hash": "c9ba457e4901077565b14b9b5a6d8917a72bba5af8e39930f0dcf9e36cd99b64"
+}

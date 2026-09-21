@@ -122,6 +122,26 @@ func test_token_replans_when_the_player_seals_the_door_mid_raid() -> void:
 	assert_eq(_raids.token(token)["breached"], 1, "one breach")
 
 
+func test_token_switches_to_a_door_the_player_opens_mid_cut() -> void:
+	_setup()
+	_room(false)
+	var token: int = _raids.spawn(CUTTER)
+	_sim.step_n(20)
+	var rec: Dictionary = _raids.token(token)
+	var crossing: int = rec["crossing"]
+	assert_true(crossing > 0, "cutting a wall")
+	assert_eq(rec["progress"], 200, "twenty ticks in")
+	# the player opens a door on the far side
+	var south_mid: int = _build.face_piece_at(BuildSystem.face_key(BuildSystem.cell_of(_at(1, 1, 0)), "nz"))
+	_build.breach(south_mid)
+	_place(&"door_frame", 1, 1, 0, "nz")
+	_sim.step_n(1)
+	assert_eq(_raids.token(token)["progress"], 10, "progress reset: the plan changed")
+	_sim.step_n(10)
+	assert_eq(_raids.state_of(token), "arrived", "through the new door")
+	assert_eq(_raids.token(token)["breached"], 0, "nothing breached")
+
+
 func test_command_and_restore() -> void:
 	_setup()
 	_room(true)

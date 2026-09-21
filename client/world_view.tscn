@@ -1,0 +1,24 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://client/world_view.gd" id="1_world"]
+[ext_resource type="Script" path="res://client/local_host.gd" id="2_host"]
+
+[node name="WorldView" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="LocalHost" type="Node" parent="."]
+script = ExtResource("2_host")
+
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 5)
+fov = 70.0
+
+[node name="Overlay" type="CanvasLayer" parent="."]
+
+[node name="Status" type="Label" parent="Overlay"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 1264.0
+offset_bottom = 300.0
+theme_override_font_sizes/font_size = 15
+text = "Gcity M3 world"
