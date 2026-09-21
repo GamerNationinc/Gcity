@@ -215,6 +215,16 @@ func can_see(observer: int, contact: int) -> bool:
 	return line_of_sight(a, b)
 
 
+## The sight check combat runs before a shot (spec claim 7): an agent must see its
+## target (cone, range, line); any other actor needs only a clear line.
+func can_target(shooter: int, target: int) -> bool:
+	if is_agent(shooter):
+		return can_see(shooter, target)
+	if shooter == target or not _actors.has_actor(shooter) or not _actors.has_actor(target):
+		return false
+	return line_of_sight(_actors.position_of(shooter), _actors.position_of(target))
+
+
 ## Whether the segment between two positions crosses no solid face and enters no solid
 ## cell. Walked from both ends and accepted only if both walks are clear, so the answer
 ## is the same in both directions whatever the tie-breaking at corners.

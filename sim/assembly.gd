@@ -54,6 +54,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var perception: PerceptionSystem = PerceptionSystem.new(content, stats, actors, build, events)
 	if perception.attach(sim) != OK:
 		return null
+	combat.set_sight_check(perception.can_target)
 	var aim: AimSystem = AimSystem.new(content, stats, actors, perception)
 	if aim.attach(sim) != OK:
 		return null

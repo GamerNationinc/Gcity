@@ -19,6 +19,9 @@ const STAGE_ROUTING: StringName = &"routing"
 const STAT_HIT_CHANCE: StringName = &"hit_chance"
 const STAT_DAMAGE: StringName = &"damage"
 const STAT_CYCLE_TICKS: StringName = &"cycle_ticks"
+## The reason recorded on a shot that ran no stages: the shooter could not see the
+## target (M4 spec claim 7). "" on any other shot.
+const REASON_NO_LOS: String = "no_los"
 ## hit_chance is in basis points of a percent: this many is 100 %.
 const CHANCE_ONE: int = 1_000_000
 
@@ -35,6 +38,9 @@ var _kills: int = 0
 ## Sum of damage actually applied to targets, milli-hp.
 var _damage_dealt: int = 0
 var _last: Dictionary = {}
+## Callable(shooter: int, target: int) -> bool, set at assembly once perception
+## exists (M4 spec claim 7). Unset, every target is in sight, as at M1.
+var _sight: Callable = Callable()
 
 
 func _init(content: ContentDb, stats: StatResolver, items: ItemSystem, actors: ActorSystem, events: EventBus) -> void:
@@ -66,6 +72,12 @@ func events() -> EventBus:
 
 
 ## A stage implementation. The name must be a `combat_stage` content id.
+## Installs the sight check every shot passes before its stages run. The check
+## answers for players and agents alike; its owner decides what "seeing" means.
+func set_sight_check(check: Callable) -> void:
+	_sight = check
+
+
 func register_stage(name: StringName, implementation: Callable) -> Error:
 	if _stages.has(name):
 		push_error("CombatSystem: stage '%s' already registered" % name)
@@ -172,12 +184,18 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 		"range_m": ActorSystem.metres_between(_actors.position_of(shooter), _actors.position_of(target)), "profile": profile, "hit": false, "damage": 0, "applied": 0,
 		"node": &"", "chance": 0, "killed": false,
 	}
-	var stages: Array = profile["stages"]
-	for s: Variant in stages:
-		var name_s: String = s
-		var name: StringName = StringName(name_s)
-		var stage: Callable = _stages[name]
-		stage.call(ctx, sim)
+	# A shot at a target the shooter cannot see runs no stage: the round goes, the
+	# noise is made, and the miss carries its reason (M4 spec claim 7).
+	var reason: String = ""
+	if _sight.is_valid() and not _sight.call(shooter, target):
+		reason = REASON_NO_LOS
+	else:
+		var stages: Array = profile["stages"]
+		for s: Variant in stages:
+			var name_s: String = s
+			var name: StringName = StringName(name_s)
+			var stage: Callable = _stages[name]
+			stage.call(ctx, sim)
 	var weapon_tags: Array[StringName] = _stats.get_tags(weapon)
 	var tags: Array[String] = []
 	for t: StringName in weapon_tags:
@@ -197,7 +215,7 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 	var applied: int = ctx["applied"]
 	_damage_dealt += applied
 	_last = {"tick": ctx["tick"], "shooter": shooter, "weapon": weapon, "target": target, "round": round,
-		"hit": hit, "damage": ctx["applied"], "node": ctx["node"], "chance": ctx["chance"], "killed": killed}
+		"hit": hit, "damage": ctx["applied"], "node": ctx["node"], "chance": ctx["chance"], "killed": killed, "reason": reason}
 	_events.emit(EVENT_FIRE, {"shooter": shooter, "weapon": weapon, "target": target, "round": round, "tags": tags})
 	if hit:
 		_events.emit(EVENT_HIT, {"shooter": shooter, "weapon": weapon, "target": target, "node": ctx["node"],
@@ -276,8 +294,12 @@ func restore(state: Dictionary) -> Error:
 			if typeof(last.get(key)) != TYPE_INT:
 				push_error("CombatSystem.restore: rejected snapshot: last.%s" % key)
 				return ERR_INVALID_DATA
-		if typeof(last.get("hit")) != TYPE_BOOL or typeof(last.get("killed")) != TYPE_BOOL or last.size() != 10:
+		if typeof(last.get("hit")) != TYPE_BOOL or typeof(last.get("killed")) != TYPE_BOOL or last.size() != 11:
 			push_error("CombatSystem.restore: rejected snapshot: last shape")
+			return ERR_INVALID_DATA
+		var reason_v: Variant = last.get("reason")
+		if typeof(reason_v) != TYPE_STRING or (reason_v != "" and reason_v != REASON_NO_LOS):
+			push_error("CombatSystem.restore: rejected snapshot: last.reason")
 			return ERR_INVALID_DATA
 		var node_v: Variant = last.get("node")
 		if typeof(node_v) != TYPE_STRING_NAME and typeof(node_v) != TYPE_STRING:
