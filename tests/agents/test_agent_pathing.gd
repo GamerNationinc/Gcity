@@ -31,7 +31,7 @@ func _setup() -> void:
 	_pathing = SimAssembly.pathing_of(_sim)
 	_movement = SimAssembly.movement_of(_sim)
 	_player = _actors.spawn(&"arcade", 0)
-	_actors.set_position(_player, FAR + Vector3i(-20 * M, 0, -20 * M))
+	_actors.set_position(_player, FAR + Vector3i(-100 * M, 0, -100 * M))  # far beyond any guard's sight, so stances stay idle
 
 
 func _cell(cx: int, cz: int) -> Vector3i:

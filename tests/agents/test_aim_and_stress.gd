@@ -175,7 +175,7 @@ func test_metamorphic_hit_chance_over_random_profiles_in_the_sim() -> void:
 		var db := ContentDb.new()
 		assert_eq(ContentLoader.load_all(db), OK, "content loads")
 		db.add(&"aim_profile", &"t_aim", aim)
-		db.add(&"agent_profile", &"t_agent", {"schema_version": 1, "description": "generated", "combat_profile": "arcade", "perception_profile": "guard_sim", "aim_profile": "t_aim", "stress_profile": "guard_sim"})
+		db.add(&"agent_profile", &"t_agent", {"schema_version": 1, "description": "generated", "combat_profile": "arcade", "perception_profile": "guard_sim", "aim_profile": "t_aim", "stress_profile": "guard_sim", "stances": [{"stance": "hold", "weight": 1000}]})
 		_setup(db)
 		var armed: Array[int] = _armed_guard(&"t_agent")
 		var guard: int = armed[0]

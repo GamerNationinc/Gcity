@@ -120,6 +120,13 @@ func facing_of(actor: int) -> int:
 	return rec["facing"]
 
 
+func route_of(actor: int) -> String:
+	if not _agents.has(actor):
+		return ""
+	var rec: Dictionary = _agents[actor]
+	return rec["route"]
+
+
 func squad_of(actor: int) -> int:
 	if not _agents.has(actor):
 		return 0

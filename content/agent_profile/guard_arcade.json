@@ -4,5 +4,27 @@
 	"combat_profile": "arcade",
 	"perception_profile": "guard_arcade",
 	"aim_profile": "guard_arcade",
-	"stress_profile": "guard_arcade"
+	"stress_profile": "guard_arcade",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 1000
+		},
+		{
+			"stance": "advance",
+			"weight": 1000
+		},
+		{
+			"stance": "retreat",
+			"weight": 1000
+		},
+		{
+			"stance": "investigate",
+			"weight": 1000
+		},
+		{
+			"stance": "surrender",
+			"weight": 1000
+		}
+	]
 }

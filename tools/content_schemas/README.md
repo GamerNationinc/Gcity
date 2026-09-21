@@ -41,7 +41,9 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `perception_profile` | M4 | `sight_range_mm`, `fov_deg`, `gain_per_tick`, `speed_gain_per_mm_per_tick`, `decay_per_tick`, `alert_threshold`, `memory_ticks`, `hearing_range_mm`, `hearing_gain` (all int) |
 | `aim_profile` | M4 | `cone_start_mdeg`, `cone_settled_mdeg`, `settle_ticks`, `swing_penalty_mdeg`, `swing_ticks`, `penalty_per_mdeg` (all int) |
 | `stress_profile` | M4 | `near_miss_mm`, `gain_fired_at`, `gain_hit`, `gain_squadmate_down`, `decay_per_tick`, `break_threshold`, `rout_threshold`, `hit_penalty_at_max` (all int) |
-| `agent_profile` | M4 | `combat_profile`, `perception_profile`, `aim_profile`, `stress_profile` (refs) |
+| `stance` | M4 | `description` (a name the sim registers a scorer for) |
+| `patrol_route` | M4 | `cells` (arrays of three ints) |
+| `agent_profile` | M4 | `combat_profile`, `perception_profile`, `aim_profile`, `stress_profile` (refs), `stances` (`{stance: ref, weight}`) |
 | `combat_profile` | M1 | `stages` (refs), `range_falloff_per_m`, `health` (`nodes` with `id`/`max`/`fatal`, `routing` with `node`/`weight`) |
 | `skill` | M1 | `xp` rules (`event`, `credit`, `tags_any`, `amount`), `levels`, `points_per_level` |
 | `perk` | M1 | `skill` (ref), `prerequisites` (`level`, `perks` refs), `cost`, `tags`, `modifiers` (`{stat: ref, class, value}`) |

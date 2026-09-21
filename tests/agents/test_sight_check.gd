@@ -51,6 +51,9 @@ func _arm(actor: int) -> int:
 func _setup() -> void:
 	var db := ContentDb.new()
 	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	# a guard that never fires of its own accord: the test's fire commands are the only shots
+	db.add(&"agent_profile", &"guard_passive", {"schema_version": 1, "description": "test", "combat_profile": "arcade", "perception_profile": "guard_sim",
+		"aim_profile": "guard_sim", "stress_profile": "guard_sim", "stances": [{"stance": "surrender", "weight": 1000}]})
 	_sim = SimAssembly.build(SEED, db)
 	assert_true(_sim != null, "assembly")
 	_actors = SimAssembly.actors_of(_sim)
@@ -96,7 +99,7 @@ func test_a_player_shot_through_a_wall_is_a_no_los_miss_that_still_makes_noise()
 
 func test_an_agent_must_see_its_target_not_merely_have_a_line() -> void:
 	_setup()
-	var guard: int = _perception.spawn(&"guard_sim", _cell(10, 3), 180, 1, "")  # facing -x, toward the player
+	var guard: int = _perception.spawn(&"guard_passive", _cell(10, 3), 180, 1, "")  # facing -x, toward the player
 	var pistol: int = _arm(guard)
 	_sim.step_n(60)
 	assert_true(_perception.can_target(guard, _player), "the player is in the guard's cone at 7 m")

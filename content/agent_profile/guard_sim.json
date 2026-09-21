@@ -4,5 +4,31 @@
 	"combat_profile": "arcade",
 	"perception_profile": "guard_sim",
 	"aim_profile": "guard_sim",
-	"stress_profile": "guard_sim"
+	"stress_profile": "guard_sim",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 1000
+		},
+		{
+			"stance": "advance",
+			"weight": 1000
+		},
+		{
+			"stance": "flank",
+			"weight": 1000
+		},
+		{
+			"stance": "retreat",
+			"weight": 1000
+		},
+		{
+			"stance": "investigate",
+			"weight": 1000
+		},
+		{
+			"stance": "surrender",
+			"weight": 1000
+		}
+	]
 }

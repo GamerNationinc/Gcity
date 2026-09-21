@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "An agent is an actor with a combat profile, a perception profile, an aim profile and a stress profile (M4 spec claims 1, 6, 8). The stance list joins this record in a later M4 session.",
+	"description": "An agent is an actor with a combat profile, a perception profile, an aim profile, a stress profile and the stances it may choose with their weights (M4 spec claims 1, 6, 8, 10). 1000 is a neutral weight.",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -27,6 +27,30 @@
 		"stress_profile": {
 			"type": "string",
 			"ref": "stress_profile"
+		},
+		"stances": {
+			"type": "array",
+			"min_length": 1,
+			"max_length": 16,
+			"items": {
+				"type": "object",
+				"properties": {
+					"stance": {
+						"type": "string",
+						"ref": "stance"
+					},
+					"weight": {
+						"type": "int",
+						"min": 0,
+						"max": 100000
+					}
+				},
+				"required": [
+					"stance",
+					"weight"
+				],
+				"additional_properties": false
+			}
 		}
 	},
 	"required": [
@@ -35,7 +59,8 @@
 		"combat_profile",
 		"perception_profile",
 		"aim_profile",
-		"stress_profile"
+		"stress_profile",
+		"stances"
 	],
 	"additional_properties": false
 }
