@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"description": "The G4 extension exercise: a sentry drone's camera. A 200 degree cone out to 60 m, quick to notice and quick to forget, and no microphone.",
+	"sight_range_mm": 60000,
+	"fov_deg": 200,
+	"gain_per_tick": 62500,
+	"speed_gain_per_mm_per_tick": 100,
+	"decay_per_tick": 40000,
+	"alert_threshold": 1000000,
+	"memory_ticks": 120,
+	"hearing_range_mm": 0,
+	"hearing_gain": 0
+}

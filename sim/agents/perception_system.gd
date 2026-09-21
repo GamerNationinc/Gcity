@@ -37,6 +37,10 @@ var _alerts: int = 0
 ## observer -> contact -> true for shots heard since the last tick. Not state: it is
 ## always empty when a snapshot is taken.
 var _heard: Dictionary = {}
+## observer -> contact -> bool: what each agent saw on its last tick. Derived, not
+## state: rebuilt every tick before any later system reads it (`sees`), so the line
+## walk runs once per pair per tick however many systems ask.
+var _visible: Dictionary = {}
 
 
 func _init(content: ContentDb, stats: StatResolver, actors: ActorSystem, build: BuildSystem, events: EventBus) -> void:
@@ -204,8 +208,18 @@ func _contact_record(observer: int, contact: int) -> Dictionary:
 
 # ---------------------------------------------------------------- sight
 
+## What the observer saw on its last perception tick (the cached answer of
+## `can_see`, for the systems that tick after this one). False before the first tick.
+func sees(observer: int, contact: int) -> bool:
+	var stored: Variant = _visible.get(observer)
+	if typeof(stored) != TYPE_DICTIONARY:
+		return false
+	var table: Dictionary = stored
+	return table.get(contact, false)
+
+
 ## Whether `observer` (an agent) sees `contact` now: inside its range and cone, with a
-## clear line over the build grid.
+## clear line over the build grid. Computed live; `sees` is the per-tick cache.
 func can_see(observer: int, contact: int) -> bool:
 	var p: Dictionary = perception_of(observer)
 	if p.is_empty() or not _actors.has_actor(contact) or observer == contact:
@@ -342,6 +356,7 @@ func _walk_clear(a: Vector3i, b: Vector3i) -> bool:
 
 func tick(sim: SimRoot) -> void:
 	var actors: Array[int] = _actors.actor_ids()
+	_visible.clear()
 	for observer: int in agent_ids():
 		if not _actors.is_alive(observer):
 			_contacts.erase(observer)
@@ -351,6 +366,8 @@ func tick(sim: SimRoot) -> void:
 		var table: Dictionary = stored if typeof(stored) == TYPE_DICTIONARY else {}
 		var heard_v: Variant = _heard.get(observer)
 		var heard: Dictionary = heard_v if typeof(heard_v) == TYPE_DICTIONARY else {}
+		var seen: Dictionary = {}
+		_visible[observer] = seen
 		for contact: int in actors:
 			if contact == observer:
 				continue
@@ -361,7 +378,9 @@ func tick(sim: SimRoot) -> void:
 			var rec: Dictionary = rec_v if typeof(rec_v) == TYPE_DICTIONARY else {"aw": 0, "last": [] as Array[int], "memory": 0, "alerted": false}
 			var aw: int = rec["aw"]
 			var memory: int = rec["memory"]
-			if can_see(observer, contact):
+			var visible: bool = can_see(observer, contact)
+			seen[contact] = visible
+			if visible:
 				var pos: Vector3i = _actors.position_of(contact)
 				var moved: int = 0
 				var prev_v: Variant = _last_pos.get(contact)

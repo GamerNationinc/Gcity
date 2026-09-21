@@ -182,7 +182,7 @@ func _best_target(agent: int) -> int:
 		if contact == agent or not _actors.is_alive(contact):
 			continue
 		var aw: int = _perception.awareness_of(agent, contact)
-		if aw > best_aw and _perception.can_see(agent, contact):
+		if aw > best_aw and _perception.sees(agent, contact):
 			best = contact
 			best_aw = aw
 	return best

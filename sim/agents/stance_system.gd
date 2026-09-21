@@ -215,7 +215,7 @@ func context_of(agent: int) -> Dictionary:
 		"in_cover": false, "route": not _route_of(agent).is_empty()}
 	if contact == EntityIds.NONE:
 		return ctx
-	ctx["visible"] = _perception.can_see(agent, contact)
+	ctx["visible"] = _perception.sees(agent, contact)
 	ctx["alerted"] = _perception.is_alerted(agent, contact)
 	ctx["awareness"] = _perception.awareness_of(agent, contact)
 	var here: Vector3i = _actors.position_of(agent)
@@ -449,7 +449,7 @@ func _known_contact(agent: int) -> int:
 
 
 func _contact_cell(agent: int, contact: int) -> Vector3i:
-	if _perception.can_see(agent, contact):
+	if _perception.sees(agent, contact):
 		return BuildSystem.cell_of(_actors.position_of(contact))
 	return BuildSystem.cell_of(_perception.last_known(agent, contact))
 
@@ -464,14 +464,22 @@ func _route_of(agent: int) -> Array:
 	return t["cells"]
 
 
-## The whole degree whose direction best matches `v` (integer trig: the table's
-## dot product is scanned, so no atan2 in the sim).
+## The whole degree whose direction best matches `v` (integer trig: the table's dot
+## product is scanned, coarse then fine, so no atan2 in the sim).
 static func facing_toward(v: Vector2i) -> int:
 	if v == Vector2i.ZERO:
 		return 0
 	var best: int = 0
-	var best_dot: int = -1
-	for deg: int in 360:
+	var best_dot: int = -2_000_000_000
+	for step: int in 45:
+		var deg: int = step * 8
+		var dot: int = PerceptionSystem.cos_milli(deg) * v.x + PerceptionSystem.sin_milli(deg) * v.y
+		if dot > best_dot:
+			best = deg
+			best_dot = dot
+	var coarse: int = best
+	for offset: int in range(-8, 9):
+		var deg: int = posmod(coarse + offset, 360)
 		var dot: int = PerceptionSystem.cos_milli(deg) * v.x + PerceptionSystem.sin_milli(deg) * v.y
 		if dot > best_dot:
 			best = deg

@@ -1,0 +1,20 @@
+{
+	"schema_version": 1,
+	"description": "The G4 extension exercise: a sentry drone, content only. Holds or retreats; nothing else; reports on the radio at once.",
+	"combat_profile": "guard",
+	"perception_profile": "sentry_drone",
+	"aim_profile": "sentry_drone",
+	"stress_profile": "sentry_drone",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 1000
+		},
+		{
+			"stance": "retreat",
+			"weight": 1000
+		}
+	],
+	"radio": true,
+	"radio_latency_ticks": 1
+}

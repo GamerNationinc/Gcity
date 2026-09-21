@@ -18,6 +18,5 @@ actor needs to stand on a range.
 **Introduced at:** M1 (player and target dummies). Perception at M4; aim, stress, stances and squads follow in the same milestone.
 
 **Extension point:** profiles and health graphs are `content/combat_profile/` files; see
-[docs/extending-items.md](../../docs/extending-items.md) § Combat. Perception, aim and stress numbers are
-`content/perception_profile/`, `content/aim_profile/` and `content/stress_profile/` files bound by
-`content/agent_profile/`.
+[docs/extending-items.md](../../docs/extending-items.md) § Combat. Agents, their perception, aim,
+stress, stances, routes and squads: [docs/extending-agents.md](../../docs/extending-agents.md).

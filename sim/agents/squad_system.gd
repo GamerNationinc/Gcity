@@ -252,7 +252,7 @@ func _contact_cell(members: Array[int], contact: int) -> Vector3i:
 	var best_memory: int = -1
 	var cell: Vector3i = Vector3i.ZERO
 	for member: int in members:
-		if _perception.can_see(member, contact):
+		if _perception.sees(member, contact):
 			return BuildSystem.cell_of(_actors.position_of(contact))
 		if _perception.has_last_known(member, contact) and _perception.memory_of(member, contact) > best_memory:
 			best_memory = _perception.memory_of(member, contact)

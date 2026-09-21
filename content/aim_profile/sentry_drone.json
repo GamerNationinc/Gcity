@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "The G4 extension exercise: a drone's gimbal. A wide start, settling fast to a tight cone, no swing.",
+	"cone_start_mdeg": 15000,
+	"cone_settled_mdeg": 500,
+	"settle_ticks": 20,
+	"swing_penalty_mdeg": 0,
+	"swing_ticks": 0,
+	"penalty_per_mdeg": 50
+}

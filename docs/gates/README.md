@@ -14,5 +14,5 @@ scheduled into a named milestone), or **Rejected**.
 | G1 | M1 — Stat resolver + one pistol | **Accepted** 2026-09-20 by CEOGG |
 | G2 | M2 — Land authority + starter plot | **Accepted** 2026-09-21 by CEOGG |
 | G3 | M3 — Portal graph + build system | **Accepted** 2026-09-21 by CEOGG |
-| G4 | M4 — Perception AI | spec approved 2026-09-21 (`docs/specs/M4-perception-ai.md`); in progress on `m4-perception-ai`, PR #6 |
+| G4 | M4 — Perception AI | evidence package submitted 2026-09-21 (`M4-gate.md`), Deck-measured; awaiting the feel run and review |
 | G5–G8 | see `docs/gcity-engineering-standards.md` §11 | not started |

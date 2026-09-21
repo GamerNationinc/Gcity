@@ -8,7 +8,8 @@
 ## This is where feel is judged (P4, time_to_first_shot); correctness is judged headless.
 ##
 ## `--demo` after `--` plays a scripted sequence through the same action path;
-## `--demo-quit=<s>`, `--screenshot=<path>`, `--screenshot-at=<s>` as in the other views.
+## `--demo-quit=<s>`, `--screenshot=<path>`, `--screenshot-at=<s>` as in the other views;
+## `--demo-loop` repeats the demo until quit and `--capture=<path>` writes frame times.
 class_name WorldView extends Node3D
 
 const M: float = 1000.0
@@ -59,6 +60,12 @@ var _demo_walk_ticks: int = 0
 var _demo_walk_dir: Vector2 = Vector2.ZERO
 var _screenshot_path: String = ""
 var _screenshot_at_s: float = -1.0
+## `--capture=<path>` writes every frame's time to JSON at quit (standards §4.2);
+## `--demo-loop` restarts the demo when its script ends, for the thermal soak.
+var _capture_path: String = ""
+var _frame_usec: PackedInt32Array = PackedInt32Array()
+var _demo_loop: bool = false
+var _demo_loops: int = 0
 
 
 func _ready() -> void:
@@ -71,6 +78,10 @@ func _ready() -> void:
 			_screenshot_path = arg.trim_prefix("--screenshot=")
 		elif arg.begins_with("--screenshot-at="):
 			_screenshot_at_s = float(arg.trim_prefix("--screenshot-at="))
+		elif arg.begins_with("--capture="):
+			_capture_path = arg.trim_prefix("--capture=")
+		elif arg == "--demo-loop":
+			_demo_loop = true
 	_piece_templates = _host.content().ids(&"build_piece")
 	_build_static_scene()
 	_demo_script = _build_demo_script()
@@ -320,6 +331,8 @@ func _piece_mesh(build: BuildSystem, id: int) -> MeshInstance3D:
 # ---------------------------------------------------------------- loop
 
 func _process(delta: float) -> void:
+	if not _capture_path.is_empty():
+		_frame_usec.append(int(delta * 1_000_000.0))
 	var sim: SimRoot = _host.sim()
 	_advance_setup(sim)
 	if _demo:
@@ -336,7 +349,12 @@ func _process(delta: float) -> void:
 			_render(sim)
 			await RenderingServer.frame_post_draw
 			_save_screenshot()
-		if _demo_quit_s > 0.0 and _demo_t >= _demo_quit_s:
+		if _demo_loop and _demo_next >= _demo_script.size() and _setup_stage == READY:
+			_demo_t = 0.0
+			_demo_next = 0
+			_demo_loops += 1
+		if _demo_quit_s > 0.0 and _demo_t + float(_demo_loops) * _demo_script[_demo_script.size() - 1][0] >= _demo_quit_s:
+			_save_capture()
 			get_tree().quit()
 			return
 	else:
@@ -385,6 +403,50 @@ func _place_camera(sim: SimRoot) -> void:
 	else:
 		_camera.position = feet - forward * THIRD_PERSON_BACK + Vector3(0.0, THIRD_PERSON_UP, 0.0)
 		_camera.look_at(feet + Vector3(0.0, 1.2, 0.0) + forward * 2.0, Vector3.UP)
+
+
+## Frame times to JSON: all of them, and the final five minutes on their own
+## (standards §4.2: first-minute numbers are fiction on a 15 W part).
+func _save_capture() -> void:
+	if _capture_path.is_empty():
+		return
+	var all: Array[int] = []
+	for v: int in _frame_usec:
+		all.append(v)
+	var final: Array[int] = []
+	var budget: int = 5 * 60 * 1_000_000
+	var spent: int = 0
+	for i: int in range(all.size() - 1, -1, -1):
+		if spent >= budget:
+			break
+		final.push_front(all[i])
+		spent += all[i]
+	var report: Dictionary = {
+		"frames": all.size(), "demo_loops": _demo_loops, "seconds": float(spent) / 1_000_000.0 if all.size() == final.size() else -1.0,
+		"engine": Engine.get_version_info()["string"], "os": OS.get_name(), "cpu": OS.get_processor_name(), "gpu": RenderingServer.get_video_adapter_name(),
+		"all_usec": _frame_stats(all), "final_5_min_usec": _frame_stats(final),
+	}
+	var file: FileAccess = FileAccess.open(_capture_path, FileAccess.WRITE)
+	if file == null:
+		push_error("capture: cannot save %s: %s" % [_capture_path, error_string(FileAccess.get_open_error())])
+		return
+	file.store_string(JSON.stringify(report, "\t") + "\n")
+	file.close()
+	print("capture saved: %s (%d frames, %d loops)" % [_capture_path, all.size(), _demo_loops])
+
+
+## The 1 % and 0.1 % lows are the 99th and 99.9th percentile frame times.
+static func _frame_stats(samples: Array[int]) -> Dictionary:
+	if samples.is_empty():
+		return {"count": 0}
+	var sorted: Array[int] = samples.duplicate()
+	sorted.sort()
+	var total: int = 0
+	for v: int in sorted:
+		total += v
+	return {"count": sorted.size(), "mean": total / sorted.size(), "p50": sorted[sorted.size() / 2],
+		"p99": sorted[mini(sorted.size() - 1, sorted.size() * 99 / 100)], "p999": sorted[mini(sorted.size() - 1, sorted.size() * 999 / 1000)], "max": sorted[sorted.size() - 1],
+		"low_1pct_fps": 1_000_000.0 / float(sorted[mini(sorted.size() - 1, sorted.size() * 99 / 100)]), "low_01pct_fps": 1_000_000.0 / float(sorted[mini(sorted.size() - 1, sorted.size() * 999 / 1000)])}
 
 
 func _save_screenshot() -> void:
