@@ -12,5 +12,6 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `check_test_log.py` | Fails the unit stage on any `SCRIPT ERROR` or any engine error not raised by `push_error`; a test that passes while the engine logs a bug underneath it is a failure. |
 | `replay_hash.gd` | Replays one fixture headless against the assembled sim (`SimAssembly` over the shipped content) and prints its state hash. CI runs it twice and diffs. |
 | `export.sh` | Native Linux export with the pinned engine and pinned, SHA-512-verified export templates; the preset excludes `tests/`, `tools/`, `docs/`, `spikes/`. |
+| `screenshot.sh` | Renders the client demo under Xvfb and saves a PNG at a given second; every delivery carries one. |
 | `test.sh` | The whole verification run, in the order CI uses it. Run this before presenting any work. |
 | `tests/` | Unit tests for the Python tools (`python3 -m unittest discover tools/tests`). |

@@ -72,11 +72,20 @@ registered in `CommandRegistry` validates the payload and applies it, or rejects
 tools/test.sh              # everything, in CI order (fitness, scripts, unit, replay)
 tools/test.sh unit         # headless test suite only
 tools/test.sh replay       # every fixture twice, hashes diffed
+tools/screenshot.sh out.png 12   # PNG of the client demo at 12 s, no GPU needed
 python3 -m unittest discover -s tools/tests -t .
 $(tools/godot.sh) --path . # open the project in the pinned editor
 ```
 
 The pinned engine is in `tools/godot.pin`; `tools/godot.sh` downloads and verifies it.
+
+## Screenshots
+
+Every presentation of work to the approver carries a screenshot of the running client,
+captured with `tools/screenshot.sh <out.png> [seconds]` (Xvfb + Mesa software GL, the
+scripted `--demo` path). Gate evidence keeps its screenshots under
+`docs/gates/screenshots/M<n>-<view>.png`; a status update or a review request attaches
+one in the message. A change that alters what the client shows re-captures it.
 
 ## Milestone process
 

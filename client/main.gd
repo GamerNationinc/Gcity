@@ -5,6 +5,8 @@
 ##
 ## `--demo` after `--` plays a scripted sequence through the same action path, for
 ## unattended playtests and screenshots; `--demo-quit=<s>` quits after that many seconds.
+## `--screenshot=<path>` with `--screenshot-at=<s>` saves the rendered frame at that
+## demo time as PNG (tools/screenshot.sh wraps this under a virtual display).
 extends Control
 
 const PROFILE: StringName = &"arcade"
@@ -27,6 +29,8 @@ var _demo: bool = false
 var _demo_quit_s: float = -1.0
 var _demo_t: float = 0.0
 var _demo_next: int = 0
+var _screenshot_path: String = ""
+var _screenshot_at_s: float = -1.0
 ## [time in seconds, action name]
 var _demo_script: Array = [
 	[2.0, "fire"], [2.4, "fire"], [2.8, "fire"], [3.2, "fire"], [3.6, "fire"],
@@ -45,6 +49,10 @@ func _ready() -> void:
 			_demo = true
 		elif arg.begins_with("--demo-quit="):
 			_demo_quit_s = float(arg.trim_prefix("--demo-quit="))
+		elif arg.begins_with("--screenshot="):
+			_screenshot_path = arg.trim_prefix("--screenshot=")
+		elif arg.begins_with("--screenshot-at="):
+			_screenshot_at_s = float(arg.trim_prefix("--screenshot-at="))
 
 
 func _process(delta: float) -> void:
@@ -60,10 +68,27 @@ func _process(delta: float) -> void:
 			var action: String = step[1]
 			_perform(action)
 			_demo_next += 1
+		if not _screenshot_path.is_empty() and _demo_t >= _screenshot_at_s:
+			_render(sim)
+			await RenderingServer.frame_post_draw
+			_save_screenshot()
 		if _demo_quit_s > 0.0 and _demo_t >= _demo_quit_s:
 			get_tree().quit()
 			return
 	_render(sim)
+
+
+## Saves the frame just drawn. Loud on failure: a missing screenshot must not pass
+## silently through an unattended run.
+func _save_screenshot() -> void:
+	var path: String = _screenshot_path
+	_screenshot_path = ""
+	var image: Image = get_viewport().get_texture().get_image()
+	var err: Error = image.save_png(path)
+	if err != OK:
+		push_error("screenshot: cannot save %s: %s" % [path, error_string(err)])
+		return
+	print("screenshot saved: %s" % path)
 
 
 func _unhandled_input(event: InputEvent) -> void:
