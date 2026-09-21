@@ -41,3 +41,8 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `combat_profile` | M1 | `stages` (refs), `range_falloff_per_m`, `health` (`nodes` with `id`/`max`/`fatal`, `routing` with `node`/`weight`) |
 | `skill` | M1 | `xp` rules (`event`, `credit`, `tags_any`, `amount`), `levels`, `points_per_level` |
 | `perk` | M1 | `skill` (ref), `prerequisites` (`level`, `perks` refs), `cost`, `tags`, `modifiers` (`{stat: ref, class, value}`) |
+| `right` | M2 | `description` (bits assigned lexically at assembly) |
+| `rights_policy` | M2 | `owner`, `same_faction`, `other`, `unowned` (arrays of right refs) |
+| `district` | M2 | `policy` (ref), `law_index`, `wealth_index`, `informant_density`, optional `gang_control`, `is_wilderness` |
+| `faction` | M2 | `description` |
+| `parcel` | M2 | `district` (ref), optional `policy` (ref), `polygon`, `floor`, `ceiling`, `owner` (`none` or a faction ref); geometry checked by the sim |

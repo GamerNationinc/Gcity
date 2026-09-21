@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Land nobody owns. Permissive: the same code path as every other parcel, with every right granted.",
+	"owner": ["build", "dig", "enter", "carry", "loot"],
+	"same_faction": ["build", "dig", "enter", "carry", "loot"],
+	"other": ["build", "dig", "enter", "carry", "loot"],
+	"unowned": ["build", "dig", "enter", "carry", "loot"]
+}

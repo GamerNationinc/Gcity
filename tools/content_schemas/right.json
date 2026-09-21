@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "A right the land authority can grant or deny (design doc §7.1). Bits are assigned in lexical id order at assembly; policies name rights by id.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240}
+	},
+	"required": ["schema_version", "description"],
+	"additional_properties": false
+}

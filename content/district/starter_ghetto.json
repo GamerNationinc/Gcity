@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "The starter ghetto: slow police, dense informants, a gang that notices money.",
+	"policy": "city_private",
+	"law_index": 20,
+	"wealth_index": 15,
+	"informant_density": 80,
+	"gang_control": {"faction": "city_state", "strength": 10},
+	"is_wilderness": false
+}

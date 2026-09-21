@@ -1,0 +1,18 @@
+{
+	"schema_version": 1,
+	"description": "An authored parcel: a simple integer polygon in the XZ plane (metres) with a floor and ceiling in Y (floor inclusive, ceiling exclusive), a district, an optional policy override and an owner. The sim checks simplicity and no-overlap at assembly.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"district": {"type": "string", "ref": "district"},
+		"policy": {"type": "string", "ref": "rights_policy"},
+		"polygon": {"type": "array", "min_length": 3, "max_length": 64, "items": {"type": "array", "min_length": 2, "max_length": 2, "items": {"type": "int", "min": -100000, "max": 100000}}},
+		"floor": {"type": "int", "min": -1000, "max": 1000},
+		"ceiling": {"type": "int", "min": -1000, "max": 1000},
+		"owner": {"type": "object", "properties": {
+			"kind": {"type": "string", "pattern": "none|faction"}, "id": {"type": "string", "ref": "faction"}},
+			"required": ["kind"], "additional_properties": false}
+	},
+	"required": ["schema_version", "description", "district", "polygon", "floor", "ceiling", "owner"],
+	"additional_properties": false
+}

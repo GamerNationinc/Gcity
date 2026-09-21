@@ -1,0 +1,18 @@
+{
+	"schema_version": 1,
+	"description": "The design's district record (design doc §7.2) plus the rights policy its parcels use. Exactly one district is the wilderness: the implicit parcel every unclaimed position belongs to.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"policy": {"type": "string", "ref": "rights_policy"},
+		"law_index": {"type": "int", "min": 0, "max": 100},
+		"wealth_index": {"type": "int", "min": 0, "max": 100},
+		"informant_density": {"type": "int", "min": 0, "max": 100},
+		"gang_control": {"type": "object", "properties": {
+			"faction": {"type": "string", "ref": "faction"}, "strength": {"type": "int", "min": 0, "max": 100}},
+			"required": ["faction", "strength"], "additional_properties": false},
+		"is_wilderness": {"type": "bool"}
+	},
+	"required": ["schema_version", "description", "policy", "law_index", "wealth_index", "informant_density", "is_wilderness"],
+	"additional_properties": false
+}

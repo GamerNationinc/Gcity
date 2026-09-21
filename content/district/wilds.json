@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "Everything outside every parcel. Nobody comes when you scream.",
+	"policy": "wilderness",
+	"law_index": 0,
+	"wealth_index": 5,
+	"informant_density": 10,
+	"is_wilderness": true
+}

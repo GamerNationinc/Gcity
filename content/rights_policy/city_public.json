@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A street or square. Anyone may be there and carry; only the city builds or digs.",
+	"owner": ["build", "dig", "enter", "carry", "loot"],
+	"same_faction": ["enter", "carry"],
+	"other": ["enter", "carry"],
+	"unowned": ["enter", "carry"]
+}

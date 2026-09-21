@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A private city parcel. The owner does anything; everyone else may only pass through carrying their own things.",
+	"owner": ["build", "dig", "enter", "carry", "loot"],
+	"same_faction": ["enter", "carry", "loot"],
+	"other": ["carry"],
+	"unowned": ["enter", "carry"]
+}
