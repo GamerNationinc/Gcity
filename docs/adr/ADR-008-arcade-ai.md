@@ -1,6 +1,6 @@
 # ADR-008: Arcade-profile enemies: same AI retuned, or a simpler agent
 
-Status: proposed
+Status: accepted
 Date: 2026-09-20
 Design doc: §14.6 (D-08); §13.1 combat profiles
 
@@ -24,7 +24,7 @@ sensitivity)
 
 ## Decision
 
-Proposed: **A.** It matches the combat decision exactly: a profile asset, no code
+**Accepted: A** (CEOGG, 2026-09-21), as proposed. It matches the combat decision exactly: a profile asset, no code
 branch. If tuning cannot produce acceptable arcade behaviour, this ADR is superseded at
 the M4 gate with the measured reason.
 
@@ -40,4 +40,6 @@ shows the same four guards under both profiles.
 
 ## Sign-off
 
-Approver: CEOGG — _pending_
+Approver: CEOGG
+Date: 2026-09-21
+Outcome: accepted (verification at the M4 gate: the metamorphic relations hold under both profiles and the demo shows the same guards under both)

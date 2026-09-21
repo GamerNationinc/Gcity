@@ -1,15 +1,12 @@
 # M4 — Perception AI: specification
 
 Milestone M4 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **draft, awaiting approval**
-(submitted 2026-09-21).
+before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG,
+2026-09-21); implementation on branch `m4-perception-ai`, PR #6.
 
-**Preconditions.** G3 is signed in `docs/gates/M3-gate.md` (it is). Two ADRs block
-this milestone and are still `proposed`: **ADR-004** (sensor-gated detection, option
-A) and **ADR-008** (arcade enemies are the same AI retuned, option A). This spec is
-written against both proposed options because the design doc assumes them throughout
-(§7.4, §14.6). **No code starts until both carry CEOGG's signature.** If either closes
-otherwise, claims 1–4 (ADR-004) or claim 12 (ADR-008) are rewritten before any code.
+**Preconditions.** G3 is signed in `docs/gates/M3-gate.md` (it is). **ADR-004** (sensor-gated
+detection) and **ADR-008** (arcade enemies are the same AI retuned) are `accepted` as
+A (CEOGG, 2026-09-21), as this spec assumed throughout (design doc §7.4, §14.6).
 
 **The claim of the milestone.** Perception is a process, not a check (§14.1). An
 agent accumulates awareness of a contact over ticks, driven by exposure, distance,
@@ -202,8 +199,7 @@ claimed as a budget before the Deck measured it.
 
 ## Open points
 
-- **ADR-004 and ADR-008** must be accepted before code (see Preconditions). Both are
-  proposed as A and this spec assumes A.
+- ADR-004 and ADR-008: accepted as A together with this spec (2026-09-21).
 - **Initial `time_to_first_shot`** to tune from: 32 ticks (0.8 s at 40 Hz) for
   `guard_sim`, 12 ticks (0.3 s) for `guard_arcade`, at rest at 10 m in an open room.
   The Deck run moves these numbers; the gate records the final values.
