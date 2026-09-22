@@ -22,6 +22,14 @@ var _device_set: int = 0
 
 
 func _ready() -> void:
+	start()
+
+
+## Initialises Steam once; a second call is a no-op. Called by `_ready`, and by the
+## probe tool, which runs before the tree is ready.
+func start() -> void:
+	if _status != "not started":
+		return
 	_app_id = _read_app_id()
 	if not Engine.has_singleton("Steam"):
 		_status = "GodotSteam not loaded (run tools/godotsteam.sh)"

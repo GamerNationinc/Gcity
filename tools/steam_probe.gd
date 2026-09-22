@@ -9,6 +9,7 @@ extends SceneTree
 func _initialize() -> void:
 	var host: SteamHost = SteamHost.new()
 	root.add_child(host)
+	host.start()
 	print("extension loaded: %s" % Engine.has_singleton("Steam"))
 	print("status: %s" % host.status())
 	if host.is_online():
