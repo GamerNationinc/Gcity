@@ -4,8 +4,7 @@ Milestone: M5 — The device (design doc §16; standards §11 row G5;
 `docs/specs/M5-the-device.md`, approved 2026-09-21 with ADR-006 as C)
 Submitted: 2026-09-22 by Claude Code, on branch `m5-the-device` (PR #7),
 commits `8e36876` … the package commit
-Outcome: _pending review_ — **needs the G5 Deck feel run from CEOGG (§7); every
-number in §2 is from the approver's own Deck**
+Outcome: **Accepted** (CEOGG, 2026-09-22); the Deck run is recorded in §7
 
 ---
 
@@ -173,7 +172,7 @@ Steps 1–5 on any Linux x86_64 machine; steps 6–16 on the Deck from `tools/ex
 | 9 | The drone and hacking apps are placeholders that prove the hardware gate; the systems behind them are M7 and M6. | scope | M6, M7 |
 | 10 | The pause freezes the whole sim. A fixture cannot hold a pause for many frozen steps unless it never resumes, because a paused sim only examines the next tick's queue: the client always submits for the next tick, which is correct, but it means a replay's pause is one step unless it ends paused. `m5-pause` does both. | note | none |
 | 11 | The inventory app's rows are the container's order, which is spawn order; there is no sorting or filtering. At M5's item counts that is legible; a real loadout will want both. | scope | M6 |
-| 12 | Time-to-complete assumes 0.35 s a press. The presses and sim ticks are measured; the seconds are that assumption applied. The Deck feel run is where a real hand replaces it. | assumption | G5 review |
+| 12 | Time-to-complete assumes 0.35 s a press. The presses and sim ticks are measured; the seconds are that assumption applied. A real hand replaces it at the G6 run. | assumption | G6 |
 | 13 | The M1 range demo still runs on wall time (G3 debt 8, G4 debt 13); untouched. | residue | M6 |
 | 14 | Mutation testing not run; target G6. | scope | G6 |
 
@@ -204,17 +203,28 @@ content files, two view scenes and one registration line, with an empty `sim/` d
 ## 6. Sign-off
 
 Approver: CEOGG
-Date:
-Outcome: ☐ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
+Date: 2026-09-22
+Outcome: ☑ Accepted   ☐ Accepted with conditions (list below)   ☐ Rejected
 Conditions:
 
-## 7. Deck run and feel notes — to be filled by CEOGG
+## 7. Deck run and feel notes
 
-Build: `tools/export.sh` output, installed via: ☐ sideload  ☐ Steam client (non-store)
-Date:                    Battery / plugged:
+Build: `tools/export.sh` output at commit `c824064` (`build/linux/gcity.x86_64`),
+installed via: ☐ sideload  ☐ Steam client (non-store)  ☑ launched from the repo
+checkout and from the export on the Deck in desktop mode (SteamOS, Vulkan/RADV,
+1280×800)
+Date: 2026-09-22                    Battery / plugged: plugged
+
+Run: the full `tools/test.sh` (238 tests, sixteen fixtures), `tools/bench_device.gd`
+and `tools/steam_probe.gd` all ran on the Deck; the exported build ran the scripted
+demo clean with Steam initialising from it; the device was raised on the owned plot
+and every pane captured (§2, screenshots). No hand-played feel notes were given at
+sign-off; CEOGG accepted on the scripted runs and the measured numbers. Debt items
+3, 11 and 12 carry the feel questions into the G6 run, where the device is used
+under fire in a hostile parcel (ADR-006's own verification).
 
 | # | What felt wrong or right | Number changed (file, value) or debt item |
 |---|---|---|
-| 1 | | |
-| 2 | | |
-| 3 | | |
+| 1 | No hand-played feel notes given at sign-off; accepted on the scripted runs and the measured task times. | debt items 3, 11, 12 stay scheduled |
+| 2 | The legibility check ADR-006 asks for (the device unpaused in a hostile parcel, a guard approaching) is the M6 mission's own demo step, not a scripted one. | ADR-006 verification, G6 |
+| 3 | Steam's own glyphs and the shipped layout still need the registered app id. | debt items 2, 4, 6, G6 |

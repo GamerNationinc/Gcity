@@ -2,7 +2,7 @@
 
 Milestone M5 of `docs/gcity-design.md` §16, in the terms of that document. Written
 before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG,
-2026-09-21); implemented, G5 package in `docs/gates/M5-gate.md`.
+2026-09-21); implemented, G5 accepted 2026-09-22 (`docs/gates/M5-gate.md`).
 
 **Preconditions.** G4 is signed in `docs/gates/M4-gate.md` (it is). **ADR-006** (does the
 device pause time?) is `accepted` as **C** (CEOGG, 2026-09-21), pause only inside
