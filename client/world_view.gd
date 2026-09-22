@@ -30,6 +30,7 @@ const AIM_CONE_DEG: float = 15.0
 const SAVE_DIR: String = "user://saves/world"
 
 @onready var _host: LocalHost = $LocalHost
+@onready var _steam: SteamHost = $SteamHost
 @onready var _status: Label = $Overlay/Status
 @onready var _camera: Camera3D = $Camera3D
 
@@ -42,6 +43,7 @@ var _setup_stage: int = 0
 ## Facing +z at start: the building's door is ten metres down the z axis.
 var _yaw: float = PI
 var _first_person: bool = false
+var _glyphs: InputGlyphs = InputGlyphs.new()
 var _piece_templates: Array[StringName] = []
 var _piece_index: int = 0
 var _log: Array[String] = []
@@ -83,6 +85,8 @@ func _ready() -> void:
 		elif arg == "--demo-loop":
 			_demo_loop = true
 	_piece_templates = _host.content().ids(&"build_piece")
+	_glyphs.set_deck(_steam.is_deck())
+	_glyphs.set_controller_active(_steam.is_deck() or not Input.get_connected_joypads().is_empty())
 	_build_static_scene()
 	_demo_script = _build_demo_script()
 
@@ -461,6 +465,7 @@ func _save_screenshot() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
+	_glyphs.note(event)
 	if not event.is_pressed() or event.is_echo():
 		return
 	for action: String in ["fire", "reload", "wield", "camera", "build_place", "build_remove", "build_next", "raid", "save", "load", "profile", "overlay", "restart"]:
@@ -850,8 +855,9 @@ func _render(sim: SimRoot) -> void:
 			"!" if perception.is_alerted(guard, _player) else " ", stress.stress_of(guard) / 10000, ActorSystem.metres_between(p, gp), "sees you" if sees else ("remembers" if perception.has_last_known(guard, _player) else "unaware")])
 	lines.append("guards: %s   overlay %s   piece to place: %s" % [GUARD_PROFILES[_guard_profile], "on" if _overlay else "off", _piece_templates[_piece_index]])
 	lines.append("")
-	lines.append("[WASD / L stick] move  [Q E / R stick] look  [C / L3] camera  [Space / RB] fire  [R / X] reload  [F / Y] wield")
-	lines.append("[Enter / A] place  [Backspace / B] remove  [Tab / LB] next piece  [P / D-up] guard profile  [O / D-down] overlay  [Esc / Back] restart  [F5] save  [F9] load")
+	lines.append(_glyphs.line([[&"world_move_forward", "move"], [&"world_look_left", "look"], [&"world_camera", "camera"], [&"world_fire", "fire"], [&"world_reload", "reload"], [&"world_wield", "wield"]]))
+	lines.append(_glyphs.line([[&"world_build_place", "place"], [&"world_build_remove", "remove"], [&"world_build_next", "next piece"], [&"world_profile", "guard profile"], [&"world_overlay", "overlay"], [&"world_restart", "restart"], [&"world_save", "save"], [&"world_load", "load"]]))
+	lines.append("steam: %s%s" % [_steam.status(), ("  (%s)" % _steam.persona()) if _steam.is_online() else ""])
 	if _demo:
 		lines.append("DEMO %.1fs  step %d/%d" % [_demo_t, _demo_next, _demo_script.size()])
 	for entry: String in _log:

@@ -7,6 +7,7 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `godot.pin` | The exact engine version, its SHA-256, and the export templates' SHA-512, used by CI and locally. |
 | `godotsteam.pin` | The pinned GodotSteam GDExtension: version, godot-cpp target, Steamworks SDK, URL, SHA-256, and the Steam app id the client initialises with. |
 | `godotsteam.sh` | Downloads and verifies the pinned release into `addons/godotsteam/`, keeping only the Linux and Windows libraries (no editor self-updater). |
+| `steam_probe.gd` | What the pinned GodotSteam binding sees on this machine: extension, Steam client, app id, action sets, controllers. |
 | `godot.sh` | Downloads and verifies the pinned engine into `.cache/godot/`, prints its path. |
 | `check_dependencies.py` | Architectural fitness function: the `sim/` → `client/` rule and the sim's determinism deny-list. |
 | `validate_content.py` | Content layout and schema-registration check for `content/`. |
