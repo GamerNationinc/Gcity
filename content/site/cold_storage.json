@@ -3304,5 +3304,15 @@
 			"squad": 2
 		}
 	],
+	"terminals": [
+		{
+			"rel": [
+				2,
+				1,
+				10
+			],
+			"terminal": "cs_server"
+		}
+	],
 	"title": "Cold Storage"
 }

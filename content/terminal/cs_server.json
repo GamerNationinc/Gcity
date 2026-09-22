@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "The server in Cold Storage's back room: eight seconds of standing still with the world running, a daemon coprocessor in the device, and the data is yours.",
+	"title": "Cold Storage server",
+	"hack_ticks": 320,
+	"requires": "daemon_coprocessor",
+	"reach_mm": 1800,
+	"yields_kind": "ammo",
+	"yields": "cold_storage_data",
+	"emits": "signal.data_theft"
+}

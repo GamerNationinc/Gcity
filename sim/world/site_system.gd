@@ -16,16 +16,18 @@ var _build: BuildSystem
 var _perception: PerceptionSystem
 var _actors: ActorSystem
 var _events: EventBus
-## site id -> {"pieces": Array[int], "agents": Array[int]}
+var _terminals: TerminalSystem
+## site id -> {"pieces": Array[int], "agents": Array[int], "terminals": Array[int]}
 var _raised: Dictionary = {}
 
 
-func _init(content: ContentDb, build: BuildSystem, perception: PerceptionSystem, actors: ActorSystem, events: EventBus) -> void:
+func _init(content: ContentDb, build: BuildSystem, perception: PerceptionSystem, actors: ActorSystem, events: EventBus, terminals: TerminalSystem) -> void:
 	_content = content
 	_build = build
 	_perception = perception
 	_actors = actors
 	_events = events
+	_terminals = terminals
 
 
 func system_id() -> StringName:
@@ -110,6 +112,18 @@ func pieces_of(site: StringName) -> Array[int]:
 	return out
 
 
+## The terminals a raised site placed, in placement order.
+func terminals_of(site: StringName) -> Array[int]:
+	var out: Array[int] = []
+	if not _raised.has(site):
+		return out
+	var rec: Dictionary = _raised[site]
+	for v: Variant in rec["terminals"]:
+		var id: int = v
+		out.append(id)
+	return out
+
+
 func agents_of(site: StringName) -> Array[int]:
 	var out: Array[int] = []
 	if not _raised.has(site):
@@ -165,8 +179,18 @@ func raise_site(actor: int, site: StringName) -> bool:
 		var agent: int = _perception.spawn(StringName(profile_s), base + rel, facing, squad, route)
 		if agent != EntityIds.NONE:
 			agents.append(agent)
-	_raised[site] = {"pieces": placed, "agents": agents}
-	_events.emit(EVENT_RAISED, {"site": site, "pieces": placed.size(), "agents": agents.size()})
+	var terminals: Array[int] = []
+	var terminal_entries: Array = t["terminals"]
+	for e: Variant in terminal_entries:
+		var entry: Dictionary = e
+		var rel: Vector3i = PathingSystem._vec(entry["rel"])
+		var template_s: String = entry["terminal"]
+		var centre: Vector3i = BuildSystem.cell_centre(base + rel)
+		var id: int = _terminals.place(StringName(template_s), Vector3i(centre.x, rel.y * BuildSystem.CELL, centre.z))
+		if id != EntityIds.NONE:
+			terminals.append(id)
+	_raised[site] = {"pieces": placed, "agents": agents, "terminals": terminals}
+	_events.emit(EVENT_RAISED, {"site": site, "pieces": placed.size(), "agents": agents.size(), "terminals": terminals.size()})
 	return true
 
 
@@ -193,7 +217,8 @@ func restore(state: Dictionary) -> Error:
 		if not _content.has(KIND_SITE, site):
 			return _restore_fail("unknown site %s" % site)
 		var rec: Dictionary = in_all[key]
-		if rec.size() != 2 or typeof(rec.get("pieces")) != TYPE_ARRAY or typeof(rec.get("agents")) != TYPE_ARRAY:
+		if rec.size() != 3 or typeof(rec.get("pieces")) != TYPE_ARRAY or typeof(rec.get("agents")) != TYPE_ARRAY \
+				or typeof(rec.get("terminals")) != TYPE_ARRAY:
 			return _restore_fail("site %s record" % site)
 		var pieces: Array[int] = []
 		for v: Variant in rec["pieces"]:
@@ -211,7 +236,15 @@ func restore(state: Dictionary) -> Error:
 			if not _perception.is_agent(id):
 				return _restore_fail("site %s names an agent that does not exist" % site)
 			agents.append(id)
-		out[site] = {"pieces": pieces, "agents": agents}
+		var terminals: Array[int] = []
+		for v: Variant in rec["terminals"]:
+			if typeof(v) != TYPE_INT:
+				return _restore_fail("site %s terminal id" % site)
+			var id: int = v
+			if not _terminals.has_terminal(id):
+				return _restore_fail("site %s names a terminal that does not exist" % site)
+			terminals.append(id)
+		out[site] = {"pieces": pieces, "agents": agents, "terminals": terminals}
 	_raised = out
 	return OK
 

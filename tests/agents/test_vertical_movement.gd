@@ -157,11 +157,14 @@ func test_property_an_actor_never_settles_in_a_solid_cell_or_the_air() -> void:
 	var settled_high: int = 0
 	var fell_cases: int = 0
 	for case: int in PROPERTY_CASES:
-		if rng.randi_range(0, 3) > 0 or _build.piece_ids().is_empty():
+		# the structure changes every fifth case: each change rebuilds the portal graph,
+		# which the G4 bench measured at 11-15 ms on the Deck, and the property is about
+		# where an actor settles, not how often the world moves
+		if case % 5 == 0 or _build.piece_ids().is_empty():
 			var t: StringName = templates[rng.randi_range(0, templates.size() - 1)]
 			var facing: String = "" if t == &"foundation_block" or t == &"storage_crate" else facings[rng.randi_range(0, 5)]
 			_build.place(_player, t, _at(rng.randi_range(0, 3), rng.randi_range(0, 2), rng.randi_range(0, 3)) + Vector3i(0, 500, 0), facing)
-		else:
+		elif case % 5 == 1:
 			var ids: Array[int] = _build.piece_ids()
 			_build.remove(_player, ids[rng.randi_range(0, ids.size() - 1)])
 		# drop the actor somewhere in the region and let gravity settle it
@@ -170,7 +173,7 @@ func test_property_an_actor_never_settles_in_a_solid_cell_or_the_air() -> void:
 			continue
 		_actors.set_position(_player, start)
 		var before: Vector3i = _actors.position_of(_player)
-		_sim.step_n(8)
+		_sim.step_n(6)  # the region is four levels deep: six ticks always settles
 		var cell: Vector3i = BuildSystem.cell_of(_actors.position_of(_player))
 		if _actors.position_of(_player).y < before.y:
 			fell_cases += 1

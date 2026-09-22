@@ -9,6 +9,7 @@ const OUT_DIR: String = "res://content/site"
 
 var _pieces: Array = []
 var _spawns: Array = []
+var _terminals: Array = []
 
 
 func _initialize() -> void:
@@ -142,6 +143,8 @@ func _cold_storage() -> void:
 	_spawn("guard_sim", Vector3i(1, 1, 7), 90, 2, "cs_hall_round")
 	_spawn("guard_sim", Vector3i(1, 2, 2), 90, 2, "cs_upper_patrol")
 	_spawn("guard_sim", Vector3i(3, 2, 6), 270, 2, "cs_upper_patrol_reverse")
+	# the server the three routes converge on, in the back room
+	_terminal("cs_server", Vector3i(2, 1, 10))
 	_write("cold_storage", "Cold Storage", Vector3i(40, 0, 40), [],
 		"The first contract's site (design doc §15): a slab of ground, a lobby whose street door checks for a token, a stair well to an upper floor with a maintenance window off the outside fire stair, and a service tunnel that is a gap in the slab, entered by cutting a street grate. Three routes in, one server room.")
 
@@ -151,10 +154,15 @@ func _cold_storage() -> void:
 func _begin() -> void:
 	_pieces = []
 	_spawns = []
+	_terminals = []
 
 
 func _place(piece: String, rel: Vector3i, facing: String) -> void:
 	_pieces.append({"piece": piece, "rel": [rel.x, rel.y, rel.z], "facing": facing})
+
+
+func _terminal(terminal: String, rel: Vector3i) -> void:
+	_terminals.append({"terminal": terminal, "rel": [rel.x, rel.y, rel.z]})
 
 
 func _spawn(profile: String, rel: Vector3i, facing: int, squad: int, route: String) -> void:
@@ -165,10 +173,10 @@ func _write(id: String, title: String, base: Vector3i, parcels: Array, descripti
 	var site: Dictionary = {
 		"schema_version": 1, "description": description, "title": title,
 		"base": [base.x, base.y, base.z], "parcels": parcels,
-		"pieces": _pieces, "spawns": _spawns,
+		"pieces": _pieces, "spawns": _spawns, "terminals": _terminals,
 	}
 	var file: FileAccess = FileAccess.open("%s/%s.json" % [OUT_DIR, id], FileAccess.WRITE)
 	assert(file != null, "open %s" % id)
 	file.store_string(JSON.stringify(site, "\t") + "\n")
 	file.close()
-	print("wrote %s: %d pieces, %d spawns" % [id, _pieces.size(), _spawns.size()])
+	print("wrote %s: %d pieces, %d spawns, %d terminals" % [id, _pieces.size(), _spawns.size(), _terminals.size()])

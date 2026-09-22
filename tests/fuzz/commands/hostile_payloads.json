@@ -156,6 +156,21 @@
 		{"kind": "actor.move", "payload": {"actor": 1, "dx": 0, "dy": 1.5, "dz": 0}},
 		{"kind": "actor.move", "payload": {"actor": 1, "dx": 0, "dy": 1, "dz": 0, "dw": 1}},
 		{"kind": "actor.move", "payload": {"actor": 1, "dy": 1, "dz": 0}},
-		{"kind": "actor.move", "payload": {"actor": 99, "dx": 0, "dy": 1, "dz": 0}}
+		{"kind": "actor.move", "payload": {"actor": 99, "dx": 0, "dy": 1, "dz": 0}},
+		{"kind": "terminal.hack_start", "payload": {}},
+		{"kind": "terminal.hack_start", "payload": {"actor": 1}},
+		{"kind": "terminal.hack_start", "payload": {"actor": 1, "terminal": 999}},
+		{"kind": "terminal.hack_start", "payload": {"actor": 99, "terminal": 1}},
+		{"kind": "terminal.hack_start", "payload": {"actor": 1, "terminal": "1"}},
+		{"kind": "terminal.hack_start", "payload": {"actor": 1, "terminal": 1, "extra": 1}},
+		{"kind": "terminal.hack_cancel", "payload": {}},
+		{"kind": "terminal.hack_cancel", "payload": {"actor": 1, "terminal": 999}},
+		{"kind": "terminal.wipe", "payload": {}},
+		{"kind": "terminal.wipe", "payload": {"actor": 1, "terminal": 999}},
+		{"kind": "site.raise", "payload": {}},
+		{"kind": "site.raise", "payload": {"actor": 1}},
+		{"kind": "site.raise", "payload": {"actor": 1, "site": "nowhere"}},
+		{"kind": "site.raise", "payload": {"actor": 99, "site": "cold_storage"}},
+		{"kind": "site.raise", "payload": {"actor": 1, "site": 5}}
 	]
 }
