@@ -5,8 +5,10 @@
 ##   times_detected   a guard's awareness of the player crossed its threshold
 ##   alarms_raised    a guard that had seen the player got a report out on the radio
 ##   bodies           the player killed someone
-##   traces_left      a piece breached, or a terminal left open, or a body left where
-##                    it fell — read at the end, not counted as it happens
+##   traces_left      a gap still open in somebody's wall, or a terminal left un-wiped,
+##                    or a body left where it fell — all read from the world, not
+##                    tallied as they happen, so tidying up afterwards really does
+##                    undo them
 ##
 ## All four at zero is the full stealth bonus. Partial credit is a multiplier from
 ## `content/payout_curve/`. "Nobody saw you" is the bar, not "nobody survived": a
@@ -29,7 +31,10 @@ var _terminals: TerminalSystem
 var _build: BuildSystem
 var _events: EventBus
 ## actor -> {"running": bool, "detected": int, "alarms": int, "bodies": int,
-##           "breaches": int, "corpses": Array[int], "traces": int}
+##           "breaches": Array[String], "corpses": Array[int], "traces": int}
+## `breaches` holds the slots the actor emptied. A slot something stands in again is
+## not a trace: putting the grate back is the difference between a break-in nobody
+## can see and one anybody can.
 ## `traces` is -1 while the run is on, because traces are read from the world rather
 ## than counted as they happen; ending the run freezes the reading into it.
 var _runs: Dictionary = {}
@@ -108,7 +113,11 @@ func traces_left(actor: int) -> int:
 	var frozen: int = rec["traces"]
 	if frozen >= 0:
 		return frozen
-	var breaches: int = rec["breaches"]
+	var breaches: int = 0
+	for v: Variant in rec["breaches"]:
+		var slot: String = v
+		if _build.slot_is_empty(slot):
+			breaches += 1
 	var bodies_left: int = 0
 	for v: Variant in rec["corpses"]:
 		var id: int = v
@@ -216,7 +225,12 @@ func _on_build_changed(payload: Dictionary) -> void:
 	var rec: Dictionary = _record(actor)
 	if rec.is_empty() or not rec["running"]:
 		return
-	rec["breaches"] = rec["breaches"] + removed.size()
+	var removed_at: Array = payload["removed_at"]
+	var slots: Array = rec["breaches"]
+	for v: Variant in removed_at:
+		var slot: String = v
+		if not slot.is_empty() and not slots.has(slot):
+			slots.append(slot)
 
 
 # ---------------------------------------------------------------- commands
@@ -229,7 +243,7 @@ func _on_begin(_sim: SimRoot, payload: Dictionary) -> bool:
 	var actor: int = payload["actor"]
 	if not _actors.is_alive(actor) or is_running(actor):
 		return false
-	_runs[actor] = {"running": true, "detected": 0, "alarms": 0, "bodies": 0, "breaches": 0, "corpses": [] as Array[int], "traces": -1}
+	_runs[actor] = {"running": true, "detected": 0, "alarms": 0, "bodies": 0, "breaches": [] as Array[String], "corpses": [] as Array[int], "traces": -1}
 	return true
 
 
@@ -265,10 +279,11 @@ func restore(state: Dictionary) -> Error:
 		if not _actors.has_actor(actor):
 			return _restore_fail("actor %d is not an actor" % actor)
 		var rec: Dictionary = in_all[key]
-		if rec.size() != 7 or typeof(rec.get("running")) != TYPE_BOOL or typeof(rec.get("corpses")) != TYPE_ARRAY:
+		if rec.size() != 7 or typeof(rec.get("running")) != TYPE_BOOL or typeof(rec.get("corpses")) != TYPE_ARRAY \
+				or typeof(rec.get("breaches")) != TYPE_ARRAY:
 			return _restore_fail("actor %d record" % actor)
 		var counts: Dictionary = {}
-		for field: String in ["detected", "alarms", "bodies", "breaches"]:
+		for field: String in ["detected", "alarms", "bodies"]:
 			if typeof(rec.get(field)) != TYPE_INT:
 				return _restore_fail("actor %d %s" % [actor, field])
 			var n: int = rec[field]
@@ -289,7 +304,15 @@ func restore(state: Dictionary) -> Error:
 		var running: bool = rec["running"]
 		if traces < -1 or (running and traces != -1) or (not running and traces < 0):
 			return _restore_fail("actor %d traces %d does not match a %s run" % [actor, traces, "live" if running else "finished"])
-		out[actor] = {"running": running, "detected": counts["detected"], "alarms": counts["alarms"], "bodies": counts["bodies"], "breaches": counts["breaches"], "corpses": corpses, "traces": traces}
+		var breaches: Array[String] = []
+		for v: Variant in rec["breaches"]:
+			if typeof(v) != TYPE_STRING:
+				return _restore_fail("actor %d breached slot" % actor)
+			var slot: String = v
+			if slot.is_empty() or breaches.has(slot):
+				return _restore_fail("actor %d names an empty or repeated slot" % actor)
+			breaches.append(slot)
+		out[actor] = {"running": running, "detected": counts["detected"], "alarms": counts["alarms"], "bodies": counts["bodies"], "breaches": breaches, "corpses": corpses, "traces": traces}
 	_runs = out
 	return OK
 

@@ -1,9 +1,9 @@
 {
 	"schema_version": 1,
-	"description": "The east lot the cold store stands on (design doc §15.2). Anyone may walk in and carry what they brought; nobody but the operator may build, so cutting the street grate is a land violation and therefore heat.",
+	"description": "The lot the cold store stands on (design doc §15.2). The street outside it, and the grate in the street, are public; the building and the ground under it are not, so the tunnel is trespass from the moment it passes the wall.",
 	"district": "starter_ghetto",
 	"owner": "corp.coldchain",
-	"footprint": [[37000, 35000], [49000, 35000], [49000, 55000], [37000, 55000]],
+	"footprint": [[38000, 40000], [47000, 40000], [47000, 54000], [38000, 54000]],
 	"floor_y": -3000,
 	"ceiling_y": 9000
 }

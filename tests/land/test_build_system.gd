@@ -273,3 +273,34 @@ func test_snapshot_restore_round_trip_and_rejections() -> void:
 	var fresh: BuildSystem = SimAssembly.build_of(SimAssembly.build(SEED, db))
 	assert_eq(fresh.restore(bad), ERR_INVALID_DATA, "bad face axis rejected")
 	assert_eq(fresh.piece_ids(), [] as Array[int], "nothing restored")
+
+
+## M6 spec claim 15: `build.changed` says where a removed piece stood, because the
+## piece record is gone by the time anyone hears about it and "is that gap still
+## open?" is a question the scoring asks at the end of a run.
+func test_the_change_event_names_the_slot_a_removed_piece_left() -> void:
+	_setup()
+	_changes.clear()
+	assert_true(_foundation(0, 0) > 0, "a foundation")
+	var wall: int = _build.place(_player, &"wall_panel", _at(0, 1, 0), "nz")
+	assert_true(wall > 0, "a wall on it")
+	var placed: Array = _changes[_changes.size() - 1]["removed_at"]
+	assert_eq(placed, [] as Array[String], "a placement removes nothing")
+	var slot: String = _build.key_of_piece(wall)
+	assert_false(slot.is_empty(), "the wall stands somewhere")
+	assert_false(_build.slot_is_empty(slot), "and that slot is taken")
+	assert_false(_build.remove(_player, wall).is_empty(), "cut it out")
+	assert_true(_build.slot_is_empty(slot), "the slot is open now")
+	var removed_at: Array = _changes[_changes.size() - 1]["removed_at"]
+	assert_eq(removed_at, [slot] as Array[String], "and the event said which slot")
+	# a collapse names every slot it emptied, not just the one that was cut
+	var rebuilt: int = _build.place(_player, &"wall_panel", _at(0, 1, 0), "nz")
+	assert_true(rebuilt > 0, "put it back")
+	assert_false(_build.slot_is_empty(slot), "the gap is closed again")
+	var foundation: int = _build.cell_piece_at(BuildSystem.cell_of(_at(0, 0, 0)))
+	assert_false(_build.remove(_player, foundation).is_empty(), "pull the foundation out from under it")
+	var collapse: Array = _changes[_changes.size() - 1]["removed_at"]
+	assert_eq(collapse.size(), 2, "the foundation and what it was holding up")
+	assert_true(collapse.has(slot), "including the wall's slot")
+	assert_true(_build.slot_is_empty(slot), "which is open once more")
+	assert_eq(_build.key_of_piece(9999), "", "and a piece that never stood has no slot")

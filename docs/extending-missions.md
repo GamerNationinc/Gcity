@@ -39,7 +39,11 @@ re-record the fixture hashes.
   and it can still be breached like one.
 - **A way up**: any piece whose kind has `climb`, with something standable at the top.
 - **A way under**: leave a gap in the slab and cover it with a solid piece. Cutting
-  or removing that piece is the entry, and the land's `build` right governs who may.
+  that piece is the entry, and the land's `build` right governs who may — so **put the
+  cover on public ground, outside the site's own parcel**, or the route only works for
+  the owner. Cold Storage's lot begins at the building's wall for exactly this reason:
+  the grate is in the street, and what the tunnel buys is a way past the lobby rather
+  than a way to commit a second trespass.
 
 ## A new patrol route: one file
 
@@ -68,15 +72,16 @@ already emits, not by anything a mission declares:
 | `times_detected` | `perception.alerted` naming the player as the contact |
 | `alarms_raised` | `squad.report` whose reporter had already seen the player |
 | `bodies` | `combat.hit` with `killed`, credited to the shooter |
-| `traces_left` | read at the end: pieces the player removed, terminals left un-wiped, bodies still lying |
+| `traces_left` | read at the end: gaps still open where the player cut something, terminals left un-wiped, bodies still lying |
 
 Two consequences worth knowing before tuning a curve:
 
 - **A body costs twice.** It raises `bodies` and, if it is left where it fell, it is
   also a trace. A quiet kill is cheaper than a loud one and dearer than no kill.
 - **Traces are a reading, not a tally.** They are counted from the world when the run
-  ends, so wiping a terminal before turning in erases that trace, and opening one
-  afterwards does not add it back.
+  ends, so wiping a terminal before turning in erases that trace, opening one
+  afterwards does not add it back, and a grate the player puts back is not a hole.
+  That last one is what makes a full-stealth run by the under route possible at all.
 
 `run.begin {actor}` and `run.end {actor}` bracket a run, both pause-safe, so a
 contract accepted from the device starts the count without the world running.

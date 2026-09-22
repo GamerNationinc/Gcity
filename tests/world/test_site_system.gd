@@ -157,3 +157,40 @@ func test_a_site_raises_through_its_command_and_survives_the_round_trip() -> voi
 	rec["pieces"] = [9999]
 	assert_eq(sites.restore(bad), ERR_INVALID_DATA, "a piece that is not standing")
 	assert_eq(sites.snapshot(), state, "rejections leave the state untouched")
+
+
+## M6 spec claim 4, the part the other tests do not reach: the under route has to work
+## for somebody who owns nothing. The operator's lot begins at the building's wall, so
+## the grate in the street is public and cutting it is legal; what it buys is a way in
+## that never touches the lobby, the token or the operator's own property.
+func test_the_under_route_is_a_break_in_by_somebody_who_owns_nothing() -> void:
+	_setup()
+	var site: StringName = &"cold_storage"
+	# the operator raises its own building; the player is nobody and owns nothing
+	var operator: int = _actors.spawn(&"arcade", 0)
+	var at: int = _sim.get_tick() + 1
+	assert_eq(_sim.submit(SimCommand.new(at, &"land.identify", {"actor": operator, "owner": "corp.coldchain"})), OK, "the operator is itself")
+	_sim.step()
+	assert_true(_sites.raise_site(operator, site), "the cold store stands on its own lot")
+	var land: LandSystem = SimAssembly.land_of(_sim)
+	assert_eq(land.owner_of(&"cold_storage_lot"), &"corp.coldchain", "and the lot is not the player's")
+	assert_eq(land.parcel_at(_at(site, Vector3i(4, 1, -2))), &"", "the grate is out in the street")
+	assert_eq(land.parcel_at(_at(site, Vector3i(4, 1, 8))), &"cold_storage_lot", "the back hall is not")
+	# cutting a grate in a public street is nobody's business
+	var before: int = land.violation_count()
+	var grate: int = _build.face_piece_at(BuildSystem.face_key(_sites.cell_of(site, Vector3i(4, 1, -2)), "ny"))
+	assert_true(grate > 0, "the grate")
+	_actors.set_position(_player, _at(site, Vector3i(4, 1, -2)))
+	assert_false(_build.remove(_player, grate).is_empty(), "cut it")
+	assert_eq(land.violation_count(), before, "and no trespass: the street is public")
+	# the tunnel goes under the wall, which is where the trespass starts
+	assert_true(_movement.move(_player, 0, 0, -1), "down into the tunnel")
+	var walked: int = 0
+	for i: int in 10:
+		if _walk(0, 1):
+			walked += 1
+	assert_true(walked >= 9, "north under the building (%d cells)" % walked)
+	_actors.set_position(_player, _at(site, Vector3i(4, 0, 8)))
+	assert_true(_movement.move(_player, 0, 0, 1), "up the ladder")
+	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 1, 8)), "inside the operator's building, owning nothing")
+	assert_eq(land.parcel_at(_actors.position_of(_player)), &"cold_storage_lot", "standing on their land")

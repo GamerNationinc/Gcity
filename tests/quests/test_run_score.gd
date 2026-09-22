@@ -144,8 +144,19 @@ func test_traces_are_what_is_left_behind_and_a_wipe_takes_one_away() -> void:
 	# a piece the player removes is a trace
 	var grate: int = _build.face_piece_at(BuildSystem.face_key(sites.cell_of(&"cold_storage", Vector3i(4, 1, -2)), "ny"))
 	assert_true(grate > 0, "the street grate")
+	var grate_cell: Vector3i = sites.cell_of(&"cold_storage", Vector3i(4, 1, -2))
+	var slot: String = _build.key_of_piece(grate)
+	assert_eq(slot, BuildSystem.face_key(grate_cell, "ny"), "the grate's slot")
 	assert_false(_build.remove(_player, grate).is_empty(), "cut it")
 	assert_eq(_score.traces_left(_player), 1, "a cut grate is a trace")
+	# a gap somebody closed again is not a gap: this is the same reading the terminals
+	# and the bodies get, not a tally that can never be undone
+	assert_true(_build.place(_player, &"floor_panel", BuildSystem.cell_centre(grate_cell), "ny") > 0, "put it back")
+	assert_true(_score.traces_left(_player) == 0, "and the street looks untouched")
+	var replaced: int = _build.face_piece_at(slot)
+	assert_true(replaced > 0, "the new panel stands in the old slot")
+	assert_false(_build.remove(_player, replaced).is_empty(), "cut it again")
+	assert_eq(_score.traces_left(_player), 1, "open once more")
 	# a terminal left open is a trace, and wiping it takes that away
 	var inv: StringName = ItemSystem.inventory_of(_player)
 	var items: ItemSystem = SimAssembly.items_of(_sim)
