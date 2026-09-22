@@ -171,6 +171,12 @@
 		{"kind": "site.raise", "payload": {"actor": 1}},
 		{"kind": "site.raise", "payload": {"actor": 1, "site": "nowhere"}},
 		{"kind": "site.raise", "payload": {"actor": 99, "site": "cold_storage"}},
-		{"kind": "site.raise", "payload": {"actor": 1, "site": 5}}
+		{"kind": "site.raise", "payload": {"actor": 1, "site": 5}},
+		{"kind": "run.begin", "payload": {}},
+		{"kind": "run.begin", "payload": {"actor": "1"}},
+		{"kind": "run.begin", "payload": {"actor": 99}},
+		{"kind": "run.begin", "payload": {"actor": 1, "extra": 1}},
+		{"kind": "run.end", "payload": {}},
+		{"kind": "run.end", "payload": {"actor": 99}}
 	]
 }

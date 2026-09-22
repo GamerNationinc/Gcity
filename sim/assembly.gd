@@ -79,6 +79,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var sites: SiteSystem = SiteSystem.new(content, build, perception, actors, events, terminals)
 	if sites.attach(sim) != OK:
 		return null
+	var score: RunScoreSystem = RunScoreSystem.new(content, actors, perception, terminals, build, events)
+	if score.attach(sim) != OK:
+		return null
 	return sim
 
 
@@ -116,7 +119,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -166,6 +169,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = terminals_of(sim).restore(state)
 			SiteSystem.SYSTEM_ID:
 				err = sites_of(sim).restore(state)
+			RunScoreSystem.SYSTEM_ID:
+				err = score_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -367,3 +372,12 @@ static func terminals_of(sim: SimRoot) -> TerminalSystem:
 		return null
 	var terminals: TerminalSystem = system
 	return terminals
+
+
+static func score_of(sim: SimRoot) -> RunScoreSystem:
+	var system: SimSystem = sim.get_system(RunScoreSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % RunScoreSystem.SYSTEM_ID)
+		return null
+	var score: RunScoreSystem = system
+	return score

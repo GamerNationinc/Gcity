@@ -52,3 +52,31 @@ climbable steps, or the guard stalls at the first unreachable waypoint.
 `content/quest/<id>.json` as `docs/extending-device.md` describes, with objectives on
 the events the mission systems emit. Nothing in the sim knows which quest belongs to
 which site: the objectives do that by naming events and tags.
+
+## A new payout curve: one file
+
+`content/payout_curve/<id>.json` prices a run. `clean_bonus` is what a run with all
+four counters at zero pays; otherwise the payout is `base` less `per_detection`,
+`per_alarm`, `per_body` and `per_trace` times their counters, and never below `floor`.
+All five are milli-units of the contract's reward, so 1000 is "the stated payout".
+
+The four counters are `RunScoreSystem`'s, and they are raised by events the sim
+already emits, not by anything a mission declares:
+
+| Counter | Raised by |
+|---|---|
+| `times_detected` | `perception.alerted` naming the player as the contact |
+| `alarms_raised` | `squad.report` whose reporter had already seen the player |
+| `bodies` | `combat.hit` with `killed`, credited to the shooter |
+| `traces_left` | read at the end: pieces the player removed, terminals left un-wiped, bodies still lying |
+
+Two consequences worth knowing before tuning a curve:
+
+- **A body costs twice.** It raises `bodies` and, if it is left where it fell, it is
+  also a trace. A quiet kill is cheaper than a loud one and dearer than no kill.
+- **Traces are a reading, not a tally.** They are counted from the world when the run
+  ends, so wiping a terminal before turning in erases that trace, and opening one
+  afterwards does not add it back.
+
+`run.begin {actor}` and `run.end {actor}` bracket a run, both pause-safe, so a
+contract accepted from the device starts the count without the world running.
