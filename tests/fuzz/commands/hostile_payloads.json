@@ -177,6 +177,10 @@
 		{"kind": "run.begin", "payload": {"actor": 99}},
 		{"kind": "run.begin", "payload": {"actor": 1, "extra": 1}},
 		{"kind": "run.end", "payload": {}},
-		{"kind": "run.end", "payload": {"actor": 99}}
+		{"kind": "run.end", "payload": {"actor": 99}},
+		{"kind": "item.spawn", "payload": {"kind": "currency", "template": "credit_note", "container": "world", "seed": 1, "count": 0}},
+		{"kind": "item.spawn", "payload": {"kind": "currency", "template": "credit_note", "container": "world", "seed": 1, "count": 101}},
+		{"kind": "item.spawn", "payload": {"kind": "currency", "template": "no_such_note", "container": "world", "seed": 1, "count": 1}},
+		{"kind": "item.spawn", "payload": {"kind": "currency", "template": "credit_note", "container": "mag.1", "seed": 1, "count": 1}}
 	]
 }

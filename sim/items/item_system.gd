@@ -24,7 +24,12 @@ const KIND_CALIBRE: StringName = &"calibre"
 const KIND_DEVICE_FRAME: StringName = &"device_frame"
 const KIND_DEVICE_MODULE: StringName = &"device_module"
 const KIND_DEVICE_SOCKET: StringName = &"device_socket"
-const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE]
+## Money is an item (M6 spec claim 9), so the save and the conservation property cover
+## it with no new mechanism, and carrying a payout is carrying something visible.
+const KIND_CURRENCY: StringName = &"currency"
+## The stat a currency note's face value lives on.
+const STAT_VALUE: StringName = &"value"
+const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_CURRENCY]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
 const COMMAND_LOAD: StringName = &"magazine.load"
@@ -189,7 +194,38 @@ func validate_content() -> Error:
 				return _content_fail("device_module/%s uses unregistered modifier class '%s'" % [module, cls])
 			if not _stats.has_stat(_as_name(md["stat"])):
 				return _content_fail("device_module/%s modifies unregistered stat '%s'" % [module, md["stat"]])
+	for note: StringName in _content.ids(KIND_CURRENCY):
+		var t: Dictionary = _content.get_entry(KIND_CURRENCY, note)
+		if _check_stats_list(t["stats"], "currency/%s" % note) != OK:
+			return ERR_INVALID_DATA
+		if face_value_of_template(note) <= 0:
+			return _content_fail("currency/%s is worth nothing: a note needs a positive `value` stat" % note)
 	return OK
+
+
+## The face value a currency template declares, or 0 for anything that is not money.
+func face_value_of_template(note: StringName) -> int:
+	if not _content.has(KIND_CURRENCY, note):
+		return 0
+	var t: Dictionary = _content.get_entry(KIND_CURRENCY, note)
+	var stats: Array = t["stats"]
+	for e: Variant in stats:
+		var d: Dictionary = e
+		if _as_name(d["stat"]) == STAT_VALUE:
+			var value: int = d["value"]
+			return value
+	return 0
+
+
+## What the container holds in money: the face value of every currency item in it.
+## Anything that is not a note is worth nothing here, whatever else it is worth.
+func credits_in(container: StringName) -> int:
+	var total: int = 0
+	for item: int in items_in(container):
+		if item_kind(item) != KIND_CURRENCY:
+			continue
+		total += face_value_of_template(item_template(item))
+	return total
 
 
 func _check_stats_list(list: Variant, where: String) -> Error:

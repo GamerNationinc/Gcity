@@ -5,7 +5,7 @@ containers of round instances (design doc §11, §13.3; ADR-009).
 
 | File | What |
 |---|---|
-| `item_system.gd` | `ItemSystem` (system id `items`): named containers, spawning from `weapon_frame` / `weapon_part` / `ammo` templates, attach/detach with resolver modifiers, load/unload, tactical and emergency reloads with auto-chambering and a busy window, snapshot/restore with full validation. Owns the seven `item.*` / `magazine.*` / `weapon.*` command kinds. |
+| `item_system.gd` | `ItemSystem` (system id `items`): named containers, spawning from `weapon_frame` / `weapon_part` / `ammo` / `device_frame` / `device_module` / `currency` templates, attach/detach with resolver modifiers, load/unload, tactical and emergency reloads with auto-chambering and a busy window, money as ordinary items (`currency` notes with a `value` face stat, read back by `credits_in`), snapshot/restore with full validation. Owns the seven `item.*` / `magazine.*` / `weapon.*` command kinds. |
 
 **Allowed imports:** `sim/` only.
 

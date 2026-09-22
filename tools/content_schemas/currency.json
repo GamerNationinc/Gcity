@@ -1,0 +1,15 @@
+{
+	"schema_version": 1,
+	"description": "A denomination of money (M6 spec claim 9). Credits are items, not a scalar on the player, so the save and M1's conservation property cover them without a new mechanism; a note's `value` stat is both what it is worth and what it adds to visible wealth while it is on you.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"title": {"type": "string", "min_length": 1, "max_length": 40},
+		"tags": {"type": "array", "max_length": 16, "items": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}},
+		"stats": {"type": "array", "min_length": 1, "max_length": 8, "items": {"type": "object",
+			"properties": {"stat": {"type": "string", "ref": "stat"}, "value": {"type": "int", "min": -1000000000, "max": 1000000000}},
+			"required": ["stat", "value"], "additional_properties": false}}
+	},
+	"required": ["schema_version", "description", "title", "tags", "stats"],
+	"additional_properties": false
+}

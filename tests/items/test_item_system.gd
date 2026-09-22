@@ -443,3 +443,27 @@ func test_hostile_snapshots_are_rejected_and_leave_the_system_untouched() -> voi
 static func _sub(dict: Dictionary, key: String) -> Dictionary:
 	var out: Dictionary = dict[key]
 	return out
+
+
+## M6 spec claim 9: money is an item. A note's face value is a `value` stat, which is
+## both what it is worth and what it adds to visible wealth while it is being carried.
+func test_credits_are_items_with_a_face_value() -> void:
+	_build()
+	assert_true(ItemSystem.SPAWNABLE.has(ItemSystem.KIND_CURRENCY), "currency can be spawned like any item")
+	assert_eq(_items.face_value_of_template(&"credit_note"), 100, "a note's face value")
+	assert_eq(_items.face_value_of_template(&"g19"), 0, "a pistol is not money, whatever it is worth")
+	assert_eq(_items.credits_in(_inv()), 0, "an empty pocket")
+	var first: int = _items.spawn(ItemSystem.KIND_CURRENCY, &"credit_note", _inv(), 1)
+	assert_true(first > 0, "a note")
+	assert_eq(_items.item_kind(first), ItemSystem.KIND_CURRENCY, "of the currency kind")
+	assert_eq(_stats.resolve(first, &"value"), 100, "worth its face value through the resolver")
+	assert_true(_stats.get_tags(first).has(&"currency"), "and tagged as money")
+	for i: int in 11:
+		assert_true(_items.spawn(ItemSystem.KIND_CURRENCY, &"credit_note", _inv(), 2 + i) > 0, "note %d" % i)
+	assert_eq(_items.credits_in(_inv()), 1200, "twelve notes is twelve hundred credits")
+	# money moves like anything else, and nothing else counts as money
+	_kit()
+	assert_eq(_items.credits_in(_inv()), 1200, "a pistol in the same bag adds nothing to the total")
+	assert_true(_do(&"item.spawn", {"kind": "currency", "template": "credit_note", "container": "world", "seed": 9, "count": 3}), "spawned into the world")
+	assert_eq(_items.credits_in(&"world"), 300, "three notes on the ground")
+	assert_eq(_items.credits_in(ItemSystem.inventory_of(OTHER_ACTOR)), 0, "and none in the other pocket")

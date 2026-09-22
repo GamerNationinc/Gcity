@@ -1,0 +1,14 @@
+{
+	"schema_version": 1,
+	"description": "A hundred-credit note. Money is carried, which is why walking out of a job flush is also walking out conspicuous.",
+	"title": "Credit note",
+	"tags": [
+		"currency"
+	],
+	"stats": [
+		{
+			"stat": "value",
+			"value": 100
+		}
+	]
+}

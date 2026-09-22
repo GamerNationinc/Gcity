@@ -108,3 +108,15 @@ Visible wealth reads the `value` stat. A frame declares it as a base stat; a par
 module declares it as a `value` modifier, which is how a fitted part raises its host
 rather than being counted twice. A module loose in the bag therefore shows as nothing,
 which is the intent: visible wealth is what a watcher can see you carrying.
+
+## Money
+
+Credits are items, not a number on the player: `content/currency/<id>.json` is a
+denomination whose `value` stat is its face value. `ItemSystem.credits_in(container)`
+adds up the notes in a container, and nothing else in it counts, whatever else it is
+worth. Two consequences follow for free rather than by design:
+
+- The save and M1's conservation property already cover money, because it is made of
+  the same item entities everything else is.
+- Carrying a payout raises visible wealth, since that scalar reads the same `value`
+  stat. Walking out of a job flush is walking out conspicuous.
