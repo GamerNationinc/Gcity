@@ -138,6 +138,13 @@ func _cold_storage() -> void:
 	# --- the fire stair outside the east wall: the side route
 	_place("stair_flight", Vector3i(5, 1, 7), "px")
 	_place("stair_flight", Vector3i(5, 2, 7), "px")
+	# --- the step up off the street (M6 spec claim 1's rules applied to the site's own
+	# edge): the slab is a metre above the pavement, and a level change needs something
+	# to climb, so a building nobody can walk up to is a building nobody can rob. The
+	# landing is a hatch, because a solid floor panel is the ceiling of the cell below
+	# and refuses to be climbed through.
+	_place("roof_hatch", Vector3i(4, 1, -5), "ny")
+	_place("stair_flight", Vector3i(4, 1, -5), "nz")
 	# --- the guards (design doc §15.3): a lobby post, two upstairs, one roaming
 	_spawn("guard_sim", Vector3i(2, 1, 2), 270, 2, "")
 	_spawn("guard_sim", Vector3i(1, 1, 7), 90, 2, "cs_hall_round")

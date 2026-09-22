@@ -3257,6 +3257,24 @@
 				2,
 				7
 			]
+		},
+		{
+			"facing": "ny",
+			"piece": "roof_hatch",
+			"rel": [
+				4,
+				1,
+				-5
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "stair_flight",
+			"rel": [
+				4,
+				1,
+				-5
+			]
 		}
 	],
 	"schema_version": 1,

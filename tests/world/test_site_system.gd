@@ -81,7 +81,7 @@ func test_cold_storage_stands_with_its_three_routes_in() -> void:
 	_setup()
 	var site: StringName = &"cold_storage"
 	_raise(site)
-	assert_eq(_sites.pieces_of(site).size(), 361, "every piece of the site stands")
+	assert_eq(_sites.pieces_of(site).size(), 363, "every piece of the site stands")
 	assert_eq(_sites.agents_of(site).size(), 4, "four guards (design doc §15.3)")
 	var unsupported: int = 0
 	for id: int in _sites.pieces_of(site):
@@ -141,7 +141,7 @@ func test_a_site_raises_through_its_command_and_survives_the_round_trip() -> voi
 	assert_eq(other.restore_root(snap), OK, "root restored")
 	var sites: SiteSystem = SimAssembly.sites_of(other)
 	assert_true(sites.is_raised(&"cold_storage"), "still raised")
-	assert_eq(sites.pieces_of(&"cold_storage").size(), 361, "with its pieces")
+	assert_eq(sites.pieces_of(&"cold_storage").size(), 363, "with its pieces")
 	_sim.step()
 	other.step()
 	assert_eq(other.state_hash(), _sim.state_hash(), "hashes agree")
@@ -194,3 +194,35 @@ func test_the_under_route_is_a_break_in_by_somebody_who_owns_nothing() -> void:
 	assert_true(_movement.move(_player, 0, 0, 1), "up the ladder")
 	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 1, 8)), "inside the operator's building, owning nothing")
 	assert_eq(land.parcel_at(_actors.position_of(_player)), &"cold_storage_lot", "standing on their land")
+
+
+## M6 spec claim 4, the thing every other test quietly skipped: you have to be able to
+## walk up to the building. The slab is a metre above the pavement and a level change
+## needs something to climb, so without a step at the edge the site is unreachable on
+## foot and every test that "entered" it had placed the actor inside by hand.
+func test_the_site_can_be_walked_into_from_the_street() -> void:
+	_setup()
+	var site: StringName = &"cold_storage"
+	_raise(site)
+	# start on bare ground, two cells south of the slab, at ground level
+	var ground: Vector3i = BuildSystem.cell_centre(_sites.cell_of(site, Vector3i(4, 0, -7)))
+	assert_eq(_actors.set_position(_player, Vector3i(ground.x, 0, ground.z)), OK, "out on the street")
+	assert_eq(_actors.position_of(_player).y, 0, "at pavement level")
+	var walked: int = 0
+	for i: int in 30:
+		if _walk(0, 1):
+			walked += 1
+		if BuildSystem.cell_of(_actors.position_of(_player)) == _sites.cell_of(site, Vector3i(4, 0, -5)):
+			break
+	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 0, -5)), "up to the foot of the step (%d cells)" % walked)
+	assert_true(_movement.move(_player, 0, 0, 1), "up the step onto the slab")
+	assert_eq(_actors.position_of(_player).y, M, "a metre up, on the slab")
+	# and on north across the street to the grate, without touching the lobby
+	var reached: bool = false
+	for i: int in 30:
+		_walk(0, 1)
+		if BuildSystem.cell_of(_actors.position_of(_player)) == _sites.cell_of(site, Vector3i(4, 1, -2)):
+			reached = true
+			break
+	assert_true(reached, "standing on the grate, having walked the whole way")
+	assert_eq(SimAssembly.land_of(_sim).parcel_at(_actors.position_of(_player)), &"", "still out in the public street")

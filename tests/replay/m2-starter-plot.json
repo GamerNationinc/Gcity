@@ -20,5 +20,5 @@
 		{"tick": 120, "kind": "structure.place", "payload": {"actor": 1, "template": "container_20ft", "x": 14000, "y": 0, "z": 4000, "rotation": 0}},
 		{"tick": 200, "kind": "module.install", "payload": {"actor": 1, "structure": 8, "template": "power_cell_rack", "col": 7, "row": 2}}
 	],
-	"expected_hash": "ec094f6d70e3c94009eb815104f51b000cd70b079a5130d584f318c2e1eb014c"
+	"expected_hash": "5c6e83ef2c00bcec220af1a447edd38e00ffbeed173199b46c2332a58b11749c"
 }
