@@ -129,3 +129,33 @@ func test_hostile_command_corpus_is_rejected_without_state_change() -> void:
 		assert_eq(sim.rejected_count(), rejected_before + 1, "case %d (%s %s) rejected" % [i, kind_s, var_to_str(payload)])
 		assert_eq(StateHash.of(sim.snapshot()["systems"]), before, "case %d left system state untouched" % i)
 		i += 1
+
+
+## M6 spec claim 16: the corpus is extended with every new command kind. A kind that
+## never appears in it has no hostile-payload coverage at all, so the corpus tracks
+## the registry rather than whatever was remembered at the time.
+func test_the_hostile_corpus_covers_every_registered_command_kind() -> void:
+	var json := JSON.new()
+	assert_eq(json.parse(read_text(HOSTILE_COMMANDS)), OK, "corpus parses")
+	var corpus: Dictionary = json.data
+	var cases: Array = corpus["cases"]
+	var seen: Dictionary = {}
+	for c: Variant in cases:
+		var entry: Dictionary = c
+		var kind_s: String = entry["kind"]
+		seen[StringName(kind_s)] = true
+	var sim: SimRoot = SimAssembly.build(1, _content())
+	var registered: Array[StringName] = sim.commands().kinds()
+	var missing: Array[String] = []
+	for kind: StringName in registered:
+		if not seen.has(kind):
+			missing.append(String(kind))
+	missing.sort()
+	assert_eq(missing, [] as Array[String], "every registered kind has hostile payloads")
+	# and a kind the sim has never heard of is itself a hostile payload worth keeping
+	var unknown: int = 0
+	for kind: Variant in seen:
+		var named: StringName = kind
+		if not registered.has(named):
+			unknown += 1
+	assert_true(unknown > 0, "the corpus still offers kinds the sim does not register")

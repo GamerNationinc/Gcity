@@ -234,9 +234,11 @@ func test_random_mutations_never_crash_and_accepted_saves_load_consistently() ->
 
 # ---------------------------------------------------------------- property
 
-## Generated sims (random seed, random command streams over every M1 and M2 command
-## kind, random tick counts): load(save(state)) hashes equal, and both keep hashing
-## equal while stepping the same further commands.
+## Generated sims (random seed, random command streams over every command kind the sim
+## registers, random tick counts): load(save(state)) hashes equal, and both keep
+## hashing equal while stepping the same further commands. M6 spec claim 14: the
+## stream gains every new kind as it arrives, so terminals, run counters, standing and
+## corpses are all in the round trip.
 func test_property_round_trip_over_generated_sims() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = SEED_PROPERTY
@@ -286,7 +288,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 	var out: Array = []
 	for _i: int in count:
 		var at: int = rng.randi_range(1, 3)
-		match rng.randi_range(0, 21):
+		match rng.randi_range(0, 31):
 			0:
 				out.append([at, &"actor.spawn", {"profile": "arcade", "range_m": rng.randi_range(0, 20)}])
 			10:
@@ -318,6 +320,39 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 				out.append([at, &"quest.accept" if rng.randi_range(0, 1) == 0 else &"quest.abandon", {"actor": rng.randi_range(1, 3), "quest": ["first_blood", "break_ground", "nothing"][rng.randi_range(0, 2)]}])
 			21:
 				out.append([at, &"sim.pause" if rng.randi_range(0, 1) == 0 else &"sim.resume", {"actor": rng.randi_range(1, 3)}])
+			22:
+				# M6 claim 14: the mission's own commands, so the save covers them too
+				out.append([at, &"actor.move", {"actor": rng.randi_range(1, 6), "dx": rng.randi_range(-150, 150), "dz": rng.randi_range(-150, 150), "dy": rng.randi_range(-1, 1)}])
+			23:
+				out.append([at, &"site.raise", {"actor": rng.randi_range(1, 3), "site": ["m4_test_building", "cold_storage", "nowhere"][rng.randi_range(0, 2)]}])
+			24:
+				var terminal_kind: StringName = [&"terminal.hack_start", &"terminal.hack_cancel", &"terminal.wipe"][rng.randi_range(0, 2)]
+				out.append([at, terminal_kind, {"actor": rng.randi_range(1, 3), "terminal": rng.randi_range(1, 20)}])
+			25:
+				out.append([at, &"run.begin" if rng.randi_range(0, 1) == 0 else &"run.end", {"actor": rng.randi_range(1, 3)}])
+			26:
+				out.append([at, &"quest.turn_in", {"actor": rng.randi_range(1, 3), "quest": ["cold_storage", "first_blood", "nothing"][rng.randi_range(0, 2)]}])
+			27:
+				if rng.randi_range(0, 1) == 0:
+					out.append([at, &"corpse.loot", {"actor": rng.randi_range(1, 3), "corpse": rng.randi_range(1, 20)}])
+				else:
+					out.append([at, &"actor.respawn", {"actor": rng.randi_range(1, 6)}])
+			28:
+				# M1 and M2 kinds the stream never reached until claim 14's coverage check
+				out.append([at, &"magazine.load", {"actor": rng.randi_range(1, 3), "magazine": rng.randi_range(1, 14), "round": rng.randi_range(1, 14)}])
+			29:
+				out.append([at, &"magazine.unload", {"actor": rng.randi_range(1, 3), "magazine": rng.randi_range(1, 14)}])
+			30:
+				if rng.randi_range(0, 1) == 0:
+					out.append([at, &"weapon.attach", {"actor": rng.randi_range(1, 3), "weapon": rng.randi_range(1, 14), "part": rng.randi_range(1, 14)}])
+				else:
+					out.append([at, &"weapon.detach", {"actor": rng.randi_range(1, 3), "weapon": rng.randi_range(1, 14), "socket": ["barrel", "slide", "magazine", "nothing"][rng.randi_range(0, 3)]}])
+			31:
+				if rng.randi_range(0, 1) == 0:
+					var reload: StringName = &"weapon.reload_tactical" if rng.randi_range(0, 1) == 0 else &"weapon.reload_emergency"
+					out.append([at, reload, {"actor": rng.randi_range(1, 3), "weapon": rng.randi_range(1, 14), "magazine": rng.randi_range(1, 14)}])
+				else:
+					out.append([at, &"perk.unlock", {"actor": rng.randi_range(1, 3), "perk": ["handgun_control", "handgun_focus", "nothing"][rng.randi_range(0, 2)]}])
 			1:
 				out.append([at, &"item.spawn", {"kind": "weapon_frame", "template": "g19", "container": "inv.%d" % rng.randi_range(1, 3), "seed": rng.randi(), "count": 1}])
 			2:
@@ -337,3 +372,28 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 			_:
 				out.append([at, &"weapon.fire", {"shooter": rng.randi_range(1, 3), "target": rng.randi_range(1, 3)}])
 	return out
+
+
+## M6 spec claim 14: the generated stream must actually reach every command kind the
+## sim registers. A kind added to the registry and forgotten here would leave its
+## system's state untested by the round trip, which is exactly the hole this closes.
+func test_the_generated_stream_covers_every_registered_command_kind() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SEED_PROPERTY
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var sim: SimRoot = SimAssembly.build(1, db)
+	var registered: Array[StringName] = sim.commands().kinds()
+	var seen: Dictionary = {}
+	for entry: Array in _command_stream(rng, 20_000):
+		var kind: StringName = entry[1]
+		seen[kind] = true
+	var missing: Array[String] = []
+	for kind: StringName in registered:
+		if not seen.has(kind):
+			missing.append(String(kind))
+	missing.sort()
+	assert_eq(missing, [] as Array[String], "every registered kind appears in the stream")
+	for kind: Variant in seen:
+		var generated: StringName = kind
+		assert_true(registered.has(generated), "the stream only generates kinds the sim knows: %s" % generated)
