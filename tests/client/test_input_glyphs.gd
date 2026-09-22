@@ -20,7 +20,8 @@ func test_every_world_action_has_a_controller_glyph_and_a_keyboard_name() -> voi
 	assert_true(actions.size() >= 18, "the world's actions are in the input map (%d)" % actions.size())
 	glyphs.set_controller_active(true)
 	glyphs.set_deck(true)
-	var pad_only: Array[StringName] = [&"world_save", &"world_load"]  # F5 and F9: debug keys with no pad binding by design
+	# F5, F9 and Escape: debug keys with no pad binding by design (a held View restarts)
+	var pad_only: Array[StringName] = [&"world_save", &"world_load", &"world_restart"]
 	for action: StringName in actions:
 		var g: String = glyphs.glyph(action)
 		if pad_only.has(action):
@@ -40,7 +41,7 @@ func test_deck_and_xbox_name_the_same_button_differently() -> void:
 	glyphs.set_controller_active(true)
 	glyphs.set_deck(true)
 	assert_eq(glyphs.glyph(&"world_build_next"), "L1", "the left shoulder is L1 on a Deck")
-	assert_eq(glyphs.glyph(&"world_restart"), "View", "the back button is View")
+	assert_eq(glyphs.glyph(&"world_device"), "View", "the back button is View")
 	assert_eq(glyphs.glyph(&"world_profile"), "D-pad up", "the D-pad")
 	glyphs.set_deck(false)
 	assert_eq(glyphs.glyph(&"world_build_next"), "LB", "and LB on an Xbox pad")

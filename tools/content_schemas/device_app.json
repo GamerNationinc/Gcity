@@ -1,0 +1,44 @@
+{
+	"schema_version": 1,
+	"description": "An app on the device (design doc §12.2; M5 spec claim 3): an icon (one character the shell draws), an order in the strip, the hardware it requires (a `provides` tag of a fitted module, or none), and a description. The view is a scene the client registers by this id.",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 240
+		},
+		"title": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 24
+		},
+		"icon": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 2
+		},
+		"order": {
+			"type": "int",
+			"min": 0,
+			"max": 1000
+		},
+		"requires": {
+			"type": "string",
+			"pattern": "([a-z0-9][a-z0-9_.]*)?"
+		}
+	},
+	"required": [
+		"schema_version",
+		"description",
+		"title",
+		"icon",
+		"order",
+		"requires"
+	],
+	"additional_properties": false
+}

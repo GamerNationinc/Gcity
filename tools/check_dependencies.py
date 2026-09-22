@@ -9,6 +9,12 @@ Rules, checked over every .gd, .tscn and .tres file:
    non-authoritative or non-deterministic: input, rendering, UI, audio, wall-clock
    time, OS queries and the global random functions (the sim uses SimRoot.rng()).
 3. content/ holds data only: no scripts, no scenes.
+4. The device holds no state (design doc §12.1; M5 spec claim 4): a script under
+   client/device/ may declare class-level `var`s only of view types (nodes, scenes,
+   callables, strings, bools, StringNames) or from the allow-list of view state
+   (`_cursor`, `_scroll`, `_page`, `_open_app`, and the map's own draw cache). An int,
+   Array or Dictionary member that could hold an entity id, a count or a copy of the
+   sim's tables is refused; panes rebuild from the sim every refresh.
 
 Exit status 0 when clean; 1 with one line per violation otherwise. Standard library only.
 """
@@ -141,6 +147,26 @@ def check_client_file(path: Path, rel: str) -> list[str]:
     return problems
 
 
+# Rule 4: class-level vars a device script may keep between frames.
+DEVICE_STATE_TYPES = ("Control", "Label", "RichTextLabel", "ColorRect", "Node", "PackedScene", "Callable", "String", "bool", "StringName",
+                      "DeviceApp", "InputGlyphs", "ContentDb", "Dictionary[StringName, PackedScene]", "PackedVector2Array", "Vector3i", "float")
+DEVICE_STATE_NAMES = {"_cursor", "_scroll", "_page", "_open_app", "_last_text", "_last_strip", "_last_status", "_last_prompts", "_note_text", "_note_shown", "_last_key",
+                      "_parcels", "_pieces", "_others", "_me", "_me_yaw"}
+VAR_RE = re.compile(r"^var\s+(\w+)\s*(?::\s*([\w\[\], ]+?))?\s*(?:=|$)", re.MULTILINE)
+
+
+def check_device_file(path: Path, rel: str) -> list[str]:
+    """Rule 4 for one file under client/device/."""
+    text = strip_comments(path.read_text(encoding="utf-8"))
+    problems: list[str] = []
+    for m in VAR_RE.finditer(text):
+        name, declared = m.group(1), (m.group(2) or "").strip()
+        if name in DEVICE_STATE_NAMES or declared in DEVICE_STATE_TYPES:
+            continue
+        problems.append(f"{rel}: `var {name}` ({declared or 'untyped'}) keeps state between frames; the device holds none (rule 4)")
+    return problems
+
+
 def check_content(root: Path) -> list[str]:
     base = root / "content"
     if not base.is_dir():
@@ -160,6 +186,8 @@ def run(root: Path) -> list[str]:
     for path in collect_files(root, "sim"):
         problems.extend(check_sim_file(path, path.relative_to(root).as_posix(), client_classes))
     problems.extend(check_content(root))
+    for path in sorted((root / "client" / "device").rglob("*.gd")):
+        problems.extend(check_device_file(path, path.relative_to(root).as_posix()))
     return problems
 
 

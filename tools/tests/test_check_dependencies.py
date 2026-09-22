@@ -33,6 +33,17 @@ class CheckDependenciesTest(unittest.TestCase):
         self.repo.write("content/README.md", "data only\n")
         self.assertEqual(cd.run(self.repo.root), [])
 
+    def test_device_scripts_hold_no_sim_state_between_frames(self) -> None:
+        self.repo.write("client/device/apps/ok_app.gd", "extends Control\nvar _cursor: int = 0\nvar _label: RichTextLabel\nvar _submit: Callable = Callable()\n")
+        self.assertEqual(cd.run(self.repo.root), [])
+        self.repo.write("client/device/apps/bad_app.gd", "extends Control\nvar _items: Array[int] = []\nvar _wielded: int = 0\nvar _cache: Dictionary = {}\nvar untyped = 3\n")
+        problems = cd.run(self.repo.root)
+        self.assertEqual(len(problems), 4)
+        for name in ["_items", "_wielded", "_cache", "untyped"]:
+            self.assertTrue(any(f"`var {name}`" in p and "rule 4" in p for p in problems), name)
+        self.repo.write("client/hud/anything.gd", "extends Control\nvar _items: Array[int] = []\n")
+        self.assertEqual(len(cd.run(self.repo.root)), 4, "the rule covers client/device only")
+
     def test_sim_path_reference_to_client_is_a_violation(self) -> None:
         self.repo.write("sim/x.gd", 'extends RefCounted\nvar s: Variant = load("res://client/main.tscn")\n')
         problems = cd.run(self.repo.root)

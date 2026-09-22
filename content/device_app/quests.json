@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Contracts on record: accept, watch the objectives fill, abandon.",
+	"title": "Quests",
+	"icon": "!",
+	"order": 30,
+	"requires": ""
+}
