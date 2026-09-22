@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "The G5 extension exercise: an app gated on a module nothing else provides. The hacking itself is M6.",
+	"title": "Hacking",
+	"icon": "#",
+	"order": 60,
+	"requires": "daemon_coprocessor"
+}

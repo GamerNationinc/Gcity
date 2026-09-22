@@ -1,0 +1,266 @@
+{
+	"commands": [
+		{
+			"kind": "actor.spawn",
+			"payload": {
+				"profile": "arcade",
+				"range_m": 0
+			},
+			"tick": 1
+		},
+		{
+			"kind": "land.identify",
+			"payload": {
+				"actor": 1,
+				"owner": "player"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "land.transfer",
+			"payload": {
+				"owner": "player",
+				"parcel": "starter_plot"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 1,
+				"kind": "device_frame",
+				"seed": 1,
+				"template": "handset"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 1,
+				"kind": "device_module",
+				"seed": 2,
+				"template": "radio_module"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 1,
+				"kind": "weapon_frame",
+				"seed": 3,
+				"template": "g19"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 1,
+				"kind": "weapon_part",
+				"seed": 4,
+				"template": "g19_mag_15"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 20,
+				"kind": "ammo",
+				"seed": 100,
+				"template": "9x19_fmj"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "actor.equip_device",
+			"payload": {
+				"actor": 1,
+				"device": 2
+			},
+			"tick": 10
+		},
+		{
+			"kind": "item.attach",
+			"payload": {
+				"actor": 1,
+				"part": 3,
+				"weapon": 2
+			},
+			"tick": 10
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 6
+			},
+			"tick": 12
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 7
+			},
+			"tick": 13
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 8
+			},
+			"tick": 14
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 9
+			},
+			"tick": 15
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 10
+			},
+			"tick": 16
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 11
+			},
+			"tick": 17
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 12
+			},
+			"tick": 18
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 13
+			},
+			"tick": 19
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 14
+			},
+			"tick": 20
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 15
+			},
+			"tick": 21
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 16
+			},
+			"tick": 22
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 17
+			},
+			"tick": 23
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 18
+			},
+			"tick": 24
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 19
+			},
+			"tick": 25
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 20
+			},
+			"tick": 26
+		},
+		{
+			"kind": "actor.wield",
+			"payload": {
+				"actor": 1,
+				"weapon": 4
+			},
+			"tick": 27
+		},
+		{
+			"kind": "weapon.reload_tactical",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"weapon": 4
+			},
+			"tick": 27
+		},
+		{
+			"kind": "item.detach",
+			"payload": {
+				"actor": 1,
+				"socket": "radio",
+				"weapon": 2
+			},
+			"tick": 117
+		}
+	],
+	"expected_hash": "a0b49937d65fb1e08de1485b09695a46e0001ab60846afd9d2495c19a852dbba",
+	"name": "m5-inventory",
+	"schema_version": 1,
+	"seed": 20261150,
+	"ticks": 147
+}

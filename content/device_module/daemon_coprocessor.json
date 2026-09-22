@@ -1,0 +1,18 @@
+{
+	"schema_version": 1,
+	"description": "The G5 extension exercise: a coprocessor for the handset's coprocessor bay. Doubles the device's memory and provides `daemon_coprocessor`, which the hacking app requires.",
+	"socket": "coprocessor",
+	"fits": [
+		"handset"
+	],
+	"modifiers": [
+		{
+			"stat": "memory_capacity",
+			"class": "add",
+			"value": 1000
+		}
+	],
+	"provides": [
+		"daemon_coprocessor"
+	]
+}

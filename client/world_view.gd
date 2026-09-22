@@ -137,7 +137,7 @@ func _build_device() -> void:
 	add_child(_device_viewport)
 	_shell = DeviceShell.new()
 	_shell.setup(_host.content(), _submit_from_device, _glyphs)
-	for app: String in ["inventory", "map", "quests", "comms", "drone"]:
+	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking"]:
 		var scene: PackedScene = load("res://client/device/apps/%s_app.tscn" % app)
 		_shell.register_view(StringName(app), scene)
 	_device_viewport.add_child(_shell)
@@ -593,6 +593,7 @@ func _advance_setup(sim: SimRoot) -> void:
 			var inv: String = String(ItemSystem.inventory_of(_player))
 			_submit(sim, &"item.spawn", {"kind": "device_frame", "template": "handset", "container": inv, "seed": 7, "count": 1})
 			_submit(sim, &"item.spawn", {"kind": "device_module", "template": "radio_module", "container": inv, "seed": 8, "count": 1})
+			_submit(sim, &"item.spawn", {"kind": "device_module", "template": "daemon_coprocessor", "container": inv, "seed": 9, "count": 1})
 			_setup_stage = 2
 		2:
 			var ids: Array[int] = actors.actor_ids()
@@ -606,7 +607,7 @@ func _advance_setup(sim: SimRoot) -> void:
 				_submit_kit(sim, _guards[i], 10 + i * 100, 11 + i * 100, 15)
 			_setup_stage = 3
 		3:
-			if items.items_in(ItemSystem.inventory_of(_player)).size() < 3 + 30 + 2:
+			if items.items_in(ItemSystem.inventory_of(_player)).size() < 3 + 30 + 3:
 				return
 			for guard: int in _guards:
 				if items.items_in(ItemSystem.inventory_of(guard)).size() < KIT_ITEMS:

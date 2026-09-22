@@ -91,10 +91,10 @@ func handle(action: StringName, sim: SimRoot, player: int) -> bool:
 		return false
 	match action:
 		&"device_up":
-			_cursor = maxi(_cursor - 1, 0)
+			_cursor = posmod(_cursor - 1, rows.size())  # wraps: the last row is one press up
 			return true
 		&"device_down":
-			_cursor = mini(_cursor + 1, rows.size() - 1)
+			_cursor = posmod(_cursor + 1, rows.size())
 			return true
 		&"device_select":
 			_primary(rows[clampi(_cursor, 0, rows.size() - 1)], sim, player)

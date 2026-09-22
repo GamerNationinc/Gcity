@@ -31,7 +31,7 @@ func _setup() -> void:
 	_radio = _items.spawn(&"device_module", &"radio_module", inv, 2)
 	_shell = DeviceShell.new()
 	_shell.setup(db, _submit, InputGlyphs.new())
-	for app: String in ["inventory", "map", "quests", "comms", "drone"]:
+	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking"]:
 		var scene: PackedScene = load("res://client/device/apps/%s_app.tscn" % app)
 		_shell.register_view(StringName(app), scene)
 	var tree: SceneTree = Engine.get_main_loop()
@@ -69,15 +69,15 @@ func test_apps_follow_the_carried_device_and_its_modules() -> void:
 	assert_true(_shell.refresh(_sim, _player), "the first refresh draws")
 	assert_eq(_shell.open_app(), &"", "nothing open")
 	_equip()
-	assert_eq(_app_ids(), [&"inventory", &"map", &"quests", &"comms"] as Array[StringName], "the base unit's four apps, in order")
+	assert_eq(_app_ids(), [&"inventory", &"map", &"quests", &"comms", &"notes"] as Array[StringName], "the base unit's apps, in order")
 	assert_true(_shell.refresh(_sim, _player), "a change: the strip appeared")
 	assert_eq(_shell.open_app(), &"inventory", "the first app opens")
 	_submit(&"item.attach", {"actor": _player, "weapon": _handset, "part": _radio})
 	_step()
-	assert_eq(_app_ids(), [&"inventory", &"map", &"quests", &"comms", &"drone"] as Array[StringName], "the radio module unlocks the drone app")
+	assert_eq(_app_ids(), [&"inventory", &"map", &"quests", &"comms", &"notes", &"drone"] as Array[StringName], "the radio module unlocks the drone app")
 	_submit(&"item.detach", {"actor": _player, "weapon": _handset, "socket": "radio"})
 	_step()
-	assert_eq(_app_ids().size(), 4, "and removing it takes the app away")
+	assert_eq(_app_ids().size(), 5, "and removing it takes the app away")
 	_teardown()
 
 
@@ -99,7 +99,7 @@ func test_a_pane_reports_a_change_only_when_its_reading_changed() -> void:
 	assert_false(_shell.refresh(_sim, _player), "within the cell: no redraw")
 	assert_eq(_shell.handle(&"device_prev_app", _sim, _player), "handled", "back")
 	assert_eq(_shell.handle(&"device_prev_app", _sim, _player), "handled", "wraps")
-	assert_eq(_shell.open_app(), &"comms", "to the last app")
+	assert_eq(_shell.open_app(), &"notes", "to the last app")
 	assert_eq(_shell.handle(&"device_back", _sim, _player), "lower", "back with nothing to back out of lowers the device")
 	_teardown()
 
@@ -127,19 +127,20 @@ func test_the_inventory_app_fits_loads_wields_and_swaps_through_commands() -> vo
 	_step()
 	assert_eq(_items.magazine_of(pistol), mag, "swapped in through weapon.reload_tactical")
 	_sim.step_n(90)
-	_go(11)
+	# the magazine moved into the pistol's socket, so it left the list: the rounds are row 10
+	_go(10)
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
 	assert_eq(_submitted.size(), 0, "no loose magazine with room: nothing submitted")
 	var mag2: int = _items.spawn(&"weapon_part", &"g19_mag_15", inv, 6)
 	_shell.refresh(_sim, _player)
-	_go(12)  # the new magazine is row 11 now; the rounds moved to 12
+	_go(11)  # the new magazine took row 10; the rounds moved to 11
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
 	assert_eq(_submitted.size(), 15, "fifteen magazine.load commands: a full magazine in one press")
 	_step()
 	assert_eq(_items.rounds_in(mag2).size(), 15, "loaded")
-	_go(9)  # the swapped magazine left the list: the barrel moved up a row
+	_go(9)  # the barrel
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
 	_step()
@@ -155,9 +156,14 @@ func test_the_inventory_app_fits_loads_wields_and_swaps_through_commands() -> vo
 	_teardown()
 
 
+## Leaving an app and coming back rebuilds its pane with the cursor at the top (the
+## shell frees a pane whose app is no longer open), which is how a row is addressed
+## now that the cursor wraps.
 func _go(row: int) -> void:
-	for i: int in 30:
-		_shell.handle(&"device_up", _sim, _player)
+	_shell.handle(&"device_next_app", _sim, _player)
+	_shell.refresh(_sim, _player)
+	_shell.handle(&"device_prev_app", _sim, _player)
+	_shell.refresh(_sim, _player)
 	for i: int in row:
 		_shell.handle(&"device_down", _sim, _player)
 
@@ -168,7 +174,7 @@ func test_every_pane_meets_the_minimum_type_size() -> void:
 	_submit(&"item.attach", {"actor": _player, "weapon": _handset, "part": _radio})
 	_step()
 	var seen: int = 0
-	for i: int in 5:
+	for i: int in 6:
 		_shell.refresh(_sim, _player)
 		for node: Node in _all_nodes(_shell):
 			if node is Label:
@@ -196,3 +202,33 @@ func _all_nodes(node: Node) -> Array[Node]:
 	for child: Node in node.get_children():
 		out.append_array(_all_nodes(child))
 	return out
+
+
+func test_the_extension_exercise_is_content_and_one_registration() -> void:
+	_setup()
+	_equip()
+	# the notes app: content only, no hardware
+	assert_true(_app_ids().has(&"notes"), "the sixth app is offered with no module fitted")
+	# the hacking app: gated on a module nothing else provides
+	assert_false(_app_ids().has(&"hacking"), "hacking waits for its coprocessor")
+	var coprocessor: int = _items.spawn(&"device_module", &"daemon_coprocessor", ItemSystem.inventory_of(_player), 9)
+	_submit(&"item.attach", {"actor": _player, "weapon": _handset, "part": coprocessor})
+	_step()
+	assert_eq(_items.provides_of(_handset), [&"daemon_coprocessor"] as Array[StringName], "the bay provides it")
+	assert_true(_app_ids().has(&"hacking"), "and the app appears")
+	var stats: StatResolver = SimAssembly.stats_of(_sim)
+	assert_eq(stats.resolve(_handset, &"memory_capacity"), 2000, "its modifier doubled the memory through the resolver")
+	_submit(&"item.detach", {"actor": _player, "weapon": _handset, "socket": "coprocessor"})
+	_step()
+	assert_false(_app_ids().has(&"hacking"), "and goes when the module does")
+	assert_eq(stats.resolve(_handset, &"memory_capacity"), 1000, "the exact prior value")
+	# the third quest: content only, over an event that already existed
+	var quests: QuestSystem = SimAssembly.quests_of(_sim)
+	assert_true(quests.quest_ids().has(&"hold_the_line"), "a third quest on record")
+	_submit(&"quest.accept", {"actor": _player, "quest": "hold_the_line"})
+	_step()
+	var events: EventBus = SimAssembly.combat_of(_sim).events()
+	for i: int in 5:
+		events.emit(CombatSystem.EVENT_FIRE, {"shooter": 99, "weapon": 0, "target": _player, "round": 0, "tags": []})
+	assert_eq(quests.status_of(_player, &"hold_the_line"), QuestSystem.STATUS_COMPLETED, "five shots at you completes it")
+	_teardown()

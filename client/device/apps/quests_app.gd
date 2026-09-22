@@ -52,10 +52,10 @@ func handle(action: StringName, sim: SimRoot, player: int) -> bool:
 	var quest: StringName = ids[clampi(_cursor, 0, ids.size() - 1)]
 	match action:
 		&"device_up":
-			_cursor = maxi(_cursor - 1, 0)
+			_cursor = posmod(_cursor - 1, ids.size())
 			return true
 		&"device_down":
-			_cursor = mini(_cursor + 1, ids.size() - 1)
+			_cursor = posmod(_cursor + 1, ids.size())
 			return true
 		&"device_select":
 			if quests.status_of(player, quest).is_empty():

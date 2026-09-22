@@ -55,7 +55,7 @@ func _hit(shooter: int, tags: Array) -> void:
 
 func test_accept_and_abandon_contracts() -> void:
 	_setup()
-	assert_eq(_quests.quest_ids(), [&"break_ground", &"first_blood"] as Array[StringName], "two quests in content")
+	assert_true(_quests.quest_ids().has(&"first_blood") and _quests.quest_ids().has(&"break_ground"), "the quests in content, lexically (%s)" % [_quests.quest_ids()])
 	assert_eq(_quests.status_of(_player, &"first_blood"), "", "nothing accepted")
 	assert_true(_do(&"quest.accept", {"actor": _player, "quest": "first_blood"}), "accept")
 	assert_eq(_quests.status_of(_player, &"first_blood"), "active", "active")

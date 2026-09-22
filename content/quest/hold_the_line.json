@@ -1,0 +1,22 @@
+{
+	"schema_version": 1,
+	"description": "The G5 extension exercise: a third quest over an existing event, content only.",
+	"title": "Hold the line",
+	"text": "Be shot at five times and live. Standing where a guard can see you is the usual way.",
+	"objectives": [
+		{
+			"description": "Be fired at five times",
+			"event": "combat.fire",
+			"credit": "target",
+			"tags_any": [],
+			"count": 5
+		}
+	],
+	"reward": [
+		{
+			"kind": "ammo",
+			"template": "9x19_jhp",
+			"count": 10
+		}
+	]
+}
