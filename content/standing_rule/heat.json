@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"description": "How much attention the law is paying you right now (design doc §7.3). Raised by taking a right you do not hold and by being seen on land that is not yours; it cools over time, and slowest where the law is thickest.",
+	"title": "Heat",
+	"source": "events",
+	"period_ticks": 40,
+	"raise": [
+		{"event": "land.violation", "credit": "actor", "tags_any": [], "when": "always", "amount": 200},
+		{"event": "perception.alerted", "credit": "contact", "tags_any": [], "when": "actor_on_foreign_parcel", "amount": 50}
+	],
+	"decay": {"amount": 20, "index": "law_index", "mode": "inverse"},
+	"max": 100000
+}

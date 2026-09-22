@@ -1,0 +1,27 @@
+{
+	"schema_version": 1,
+	"description": "A standing scalar (design doc §7.3; M6 spec claim 8): what raises it, how often it is revisited, and how fast it falls. The file's id is the scalar's name. An event-raised scalar is credited by bus events exactly as skill xp is, and decays; a derived scalar is recomputed from the world and does not.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 320},
+		"title": {"type": "string", "min_length": 1, "max_length": 40},
+		"source": {"type": "string", "pattern": "events|carried_value"},
+		"period_ticks": {"type": "int", "min": 0, "max": 100000},
+		"raise": {"type": "array", "max_length": 32, "items": {"type": "object",
+			"properties": {
+				"event": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"},
+				"credit": {"type": "string", "pattern": "[a-z_]+"},
+				"tags_any": {"type": "array", "max_length": 16, "items": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}},
+				"when": {"type": "string", "pattern": "always|actor_on_foreign_parcel"},
+				"amount": {"type": "int", "min": 1, "max": 1000000}},
+			"required": ["event", "credit", "tags_any", "when", "amount"], "additional_properties": false}},
+		"decay": {"type": "object", "properties": {
+			"amount": {"type": "int", "min": 0, "max": 1000000},
+			"index": {"type": "string", "pattern": "(law_index|wealth_index|informant_density)?"},
+			"mode": {"type": "string", "pattern": "flat|direct|inverse"}},
+			"required": ["amount", "index", "mode"], "additional_properties": false},
+		"max": {"type": "int", "min": 1, "max": 1000000000}
+	},
+	"required": ["schema_version", "description", "title", "source", "period_ticks", "raise", "decay", "max"],
+	"additional_properties": false
+}

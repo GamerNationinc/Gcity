@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 0,
+	"description": "What an item is worth, in credits. Carried items' resolved value is the actor's visible wealth (M6 spec claim 8); a fitted part raises its host's value through a modifier like any other stat."
+}

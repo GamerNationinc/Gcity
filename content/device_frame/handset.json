@@ -20,6 +20,10 @@
 		{
 			"stat": "battery_reserve",
 			"value": 1000
+		},
+		{
+			"stat": "value",
+			"value": 600
 		}
 	]
 }

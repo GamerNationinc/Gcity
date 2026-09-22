@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "What you look worth to whoever is watching (design doc §7.3): the resolved value of what you are carrying, recomputed rather than accumulated, so putting the kit down lowers it at once.",
+	"title": "Visible wealth",
+	"source": "carried_value",
+	"period_ticks": 40,
+	"raise": [],
+	"decay": {"amount": 0, "index": "", "mode": "flat"},
+	"max": 1000000000
+}

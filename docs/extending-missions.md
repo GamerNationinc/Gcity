@@ -80,3 +80,31 @@ Two consequences worth knowing before tuning a curve:
 
 `run.begin {actor}` and `run.end {actor}` bracket a run, both pause-safe, so a
 contract accepted from the device starts the count without the world running.
+
+## A new standing scalar: one file
+
+`content/standing_rule/<id>.json`, where the file's id is the scalar's name. It says
+what raises the number, how often it is revisited and how fast it falls, and nothing
+in `sim/` names the scalars themselves.
+
+- `source: "events"` is credited by bus events exactly as skill xp is: an `event`, the
+  payload key that names the actor to `credit`, a `tags_any` filter, a `when`
+  condition and an `amount`. It decays every `period_ticks`.
+- `source: "carried_value"` is not credited at all. It is recomputed on the same clock
+  from the resolved `value` of the actor's carried items, so putting the kit down
+  lowers it at once rather than waiting for a decay.
+
+`decay.mode` is `flat`, or `direct`/`inverse` scaled by a district index named in
+`decay.index`. Heat is `inverse` on `law_index`: it cools fastest where nobody is
+looking. A scaled decay never falls below one a period, so a scalar always drains.
+
+`when` is one of the conditions the system registers: `always`, or
+`actor_on_foreign_parcel` (the actor is standing inside a parcel someone else owns).
+A rule naming an unregistered condition is refused at assembly, not ignored.
+
+### Giving an item a worth
+
+Visible wealth reads the `value` stat. A frame declares it as a base stat; a part or
+module declares it as a `value` modifier, which is how a fitted part raises its host
+rather than being counted twice. A module loose in the bag therefore shows as nothing,
+which is the intent: visible wealth is what a watcher can see you carrying.
