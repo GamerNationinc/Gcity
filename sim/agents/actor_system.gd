@@ -266,6 +266,31 @@ func damage_node(actor: int, node: StringName, amount: int) -> int:
 	return applied
 
 
+## Brings a dead actor back with a full health graph. Who decides an actor comes back,
+## and at what cost, is not this system's business (M6 spec claim 11): this only undoes
+## the damage. Refuses an actor that is already standing.
+func revive(actor: int) -> bool:
+	if not _actors.has(actor):
+		return false
+	var rec: Dictionary = _actors[actor]
+	var alive: bool = rec["alive"]
+	if alive:
+		return false
+	var profile: StringName = rec["profile"]
+	var t: Dictionary = _content.get_entry(KIND_PROFILE, profile)
+	var health_t: Dictionary = t["health"]
+	var nodes: Array = health_t["nodes"]
+	var health: Dictionary = {}
+	for n: Variant in nodes:
+		var nd: Dictionary = n
+		var id_s: String = nd["id"]
+		var max_hp: int = nd["max"]
+		health[StringName(id_s)] = max_hp
+	rec["health"] = health
+	rec["alive"] = true
+	return true
+
+
 func _is_fatal(profile: StringName, node: StringName) -> bool:
 	var t: Dictionary = _content.get_entry(KIND_PROFILE, profile)
 	var health: Dictionary = t["health"]

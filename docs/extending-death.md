@@ -35,3 +35,34 @@ that happened there.
   container name and a rule in `ItemSystem`, not a branch in `CorpseSystem`.
 - **What a body is worth to a passer-by** reads the same `value` stat visible wealth
   does, because the items are the same items.
+
+## Coming back
+
+`actor.respawn {actor}` needs a dead actor with a body. It is pause-safe: choosing to
+come back is a menu decision, not something done in the world. The player reappears at
+the middle of a parcel they own, or at the recovery rule's `fallback_parcel` if they
+own none.
+
+What they come back with depends entirely on where they died. `content/recovery_rule/
+police.json` holds the one rule M6 ships:
+
+| Field | What |
+|---|---|
+| `law_threshold` | a district whose `law_index` is above this holds the scene |
+| `returned_permille` | how much of the kit is waiting at the station |
+| `fee_per_item` | what each piece costs to get back |
+| `fallback_parcel` | where a player with no plot stands again |
+
+Above the threshold the police are holding your money as well as your kit, so the fee
+comes out of that before anything is handed back. A player who died broke gets nothing
+and is charged nothing. Below the threshold nobody touched anything: the whole kit is
+still lying on the body, and the walk back is the price.
+
+Either way the corpse stays. Whatever the police did not take is still there, and a
+body is a trace whether or not anything is on it.
+
+### The rule is content, the threshold is not a special case
+
+`RULE` is a constant naming one entry today. A faction or a district wanting its own
+terms is a second file and that constant becoming a lookup; nothing in the recovery
+logic branches on who is holding the scene.

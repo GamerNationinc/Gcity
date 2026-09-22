@@ -1,0 +1,15 @@
+{
+	"schema_version": 1,
+	"description": "What the law does with your kit when you die inside its reach (ADR-007 C; M6 spec claim 11). Above `law_threshold` the police hold the scene, and a fraction of the kit is waiting at the station for a fee instead of lying on the body; below it, nothing is.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 320},
+		"title": {"type": "string", "min_length": 1, "max_length": 40},
+		"law_threshold": {"type": "int", "min": 0, "max": 1000},
+		"returned_permille": {"type": "int", "min": 0, "max": 1000},
+		"fee_per_item": {"type": "int", "min": 0, "max": 1000000},
+		"fallback_parcel": {"type": "string", "ref": "parcel"}
+	},
+	"required": ["schema_version", "description", "title", "law_threshold", "returned_permille", "fee_per_item", "fallback_parcel"],
+	"additional_properties": false
+}

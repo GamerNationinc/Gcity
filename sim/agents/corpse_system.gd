@@ -10,24 +10,36 @@
 class_name CorpseSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"corpses"
+const KIND_RECOVERY: StringName = &"recovery_rule"
+## The one rule M6 ships. A faction or a district could name its own later; nothing
+## here would change but this constant becoming a lookup.
+const RULE: StringName = &"police"
 const COMMAND_LOOT: StringName = &"corpse.loot"
+const COMMAND_RESPAWN: StringName = &"actor.respawn"
 const EVENT_LEFT: StringName = &"corpse.left"
 const EVENT_LOOTED: StringName = &"corpse.looted"
+const EVENT_RESPAWNED: StringName = &"actor.respawned"
 ## How close a looter must stand, in millimetres. An arm's length over a body.
 const REACH_MM: int = 1500
+## Milli-units: a fraction of a kit.
+const PERMILLE: int = 1000
 
+var _content: ContentDb
 var _actors: ActorSystem
 var _items: ItemSystem
 var _ids: EntityIds
+var _land: LandSystem
 var _events: EventBus
 ## corpse id -> {"actor": int, "pos": Array[int]}
 var _corpses: Dictionary = {}
 
 
-func _init(actors: ActorSystem, items: ItemSystem, ids: EntityIds, events: EventBus) -> void:
+func _init(content: ContentDb, actors: ActorSystem, items: ItemSystem, ids: EntityIds, land: LandSystem, events: EventBus) -> void:
+	_content = content
 	_actors = actors
 	_items = items
 	_ids = ids
+	_land = land
 	_events = events
 
 
@@ -44,13 +56,34 @@ func snapshot() -> Dictionary:
 
 
 func attach(sim: SimRoot) -> Error:
-	var err: Error = sim.register_system(self)
+	var err: Error = validate_content()
+	if err != OK:
+		return err
+	err = sim.register_system(self)
 	if err != OK:
 		return err
 	err = sim.commands().register(COMMAND_LOOT, _on_loot, false)
 	if err != OK:
 		return err
+	# pause-safe: coming back is a menu choice, not something done in the world
+	err = sim.commands().register(COMMAND_RESPAWN, _on_respawn, true)
+	if err != OK:
+		return err
 	return _events.subscribe(ActorSystem.EVENT_DIED, _on_died)
+
+
+## The recovery rule must exist and must name a parcel to fall back to, because a
+## player with no plot still has to stand somewhere.
+func validate_content() -> Error:
+	if not _content.has(KIND_RECOVERY, RULE):
+		push_error("CorpseSystem: no recovery_rule/%s" % RULE)
+		return ERR_INVALID_DATA
+	var rule: Dictionary = _content.get_entry(KIND_RECOVERY, RULE)
+	var fallback_s: String = rule["fallback_parcel"]
+	if not _content.has(LandSystem.KIND_PARCEL, StringName(fallback_s)):
+		push_error("CorpseSystem: recovery_rule/%s falls back to a parcel that does not exist: %s" % [RULE, fallback_s])
+		return ERR_INVALID_DATA
+	return OK
 
 
 # ---------------------------------------------------------------- queries
@@ -109,6 +142,12 @@ func is_stripped(corpse: int) -> bool:
 	return _corpses.has(corpse) and items_on(corpse).is_empty()
 
 
+## Where the actor would come back: the middle of a parcel they own, or the recovery
+## rule's fallback. The client draws the death screen from this.
+func respawn_position_of(actor: int) -> Vector3i:
+	return _centre_of(_plot_of(actor))
+
+
 # ---------------------------------------------------------------- events
 
 ## One corpse per death, holding everything the actor carried. An actor that dies
@@ -147,6 +186,148 @@ func _on_loot(_sim: SimRoot, payload: Dictionary) -> bool:
 		return false
 	_events.emit(EVENT_LOOTED, {"corpse": corpse, "actor": actor, "items": moved})
 	return true
+
+
+## {"actor": int}: come back. Where you died decides what you come back with.
+##
+## Inside a district whose `law_index` is above the rule's threshold the police held
+## the scene: a fraction of the kit is at the station, and you buy it back a piece at
+## a time out of what you are carrying. Outside, nobody touched anything, which means
+## everything is still lying on the body and the walk back is the price.
+func _on_respawn(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 1 or typeof(payload.get("actor")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	if not _actors.has_actor(actor) or _actors.is_alive(actor):
+		return false
+	var corpse: int = corpse_of(actor)
+	if corpse == EntityIds.NONE:
+		return false
+	var returned: int = 0
+	var fee: int = 0
+	if _police_hold(corpse):
+		var held: StringName = ItemSystem.corpse_container(corpse)
+		var rule: Dictionary = _rule()
+		var permille: int = rule["returned_permille"]
+		var per_item: int = rule["fee_per_item"]
+		var wanted: int = items_on(corpse).size() * permille / PERMILLE
+		# the station is holding your money as well as your kit, and takes its fee out
+		# of that before handing anything back: a dead player has nothing else to pay with
+		var purse: int = _items.credits_in(held)
+		var affordable: int = wanted if per_item <= 0 else mini(wanted, purse / per_item)
+		if affordable > 0:
+			fee = affordable * per_item
+			var notes: Array[int] = _notes_for(held, fee)
+			if notes.is_empty() and fee > 0:
+				affordable = 0
+				fee = 0
+			else:
+				_items.move_items(notes, ItemSystem.WORLD)
+		if affordable > 0:
+			var taking: Array[int] = items_on(corpse).slice(0, affordable)
+			returned = _items.move_items(taking, ItemSystem.inventory_of(actor))
+			if returned == 0:
+				fee = 0
+	var plot: StringName = _plot_of(actor)
+	var where: Vector3i = _centre_of(plot)
+	if _actors.set_position(actor, where) != OK:
+		return false
+	if not _actors.revive(actor):
+		return false
+	_events.emit(EVENT_RESPAWNED, {"actor": actor, "corpse": corpse, "returned": returned, "fee": fee, "x": where.x, "y": where.y, "z": where.z})
+	return true
+
+
+## True when the corpse fell somewhere the law holds scenes.
+func _police_hold(corpse: int) -> bool:
+	var rule: Dictionary = _rule()
+	var threshold: int = rule["law_threshold"]
+	var parcel: StringName = _land.parcel_at(position_of(corpse))
+	var district: StringName = _land.wild_district() if parcel.is_empty() else _land.district_of(parcel)
+	if not _content.has(LandSystem.KIND_DISTRICT, district):
+		return false
+	var record: Dictionary = _content.get_entry(LandSystem.KIND_DISTRICT, district)
+	var law: int = record["law_index"]
+	return law > threshold
+
+
+## Enough notes out of a container to cover a fee, in the order they lie; empty if
+## they do not cover it. The police do not make change.
+func _notes_for(container: StringName, fee: int) -> Array[int]:
+	var out: Array[int] = []
+	if fee <= 0:
+		return out
+	var paid: int = 0
+	for item: int in _items.items_in(container):
+		if _items.item_kind(item) != ItemSystem.KIND_CURRENCY:
+			continue
+		out.append(item)
+		paid += _items.face_value_of_template(_items.item_template(item))
+		if paid >= fee:
+			return out
+	return [] as Array[int]
+
+
+func _rule() -> Dictionary:
+	return _content.get_entry(KIND_RECOVERY, RULE)
+
+
+## Where the actor stands again: the middle of a parcel they own, or the rule's
+## fallback if they own none. Non-convex parcels exist (the north neighbour is an L),
+## so the average of the corners is only used when it really is inside.
+func _plot_of(actor: int) -> StringName:
+	var tag: StringName = _land.owner_tag_of_actor(actor)
+	if not tag.is_empty():
+		for id: StringName in _land.parcel_ids():
+			if _land.owner_of(id) == tag:
+				return id
+	var rule: Dictionary = _rule()
+	var fallback: String = rule["fallback_parcel"]
+	return StringName(fallback)
+
+
+func _centre_of(parcel: StringName) -> Vector3i:
+	var record: Dictionary = _land.parcel(parcel)
+	if record.is_empty():
+		return Vector3i.ZERO
+	var footprint: Array = record["footprint"]
+	var floor_y: int = record["floor_y"]
+	var y: int = maxi(floor_y, 0)
+	var sum_x: int = 0
+	var sum_z: int = 0
+	var min_x: int = 0
+	var min_z: int = 0
+	var max_x: int = 0
+	var max_z: int = 0
+	for i: int in footprint.size():
+		var pair: Array = footprint[i]
+		var px: int = pair[0]
+		var pz: int = pair[1]
+		sum_x += px
+		sum_z += pz
+		if i == 0 or px < min_x:
+			min_x = px
+		if i == 0 or px > max_x:
+			max_x = px
+		if i == 0 or pz < min_z:
+			min_z = pz
+		if i == 0 or pz > max_z:
+			max_z = pz
+	var average := Vector3i(sum_x / footprint.size(), y, sum_z / footprint.size())
+	if _land.parcel_at(average) == parcel:
+		return average
+	# an L or worse: take the first metre square whose middle really is inside
+	var step: int = BuildSystem.CELL
+	var x: int = min_x + step / 2
+	while x < max_x:
+		var z: int = min_z + step / 2
+		while z < max_z:
+			var probe := Vector3i(x, y, z)
+			if _land.parcel_at(probe) == parcel:
+				return probe
+			z += step
+		x += step
+	return average
 
 
 # ---------------------------------------------------------------- restore

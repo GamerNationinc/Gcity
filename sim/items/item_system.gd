@@ -826,25 +826,45 @@ func _fits(part: int, weapon: int) -> bool:
 	return false
 
 
-## Moves every item of one open container into another, keeping the order, and returns
-## how many moved. This is the one operation death and looting are built from: items
-## are transferred, never spawned or destroyed, so M1 claim 10's conservation property
-## holds across both. Both ends must be open containers and the destination must have
-## room for all of it, or nothing moves.
+## Moves a named set of items into one open container, keeping their order, and returns
+## how many moved. All of it or none: every item must exist, none may already be there,
+## and the destination must have room for all of them.
+func move_items(items: Array[int], to: StringName) -> int:
+	if items.is_empty():
+		return 0
+	if not _is_open_container(to):
+		push_error("ItemSystem: '%s' is not an open container" % to)
+		return 0
+	var seen: Dictionary = {}
+	for item: int in items:
+		if not _items.has(item) or seen.has(item):
+			push_error("ItemSystem: move_items names item %d twice or not at all" % item)
+			return 0
+		seen[item] = true
+		var from: StringName = _location[item]
+		if from == to:
+			push_error("ItemSystem: item %d is already in '%s'" % [item, to])
+			return 0
+		if not _is_open_container(from):
+			push_error("ItemSystem: item %d is in '%s', which nothing moves out of wholesale" % [item, from])
+			return 0
+	var cap: int = capacity_of(to)
+	if cap >= 0 and items_in(to).size() + items.size() > cap:
+		push_error("ItemSystem: '%s' has no room for %d more" % [to, items.size()])
+		return 0
+	for item: int in items:
+		_move(item, to)
+	return items.size()
+
+
+## Moves every item of one open container into another. The whole-container form of
+## [method move_items]: this is what death and looting are built from, so M1 claim 10's
+## conservation property covers both.
 func move_container(from: StringName, to: StringName) -> int:
 	if from == to or not _is_open_container(from) or not _is_open_container(to):
 		push_error("ItemSystem: move_container needs two different open containers, not '%s' -> '%s'" % [from, to])
 		return 0
-	var moving: Array[int] = items_in(from)
-	if moving.is_empty():
-		return 0
-	var cap: int = capacity_of(to)
-	if cap >= 0 and items_in(to).size() + moving.size() > cap:
-		push_error("ItemSystem: '%s' has no room for %d more" % [to, moving.size()])
-		return 0
-	for item: int in moving:
-		_move(item, to)
-	return moving.size()
+	return move_items(items_in(from), to)
 
 
 func _move(item: int, to: StringName) -> void:

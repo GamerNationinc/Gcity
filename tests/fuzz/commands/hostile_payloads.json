@@ -195,6 +195,12 @@
 		{"kind": "corpse.loot", "payload": {"actor": 1, "corpse": "1"}},
 		{"kind": "corpse.loot", "payload": {"actor": 1, "corpse": 99999}},
 		{"kind": "corpse.loot", "payload": {"actor": 1, "corpse": 1, "extra": 1}},
-		{"kind": "corpse.loot", "payload": {"actor": 1, "corpse": -1}}
+		{"kind": "corpse.loot", "payload": {"actor": 1, "corpse": -1}},
+		{"kind": "actor.respawn", "payload": {}},
+		{"kind": "actor.respawn", "payload": {"actor": "1"}},
+		{"kind": "actor.respawn", "payload": {"actor": 1, "extra": 1}},
+		{"kind": "actor.respawn", "payload": {"actor": 99999}},
+		{"kind": "actor.respawn", "payload": {"actor": -1}},
+		{"kind": "actor.respawn", "payload": {"actor": 1}}
 	]
 }

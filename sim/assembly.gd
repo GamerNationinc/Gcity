@@ -88,7 +88,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var standing: StandingSystem = StandingSystem.new(content, actors, items, stats, land, events)
 	if standing.attach(sim) != OK:
 		return null
-	var corpses: CorpseSystem = CorpseSystem.new(actors, items, ids, events)
+	var corpses: CorpseSystem = CorpseSystem.new(content, actors, items, ids, land, events)
 	if corpses.attach(sim) != OK:
 		return null
 	return sim
