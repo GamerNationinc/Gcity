@@ -4,5 +4,6 @@
 	"kind": "wall",
 	"material": "reinforced_concrete",
 	"open_cost": 0,
-	"value": 0
+	"value": 0,
+	"access": ""
 }

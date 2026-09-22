@@ -1,0 +1,26 @@
+{
+	"schema_version": 1,
+	"description": "Cold Storage: the same upper loop the other way, so the two stay apart.",
+	"cells": [
+		[
+			43,
+			2,
+			46
+		],
+		[
+			43,
+			2,
+			42
+		],
+		[
+			41,
+			2,
+			42
+		],
+		[
+			41,
+			2,
+			47
+		]
+	]
+}

@@ -585,9 +585,9 @@ func _advance_setup(sim: SimRoot) -> void:
 			_submit(sim, &"land.identify", {"actor": _player, "owner": "player"})
 			_submit(sim, &"land.transfer", {"parcel": "starter_plot", "owner": "player"})
 			_submit(sim, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"})
-			for command: Dictionary in M4Building.commands(_player):
+			for command: Dictionary in M4Building.commands(_player, _host.content()):
 				_submit(sim, &"build.place", command)
-			for guard: Dictionary in M4Building.guards(GUARD_PROFILES[_guard_profile]):
+			for guard: Dictionary in M4Building.guards(GUARD_PROFILES[_guard_profile], _host.content()):
 				_submit(sim, &"agent.spawn", guard)
 			_submit_kit(sim, _player, 1, 2, 30)
 			var inv: String = String(ItemSystem.inventory_of(_player))

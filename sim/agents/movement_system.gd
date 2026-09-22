@@ -17,12 +17,15 @@ class_name MovementSystem extends SimSystem
 const SYSTEM_ID: StringName = &"movement"
 const COMMAND_MOVE: StringName = &"actor.move"
 const EVENT_FELL: StringName = &"actor.fell"
+const KIND_DOOR_CHECK: StringName = &"door_check"
 
 var _content: ContentDb
 var _actors: ActorSystem
 var _land: LandSystem
 var _build: BuildSystem
 var _events: EventBus
+var _items: ItemSystem
+var _stats: StatResolver
 var _moves: int = 0
 var _blocked: int = 0
 var _falls: int = 0
@@ -30,12 +33,14 @@ var _falls: int = 0
 var _falling: Dictionary = {}
 
 
-func _init(content: ContentDb, actors: ActorSystem, land: LandSystem, build: BuildSystem, events: EventBus) -> void:
+func _init(content: ContentDb, actors: ActorSystem, land: LandSystem, build: BuildSystem, events: EventBus, items: ItemSystem, stats: StatResolver) -> void:
 	_content = content
 	_actors = actors
 	_land = land
 	_build = build
 	_events = events
+	_items = items
+	_stats = stats
 
 
 func system_id() -> StringName:
@@ -133,6 +138,39 @@ func is_standable(cell: Vector3i) -> bool:
 	return not passable
 
 
+## Whether `actor` may pass through `piece`: its kind's `passable`, or, for a door
+## that checks (M6 spec claim 4), whether the actor carries an item tagged with the
+## piece's access tag. A check the actor fails is a wall to it.
+func passes(actor: int, piece: int) -> bool:
+	var kind: Dictionary = _build.kind_data(piece)
+	var passable: bool = kind["passable"]
+	if passable:
+		return true
+	if _build.kind_of(piece) != KIND_DOOR_CHECK:
+		return false
+	var wanted: StringName = access_tag_of(piece)
+	if wanted.is_empty():
+		return false
+	return carries_tag(actor, wanted)
+
+
+## The item tag a door check reads, from the piece's own `access` field.
+func access_tag_of(piece: int) -> StringName:
+	if _build.kind_of(piece) != KIND_DOOR_CHECK:
+		return &""
+	var t: Dictionary = _content.get_entry(BuildSystem.KIND_PIECE, _build.template_of(piece))
+	var access: String = t["access"]
+	return StringName(access)
+
+
+## Whether any item in the actor's inventory carries the tag.
+func carries_tag(actor: int, tag: StringName) -> bool:
+	for item: int in _items.items_in(ItemSystem.inventory_of(actor)):
+		if _stats.get_tags(item).has(tag):
+			return true
+	return false
+
+
 ## Whether a face of `cell` in `facing` carries a climbable piece (stairs, a ladder).
 func has_climb(cell: Vector3i, facing: String) -> bool:
 	var piece: int = _build.face_piece_at(BuildSystem.face_key(cell, facing))
@@ -216,11 +254,8 @@ func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 		var d: Vector3i = to_cell - from_cell
 		var facing: String = "px" if d.x > 0 else ("nx" if d.x < 0 else ("pz" if d.z > 0 else "nz"))
 		var piece: int = _build.face_piece_at(BuildSystem.face_key(from_cell, facing))
-		if piece != EntityIds.NONE:
-			var k: Dictionary = _build.kind_data(piece)
-			var passable: bool = k["passable"]
-			if not passable:
-				return false
+		if piece != EntityIds.NONE and not passes(actor, piece):
+			return false
 	if _land.parcel_at(to) != _land.parcel_at(from):
 		if not _land.require(to, actor, &"enter"):
 			return false

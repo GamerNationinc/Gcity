@@ -22,10 +22,10 @@ func test_the_building_raises_and_the_guards_take_their_posts() -> void:
 	sim.submit(SimCommand.new(at, &"land.identify", {"actor": player, "owner": "player"}))
 	sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "starter_plot", "owner": "player"}))
 	sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"}))
-	var commands: Array[Dictionary] = M4Building.commands(player)
+	var commands: Array[Dictionary] = M4Building.commands(player, db)
 	for c: Dictionary in commands:
 		sim.submit(SimCommand.new(at, &"build.place", c))
-	for g: Dictionary in M4Building.guards("guard_sim"):
+	for g: Dictionary in M4Building.guards("guard_sim", db):
 		sim.submit(SimCommand.new(at, &"agent.spawn", g))
 	sim.step()
 	assert_eq(sim.rejected_count(), 0, "every command applied")
@@ -64,7 +64,7 @@ func test_the_street_is_watched_and_the_rooms_are_not_seen_from_it() -> void:
 	sim.submit(SimCommand.new(at, &"land.identify", {"actor": player, "owner": "player"}))
 	sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "starter_plot", "owner": "player"}))
 	sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"}))
-	for c: Dictionary in M4Building.commands(player):
+	for c: Dictionary in M4Building.commands(player, db):
 		sim.submit(SimCommand.new(at, &"build.place", c))
 	sim.step()
 	assert_eq(sim.rejected_count(), 0, "built")

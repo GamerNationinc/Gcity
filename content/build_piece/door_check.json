@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "The Cold Storage lobby door: it opens for an access token and for nobody else.",
+	"kind": "door_check",
+	"material": "scrap_steel",
+	"open_cost": 0,
+	"value": 0,
+	"access": "access.cold_storage"
+}

@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "A stolen access token for Cold Storage: carried, never fired. The lobby's door check reads its tag (M6 spec claim 4, the front route).",
+	"calibre": "9x19",
+	"tags": [
+		"access.cold_storage"
+	],
+	"stats": []
+}

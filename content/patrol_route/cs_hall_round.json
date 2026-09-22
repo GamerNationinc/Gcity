@@ -1,0 +1,26 @@
+{
+	"schema_version": 1,
+	"description": "Cold Storage: the ground-floor roamer, lobby to back hall and round.",
+	"cells": [
+		[
+			41,
+			1,
+			47
+		],
+		[
+			43,
+			1,
+			47
+		],
+		[
+			43,
+			1,
+			41
+		],
+		[
+			41,
+			1,
+			41
+		]
+	]
+}

@@ -4,5 +4,6 @@
 	"kind": "hatch",
 	"material": "scrap_steel",
 	"open_cost": 50,
-	"value": 0
+	"value": 0,
+	"access": ""
 }

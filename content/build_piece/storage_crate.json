@@ -4,5 +4,6 @@
 	"kind": "crate",
 	"material": "scrap_steel",
 	"open_cost": 0,
-	"value": 1000
+	"value": 1000,
+	"access": ""
 }

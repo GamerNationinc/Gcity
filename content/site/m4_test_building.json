@@ -1,0 +1,899 @@
+{
+	"base": [
+		3,
+		0,
+		8
+	],
+	"description": "The M4 perception building, unchanged, as a site file: a lobby with a door and two side windows, a corridor north, two rooms with outside windows, the wing roofed. Four guards: a post behind the door, a roamer, two patrollers on opposite loops.",
+	"parcels": [
+		"starter_plot",
+		"neighbour_north"
+	],
+	"pieces": [
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				9,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				9,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "door_frame",
+			"rel": [
+				2,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "window_frame",
+			"rel": [
+				0,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "window_frame",
+			"rel": [
+				4,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				2,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "door_frame",
+			"rel": [
+				4,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "door_frame",
+			"rel": [
+				4,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				2,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				2,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "window_frame",
+			"rel": [
+				0,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				5,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				5,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				6,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				6,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				7,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				7,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				8,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				8,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				8,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "window_frame",
+			"rel": [
+				8,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				8,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				5,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				6,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				7,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				8,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				5,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				6,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				7,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				8,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				5,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				6,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				7,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "py",
+			"piece": "floor_panel",
+			"rel": [
+				8,
+				0,
+				9
+			]
+		}
+	],
+	"schema_version": 1,
+	"spawns": [
+		{
+			"facing": 270,
+			"profile": "guard_sim",
+			"rel": [
+				2,
+				0,
+				3
+			],
+			"route": "",
+			"squad": 1
+		},
+		{
+			"facing": 0,
+			"profile": "guard_sim",
+			"rel": [
+				0,
+				0,
+				1
+			],
+			"route": "lobby_round",
+			"squad": 1
+		},
+		{
+			"facing": 90,
+			"profile": "guard_sim",
+			"rel": [
+				4,
+				0,
+				4
+			],
+			"route": "wing_patrol",
+			"squad": 1
+		},
+		{
+			"facing": 180,
+			"profile": "guard_sim",
+			"rel": [
+				7,
+				0,
+				8
+			],
+			"route": "wing_patrol_reverse",
+			"squad": 1
+		}
+	],
+	"title": "M4 test building"
+}

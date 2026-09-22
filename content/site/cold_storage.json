@@ -1,0 +1,3308 @@
+{
+	"base": [
+		40,
+		0,
+		40
+	],
+	"description": "The first contract's site (design doc §15): a slab of ground, a lobby whose street door checks for a token, a stair well to an upper floor with a maintenance window off the outside fire stair, and a service tunnel that is a gap in the slab, entered by cutting a street grate. Three routes in, one server room.",
+	"parcels": [],
+	"pieces": [
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-2,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				-1,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				0,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				1,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				2,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				3,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				4,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				4,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				4,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				4,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				4,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				4,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				4,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				5,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				6,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				-4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				-3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				-1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				0
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				1
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				2
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				3
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				4
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				5
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				6
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				7
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				9
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				10
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				11
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				12
+			]
+		},
+		{
+			"facing": "",
+			"piece": "foundation_block",
+			"rel": [
+				7,
+				0,
+				13
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				-2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				-1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				1,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "roof_hatch",
+			"rel": [
+				4,
+				1,
+				8
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "stair_flight",
+			"rel": [
+				4,
+				0,
+				-2
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "stair_flight",
+			"rel": [
+				4,
+				1,
+				-2
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "stair_flight",
+			"rel": [
+				4,
+				0,
+				8
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "stair_flight",
+			"rel": [
+				4,
+				1,
+				8
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				1,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "door_check",
+			"rel": [
+				2,
+				1,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				1,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				0
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				0
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				0
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				1
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				1
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				2
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				2
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				3
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				3
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				4
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				4
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				5
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				5
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				6
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				6
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				7
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				7
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				8
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				8
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				9
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				9
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				10
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				10
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				11
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				11
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				3
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				1,
+				3
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				1,
+				3
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				3
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				1,
+				8
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "door_frame",
+			"rel": [
+				2,
+				1,
+				8
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				1,
+				8
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				1,
+				9
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				1,
+				9
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				1,
+				11
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				2,
+				1,
+				11
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				1,
+				11
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "stair_flight",
+			"rel": [
+				2,
+				1,
+				4
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "stair_flight",
+			"rel": [
+				2,
+				2,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				9
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				10
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				2,
+				11
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				9
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				10
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				2,
+				11
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				9
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				10
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				2,
+				11
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				9
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				10
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				2,
+				11
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				9
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				10
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				2,
+				11
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				2,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "nz",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				0
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				1
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				1
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				2
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				2
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				3
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				3
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				4
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				4
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				5
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				5
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				6
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				6
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				7
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "window_frame",
+			"rel": [
+				4,
+				2,
+				7
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				2,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				3,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				3,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				3,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				3,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				3,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				3,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				3,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				3,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				0,
+				3,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				3,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				3,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				3,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				3,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				3,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				3,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				3,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				3,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				1,
+				3,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				3,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				3,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				3,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				3,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				3,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				3,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				3,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				3,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				2,
+				3,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				3,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				3,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				3,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				3,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				3,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				3,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				3,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				3,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				3,
+				3,
+				8
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				3,
+				0
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				3,
+				1
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				3,
+				2
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				3,
+				3
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				3,
+				4
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				3,
+				5
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				3,
+				6
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				3,
+				7
+			]
+		},
+		{
+			"facing": "ny",
+			"piece": "floor_panel",
+			"rel": [
+				4,
+				3,
+				8
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "stair_flight",
+			"rel": [
+				5,
+				1,
+				7
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "stair_flight",
+			"rel": [
+				5,
+				2,
+				7
+			]
+		}
+	],
+	"schema_version": 1,
+	"spawns": [
+		{
+			"facing": 270,
+			"profile": "guard_sim",
+			"rel": [
+				2,
+				1,
+				2
+			],
+			"route": "",
+			"squad": 2
+		},
+		{
+			"facing": 90,
+			"profile": "guard_sim",
+			"rel": [
+				1,
+				1,
+				7
+			],
+			"route": "cs_hall_round",
+			"squad": 2
+		},
+		{
+			"facing": 90,
+			"profile": "guard_sim",
+			"rel": [
+				1,
+				2,
+				2
+			],
+			"route": "cs_upper_patrol",
+			"squad": 2
+		},
+		{
+			"facing": 270,
+			"profile": "guard_sim",
+			"rel": [
+				3,
+				2,
+				6
+			],
+			"route": "cs_upper_patrol_reverse",
+			"squad": 2
+		}
+	],
+	"title": "Cold Storage"
+}

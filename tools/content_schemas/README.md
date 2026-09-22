@@ -38,6 +38,7 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `weapon_part` | M1 | `socket` (ref), `fits` (frame refs), `modifiers` (`{stat: ref, class, value}`), `capacity` + `calibre` for container sockets |
 | `ammo` | M1 | `calibre` (ref), `tags`, `stats` |
 | `device_app` | M5 | `title`, `icon`, `order`, `requires` (a module's `provides` tag or empty) |
+| `site` | M6 | `title`, `base`, `parcels` (refs), `pieces` (`{piece, rel, facing}`), `spawns` (`{profile, rel, facing, squad, route}`) |
 | `quest` | M5 | `title`, `text`, `objectives` (`{description, event, credit, tags_any, count}`), `reward` (`{kind, template, count}`) |
 | `device_frame` | M5 | `sockets` (device_socket refs), `tags`, `stats` |
 | `device_socket` | M5 | `description` |
