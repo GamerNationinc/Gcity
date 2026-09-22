@@ -10,7 +10,7 @@
 ## chain of touching pieces no longer than its material's `max_span`. Placement that
 ## would be unsupported is rejected; removal collapses whatever it left unsupported, in
 ## one deterministic pass on the tick of the change. Every successful change emits
-## `build.changed {added, removed}` for the portal graph.
+## `build.changed {added, removed, actor}` for the portal graph and the quests.
 class_name BuildSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"build"
@@ -339,7 +339,7 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 	var noise: int = m["breach_noise"]
 	_stats.set_base(id, STAT_HP, hp)
 	_stats.set_base(id, STAT_NOISE, noise)
-	_events.emit(EVENT_CHANGED, {"added": [id] as Array[int], "removed": [] as Array[int]})
+	_events.emit(EVENT_CHANGED, {"added": [id] as Array[int], "removed": [] as Array[int], "actor": actor})
 	return id
 
 
@@ -351,7 +351,7 @@ func remove(actor: int, id: int) -> Array[int]:
 		return none
 	if not _land.require(cell_centre(cell_of_piece(id)), actor, &"build"):
 		return none
-	return _remove_and_collapse([id])
+	return _remove_and_collapse([id], actor)
 
 
 ## Removes pieces without a rights check: the breach path of a raid (claim 9).
@@ -359,10 +359,12 @@ func breach(id: int) -> Array[int]:
 	var none: Array[int] = []
 	if not _pieces.has(id):
 		return none
-	return _remove_and_collapse([id])
+	return _remove_and_collapse([id], EntityIds.NONE)
 
 
-func _remove_and_collapse(ids: Array[int]) -> Array[int]:
+## `actor` is who changed the build (NONE for a breach): the event carries it so a
+## quest or a skill can credit the builder (M5 spec claim 9).
+func _remove_and_collapse(ids: Array[int], actor: int) -> Array[int]:
 	for id: int in ids:
 		_drop(id)
 	var supported: Dictionary = supported_set()
@@ -372,7 +374,7 @@ func _remove_and_collapse(ids: Array[int]) -> Array[int]:
 			_drop(id)
 			removed.append(id)
 	removed.sort()
-	_events.emit(EVENT_CHANGED, {"added": [] as Array[int], "removed": removed})
+	_events.emit(EVENT_CHANGED, {"added": [] as Array[int], "removed": removed, "actor": actor})
 	return removed
 
 

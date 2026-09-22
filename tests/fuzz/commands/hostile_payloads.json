@@ -139,6 +139,16 @@
 		{"kind": "sim.pause", "payload": {"actor": 1, "extra": 1}},
 		{"kind": "sim.resume", "payload": {}},
 		{"kind": "sim.resume", "payload": {"actor": 1}},
-		{"kind": "sim.resume", "payload": {"actor": 99}}
+		{"kind": "sim.resume", "payload": {"actor": 99}},
+		{"kind": "quest.accept", "payload": {}},
+		{"kind": "quest.accept", "payload": {"actor": 1}},
+		{"kind": "quest.accept", "payload": {"actor": 1, "quest": "nothing"}},
+		{"kind": "quest.accept", "payload": {"actor": 1, "quest": 5}},
+		{"kind": "quest.accept", "payload": {"actor": 99, "quest": "first_blood"}},
+		{"kind": "quest.accept", "payload": {"actor": 1, "quest": "first_blood", "extra": 1}},
+		{"kind": "quest.abandon", "payload": {}},
+		{"kind": "quest.abandon", "payload": {"actor": 1, "quest": "first_blood"}},
+		{"kind": "quest.abandon", "payload": {"actor": 1, "quest": "nothing"}},
+		{"kind": "quest.abandon", "payload": {"actor": "1", "quest": "first_blood"}}
 	]
 }
