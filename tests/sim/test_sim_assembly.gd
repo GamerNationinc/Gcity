@@ -61,7 +61,7 @@ func test_stats_of_requires_an_assembled_sim() -> void:
 
 func test_commands_are_registered_by_the_item_system() -> void:
 	var sim: SimRoot = SimAssembly.build(SEED, _content())
-	assert_eq(sim.commands().kinds(), [&"actor.equip_device", &"actor.move", &"actor.spawn", &"actor.wield", &"agent.set_profile", &"agent.spawn", &"build.place", &"build.remove", &"item.attach", &"item.detach", &"item.spawn", &"land.identify", &"land.transfer", &"magazine.load", &"magazine.unload", &"module.install", &"module.remove", &"perk.unlock", &"quest.abandon", &"quest.accept", &"raid.spawn", &"run.begin", &"run.end", &"sim.pause", &"sim.resume", &"site.raise", &"structure.place", &"terminal.hack_cancel", &"terminal.hack_start", &"terminal.wipe", &"weapon.attach", &"weapon.detach", &"weapon.fire", &"weapon.reload_emergency", &"weapon.reload_tactical"] as Array[StringName], "lexical kinds")
+	assert_eq(sim.commands().kinds(), [&"actor.equip_device", &"actor.move", &"actor.spawn", &"actor.wield", &"agent.set_profile", &"agent.spawn", &"build.place", &"build.remove", &"item.attach", &"item.detach", &"item.spawn", &"land.identify", &"land.transfer", &"magazine.load", &"magazine.unload", &"module.install", &"module.remove", &"perk.unlock", &"quest.abandon", &"quest.accept", &"quest.turn_in", &"raid.spawn", &"run.begin", &"run.end", &"sim.pause", &"sim.resume", &"site.raise", &"structure.place", &"terminal.hack_cancel", &"terminal.hack_start", &"terminal.wipe", &"weapon.attach", &"weapon.detach", &"weapon.fire", &"weapon.reload_emergency", &"weapon.reload_tactical"] as Array[StringName], "lexical kinds")
 
 
 func test_assembly_refuses_content_the_item_system_cannot_use() -> void:

@@ -122,6 +122,12 @@ func test_cold_storage_stands_with_its_three_routes_in() -> void:
 
 func test_a_site_raises_through_its_command_and_survives_the_round_trip() -> void:
 	_setup()
+	# the site's lot first: `site.raise` places as the actor, and the operator's land
+	# is not the player's until it is transferred
+	var at: int = _sim.get_tick() + 1
+	assert_eq(_sim.submit(SimCommand.new(at, &"land.identify", {"actor": _player, "owner": "player"})), OK, "identify")
+	assert_eq(_sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "cold_storage_lot", "owner": "player"})), OK, "transfer")
+	_sim.step()
 	var before: int = _sim.dispatched_count()
 	assert_eq(_sim.submit(SimCommand.new(_sim.get_tick() + 1, &"site.raise", {"actor": _player, "site": "cold_storage"})), OK, "submit")
 	_sim.step()

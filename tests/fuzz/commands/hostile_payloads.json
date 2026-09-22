@@ -181,6 +181,13 @@
 		{"kind": "item.spawn", "payload": {"kind": "currency", "template": "credit_note", "container": "world", "seed": 1, "count": 0}},
 		{"kind": "item.spawn", "payload": {"kind": "currency", "template": "credit_note", "container": "world", "seed": 1, "count": 101}},
 		{"kind": "item.spawn", "payload": {"kind": "currency", "template": "no_such_note", "container": "world", "seed": 1, "count": 1}},
-		{"kind": "item.spawn", "payload": {"kind": "currency", "template": "credit_note", "container": "mag.1", "seed": 1, "count": 1}}
+		{"kind": "item.spawn", "payload": {"kind": "currency", "template": "credit_note", "container": "mag.1", "seed": 1, "count": 1}},
+		{"kind": "quest.turn_in", "payload": {}},
+		{"kind": "quest.turn_in", "payload": {"actor": 1}},
+		{"kind": "quest.turn_in", "payload": {"actor": 1, "quest": 1}},
+		{"kind": "quest.turn_in", "payload": {"actor": 1, "quest": "cold_storage", "extra": 1}},
+		{"kind": "quest.turn_in", "payload": {"actor": 1, "quest": "no_such_quest"}},
+		{"kind": "quest.turn_in", "payload": {"actor": 99, "quest": "cold_storage"}},
+		{"kind": "quest.turn_in", "payload": {"actor": 1, "quest": "first_blood"}}
 	]
 }

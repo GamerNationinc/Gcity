@@ -34,6 +34,7 @@ func _setup(with_coprocessor: bool = true) -> void:
 	_hacked = []
 	_cancelled = []
 	_player = _actors.spawn(&"arcade", 0)
+	_raise_cold_storage()
 	assert_true(_sites.raise_site(_player, &"cold_storage"), "the site stands")
 	_terminal = _sites.terminals_of(&"cold_storage")[0]
 	var inv: StringName = ItemSystem.inventory_of(_player)
@@ -191,3 +192,13 @@ func test_restore_round_trip_and_rejections() -> void:
 	rec["actor"] = 0
 	assert_eq(terminals.restore(bad), ERR_INVALID_DATA, "progress with no hacker")
 	assert_eq(terminals.snapshot(), state, "rejections leave the state untouched")
+
+
+## Cold Storage stands on `cold_storage_lot`, which the operator owns; a builder can
+## only raise it on land that is theirs, so the test takes the lot first exactly as
+## the client does before raising a site on owned ground.
+func _raise_cold_storage() -> void:
+	var at: int = _sim.get_tick() + 1
+	assert_eq(_sim.submit(SimCommand.new(at, &"land.identify", {"actor": _player, "owner": "player"})), OK, "identify")
+	assert_eq(_sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "cold_storage_lot", "owner": "player"})), OK, "transfer")
+	_sim.step()

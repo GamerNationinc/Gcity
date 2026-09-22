@@ -70,7 +70,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var stances: StanceSystem = StanceSystem.new(content, actors, items, perception, aim, stress, pathing, squads)
 	if stances.attach(sim) != OK:
 		return null
-	var quests: QuestSystem = QuestSystem.new(content, actors, items, events)
+	var quests: QuestSystem = QuestSystem.new(content, actors, items, land, events)
 	if quests.attach(sim) != OK:
 		return null
 	var terminals: TerminalSystem = TerminalSystem.new(content, actors, items, ids, events)
@@ -82,6 +82,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var score: RunScoreSystem = RunScoreSystem.new(content, actors, perception, terminals, build, events)
 	if score.attach(sim) != OK:
 		return null
+	quests.set_payout_source(score.multiplier)
 	var standing: StandingSystem = StandingSystem.new(content, actors, items, stats, land, events)
 	if standing.attach(sim) != OK:
 		return null

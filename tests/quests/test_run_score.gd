@@ -136,6 +136,7 @@ func test_traces_are_what_is_left_behind_and_a_wipe_takes_one_away() -> void:
 	_setup()
 	var terminals: TerminalSystem = SimAssembly.terminals_of(_sim)
 	var sites: SiteSystem = SimAssembly.sites_of(_sim)
+	_raise_cold_storage()
 	assert_true(sites.raise_site(_player, &"cold_storage"), "the site stands")
 	var terminal: int = sites.terminals_of(&"cold_storage")[0]
 	assert_true(_do(&"run.begin", {"actor": _player}), "begin")
@@ -252,3 +253,13 @@ func test_restore_round_trip_and_rejections() -> void:
 	rec["traces"] = 5
 	assert_eq(score.restore(bad), ERR_INVALID_DATA, "a live run with a frozen trace reading")
 	assert_eq(score.snapshot(), state, "rejections leave the state untouched")
+
+
+## Cold Storage stands on `cold_storage_lot`, which the operator owns; a builder can
+## only raise it on land that is theirs, so the test takes the lot first exactly as
+## the client does before raising a site on owned ground.
+func _raise_cold_storage() -> void:
+	var at: int = _sim.get_tick() + 1
+	assert_eq(_sim.submit(SimCommand.new(at, &"land.identify", {"actor": _player, "owner": "player"})), OK, "identify")
+	assert_eq(_sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "cold_storage_lot", "owner": "player"})), OK, "transfer")
+	_sim.step()

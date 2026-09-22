@@ -186,3 +186,106 @@ func test_restore_round_trip_and_rejections() -> void:
 	table[&"nothing"] = table[&"first_blood"]
 	assert_eq(quests.restore(bad), ERR_INVALID_DATA, "an unknown quest")
 	assert_eq(quests.snapshot(), state, "rejections leave the state untouched")
+
+
+## M6 spec claim 9: a contract with a `turn_in` block is not paid when the work is
+## done but when it is carried to the fixer, and its money is scaled by the run's
+## payout curve.
+
+## content/parcel/fixers_office.json
+const AT_THE_FIXER: Vector3i = Vector3i(6000, 0, 30000)
+## content/quest/cold_storage.json pays twelve notes at the base rate
+const NOTES: int = 12
+
+
+func _hacked(actor: int) -> void:
+	_events.emit(TerminalSystem.EVENT_HACKED, {"actor": actor, "terminal": 1, "template": &"cs_server", "data": 2, "signal": &"signal.data_theft"})
+
+
+func _exfil(actor: int, tags: Array) -> void:
+	_events.emit(MovementSystem.EVENT_LEFT_PARCEL, {"actor": actor, "parcel": &"cold_storage_lot", "tags": tags})
+
+
+func _accept_and_do_the_work() -> void:
+	assert_true(_do(&"quest.accept", {"actor": _player, "quest": "cold_storage"}), "accepted")
+	assert_eq(_quests.status_of(_player, &"cold_storage"), QuestSystem.STATUS_ACTIVE, "active")
+	_hacked(_player)
+	_exfil(_player, ["nothing.useful"])
+	assert_eq(_quests.progress_of(_player, &"cold_storage"), [1, 0] as Array[int], "leaving empty-handed is not an exfil")
+	_exfil(_player, ["data.cold_storage"])
+	assert_eq(_quests.progress_of(_player, &"cold_storage"), [1, 1] as Array[int], "out with the data")
+
+
+func test_a_contract_is_not_paid_until_it_is_turned_in_at_the_fixer() -> void:
+	_setup()
+	var inv: StringName = ItemSystem.inventory_of(_player)
+	_accept_and_do_the_work()
+	assert_eq(_quests.status_of(_player, &"cold_storage"), QuestSystem.STATUS_READY, "the work is done, the job is not")
+	assert_eq(_completed.size(), 0, "nothing completed yet")
+	assert_eq(_items.credits_in(inv), 0, "and nothing paid")
+	# the fixer is a place: you have to be standing in it
+	assert_false(_do(&"quest.turn_in", {"actor": _player, "quest": "cold_storage"}), "not at the fixer")
+	_actors.set_position(_player, AT_THE_FIXER)
+	assert_false(_do(&"quest.turn_in", {"actor": _player, "quest": "nothing"}), "unknown quest")
+	assert_false(_do(&"quest.turn_in", {"actor": 99, "quest": "cold_storage"}), "unknown actor")
+	assert_false(_do(&"quest.turn_in", {"actor": _player}), "missing quest")
+	assert_true(_do(&"quest.turn_in", {"actor": _player, "quest": "cold_storage"}), "turned in")
+	assert_eq(_quests.status_of(_player, &"cold_storage"), QuestSystem.STATUS_COMPLETED, "completed")
+	assert_eq(_completed.size(), 1, "one quest.completed, emitted at the fixer and not at the site")
+	assert_false(_do(&"quest.turn_in", {"actor": _player, "quest": "cold_storage"}), "and only once")
+	# a clean run doubles the money; the fixed part of the reward does not move
+	assert_eq(_items.credits_in(inv), 2 * NOTES * 100, "a run nobody scored pays the clean bonus")
+	var modules: int = 0
+	for item: int in _items.items_in(inv):
+		if _items.item_template(item) == &"radio_module":
+			modules += 1
+	assert_eq(modules, 1, "and the fixed module once")
+
+
+func test_the_payout_is_scaled_by_the_run_that_earned_it() -> void:
+	_setup()
+	var inv: StringName = ItemSystem.inventory_of(_player)
+	var score: RunScoreSystem = SimAssembly.score_of(_sim)
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	var guard: int = perception.spawn(&"guard_sim", BuildSystem.cell_of(Vector3i(400000, 0, 400000)), 0, 1, "")
+	assert_true(_do(&"run.begin", {"actor": _player}), "the run starts with the contract")
+	_accept_and_do_the_work()
+	# a loud run: two sightings and a body, priced by content/payout_curve/fixer_standard
+	_events.emit(PerceptionSystem.EVENT_ALERTED, {"observer": guard, "contact": _player, "tick": _sim.get_tick()})
+	_events.emit(PerceptionSystem.EVENT_ALERTED, {"observer": guard, "contact": _player, "tick": _sim.get_tick()})
+	_events.emit(CombatSystem.EVENT_HIT, {"shooter": _player, "weapon": 0, "target": guard, "node": &"body", "damage": 1, "range_m": 5, "tags": [], "killed": true})
+	assert_true(_do(&"run.end", {"actor": _player}), "and ends when you hand it over")
+	var multiplier: int = score.multiplier(_player, &"fixer_standard")
+	assert_eq(multiplier, 1000 - 2 * 100 - 400, "two sightings and a body, the body still standing")
+	_actors.set_position(_player, AT_THE_FIXER)
+	assert_true(_do(&"quest.turn_in", {"actor": _player, "quest": "cold_storage"}), "turned in")
+	assert_eq(_items.credits_in(inv), NOTES * multiplier / 1000 * 100, "the payout is the contract's notes scaled by the run")
+	assert_true(_items.credits_in(inv) < 2 * NOTES * 100, "and less than a clean run would have paid")
+
+
+func test_a_ready_contract_survives_the_round_trip() -> void:
+	_setup()
+	_accept_and_do_the_work()
+	assert_eq(_quests.status_of(_player, &"cold_storage"), QuestSystem.STATUS_READY, "ready")
+	var snap: Dictionary = _sim.snapshot()
+	var other: SimRoot = SimAssembly.build(SEED, _db())
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "restored")
+	assert_eq(other.restore_root(snap), OK, "root restored")
+	var quests: QuestSystem = SimAssembly.quests_of(other)
+	assert_eq(quests.status_of(_player, &"cold_storage"), QuestSystem.STATUS_READY, "still waiting to be handed over")
+	_sim.step()
+	other.step()
+	assert_eq(other.state_hash(), _sim.state_hash(), "hashes agree")
+	# a status that disagrees with the work, and a `ready` on a quest with no turn-in
+	var state: Dictionary = _quests.snapshot()
+	var bad: Dictionary = state.duplicate(true)
+	var all: Dictionary = bad["quests"]
+	var table: Dictionary = all[_player]
+	table[&"cold_storage"] = {"status": QuestSystem.STATUS_ACTIVE, "progress": [1, 1]}
+	assert_eq(quests.restore(bad), ERR_INVALID_DATA, "active, but the work is done")
+	bad = state.duplicate(true)
+	all = bad["quests"]
+	table = all[_player]
+	table[&"first_blood"] = {"status": QuestSystem.STATUS_READY, "progress": [1]}
+	assert_eq(quests.restore(bad), ERR_INVALID_DATA, "ready, on a quest with nothing to turn in")
+	assert_eq(quests.snapshot(), state, "rejections leave the state untouched")

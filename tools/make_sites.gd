@@ -145,7 +145,7 @@ func _cold_storage() -> void:
 	_spawn("guard_sim", Vector3i(3, 2, 6), 270, 2, "cs_upper_patrol_reverse")
 	# the server the three routes converge on, in the back room
 	_terminal("cs_server", Vector3i(2, 1, 10))
-	_write("cold_storage", "Cold Storage", Vector3i(40, 0, 40), [],
+	_write("cold_storage", "Cold Storage", Vector3i(40, 0, 40), ["cold_storage_lot"],
 		"The first contract's site (design doc §15): a slab of ground, a lobby whose street door checks for a token, a stair well to an upper floor with a maintenance window off the outside fire stair, and a service tunnel that is a gap in the slab, entered by cutting a street grate. Three routes in, one server room.")
 
 

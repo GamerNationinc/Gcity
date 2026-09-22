@@ -5,7 +5,9 @@
 		40
 	],
 	"description": "The first contract's site (design doc §15): a slab of ground, a lobby whose street door checks for a token, a stair well to an upper floor with a maintenance window off the outside fire stair, and a service tunnel that is a gap in the slab, entered by cutting a street grate. Three routes in, one server room.",
-	"parcels": [],
+	"parcels": [
+		"cold_storage_lot"
+	],
 	"pieces": [
 		{
 			"facing": "",

@@ -120,3 +120,28 @@ worth. Two consequences follow for free rather than by design:
   the same item entities everything else is.
 - Carrying a payout raises visible wealth, since that scalar reads the same `value`
   stat. Walking out of a job flush is walking out conspicuous.
+
+## Making a contract pay at a fixer
+
+Add a `turn_in` block to `content/quest/<id>.json` and the quest stops at `ready`
+when its objectives are done instead of completing. `quest.turn_in {actor, quest}`
+then finishes it, but only while the actor is standing inside `turn_in.parcel`, which
+is what "the fixer" is at M6: a parcel with a name, not a person.
+
+| Field | What |
+|---|---|
+| `parcel` | where the contract is handed in |
+| `curve` | the `payout_curve` the money is priced by |
+| `currency` | the denomination paid |
+| `notes` | how many notes at the base rate |
+
+The money paid is `notes` scaled by the run's multiplier, never fewer than one note:
+a disastrous run is still a job. The `reward` list is paid in full regardless, so put
+the part of a contract that does not depend on how it went there.
+
+`quest.turn_in` is **not** pause-safe, because walking to the fixer is part of it.
+Issue `run.end` before it: the multiplier reads the run's counters, and the trace
+reading is only frozen once the run has ended.
+
+A quest without a `turn_in` block behaves exactly as it did at M5, paying itself out
+the moment its last objective lands.
