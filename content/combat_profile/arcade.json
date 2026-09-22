@@ -1,11 +1,27 @@
 {
 	"schema_version": 1,
 	"description": "Arcade: hitscan, no penetration, one pooled health node, no status effects (design doc §13.1). The M1 range uses it.",
-	"stages": ["hit_roll", "damage", "routing"],
+	"stages": [
+		"hit_roll",
+		"damage",
+		"routing"
+	],
 	"range_falloff_per_m": 5000,
 	"speed_mm_per_tick": 150,
 	"health": {
-		"nodes": [{"id": "body", "max": 100000, "fatal": true}],
-		"routing": [{"node": "body", "weight": 1}]
-	}
+		"nodes": [
+			{
+				"id": "body",
+				"max": 100000,
+				"fatal": true
+			}
+		],
+		"routing": [
+			{
+				"node": "body",
+				"weight": 1
+			}
+		]
+	},
+	"fall_damage_per_level": 12000
 }

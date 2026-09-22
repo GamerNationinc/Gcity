@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A flight of scrap-steel stairs: the way up and the way down.",
+	"kind": "stair",
+	"material": "scrap_steel",
+	"open_cost": 0,
+	"value": 0
+}

@@ -149,6 +149,13 @@
 		{"kind": "quest.abandon", "payload": {}},
 		{"kind": "quest.abandon", "payload": {"actor": 1, "quest": "first_blood"}},
 		{"kind": "quest.abandon", "payload": {"actor": 1, "quest": "nothing"}},
-		{"kind": "quest.abandon", "payload": {"actor": "1", "quest": "first_blood"}}
+		{"kind": "quest.abandon", "payload": {"actor": "1", "quest": "first_blood"}},
+		{"kind": "actor.move", "payload": {"actor": 1, "dx": 0, "dy": 1, "dz": 0}},
+		{"kind": "actor.move", "payload": {"actor": 1, "dx": 0, "dy": 2, "dz": 0}},
+		{"kind": "actor.move", "payload": {"actor": 1, "dx": 0, "dy": -2, "dz": 0}},
+		{"kind": "actor.move", "payload": {"actor": 1, "dx": 0, "dy": 1.5, "dz": 0}},
+		{"kind": "actor.move", "payload": {"actor": 1, "dx": 0, "dy": 1, "dz": 0, "dw": 1}},
+		{"kind": "actor.move", "payload": {"actor": 1, "dy": 1, "dz": 0}},
+		{"kind": "actor.move", "payload": {"actor": 99, "dx": 0, "dy": 1, "dz": 0}}
 	]
 }

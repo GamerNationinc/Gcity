@@ -2,20 +2,111 @@
 	"schema_version": 1,
 	"description": "Selects which pipeline stages run and how a health graph is shaped and routed (design doc §13.1, §13.2). Arcade is the sim with stages disabled and coefficients flattened.",
 	"properties": {
-		"schema_version": {"type": "int", "min": 1, "max": 1},
-		"description": {"type": "string", "min_length": 1, "max_length": 240},
-		"stages": {"type": "array", "min_length": 1, "max_length": 16, "items": {"type": "string", "ref": "combat_stage"}},
-		"range_falloff_per_m": {"type": "int", "min": 0, "max": 1000000},
-		"speed_mm_per_tick": {"type": "int", "min": 0, "max": 10000},
-		"health": {"type": "object", "properties": {
-			"nodes": {"type": "array", "min_length": 1, "max_length": 32, "items": {"type": "object",
-				"properties": {"id": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"}, "max": {"type": "int", "min": 1, "max": 1000000000}, "fatal": {"type": "bool"}},
-				"required": ["id", "max", "fatal"], "additional_properties": false}},
-			"routing": {"type": "array", "min_length": 1, "max_length": 32, "items": {"type": "object",
-				"properties": {"node": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"}, "weight": {"type": "int", "min": 1, "max": 1000000}},
-				"required": ["node", "weight"], "additional_properties": false}}
-		}, "required": ["nodes", "routing"], "additional_properties": false}
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 240
+		},
+		"stages": {
+			"type": "array",
+			"min_length": 1,
+			"max_length": 16,
+			"items": {
+				"type": "string",
+				"ref": "combat_stage"
+			}
+		},
+		"range_falloff_per_m": {
+			"type": "int",
+			"min": 0,
+			"max": 1000000
+		},
+		"speed_mm_per_tick": {
+			"type": "int",
+			"min": 0,
+			"max": 10000
+		},
+		"health": {
+			"type": "object",
+			"properties": {
+				"nodes": {
+					"type": "array",
+					"min_length": 1,
+					"max_length": 32,
+					"items": {
+						"type": "object",
+						"properties": {
+							"id": {
+								"type": "string",
+								"pattern": "[a-z0-9][a-z0-9_]*"
+							},
+							"max": {
+								"type": "int",
+								"min": 1,
+								"max": 1000000000
+							},
+							"fatal": {
+								"type": "bool"
+							}
+						},
+						"required": [
+							"id",
+							"max",
+							"fatal"
+						],
+						"additional_properties": false
+					}
+				},
+				"routing": {
+					"type": "array",
+					"min_length": 1,
+					"max_length": 32,
+					"items": {
+						"type": "object",
+						"properties": {
+							"node": {
+								"type": "string",
+								"pattern": "[a-z0-9][a-z0-9_]*"
+							},
+							"weight": {
+								"type": "int",
+								"min": 1,
+								"max": 1000000
+							}
+						},
+						"required": [
+							"node",
+							"weight"
+						],
+						"additional_properties": false
+					}
+				}
+			},
+			"required": [
+				"nodes",
+				"routing"
+			],
+			"additional_properties": false
+		},
+		"fall_damage_per_level": {
+			"type": "int",
+			"min": 0,
+			"max": 1000000000
+		}
 	},
-	"required": ["schema_version", "description", "stages", "range_falloff_per_m", "speed_mm_per_tick", "health"],
+	"required": [
+		"schema_version",
+		"description",
+		"stages",
+		"range_falloff_per_m",
+		"speed_mm_per_tick",
+		"health",
+		"fall_damage_per_level"
+	],
 	"additional_properties": false
 }
