@@ -7,8 +7,8 @@
 	"gang_control": {"faction": "", "strength": 0},
 	"covers_unparcelled": false,
 	"rights": {
-		"owner":   {"build": true,  "dig": false, "enter": true, "carry": true,  "loot": true},
-		"other":   {"build": false, "dig": false, "enter": true, "carry": false, "loot": false},
-		"unowned": {"build": false, "dig": false, "enter": true, "carry": true,  "loot": false}
+		"owner":   {"build": true,  "dig": false, "enter": true, "carry": true,  "loot": true, "safe": true},
+		"other":   {"build": false, "dig": false, "enter": true, "carry": false, "loot": false, "safe": false},
+		"unowned": {"build": false, "dig": false, "enter": true, "carry": true,  "loot": false, "safe": false}
 	}
 }

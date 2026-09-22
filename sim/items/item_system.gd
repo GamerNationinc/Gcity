@@ -118,15 +118,18 @@ func attach(sim: SimRoot) -> Error:
 	if err != OK:
 		return err
 	var registry: CommandRegistry = sim.commands()
+	# the inventory app's own commands are pause-safe (M5 spec claim 7); the reloads
+	# are not: they take game time
 	for pair: Array in [
-		[COMMAND_SPAWN, _on_spawn], [COMMAND_LOAD, _on_load], [COMMAND_UNLOAD, _on_unload],
-		[COMMAND_ATTACH, _on_attach], [COMMAND_DETACH, _on_detach],
-		[COMMAND_ITEM_ATTACH, _on_attach], [COMMAND_ITEM_DETACH, _on_detach],
-		[COMMAND_RELOAD_TACTICAL, _on_reload_tactical], [COMMAND_RELOAD_EMERGENCY, _on_reload_emergency],
+		[COMMAND_SPAWN, _on_spawn, false], [COMMAND_LOAD, _on_load, true], [COMMAND_UNLOAD, _on_unload, true],
+		[COMMAND_ATTACH, _on_attach, true], [COMMAND_DETACH, _on_detach, true],
+		[COMMAND_ITEM_ATTACH, _on_attach, true], [COMMAND_ITEM_DETACH, _on_detach, true],
+		[COMMAND_RELOAD_TACTICAL, _on_reload_tactical, false], [COMMAND_RELOAD_EMERGENCY, _on_reload_emergency, false],
 	]:
 		var kind: StringName = pair[0]
 		var handler: Callable = pair[1]
-		err = registry.register(kind, handler)
+		var pause_safe: bool = pair[2]
+		err = registry.register(kind, handler, pause_safe)
 		if err != OK:
 			return err
 	return OK

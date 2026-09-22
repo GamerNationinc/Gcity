@@ -88,3 +88,10 @@ state change. Nothing else reads the event at M2; heat (M8) subscribes to it.
   refuse building, it is a parcel with the right owner in the right district.
 - Check a right by reading the district table yourself. `rights_at()` is the one
   code path, and `require()` is the one that emits.
+
+## The `safe` right and pause (M5)
+
+`safe` is the sixth right in every district's `rights` table. `sim.pause {actor}` is
+accepted only where the actor holds it (a refusal is a `land.violation`), `sim.resume
+{actor}` only while paused; both are pause-safe. A hub where anyone may pause is one
+content change: `safe: true` on the district's `other` and `unowned` rows.

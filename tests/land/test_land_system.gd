@@ -88,13 +88,13 @@ func test_rights_follow_owner_other_and_unowned_tables() -> void:
 	var player: int = _player()
 	var stranger: int = _actors.spawn(&"arcade", 0)
 	var plot_centre := Vector3i(6 * M, 0, 6 * M)
-	assert_eq(_rights(plot_centre, player), "00111", "unowned plot in the ghetto: enter, carry, loot")
+	assert_eq(_rights(plot_centre, player), "001110", "unowned plot in the ghetto: enter, carry, loot; not safe")
 	assert_true(_do(LandSystem.COMMAND_TRANSFER, {"parcel": "starter_plot", "owner": "player"}), "transfer to player")
-	assert_eq(_rights(plot_centre, player), "11111", "owner has every right")
-	assert_eq(_rights(plot_centre, stranger), "00110", "another actor: enter and carry only")
-	assert_eq(_rights(plot_centre, 999), "00110", "an actor that does not exist owns nothing")
-	assert_eq(_rights(Vector3i(18 * M, 0, 6 * M), player), "00110", "the neighbour's parcel: other")
-	assert_eq(_rights(Vector3i(500 * M, 0, 500 * M), player), "11111", "unparcelled badlands: free")
+	assert_eq(_rights(plot_centre, player), "111111", "owner has every right, safe included")
+	assert_eq(_rights(plot_centre, stranger), "001100", "another actor: enter and carry only")
+	assert_eq(_rights(plot_centre, 999), "001100", "an actor that does not exist owns nothing")
+	assert_eq(_rights(Vector3i(18 * M, 0, 6 * M), player), "001100", "the neighbour's parcel: other")
+	assert_eq(_rights(Vector3i(500 * M, 0, 500 * M), player), "111110", "unparcelled badlands: free, but nowhere is safe")
 
 
 func test_digging_under_the_neighbour_is_trespass() -> void:

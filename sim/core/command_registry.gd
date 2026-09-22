@@ -5,9 +5,13 @@ class_name CommandRegistry extends RefCounted
 ## Handler contract: [code]func(sim: SimRoot, payload: Dictionary) -> bool[/code].
 ## Returns true if the command was accepted and applied, false if rejected.
 var _handlers: Dictionary[StringName, Callable] = {}
+## Kinds a paused sim still dispatches (M5 spec claim 7): the device's own commands.
+var _pause_safe: Dictionary[StringName, bool] = {}
 
 
-func register(kind: StringName, handler: Callable) -> Error:
+## `pause_safe` marks a kind the sim dispatches while paused; everything else waits
+## for the resume. Gameplay (moving, building, firing) is never pause-safe.
+func register(kind: StringName, handler: Callable, pause_safe: bool = false) -> Error:
 	if kind.is_empty():
 		push_error("CommandRegistry: empty command kind")
 		return ERR_INVALID_PARAMETER
@@ -18,7 +22,13 @@ func register(kind: StringName, handler: Callable) -> Error:
 		push_error("CommandRegistry: kind '%s' already registered" % kind)
 		return ERR_ALREADY_EXISTS
 	_handlers[kind] = handler
+	if pause_safe:
+		_pause_safe[kind] = true
 	return OK
+
+
+func is_pause_safe(kind: StringName) -> bool:
+	return _pause_safe.has(kind)
 
 
 func has(kind: StringName) -> bool:

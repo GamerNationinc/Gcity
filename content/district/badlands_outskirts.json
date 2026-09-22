@@ -7,8 +7,8 @@
 	"gang_control": {"faction": "faction.dustrunners", "strength": 700},
 	"covers_unparcelled": true,
 	"rights": {
-		"owner":   {"build": true,  "dig": true,  "enter": true, "carry": true, "loot": true},
-		"other":   {"build": false, "dig": false, "enter": true, "carry": true, "loot": true},
-		"unowned": {"build": true,  "dig": true,  "enter": true, "carry": true, "loot": true}
+		"owner":   {"build": true,  "dig": true,  "enter": true, "carry": true, "loot": true, "safe": true},
+		"other":   {"build": false, "dig": false, "enter": true, "carry": true, "loot": true, "safe": false},
+		"unowned": {"build": true,  "dig": true,  "enter": true, "carry": true, "loot": true, "safe": false}
 	}
 }

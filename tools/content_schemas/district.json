@@ -14,14 +14,14 @@
 		"covers_unparcelled": {"type": "bool"},
 		"rights": {"type": "object", "properties": {
 			"owner": {"type": "object", "properties": {
-				"build": {"type": "bool"}, "dig": {"type": "bool"}, "enter": {"type": "bool"}, "carry": {"type": "bool"}, "loot": {"type": "bool"}},
-				"required": ["build", "dig", "enter", "carry", "loot"], "additional_properties": false},
+				"build": {"type": "bool"}, "dig": {"type": "bool"}, "enter": {"type": "bool"}, "carry": {"type": "bool"}, "loot": {"type": "bool"}, "safe": {"type": "bool"}},
+				"required": ["build", "dig", "enter", "carry", "loot", "safe"], "additional_properties": false},
 			"other": {"type": "object", "properties": {
-				"build": {"type": "bool"}, "dig": {"type": "bool"}, "enter": {"type": "bool"}, "carry": {"type": "bool"}, "loot": {"type": "bool"}},
-				"required": ["build", "dig", "enter", "carry", "loot"], "additional_properties": false},
+				"build": {"type": "bool"}, "dig": {"type": "bool"}, "enter": {"type": "bool"}, "carry": {"type": "bool"}, "loot": {"type": "bool"}, "safe": {"type": "bool"}},
+				"required": ["build", "dig", "enter", "carry", "loot", "safe"], "additional_properties": false},
 			"unowned": {"type": "object", "properties": {
-				"build": {"type": "bool"}, "dig": {"type": "bool"}, "enter": {"type": "bool"}, "carry": {"type": "bool"}, "loot": {"type": "bool"}},
-				"required": ["build", "dig", "enter", "carry", "loot"], "additional_properties": false}},
+				"build": {"type": "bool"}, "dig": {"type": "bool"}, "enter": {"type": "bool"}, "carry": {"type": "bool"}, "loot": {"type": "bool"}, "safe": {"type": "bool"}},
+				"required": ["build", "dig", "enter", "carry", "loot", "safe"], "additional_properties": false}},
 			"required": ["owner", "other", "unowned"], "additional_properties": false}
 	},
 	"required": ["schema_version", "description", "law_index", "wealth_index", "informant_density", "gang_control", "covers_unparcelled", "rights"],

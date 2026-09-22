@@ -65,6 +65,9 @@ func _on_bribe(_sim: SimRoot, payload: Dictionary) -> bool:
 	return true
 ```
 
+`register(kind, handler, pause_safe)`: a pause-safe kind is dispatched while the sim
+is paused (ADR-006 C; M5 spec claim 7): the device's own commands, never gameplay.
+
 Rules the handler must keep:
 
 - The payload is untrusted (standards §5.2). Reject on any shape or range surprise;

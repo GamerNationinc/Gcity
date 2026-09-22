@@ -53,10 +53,10 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.commands().register(COMMAND_SPAWN, _on_spawn)
 	if err != OK:
 		return err
-	err = sim.commands().register(COMMAND_WIELD, _on_wield)
+	err = sim.commands().register(COMMAND_WIELD, _on_wield, true)
 	if err != OK:
 		return err
-	return sim.commands().register(COMMAND_EQUIP_DEVICE, _on_equip_device)
+	return sim.commands().register(COMMAND_EQUIP_DEVICE, _on_equip_device, true)
 
 
 ## Health nodes must be unique and every routing entry must name one.

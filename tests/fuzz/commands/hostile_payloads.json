@@ -131,6 +131,14 @@
 		{"kind": "item.detach", "payload": {"actor": 1, "weapon": 3, "socket": 7}},
 		{"kind": "item.spawn", "payload": {"kind": "device_frame", "template": "g19", "container": "inv.1", "seed": 1, "count": 1}},
 		{"kind": "item.spawn", "payload": {"kind": "device_module", "template": "nothing", "container": "inv.1", "seed": 1, "count": 1}},
-		{"kind": "item.spawn", "payload": {"kind": "device_socket", "template": "radio", "container": "inv.1", "seed": 1, "count": 1}}
+		{"kind": "item.spawn", "payload": {"kind": "device_socket", "template": "radio", "container": "inv.1", "seed": 1, "count": 1}},
+		{"kind": "sim.pause", "payload": {}},
+		{"kind": "sim.pause", "payload": {"actor": 1}},
+		{"kind": "sim.pause", "payload": {"actor": "1"}},
+		{"kind": "sim.pause", "payload": {"actor": 99}},
+		{"kind": "sim.pause", "payload": {"actor": 1, "extra": 1}},
+		{"kind": "sim.resume", "payload": {}},
+		{"kind": "sim.resume", "payload": {"actor": 1}},
+		{"kind": "sim.resume", "payload": {"actor": 99}}
 	]
 }
