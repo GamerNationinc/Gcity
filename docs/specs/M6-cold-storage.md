@@ -1,16 +1,14 @@
 # M6 — "Cold Storage": specification
 
 Milestone M6 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **draft, awaiting approval**
-(submitted 2026-09-22).
+before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG,
+2026-09-22); implementation on branch `m6-cold-storage`, PR #8.
 
-**Preconditions.** G5 is signed in `docs/gates/M5-gate.md` (it is). One ADR blocks
-this milestone and is still `proposed`: **ADR-007** (death cost), proposed as **C**,
-a corpse that persists with the gear on it, a recovery run, softened inside city
-limits by the district's `law_index`. This spec is written against C because the
-mission must survive a death mid-run and the gate's fixtures include one. **No code
-starts on claims 10–11 until it carries CEOGG's signature**; the rest of the
-milestone does not depend on it. ADR-010 (hub interiors) does not block M6.
+**Preconditions.** G5 is signed in `docs/gates/M5-gate.md` (it is). **ADR-007** (death cost) is
+`accepted` as **C** (CEOGG, 2026-09-22), a corpse that persists with the gear on it,
+a recovery run, softened inside city limits by the district's `law_index`, as this
+spec assumed: the mission must survive a death mid-run and the gate's fixtures
+include one. ADR-010 (hub interiors) does not block M6.
 
 **The claim of the milestone.** This is the playable vertical slice: the §15 mission,
 in an authored building, with no procgen at all. A contract is accepted from a fixer,
@@ -170,16 +168,17 @@ and any second mission.
 
 ## Open points
 
-- **ADR-007** must be accepted before claims 10–11. Proposed as C.
+- ADR-007: accepted as C together with this spec (2026-09-22).
 - **Vertical movement is a mechanic, not a port.** Claim 1 is the one place M6 can
   overrun. If the Deck measurement or the property tests say the fall model is
   fighting the portal graph, the fallback is stairs-only movement with no falling
   (an actor in an unstandable cell is refused the move that got it there), recorded
   as a deviation.
 - **The `gate` Steam branch** the G6 bar names needs the registered app id
-  (standards §12 item 4, still open). If it is still open at G6, the package records
-  a sideloaded install and the Steam-install line stays unmet, which is CEOGG's call
-  to accept or hold.
+  (standards §12 item 4, still open). Decided with this approval (CEOGG,
+  2026-09-22): M6 proceeds, and if the app id has not arrived by the G6 package it
+  records a sideloaded install and states the Steam-install line as unmet, for the
+  approver to accept or hold at review.
 
 ## Assumptions to record in the gate
 
