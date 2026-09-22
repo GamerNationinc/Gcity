@@ -22,11 +22,13 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var items: ItemSystem = ItemSystem.new(content, stats, ids)
 	if items.attach(sim) != OK:
 		return null
-	var actors: ActorSystem = ActorSystem.new(content, stats, ids, items)
+	# the bus is built before the first system that emits on it: an actor's death is
+	# an event, and actors are the earliest system that has one
+	var events: EventBus = EventBus.new()
+	var actors: ActorSystem = ActorSystem.new(content, stats, ids, items, events)
 	if actors.attach(sim) != OK:
 		return null
 	items.set_actor_check(actors.has_actor)
-	var events: EventBus = EventBus.new()
 	var combat: CombatSystem = CombatSystem.new(content, stats, items, actors, events)
 	if combat.attach(sim) != OK:
 		return null
@@ -86,6 +88,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var standing: StandingSystem = StandingSystem.new(content, actors, items, stats, land, events)
 	if standing.attach(sim) != OK:
 		return null
+	var corpses: CorpseSystem = CorpseSystem.new(actors, items, ids, events)
+	if corpses.attach(sim) != OK:
+		return null
 	return sim
 
 
@@ -123,7 +128,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, CorpseSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -177,6 +182,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = score_of(sim).restore(state)
 			StandingSystem.SYSTEM_ID:
 				err = standing_of(sim).restore(state)
+			CorpseSystem.SYSTEM_ID:
+				err = corpses_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -396,3 +403,12 @@ static func standing_of(sim: SimRoot) -> StandingSystem:
 		return null
 	var standing: StandingSystem = system
 	return standing
+
+
+static func corpses_of(sim: SimRoot) -> CorpseSystem:
+	var system: SimSystem = sim.get_system(CorpseSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % CorpseSystem.SYSTEM_ID)
+		return null
+	var corpses: CorpseSystem = system
+	return corpses

@@ -14,6 +14,9 @@ class_name ItemSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"items"
 const WORLD: StringName = &"world"
+## A corpse's pockets (M6 spec claim 10, ADR-007 C). Open like an inventory, because
+## death moves a kit rather than destroying it and looting moves it back.
+const CORPSE_PREFIX: String = "corpse."
 const KIND_FRAME: StringName = &"weapon_frame"
 const KIND_PART: StringName = &"weapon_part"
 const KIND_AMMO: StringName = &"ammo"
@@ -253,6 +256,10 @@ func _content_fail(reason: String) -> Error:
 
 static func inventory_of(actor: int) -> StringName:
 	return StringName("inv.%d" % actor)
+
+
+static func corpse_container(corpse: int) -> StringName:
+	return StringName("%s%d" % [CORPSE_PREFIX, corpse])
 
 
 static func magazine_container(magazine: int) -> StringName:
@@ -819,6 +826,27 @@ func _fits(part: int, weapon: int) -> bool:
 	return false
 
 
+## Moves every item of one open container into another, keeping the order, and returns
+## how many moved. This is the one operation death and looting are built from: items
+## are transferred, never spawned or destroyed, so M1 claim 10's conservation property
+## holds across both. Both ends must be open containers and the destination must have
+## room for all of it, or nothing moves.
+func move_container(from: StringName, to: StringName) -> int:
+	if from == to or not _is_open_container(from) or not _is_open_container(to):
+		push_error("ItemSystem: move_container needs two different open containers, not '%s' -> '%s'" % [from, to])
+		return 0
+	var moving: Array[int] = items_in(from)
+	if moving.is_empty():
+		return 0
+	var cap: int = capacity_of(to)
+	if cap >= 0 and items_in(to).size() + moving.size() > cap:
+		push_error("ItemSystem: '%s' has no room for %d more" % [to, moving.size()])
+		return 0
+	for item: int in moving:
+		_move(item, to)
+	return moving.size()
+
+
 func _move(item: int, to: StringName) -> void:
 	var from: StringName = _location[item]
 	var from_list: Array[int] = _containers[from]
@@ -873,9 +901,14 @@ func _is_open_container(name: StringName) -> bool:
 	if name == WORLD:
 		return true
 	var text: String = String(name)
-	if not text.begins_with("inv."):
+	var prefix: String = ""
+	if text.begins_with("inv."):
+		prefix = "inv."
+	elif text.begins_with(CORPSE_PREFIX):
+		prefix = CORPSE_PREFIX
+	else:
 		return false
-	var rest: String = text.trim_prefix("inv.")
+	var rest: String = text.trim_prefix(prefix)
 	return rest.is_valid_int() and int(rest) >= 1 and str(int(rest)) == rest
 
 

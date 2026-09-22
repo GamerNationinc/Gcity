@@ -188,6 +188,13 @@
 		{"kind": "quest.turn_in", "payload": {"actor": 1, "quest": "cold_storage", "extra": 1}},
 		{"kind": "quest.turn_in", "payload": {"actor": 1, "quest": "no_such_quest"}},
 		{"kind": "quest.turn_in", "payload": {"actor": 99, "quest": "cold_storage"}},
-		{"kind": "quest.turn_in", "payload": {"actor": 1, "quest": "first_blood"}}
+		{"kind": "quest.turn_in", "payload": {"actor": 1, "quest": "first_blood"}},
+		{"kind": "corpse.loot", "payload": {}},
+		{"kind": "corpse.loot", "payload": {"actor": 1}},
+		{"kind": "corpse.loot", "payload": {"corpse": 1}},
+		{"kind": "corpse.loot", "payload": {"actor": 1, "corpse": "1"}},
+		{"kind": "corpse.loot", "payload": {"actor": 1, "corpse": 99999}},
+		{"kind": "corpse.loot", "payload": {"actor": 1, "corpse": 1, "extra": 1}},
+		{"kind": "corpse.loot", "payload": {"actor": 1, "corpse": -1}}
 	]
 }

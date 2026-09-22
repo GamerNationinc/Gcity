@@ -125,3 +125,26 @@ func test_restore_round_trip_and_rejections() -> void:
 static func _sub(dict: Dictionary, key: Variant) -> Dictionary:
 	var out: Dictionary = dict[key]
 	return out
+
+
+## M6 spec claim 10: dying is an event, emitted once, naming where the body fell.
+func test_death_is_announced_once_with_the_position() -> void:
+	_build()
+	var died: Array[Dictionary] = []
+	SimAssembly.combat_of(_sim).events().subscribe(ActorSystem.EVENT_DIED, func(payload: Dictionary) -> void:
+		died.append(payload))
+	var victim: int = _actors.spawn(&"arcade", 0)
+	_actors.set_position(victim, Vector3i(1234, 0, 5678))
+	var full: int = _actors.health_of(victim)[&"body"]
+	assert_true(_actors.damage_node(victim, &"body", full - 1) > 0, "hurt, not killed")
+	assert_true(_actors.is_alive(victim), "still up")
+	assert_eq(died.size(), 0, "nothing announced")
+	assert_true(_actors.damage_node(victim, &"body", 1) > 0, "the last point")
+	assert_false(_actors.is_alive(victim), "down")
+	assert_eq(died.size(), 1, "one actor.died")
+	assert_eq(died[0]["actor"], victim, "the actor")
+	assert_eq(died[0]["x"], 1234, "where it fell, x")
+	assert_eq(died[0]["z"], 5678, "where it fell, z")
+	# a corpse cannot die twice, however much it is shot
+	assert_eq(_actors.damage_node(victim, &"body", 100), 0, "no health left to take")
+	assert_eq(died.size(), 1, "still one")

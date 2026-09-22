@@ -467,3 +467,39 @@ func test_credits_are_items_with_a_face_value() -> void:
 	assert_true(_do(&"item.spawn", {"kind": "currency", "template": "credit_note", "container": "world", "seed": 9, "count": 3}), "spawned into the world")
 	assert_eq(_items.credits_in(&"world"), 300, "three notes on the ground")
 	assert_eq(_items.credits_in(ItemSystem.inventory_of(OTHER_ACTOR)), 0, "and none in the other pocket")
+
+
+## M6 spec claim 10: a corpse's pockets are an ordinary open container, and death and
+## looting are both one whole-container move, so nothing is spawned or destroyed.
+func test_a_corpse_container_is_open_and_a_whole_container_moves_at_once() -> void:
+	_build()
+	var kit: Dictionary = _kit()
+	var pistol: int = kit["pistol"]
+	var loose: Array = kit["rounds"]
+	var first_round: int = loose[0]
+	assert_true(_do(&"magazine.load", {"actor": ACTOR, "magazine": kit["mag_a"], "round": first_round}), "one round in the magazine")
+	var before: int = _items.item_count()
+	var held: int = _items.items_in(_inv()).size()
+	assert_true(held > 0, "a kit in the pocket")
+	var corpse: StringName = ItemSystem.corpse_container(ACTOR)
+	assert_eq(String(corpse), "corpse.%d" % ACTOR, "named after the corpse")
+	assert_eq(_items.move_container(_inv(), corpse), held, "the whole kit moves at once")
+	assert_eq(_items.item_count(), before, "and not one item was made or lost")
+	assert_eq(_items.items_in(_inv()).size(), 0, "the pocket is empty")
+	assert_eq(_items.container_of(pistol), corpse, "the pistol is on the body")
+	# a loaded magazine keeps its rounds: they live in the magazine, not the pocket
+	var mag: int = kit["mag_a"]
+	var rounds: Array[int] = _items.items_in(ItemSystem.magazine_container(mag))
+	assert_eq(_items.container_of(mag), corpse, "the magazine went with the rest")
+	assert_eq(_items.items_in(ItemSystem.magazine_container(mag)), rounds, "and its rounds are still in it")
+	# looting is the same move the other way
+	assert_eq(_items.move_container(corpse, ItemSystem.inventory_of(OTHER_ACTOR)), held, "and back off it")
+	assert_eq(_items.item_count(), before, "still conserved")
+	assert_eq(_items.items_in(corpse).size(), 0, "the body is stripped")
+	assert_eq(_items.move_container(corpse, _inv()), 0, "an empty container moves nothing")
+	# the ends have to be real open containers
+	assert_eq(_items.move_container(_inv(), _inv()), 0, "a container cannot move into itself")
+	assert_eq(_items.move_container(ItemSystem.inventory_of(OTHER_ACTOR), &"mag.3"), 0, "not into a magazine")
+	assert_eq(_items.move_container(ItemSystem.inventory_of(OTHER_ACTOR), &"corpse.0"), 0, "not into corpse zero")
+	assert_eq(_items.move_container(&"nowhere", _inv()), 0, "not out of nothing")
+	assert_eq(_items.item_count(), before, "every refusal left the count alone")
