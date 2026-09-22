@@ -177,3 +177,37 @@ func test_property_random_walks_never_cross_walls() -> void:
 			failures += 1
 	assert_eq(failures, 0, "every accepted move obeyed the rules (%d moves)" % moves)
 	assert_true(moves > 1000, "the walk moved (%d)" % moves)
+
+
+## M6 spec claim 9: leaving a parcel carrying something is an event, because that is
+## what an exfil objective is made of.
+func test_leaving_a_parcel_is_an_event_carrying_what_you_hold() -> void:
+	_setup()
+	var left: Array[Dictionary] = []
+	SimAssembly.combat_of(_sim).events().subscribe(MovementSystem.EVENT_LEFT_PARCEL, func(payload: Dictionary) -> void:
+		left.append(payload))
+	var items: ItemSystem = SimAssembly.items_of(_sim)
+	var inv: StringName = ItemSystem.inventory_of(_player)
+	assert_true(items.spawn(&"ammo", &"cold_storage_data", inv, 1) > 0, "the data in the bag")
+	# a step inside one parcel is not a leaving
+	_actors.set_position(_player, Vector3i(12050, 0, 6000))
+	assert_eq(_land.parcel_at(_actors.position_of(_player)), &"starter_plot", "on the plot")
+	assert_true(_movement.move(_player, 100, 0), "a step inside it")
+	assert_eq(left.size(), 0, "nothing left")
+	# and a step across the boundary is, naming the parcel left behind
+	assert_true(_movement.move(_player, 150, 0), "across the line")
+	assert_eq(_land.parcel_at(_actors.position_of(_player)), &"neighbour_east", "next door")
+	assert_eq(left.size(), 1, "one actor.left_parcel")
+	assert_eq(left[0]["actor"], _player, "the actor")
+	assert_eq(left[0]["parcel"], &"starter_plot", "the parcel it left, not the one it entered")
+	var tags: Array = left[0]["tags"]
+	assert_true(tags.has("data.cold_storage"), "carrying the data")
+	# walking off the edge of every parcel is a leaving too
+	_actors.set_position(_player, Vector3i(24300, 0, 6000))
+	assert_true(_movement.move(_player, 150, 0), "off the end")
+	assert_eq(_land.parcel_at(_actors.position_of(_player)), &"", "open ground")
+	assert_eq(left.size(), 2, "and that is the second")
+	assert_eq(left[1]["parcel"], &"neighbour_east", "the parcel left")
+	# open ground to open ground is not
+	assert_true(_movement.move(_player, 150, 0), "further out")
+	assert_eq(left.size(), 2, "still two")

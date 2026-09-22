@@ -17,6 +17,10 @@ class_name MovementSystem extends SimSystem
 const SYSTEM_ID: StringName = &"movement"
 const COMMAND_MOVE: StringName = &"actor.move"
 const EVENT_FELL: StringName = &"actor.fell"
+## Emitted when a move or a fall carries an actor out of a parcel, carrying the tags
+## of everything in its inventory: leaving somewhere with something is what an exfil
+## objective is (M6 spec claim 9).
+const EVENT_LEFT_PARCEL: StringName = &"actor.left_parcel"
 const KIND_DOOR_CHECK: StringName = &"door_check"
 
 var _content: ContentDb
@@ -62,6 +66,7 @@ func tick(_sim: SimRoot) -> void:
 		if _actors.set_position(actor, below) != OK:
 			_land_from_fall(actor)
 			continue
+		_note_parcel(actor, pos, below)
 		var so_far: int = _falling.get(actor, 0)
 		_falling[actor] = so_far + 1
 		_falls += 1
@@ -242,7 +247,33 @@ func move(actor: int, dx: int, dz: int, dy: int = 0) -> bool:
 	if _actors.set_position(actor, to) != OK:
 		return false
 	_moves += 1
+	_note_parcel(actor, from, to)
 	return true
+
+
+## Emits `actor.left_parcel` when the step took the actor out of a parcel. Crossing
+## straight from one parcel into another is a leaving too: the parcel named is the one
+## left, and what the actor carries rides on the payload so an objective can filter it.
+func _note_parcel(actor: int, from: Vector3i, to: Vector3i) -> void:
+	var left: StringName = _land.parcel_at(from)
+	if left.is_empty() or left == _land.parcel_at(to):
+		return
+	_events.emit(EVENT_LEFT_PARCEL, {"actor": actor, "parcel": left, "tags": carried_tags(actor)})
+
+
+## Every tag on every item in the actor's inventory, lexically sorted and without
+## repeats. A fitted part's tags stay on the part, not on what holds it.
+func carried_tags(actor: int) -> Array[String]:
+	var seen: Dictionary = {}
+	for item: int in _items.items_in(ItemSystem.inventory_of(actor)):
+		for tag: StringName in _stats.get_tags(item):
+			seen[String(tag)] = true
+	var out: Array[String] = []
+	for key: Variant in seen:
+		var text: String = key
+		out.append(text)
+	out.sort()
+	return out
 
 
 func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
