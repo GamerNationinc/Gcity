@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "The radio traffic the sim carries: squads, reports in flight, who is alerted.",
+	"title": "Comms",
+	"icon": "~",
+	"order": 40,
+	"requires": ""
+}

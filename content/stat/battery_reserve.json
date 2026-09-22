@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 1000,
+	"description": "Milli-units of a full charge the device holds; a reserve for drone return-to-home (M7)."
+}

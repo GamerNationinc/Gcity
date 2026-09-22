@@ -1,0 +1,4 @@
+{
+	"schema_version": 1,
+	"description": "The device's radio bay: a radio module here provides `radio` (design doc §12.2)."
+}

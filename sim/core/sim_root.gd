@@ -27,6 +27,11 @@ var _system_ids: Dictionary[StringName, bool] = {}
 var _inbox: Dictionary[int, Array] = {}
 var _dispatched: int = 0
 var _rejected: int = 0
+## Paused (ADR-006 C; M5 spec claim 7): the tick does not advance, no system ticks,
+## and only pause-safe commands dispatch from the next tick's queue. `paused_steps`
+## counts the frozen steps so a paused sim's state is still its own.
+var _paused: bool = false
+var _paused_steps: int = 0
 
 
 func _init(p_seed: int) -> void:
@@ -105,9 +110,45 @@ func submit(command: SimCommand) -> Error:
 	return OK
 
 
+func is_paused() -> bool:
+	return _paused
+
+
+func paused_steps() -> int:
+	return _paused_steps
+
+
+## The land authority's pause and resume commands call these; nothing else does.
+func set_paused(paused: bool) -> void:
+	_paused = paused
+
+
 ## Advances exactly one tick: dispatches the commands due on the new tick in
-## submission order, then ticks every system in registration order.
+## submission order, then ticks every system in registration order. Paused, it
+## dispatches only the pause-safe commands due on the next tick, keeps the rest
+## queued in order, advances nothing and ticks nothing.
 func step() -> void:
+	if _paused:
+		_paused_steps += 1
+		var next: int = _tick + 1
+		if _inbox.has(next):
+			var due: Array = _inbox[next]
+			var kept: Array = []
+			for entry: Variant in due:
+				var command: SimCommand = entry
+				if not _commands.is_pause_safe(command.kind):
+					kept.append(command)
+					continue
+				var err: Error = _commands.dispatch(self, command)
+				if err == OK:
+					_dispatched += 1
+				else:
+					_rejected += 1
+			if kept.is_empty():
+				_inbox.erase(next)
+			else:
+				_inbox[next] = kept
+		return
 	_tick += 1
 	if _inbox.has(_tick):
 		var due: Array = _inbox[_tick]
@@ -149,6 +190,8 @@ func snapshot() -> Dictionary:
 		"rng_state": _rng.state,
 		"dispatched": _dispatched,
 		"rejected": _rejected,
+		"paused": _paused,
+		"paused_steps": _paused_steps,
 		"inbox": inbox,
 		"systems": systems,
 	}
@@ -159,15 +202,17 @@ func snapshot() -> Dictionary:
 ## built with; every queued command must name a registered kind and a future tick.
 ## Nothing changes unless the whole snapshot is valid.
 func restore_root(snap: Dictionary) -> Error:
-	var expected: Array[String] = ["schema_version", "seed", "tick", "rng_state", "dispatched", "rejected", "inbox", "systems"]
+	var expected: Array[String] = ["schema_version", "seed", "tick", "rng_state", "dispatched", "rejected", "paused", "paused_steps", "inbox", "systems"]
 	if snap.size() != expected.size():
 		return _restore_fail("key count")
 	for key: String in expected:
 		if not snap.has(key):
 			return _restore_fail("missing '%s'" % key)
-	for key: String in ["schema_version", "seed", "tick", "rng_state", "dispatched", "rejected"]:
+	for key: String in ["schema_version", "seed", "tick", "rng_state", "dispatched", "rejected", "paused_steps"]:
 		if typeof(snap[key]) != TYPE_INT:
 			return _restore_fail("'%s' must be an int" % key)
+	if typeof(snap["paused"]) != TYPE_BOOL:
+		return _restore_fail("'paused' must be a bool")
 	if typeof(snap["inbox"]) != TYPE_DICTIONARY or typeof(snap["systems"]) != TYPE_DICTIONARY:
 		return _restore_fail("inbox and systems must be dictionaries")
 	var version: int = snap["schema_version"]
@@ -179,7 +224,8 @@ func restore_root(snap: Dictionary) -> Error:
 	var tick: int = snap["tick"]
 	var dispatched: int = snap["dispatched"]
 	var rejected: int = snap["rejected"]
-	if tick < 0 or dispatched < 0 or rejected < 0:
+	var paused_steps: int = snap["paused_steps"]
+	if tick < 0 or dispatched < 0 or rejected < 0 or paused_steps < 0:
 		return _restore_fail("negative counter")
 	var inbox_in: Dictionary = snap["inbox"]
 	var inbox: Dictionary[int, Array] = {}
@@ -208,6 +254,8 @@ func restore_root(snap: Dictionary) -> Error:
 	_rng.state = snap["rng_state"]
 	_dispatched = dispatched
 	_rejected = rejected
+	_paused = snap["paused"]
+	_paused_steps = paused_steps
 	_inbox = inbox
 	return OK
 

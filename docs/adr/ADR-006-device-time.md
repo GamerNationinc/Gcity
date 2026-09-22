@@ -1,6 +1,6 @@
 # ADR-006: Does the device pause time?
 
-Status: proposed
+Status: accepted
 Date: 2026-09-20
 Design doc: §12.4 (D-06); §15.2 terminal hack
 
@@ -28,7 +28,7 @@ about two seconds on a 7" screen with a controller.
 
 ## Decision
 
-Proposed: **C.** Sim-side it is one flag from `LandAuthority.rights_at(position, player)`;
+**Accepted: C** (CEOGG, 2026-09-21), as proposed. Sim-side it is one flag from `LandAuthority.rights_at(position, player)`;
 the client reads it to decide whether to submit a pause command. Pausing is itself a
 sim command (the sim stops ticking gameplay systems while paused), so the decision
 does not touch the sim/client split.
@@ -47,4 +47,6 @@ with a controller.
 
 ## Sign-off
 
-Approver: CEOGG — _pending_
+Approver: CEOGG
+Date: 2026-09-21
+Outcome: accepted (verification at the M5 gate: time-to-complete per device task with a controller; and the M6 demo's terminal hack with the device open outside a safe parcel)

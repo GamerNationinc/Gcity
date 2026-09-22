@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Containers, magazines, rounds, frames and their sockets; every button is an item command.",
+	"title": "Inventory",
+	"icon": "=",
+	"order": 10,
+	"requires": ""
+}

@@ -1,0 +1,18 @@
+{
+	"schema_version": 1,
+	"description": "A radio module for the handset's radio bay: 400 m of antenna gain and the `radio` requirement the drone app needs.",
+	"socket": "radio",
+	"fits": [
+		"handset"
+	],
+	"modifiers": [
+		{
+			"stat": "antenna_gain",
+			"class": "add",
+			"value": 400000
+		}
+	],
+	"provides": [
+		"radio"
+	]
+}

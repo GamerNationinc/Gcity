@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "The G5 extension exercise: a sixth app, content and one registered view, no hardware needed.",
+	"title": "Notes",
+	"icon": "*",
+	"order": 45,
+	"requires": ""
+}

@@ -1,0 +1,22 @@
+{
+	"schema_version": 1,
+	"description": "The second quest: three pieces placed. Proves an objective on a build event.",
+	"title": "Break ground",
+	"text": "Put three pieces of anything on your plot. A foundation block counts.",
+	"objectives": [
+		{
+			"description": "Place three build pieces",
+			"event": "build.changed",
+			"credit": "actor",
+			"tags_any": [],
+			"count": 3
+		}
+	],
+	"reward": [
+		{
+			"kind": "weapon_part",
+			"template": "g19_mag_15",
+			"count": 1
+		}
+	]
+}

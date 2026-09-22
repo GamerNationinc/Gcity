@@ -30,6 +30,7 @@ const AIM_CONE_DEG: float = 15.0
 const SAVE_DIR: String = "user://saves/world"
 
 @onready var _host: LocalHost = $LocalHost
+@onready var _steam: SteamHost = $SteamHost
 @onready var _status: Label = $Overlay/Status
 @onready var _camera: Camera3D = $Camera3D
 
@@ -42,6 +43,15 @@ var _setup_stage: int = 0
 ## Facing +z at start: the building's door is ten metres down the z axis.
 var _yaw: float = PI
 var _first_person: bool = false
+var _glyphs: InputGlyphs = InputGlyphs.new()
+## The device (M5 spec claims 3, 5, 8): its own viewport, redrawn only on change, shown
+## over the world while raised; raising pauses where the land says `safe`.
+var _device_viewport: SubViewport
+var _device_screen: TextureRect
+var _shell: DeviceShell
+var _device_raised: bool = false
+var _device_pressed_at: float = -1.0
+const RESTART_HOLD_S: float = 1.5
 var _piece_templates: Array[StringName] = []
 var _piece_index: int = 0
 var _log: Array[String] = []
@@ -83,7 +93,10 @@ func _ready() -> void:
 		elif arg == "--demo-loop":
 			_demo_loop = true
 	_piece_templates = _host.content().ids(&"build_piece")
+	_glyphs.set_deck(_steam.is_deck())
+	_glyphs.set_controller_active(_steam.is_deck() or not Input.get_connected_joypads().is_empty())
 	_build_static_scene()
+	_build_device()
 	_demo_script = _build_demo_script()
 
 
@@ -91,7 +104,12 @@ func _build_demo_script() -> Array:
 	# [gap before the action in seconds of sim time, action]
 	var steps: Array = [
 		[1.0, "wield"],
-		[0.2, "walk:33"],   # up the street beside the lobby
+		[0.5, "device"],          # on the owned plot: the device pauses the world
+		[0.6, "device:device_next_app"], [0.6, "device:device_next_app"], [0.6, "device:device_next_app"],
+		[0.6, "device:device_prev_app"], [0.6, "device:device_prev_app"], [0.6, "device:device_prev_app"],
+		[0.6, "device:device_down"], [0.3, "device:device_down"], [0.3, "device:device_down"],
+		[0.6, "device"],          # lowered: time runs again
+		[0.5, "walk:33"],   # up the street beside the lobby
 		[1.1, "look:90"],   # face +x
 		[0.1, "walk:20"],   # in front of the door: the post inside starts to notice
 		[0.7, "look:-90"],  # face +z
@@ -107,6 +125,57 @@ func _build_demo_script() -> Array:
 		t += gap
 		script.append([t, step[1]])
 	return script
+
+
+# ---------------------------------------------------------------- the device
+
+func _build_device() -> void:
+	_device_viewport = SubViewport.new()
+	_device_viewport.size = Vector2i(DeviceShell.WIDTH, DeviceShell.HEIGHT)
+	_device_viewport.transparent_bg = true
+	_device_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	add_child(_device_viewport)
+	_shell = DeviceShell.new()
+	_shell.setup(_host.content(), _submit_from_device, _glyphs)
+	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking"]:
+		var scene: PackedScene = load("res://client/device/apps/%s_app.tscn" % app)
+		_shell.register_view(StringName(app), scene)
+	_device_viewport.add_child(_shell)
+	_device_screen = TextureRect.new()
+	_device_screen.texture = _device_viewport.get_texture()
+	_device_screen.position = Vector2((1280 - DeviceShell.WIDTH) / 2.0, 120.0)
+	_device_screen.size = Vector2(DeviceShell.WIDTH, DeviceShell.HEIGHT)
+	_device_screen.visible = false
+	$Overlay.add_child(_device_screen)
+
+
+func _submit_from_device(kind: StringName, payload: Dictionary) -> void:
+	_submit(_host.sim(), kind, payload)
+
+
+func _raise_device(raise: bool) -> void:
+	if raise == _device_raised or _setup_stage < READY:
+		return
+	var sim: SimRoot = _host.sim()
+	_device_raised = raise
+	_device_screen.visible = raise
+	_steam.activate_action_set(raise)
+	if raise:
+		var rights: Dictionary = SimAssembly.land_of(sim).rights_at(SimAssembly.actors_of(sim).position_of(_player), _player)
+		var safe: bool = rights[&"safe"]
+		if safe and not sim.is_paused():
+			_submit(sim, &"sim.pause", {"actor": _player})
+		_shell.note("")
+		_device_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+	elif sim.is_paused():
+		_submit(sim, &"sim.resume", {"actor": _player})
+
+
+func _refresh_device() -> void:
+	if not _device_raised or _setup_stage < READY:
+		return
+	if _shell.refresh(_host.sim(), _player):
+		_device_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 
 
 # ---------------------------------------------------------------- scene
@@ -357,12 +426,13 @@ func _process(delta: float) -> void:
 			_save_capture()
 			get_tree().quit()
 			return
-	else:
+	elif not _device_raised:
 		var look: float = Input.get_action_strength("world_look_right") - Input.get_action_strength("world_look_left")
 		_yaw -= look * LOOK_SPEED * delta
 	_sync_scene(sim)
 	_place_camera(sim)
 	_render(sim)
+	_refresh_device()
 
 
 func _physics_process(_delta: float) -> void:
@@ -378,7 +448,7 @@ func _physics_process(_delta: float) -> void:
 			input = _demo_walk_dir
 	else:
 		input = Input.get_vector("world_move_left", "world_move_right", "world_move_forward", "world_move_back")
-	if input.length_squared() < 0.01 or not SimAssembly.actors_of(sim).is_alive(_player):
+	if _device_raised or input.length_squared() < 0.01 or not SimAssembly.actors_of(sim).is_alive(_player):
 		return
 	var speed: int = SimAssembly.movement_of(sim).speed_of(_player)
 	var forward: Vector2 = Vector2(-sin(_yaw), -cos(_yaw))
@@ -461,7 +531,32 @@ func _save_screenshot() -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_pressed() or event.is_echo():
+	_glyphs.note(event)
+	if event.is_echo():
+		return
+	# the device button: a short press raises or lowers, a long hold restarts
+	if event.is_action("world_device"):
+		if event.is_pressed():
+			_device_pressed_at = Time.get_ticks_msec() / 1000.0
+		elif _device_pressed_at >= 0.0:
+			var held: float = Time.get_ticks_msec() / 1000.0 - _device_pressed_at
+			_device_pressed_at = -1.0
+			if held >= RESTART_HOLD_S:
+				_perform("restart")
+			else:
+				_raise_device(not _device_raised)
+		return
+	if not event.is_pressed():
+		return
+	if _device_raised:
+		for action: String in ["device_up", "device_down", "device_left", "device_right", "device_select", "device_secondary", "device_back", "device_prev_app", "device_next_app"]:
+			if event.is_action(action):
+				var outcome: String = _shell.handle(StringName(action), _host.sim(), _player)
+				if outcome == "lower":
+					_raise_device(false)
+				else:
+					_device_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+				return
 		return
 	for action: String in ["fire", "reload", "wield", "camera", "build_place", "build_remove", "build_next", "raid", "save", "load", "profile", "overlay", "restart"]:
 		if event.is_action("world_" + action):
@@ -495,6 +590,10 @@ func _advance_setup(sim: SimRoot) -> void:
 			for guard: Dictionary in M4Building.guards(GUARD_PROFILES[_guard_profile]):
 				_submit(sim, &"agent.spawn", guard)
 			_submit_kit(sim, _player, 1, 2, 30)
+			var inv: String = String(ItemSystem.inventory_of(_player))
+			_submit(sim, &"item.spawn", {"kind": "device_frame", "template": "handset", "container": inv, "seed": 7, "count": 1})
+			_submit(sim, &"item.spawn", {"kind": "device_module", "template": "radio_module", "container": inv, "seed": 8, "count": 1})
+			_submit(sim, &"item.spawn", {"kind": "device_module", "template": "daemon_coprocessor", "container": inv, "seed": 9, "count": 1})
 			_setup_stage = 2
 		2:
 			var ids: Array[int] = actors.actor_ids()
@@ -508,7 +607,7 @@ func _advance_setup(sim: SimRoot) -> void:
 				_submit_kit(sim, _guards[i], 10 + i * 100, 11 + i * 100, 15)
 			_setup_stage = 3
 		3:
-			if items.items_in(ItemSystem.inventory_of(_player)).size() < 3 + 30:
+			if items.items_in(ItemSystem.inventory_of(_player)).size() < 3 + 30 + 3:
 				return
 			for guard: int in _guards:
 				if items.items_in(ItemSystem.inventory_of(guard)).size() < KIT_ITEMS:
@@ -526,6 +625,9 @@ func _advance_setup(sim: SimRoot) -> void:
 				if gm.is_empty() or items.rounds_in(gm[0]).size() < 15:
 					return
 			_submit(sim, &"weapon.reload_tactical", {"actor": _player, "weapon": _pistol, "magazine": mags[0]})
+			for id: int in items.items_in(ItemSystem.inventory_of(_player)):
+				if items.item_kind(id) == ItemSystem.KIND_DEVICE_FRAME:
+					_submit(sim, &"actor.equip_device", {"actor": _player, "device": id})
 			for guard: int in _guards:
 				var gm: Array[int] = _loose_mags(items, guard)
 				_submit(sim, &"actor.wield", {"actor": guard, "weapon": _frame_of(items, guard)})
@@ -649,8 +751,15 @@ func _perform(action: String) -> void:
 			_note("guards now %s" % GUARD_PROFILES[_guard_profile])
 		"overlay":
 			_overlay = not _overlay
+		"device":
+			_raise_device(not _device_raised)
 		_:
-			if action.begins_with("walk:"):
+			if action.begins_with("device:"):
+				var outcome: String = _shell.handle(StringName(action.trim_prefix("device:")), sim, _player)
+				if outcome == "lower":
+					_raise_device(false)
+				_device_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+			elif action.begins_with("walk:"):
 				_demo_walk_ticks = action.trim_prefix("walk:").to_int()
 				_demo_walk_dir = Vector2(0.0, -1.0)
 			elif action.begins_with("look:"):
@@ -755,6 +864,9 @@ func _restart() -> void:
 		for node: Node in table.values():
 			node.queue_free()
 		table.clear()
+	if _device_raised:
+		_device_raised = false
+		_device_screen.visible = false
 	_player = 0
 	_pistol = 0
 	_guards = []
@@ -810,7 +922,7 @@ func _load_game() -> void:
 
 func _render(sim: SimRoot) -> void:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("Gcity M4 world   tick %d   state %s" % [sim.get_tick(), sim.state_hash().left(12)])
+	lines.append("Gcity M5 world   tick %d   state %s%s" % [sim.get_tick(), sim.state_hash().left(12), "   PAUSED" if sim.is_paused() else ""])
 	if _setup_stage < READY:
 		lines.append("setting up (stage %d)..." % _setup_stage)
 		_status.text = "\n".join(lines)
@@ -850,8 +962,9 @@ func _render(sim: SimRoot) -> void:
 			"!" if perception.is_alerted(guard, _player) else " ", stress.stress_of(guard) / 10000, ActorSystem.metres_between(p, gp), "sees you" if sees else ("remembers" if perception.has_last_known(guard, _player) else "unaware")])
 	lines.append("guards: %s   overlay %s   piece to place: %s" % [GUARD_PROFILES[_guard_profile], "on" if _overlay else "off", _piece_templates[_piece_index]])
 	lines.append("")
-	lines.append("[WASD / L stick] move  [Q E / R stick] look  [C / L3] camera  [Space / RB] fire  [R / X] reload  [F / Y] wield")
-	lines.append("[Enter / A] place  [Backspace / B] remove  [Tab / LB] next piece  [P / D-up] guard profile  [O / D-down] overlay  [Esc / Back] restart  [F5] save  [F9] load")
+	lines.append(_glyphs.line([[&"world_move_forward", "move"], [&"world_look_left", "look"], [&"world_camera", "camera"], [&"world_fire", "fire"], [&"world_reload", "reload"], [&"world_wield", "wield"]]))
+	lines.append(_glyphs.line([[&"world_build_place", "place"], [&"world_build_remove", "remove"], [&"world_build_next", "next piece"], [&"world_device", "device (hold: restart)"], [&"world_profile", "guard profile"], [&"world_overlay", "overlay"], [&"world_restart", "restart"], [&"world_save", "save"], [&"world_load", "load"]]))
+	lines.append("steam: %s%s" % [_steam.status(), ("  (%s)" % _steam.persona()) if _steam.is_online() else ""])
 	if _demo:
 		lines.append("DEMO %.1fs  step %d/%d" % [_demo_t, _demo_next, _demo_script.size()])
 	for entry: String in _log:

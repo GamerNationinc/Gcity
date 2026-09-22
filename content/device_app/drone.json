@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Drone control. Needs a radio module in the device; the drones themselves are M7.",
+	"title": "Drone",
+	"icon": "^",
+	"order": 50,
+	"requires": "radio"
+}

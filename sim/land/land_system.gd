@@ -21,7 +21,11 @@ const KIND_PARCEL: StringName = &"parcel"
 const COMMAND_TRANSFER: StringName = &"land.transfer"
 const COMMAND_IDENTIFY: StringName = &"land.identify"
 const EVENT_VIOLATION: StringName = &"land.violation"
-const RIGHTS: Array[StringName] = [&"build", &"dig", &"enter", &"carry", &"loot"]
+const RIGHTS: Array[StringName] = [&"build", &"dig", &"enter", &"carry", &"loot", &"safe"]
+## Pause is a sim command the land authority gates (ADR-006 C; M5 spec claim 7): an
+## actor may pause only where it holds `safe`, and only a paused sim resumes.
+const COMMAND_PAUSE: StringName = &"sim.pause"
+const COMMAND_RESUME: StringName = &"sim.resume"
 const TABLE_OWNER: String = "owner"
 const TABLE_OTHER: String = "other"
 const TABLE_UNOWNED: String = "unowned"
@@ -103,7 +107,40 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.commands().register(COMMAND_TRANSFER, _on_transfer)
 	if err != OK:
 		return err
-	return sim.commands().register(COMMAND_IDENTIFY, _on_identify)
+	err = sim.commands().register(COMMAND_IDENTIFY, _on_identify)
+	if err != OK:
+		return err
+	# both pause-safe: a redundant pause is refused at once instead of waiting in the
+	# queue to pause the sim again the moment it resumes
+	err = sim.commands().register(COMMAND_PAUSE, _on_pause, true)
+	if err != OK:
+		return err
+	return sim.commands().register(COMMAND_RESUME, _on_resume, true)
+
+
+## {"actor": int}: pause where the actor holds `safe`. A refusal for lack of the right
+## is a land.violation like any other, so the device can show why.
+func _on_pause(sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 1 or typeof(payload.get("actor")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	if sim.is_paused() or not _actors.is_alive(actor):
+		return false
+	if not require(_actors.position_of(actor), actor, &"safe"):
+		return false
+	sim.set_paused(true)
+	return true
+
+
+## {"actor": int}: resume a paused sim. Pause-safe, so it dispatches while paused.
+func _on_resume(sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 1 or typeof(payload.get("actor")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	if not sim.is_paused() or not _actors.is_alive(actor):
+		return false
+	sim.set_paused(false)
+	return true
 
 
 # ---------------------------------------------------------------- content validation

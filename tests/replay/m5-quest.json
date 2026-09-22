@@ -1,0 +1,504 @@
+{
+	"commands": [
+		{
+			"kind": "actor.spawn",
+			"payload": {
+				"profile": "arcade",
+				"range_m": 0
+			},
+			"tick": 1
+		},
+		{
+			"kind": "land.identify",
+			"payload": {
+				"actor": 1,
+				"owner": "player"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "land.transfer",
+			"payload": {
+				"owner": "player",
+				"parcel": "starter_plot"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 1,
+				"kind": "device_frame",
+				"seed": 1,
+				"template": "handset"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 1,
+				"kind": "device_module",
+				"seed": 2,
+				"template": "radio_module"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 1,
+				"kind": "weapon_frame",
+				"seed": 3,
+				"template": "g19"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 1,
+				"kind": "weapon_part",
+				"seed": 4,
+				"template": "g19_mag_15"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "item.spawn",
+			"payload": {
+				"container": "inv.1",
+				"count": 20,
+				"kind": "ammo",
+				"seed": 100,
+				"template": "9x19_fmj"
+			},
+			"tick": 2
+		},
+		{
+			"kind": "actor.spawn",
+			"payload": {
+				"profile": "range_dummy",
+				"range_m": 6
+			},
+			"tick": 10
+		},
+		{
+			"kind": "quest.accept",
+			"payload": {
+				"actor": 1,
+				"quest": "first_blood"
+			},
+			"tick": 12
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 6
+			},
+			"tick": 13
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 7
+			},
+			"tick": 14
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 8
+			},
+			"tick": 15
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 9
+			},
+			"tick": 16
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 10
+			},
+			"tick": 17
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 11
+			},
+			"tick": 18
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 12
+			},
+			"tick": 19
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 13
+			},
+			"tick": 20
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 14
+			},
+			"tick": 21
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 15
+			},
+			"tick": 22
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 16
+			},
+			"tick": 23
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 17
+			},
+			"tick": 24
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 18
+			},
+			"tick": 25
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 19
+			},
+			"tick": 26
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"round": 20
+			},
+			"tick": 27
+		},
+		{
+			"kind": "actor.wield",
+			"payload": {
+				"actor": 1,
+				"weapon": 4
+			},
+			"tick": 28
+		},
+		{
+			"kind": "weapon.reload_tactical",
+			"payload": {
+				"actor": 1,
+				"magazine": 5,
+				"weapon": 4
+			},
+			"tick": 28
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 118
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 125
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 132
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 139
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 146
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 153
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 160
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 167
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 174
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 181
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 188
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 195
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 202
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 209
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 216
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 223
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 230
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 237
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 244
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 251
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 258
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 265
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 272
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 279
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 286
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 293
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 300
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 307
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 314
+		},
+		{
+			"kind": "weapon.fire",
+			"payload": {
+				"actor": 1,
+				"target": 26
+			},
+			"tick": 321
+		},
+		{
+			"kind": "quest.abandon",
+			"payload": {
+				"actor": 1,
+				"quest": "first_blood"
+			},
+			"tick": 328
+		}
+	],
+	"expected_hash": "d54e5af59b151ef34bde71b42cd05591ca88166a9d971ea3cfd9f8266386946b",
+	"name": "m5-quest",
+	"schema_version": 1,
+	"seed": 20261150,
+	"ticks": 338
+}

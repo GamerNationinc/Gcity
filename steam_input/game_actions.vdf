@@ -1,0 +1,74 @@
+"In Game Actions"
+{
+	"actions"
+	{
+		"world"
+		{
+			"title"		"#Set_World"
+			"StickPadGyro"
+			{
+				"move"		{ "title" "#Action_Move"	"input_mode" "joystick_move" }
+				"look"		{ "title" "#Action_Look"	"input_mode" "joystick_camera" }
+			}
+			"Button"
+			{
+				"fire"			"#Action_Fire"
+				"reload"		"#Action_Reload"
+				"wield"			"#Action_Wield"
+				"camera"		"#Action_Camera"
+				"place"			"#Action_Place"
+				"remove"		"#Action_Remove"
+				"next_piece"	"#Action_NextPiece"
+				"raid"			"#Action_Raid"
+				"device"		"#Action_Device"
+				"overlay"		"#Action_Overlay"
+				"profile"		"#Action_Profile"
+				"restart"		"#Action_Restart"
+			}
+		}
+		"device"
+		{
+			"title"		"#Set_Device"
+			"StickPadGyro"
+			{
+				"cursor"	{ "title" "#Action_Cursor"	"input_mode" "absolute_mouse" }
+			}
+			"Button"
+			{
+				"select"		"#Action_Select"
+				"back"			"#Action_Back"
+				"next_app"		"#Action_NextApp"
+				"prev_app"		"#Action_PrevApp"
+				"lower"			"#Action_Lower"
+			}
+		}
+	}
+	"localization"
+	{
+		"english"
+		{
+			"Set_World"			"In the world"
+			"Set_Device"		"Device raised"
+			"Action_Move"		"Move"
+			"Action_Look"		"Look"
+			"Action_Fire"		"Fire"
+			"Action_Reload"		"Reload"
+			"Action_Wield"		"Wield / holster"
+			"Action_Camera"		"First / third person"
+			"Action_Place"		"Place piece"
+			"Action_Remove"		"Remove piece"
+			"Action_NextPiece"	"Next piece"
+			"Action_Raid"		"Spawn raid (debug)"
+			"Action_Device"		"Raise the device"
+			"Action_Overlay"	"Toggle the AI overlay (debug)"
+			"Action_Profile"	"Swap guard profile (debug)"
+			"Action_Restart"	"Restart"
+			"Action_Cursor"		"Cursor"
+			"Action_Select"		"Select"
+			"Action_Back"		"Back"
+			"Action_NextApp"	"Next app"
+			"Action_PrevApp"	"Previous app"
+			"Action_Lower"		"Lower the device"
+		}
+	}
+}

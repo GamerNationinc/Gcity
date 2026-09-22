@@ -1,0 +1,107 @@
+{
+	"schema_version": 1,
+	"description": "A quest record (M5 spec claim 9): objectives are bus events credited to an actor field of the payload, optionally filtered by tags, counted to a target; the reward is item templates spawned into the actor's inventory once on completion. Offers, dialogue and site binding are the director's (M6/M7).",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 240
+		},
+		"title": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 60
+		},
+		"text": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 600
+		},
+		"objectives": {
+			"type": "array",
+			"min_length": 1,
+			"max_length": 8,
+			"items": {
+				"type": "object",
+				"properties": {
+					"description": {
+						"type": "string",
+						"min_length": 1,
+						"max_length": 120
+					},
+					"event": {
+						"type": "string",
+						"pattern": "[a-z0-9][a-z0-9_.]*"
+					},
+					"credit": {
+						"type": "string",
+						"pattern": "[a-z0-9][a-z0-9_]*"
+					},
+					"tags_any": {
+						"type": "array",
+						"max_length": 8,
+						"items": {
+							"type": "string",
+							"pattern": "[a-z0-9][a-z0-9_.]*"
+						}
+					},
+					"count": {
+						"type": "int",
+						"min": 1,
+						"max": 10000
+					}
+				},
+				"required": [
+					"description",
+					"event",
+					"credit",
+					"tags_any",
+					"count"
+				],
+				"additional_properties": false
+			}
+		},
+		"reward": {
+			"type": "array",
+			"max_length": 8,
+			"items": {
+				"type": "object",
+				"properties": {
+					"kind": {
+						"type": "string",
+						"pattern": "[a-z0-9][a-z0-9_]*"
+					},
+					"template": {
+						"type": "string",
+						"pattern": "[a-z0-9][a-z0-9_]*"
+					},
+					"count": {
+						"type": "int",
+						"min": 1,
+						"max": 100
+					}
+				},
+				"required": [
+					"kind",
+					"template",
+					"count"
+				],
+				"additional_properties": false
+			}
+		}
+	},
+	"required": [
+		"schema_version",
+		"description",
+		"title",
+		"text",
+		"objectives",
+		"reward"
+	],
+	"additional_properties": false
+}

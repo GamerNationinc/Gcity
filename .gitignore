@@ -17,3 +17,7 @@ docs/**/*.import
 
 # Export output (tools/export.sh)
 build/
+# GodotSteam binaries: installed by tools/godotsteam.sh from the pinned, hash-checked release
+addons/godotsteam/linux64/
+addons/godotsteam/win64/
+addons/godotsteam/.installed-*

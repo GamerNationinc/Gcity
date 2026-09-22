@@ -286,7 +286,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 	var out: Array = []
 	for _i: int in count:
 		var at: int = rng.randi_range(1, 3)
-		match rng.randi_range(0, 15):
+		match rng.randi_range(0, 21):
 			0:
 				out.append([at, &"actor.spawn", {"profile": "arcade", "range_m": rng.randi_range(0, 20)}])
 			10:
@@ -305,6 +305,19 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 				out.append([at, &"raid.spawn", {"tool": ["cutter", "nothing"][rng.randi_range(0, 1)]}])
 			15:
 				out.append([at, &"actor.move", {"actor": rng.randi_range(1, 6), "dx": rng.randi_range(-150, 150), "dz": rng.randi_range(-150, 150)}])
+			16:
+				# M5 claim 16: the device, its bays, quests and the pause
+				out.append([at, &"item.spawn", {"kind": ["device_frame", "device_module"][rng.randi_range(0, 1)], "template": ["handset", "radio_module", "nothing"][rng.randi_range(0, 2)], "container": "inv.%d" % rng.randi_range(1, 3), "seed": rng.randi(), "count": 1}])
+			17:
+				out.append([at, &"actor.equip_device", {"actor": rng.randi_range(1, 3), "device": rng.randi_range(0, 14)}])
+			18:
+				out.append([at, &"item.attach", {"actor": rng.randi_range(1, 3), "weapon": rng.randi_range(1, 14), "part": rng.randi_range(1, 14)}])
+			19:
+				out.append([at, &"item.detach", {"actor": rng.randi_range(1, 3), "weapon": rng.randi_range(1, 14), "socket": ["radio", "coprocessor", "barrel", "nothing"][rng.randi_range(0, 3)]}])
+			20:
+				out.append([at, &"quest.accept" if rng.randi_range(0, 1) == 0 else &"quest.abandon", {"actor": rng.randi_range(1, 3), "quest": ["first_blood", "break_ground", "nothing"][rng.randi_range(0, 2)]}])
+			21:
+				out.append([at, &"sim.pause" if rng.randi_range(0, 1) == 0 else &"sim.resume", {"actor": rng.randi_range(1, 3)}])
 			1:
 				out.append([at, &"item.spawn", {"kind": "weapon_frame", "template": "g19", "container": "inv.%d" % rng.randi_range(1, 3), "seed": rng.randi(), "count": 1}])
 			2:
