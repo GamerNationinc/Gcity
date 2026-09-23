@@ -358,3 +358,29 @@ func test_something_that_is_not_an_agent_has_no_cone_at_all() -> void:
 	assert_eq(_aim.cone_of(bystander), 0, "and so no cone")
 	assert_eq(_aim.cone_of(99999), 0, "nor has an actor that does not exist")
 	assert_eq(_aim.target_of(bystander), 0, "and it is aiming at nobody")
+
+
+## Mutation testing (M6 claim 12): the stress record was written back to the table at
+## the end of every tick and nothing noticed when that line went, because every test
+## read stress within the same tick it was raised. Stress that does not persist is not
+## stress.
+func test_stress_persists_across_ticks_and_its_modifier_follows_it() -> void:
+	_setup()
+	var agent: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 1, "")
+	assert_true(agent > 0, "a guard")
+	var stats: StatResolver = SimAssembly.stats_of(_sim)
+	var before: int = stats.resolve(agent, &"hit_chance")
+	_fire_event(_player, agent)
+	_sim.step()
+	var raised: int = _stress.stress_of(agent)
+	assert_true(raised > 0, "frightened (%d)" % raised)
+	# the record survives a tick that does nothing to it
+	_sim.step()
+	assert_true(_stress.stress_of(agent) > 0, "still frightened a tick later")
+	assert_true(stats.resolve(agent, &"hit_chance") < before, "and still shooting worse")
+	# it decays rather than vanishing, which only holds if the record is kept
+	var falling: int = _stress.stress_of(agent)
+	_sim.step_n(20)
+	var later: int = _stress.stress_of(agent)
+	assert_true(later < falling, "it decays (%d -> %d)" % [falling, later])
+	assert_true(later > 0, "but is not simply forgotten")

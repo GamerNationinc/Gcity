@@ -191,3 +191,38 @@ func test_property_an_actor_never_settles_in_a_solid_cell_or_the_air() -> void:
 			_setup()  # a lethal fall: start over, the structure with it
 	assert_eq(violations, 0, "every settled actor stands on something (%d fell, %d settled above the ground)" % [fell_cases, settled_high])
 	assert_true(fell_cases > 500 and settled_high > 50, "both outcomes were exercised (%d fell, %d settled above the ground)" % [fell_cases, settled_high])
+
+
+## Mutation testing (M6 claim 12): a refused level change bumped the blocked counter
+## and nothing read it, so the bump could be deleted unnoticed. The counter is how the
+## client and the benches tell "nobody tried to move" from "the world said no".
+func test_a_refused_level_change_is_counted_as_blocked() -> void:
+	_setup()
+	_two_storey()
+	var blocked: int = _movement.blocked_count()
+	_actors.set_position(_player, _at(2, 1, 2))
+	assert_false(_movement.move(_player, 0, 0, 1), "nothing to climb here")
+	assert_eq(_movement.blocked_count(), blocked + 1, "and the refusal was counted")
+	# an impossible request is not a blocked move: asking for two levels at once is
+	# refused before the world is consulted, and the counter is about the world
+	assert_false(_movement.move(_player, 0, 0, 2), "two levels at once")
+	assert_eq(_movement.blocked_count(), blocked + 1, "not counted: nothing blocked it")
+	assert_false(_movement.move(_player, 0, 0, 0), "a zero move is refused")
+	assert_eq(_movement.blocked_count(), blocked + 1, "nor that")
+	# and a climb that works is not counted either
+	_actors.set_position(_player, _at(1, 1, 1))
+	assert_true(_movement.move(_player, 0, 0, 1), "up the stairs")
+	assert_eq(_movement.blocked_count(), blocked + 1, "still one")
+
+
+## The other way a level change is refused: something solid is already there.
+func test_climbing_into_a_solid_cell_is_refused_and_counted() -> void:
+	_setup()
+	_two_storey()
+	assert_true(_place(&"stair_flight", 0, 1, 2, "nx") > 0, "a flight in the north-west")
+	assert_true(_place(&"storage_crate", 0, 2, 2, "") > 0, "and a crate filling the cell above it")
+	_actors.set_position(_player, _at(0, 1, 2))
+	var blocked: int = _movement.blocked_count()
+	assert_false(_movement.move(_player, 0, 0, 1), "there is no room up there")
+	assert_eq(_movement.blocked_count(), blocked + 1, "counted once, not twice")
+	assert_eq(_actors.position_of(_player), _at(0, 1, 2), "and the actor stayed put")
