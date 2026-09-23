@@ -85,6 +85,13 @@ func attach(sim: SimRoot) -> Error:
 
 # ---------------------------------------------------------------- queries
 
+## True when the actor has a run on record, whether it is still on or already scored.
+## The device needs the difference between "no run" and "a run that ended at zero",
+## which the counters alone cannot tell it.
+func has_run(actor: int) -> bool:
+	return not _record(actor).is_empty()
+
+
 func is_running(actor: int) -> bool:
 	var rec: Dictionary = _record(actor)
 	if rec.is_empty():

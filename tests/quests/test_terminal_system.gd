@@ -133,7 +133,7 @@ func test_the_hacking_pane_drives_it_through_commands() -> void:
 	var shell := DeviceShell.new()
 	var db: ContentDb = SimAssembly.content_of(_sim)
 	shell.setup(db, _submit_from_pane, InputGlyphs.new())
-	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking"]:
+	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking", "mission"]:
 		var scene: PackedScene = load("res://client/device/apps/%s_app.tscn" % app)
 		shell.register_view(StringName(app), scene)
 	var tree: SceneTree = Engine.get_main_loop()

@@ -137,7 +137,7 @@ func _build_device() -> void:
 	add_child(_device_viewport)
 	_shell = DeviceShell.new()
 	_shell.setup(_host.content(), _submit_from_device, _glyphs)
-	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking"]:
+	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking", "mission"]:
 		var scene: PackedScene = load("res://client/device/apps/%s_app.tscn" % app)
 		_shell.register_view(StringName(app), scene)
 	_device_viewport.add_child(_shell)

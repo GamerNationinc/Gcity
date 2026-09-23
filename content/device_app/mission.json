@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "The contract as the player sees it: the objectives and how far they have got, the four counters the run is being scored by while it happens, and the summary when it is handed in (M6 spec claim 13).",
+	"title": "Mission",
+	"icon": "!",
+	"order": 15,
+	"requires": ""
+}

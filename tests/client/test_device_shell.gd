@@ -31,7 +31,7 @@ func _setup() -> void:
 	_radio = _items.spawn(&"device_module", &"radio_module", inv, 2)
 	_shell = DeviceShell.new()
 	_shell.setup(db, _submit, InputGlyphs.new())
-	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking"]:
+	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking", "mission"]:
 		var scene: PackedScene = load("res://client/device/apps/%s_app.tscn" % app)
 		_shell.register_view(StringName(app), scene)
 	var tree: SceneTree = Engine.get_main_loop()
@@ -69,15 +69,15 @@ func test_apps_follow_the_carried_device_and_its_modules() -> void:
 	assert_true(_shell.refresh(_sim, _player), "the first refresh draws")
 	assert_eq(_shell.open_app(), &"", "nothing open")
 	_equip()
-	assert_eq(_app_ids(), [&"inventory", &"map", &"quests", &"comms", &"notes"] as Array[StringName], "the base unit's apps, in order")
+	assert_eq(_app_ids(), [&"inventory", &"mission", &"map", &"quests", &"comms", &"notes"] as Array[StringName], "the base unit's apps, in order")
 	assert_true(_shell.refresh(_sim, _player), "a change: the strip appeared")
 	assert_eq(_shell.open_app(), &"inventory", "the first app opens")
 	_submit(&"item.attach", {"actor": _player, "weapon": _handset, "part": _radio})
 	_step()
-	assert_eq(_app_ids(), [&"inventory", &"map", &"quests", &"comms", &"notes", &"drone"] as Array[StringName], "the radio module unlocks the drone app")
+	assert_eq(_app_ids(), [&"inventory", &"mission", &"map", &"quests", &"comms", &"notes", &"drone"] as Array[StringName], "the radio module unlocks the drone app")
 	_submit(&"item.detach", {"actor": _player, "weapon": _handset, "socket": "radio"})
 	_step()
-	assert_eq(_app_ids().size(), 5, "and removing it takes the app away")
+	assert_eq(_app_ids().size(), 6, "and removing it takes the app away")
 	_teardown()
 
 
@@ -90,6 +90,9 @@ func test_a_pane_reports_a_change_only_when_its_reading_changed() -> void:
 	assert_true(_shell.refresh(_sim, _player), "the tick moved: the status line changed")
 	assert_false(_shell.refresh(_sim, _player), "and settles again")
 	assert_eq(_shell.handle(&"device_next_app", _sim, _player), "handled", "next app")
+	assert_eq(_shell.open_app(), &"mission", "the mission app sits second, by its order")
+	assert_true(_shell.refresh(_sim, _player), "a new pane: a redraw")
+	assert_eq(_shell.handle(&"device_next_app", _sim, _player), "handled", "on again")
 	assert_eq(_shell.open_app(), &"map", "the map")
 	assert_true(_shell.refresh(_sim, _player), "a new pane: a redraw")
 	assert_false(_shell.refresh(_sim, _player), "the map settles")
@@ -98,6 +101,7 @@ func test_a_pane_reports_a_change_only_when_its_reading_changed() -> void:
 	_actors.set_position(_player, Vector3i(5100, 0, 3000))
 	assert_false(_shell.refresh(_sim, _player), "within the cell: no redraw")
 	assert_eq(_shell.handle(&"device_prev_app", _sim, _player), "handled", "back")
+	assert_eq(_shell.handle(&"device_prev_app", _sim, _player), "handled", "back again")
 	assert_eq(_shell.handle(&"device_prev_app", _sim, _player), "handled", "wraps")
 	assert_eq(_shell.open_app(), &"notes", "to the last app")
 	assert_eq(_shell.handle(&"device_back", _sim, _player), "lower", "back with nothing to back out of lowers the device")
@@ -197,6 +201,26 @@ func test_every_pane_meets_the_minimum_type_size() -> void:
 	_teardown()
 
 
+## Opens the named app by stepping the strip, or says it never appeared.
+func _open(app: StringName) -> bool:
+	for i: int in 12:
+		if _shell.open_app() == app:
+			return true
+		_shell.handle(&"device_next_app", _sim, _player)
+		_shell.refresh(_sim, _player)
+	return false
+
+
+## True when the open pane's text contains `needle`.
+func _pane_says(needle: String) -> bool:
+	for node: Node in _all_nodes(_shell):
+		if node is RichTextLabel:
+			var rich: RichTextLabel = node
+			if rich.text.contains(needle):
+				return true
+	return false
+
+
 func _all_nodes(node: Node) -> Array[Node]:
 	var out: Array[Node] = [node]
 	for child: Node in node.get_children():
@@ -231,4 +255,51 @@ func test_the_extension_exercise_is_content_and_one_registration() -> void:
 	for i: int in 5:
 		events.emit(CombatSystem.EVENT_FIRE, {"shooter": 99, "weapon": 0, "target": _player, "round": 0, "tags": []})
 	assert_eq(quests.status_of(_player, &"hold_the_line"), QuestSystem.STATUS_COMPLETED, "five shots at you completes it")
+	_teardown()
+
+
+## M6 spec claim 13: the mission pane shows the contract, the four counters while the
+## run is happening rather than only when it is paid, and the death screen that offers
+## the way back.
+func test_the_mission_pane_shows_the_run_while_it_is_happening() -> void:
+	_setup()
+	_equip()
+	_shell.refresh(_sim, _player)
+	assert_true(_open(&"mission"), "the mission app opens with no hardware at all")
+	assert_true(_pane_says("No contract accepted"), "nothing taken on yet")
+	assert_true(_pane_says("No run in progress"), "and no run")
+	_submit(&"quest.accept", {"actor": _player, "quest": "cold_storage"})
+	_step()
+	_submit(&"run.begin", {"actor": _player})
+	_step()
+	_shell.refresh(_sim, _player)
+	assert_true(_pane_says("Cold Storage"), "the contract by name")
+	assert_true(_pane_says("Run in progress"), "the run is on")
+	assert_true(_pane_says("seen 0   alarms 0   bodies 0   traces 0"), "the four counters, live")
+	assert_true(_pane_says("nobody saw you"), "and what that is worth so far")
+	# a sighting moves the pane, because a score you cannot see is one you cannot play
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	var guard: int = perception.spawn(&"guard_sim", BuildSystem.cell_of(Vector3i(400000, 0, 400000)), 0, 1, "")
+	SimAssembly.combat_of(_sim).events().emit(PerceptionSystem.EVENT_ALERTED, {"observer": guard, "contact": _player, "tick": _sim.get_tick()})
+	assert_true(_shell.refresh(_sim, _player), "the pane redraws")
+	assert_true(_pane_says("seen 1"), "one sighting")
+	assert_false(_pane_says("nobody saw you"), "and the bonus is gone")
+	_teardown()
+
+
+func test_the_death_screen_offers_the_way_back() -> void:
+	_setup()
+	_equip()
+	_shell.refresh(_sim, _player)
+	assert_true(_open(&"mission"), "the mission app")
+	_actors.damage_node(_player, &"body", 999999)
+	assert_false(_actors.is_alive(_player), "down")
+	assert_true(_shell.refresh(_sim, _player), "the pane changed")
+	assert_true(_pane_says("You are dead"), "the death screen")
+	assert_true(_pane_says("your body is at"), "where the body is")
+	assert_true(_pane_says("Select: come back"), "and what to press")
+	_submitted.clear()
+	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "pressed")
+	assert_eq(_submitted.size(), 1, "one command")
+	assert_eq(_submitted[0]["kind"], &"actor.respawn", "the way back")
 	_teardown()
