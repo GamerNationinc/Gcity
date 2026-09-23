@@ -275,3 +275,100 @@ func test_a_world_is_not_a_tree() -> void:
 		if graph.edge_count() <= graph.node_count() - 1:
 			trees += 1
 	assert_true(trees < 40, "most worlds have more than one way to somewhere (%d of 200 were trees)" % trees)
+
+
+## M7 spec claim 4: how far apart two places are is a query answered with the world
+## unloaded, which is what lets a contract say "eight to fifteen kilometres out" before
+## a metre of terrain exists.
+func test_distance_is_answered_over_the_graph_with_nothing_loaded() -> void:
+	_setup()
+	assert_eq(_routes.distance_between(1, 1), 0, "nowhere is no distance from itself")
+	assert_eq(_routes.distance_between(1, 99999), -1, "and a place that is not one has none")
+	assert_eq(_routes.distance_between(99999, 1), -1, "either way round")
+	assert_eq(_routes.path_between(1, 1), [1] as Array[int], "a place is its own path")
+	assert_eq(_routes.path_between(1, 99999), [] as Array[int], "there is no way to nowhere")
+	for node: int in _routes.node_ids():
+		if node == 1:
+			continue
+		var km: int = _routes.distance_between(1, node)
+		assert_true(km > 0, "node %d is somewhere (%d m)" % [node, km])
+		var path: Array[int] = _routes.path_between(1, node)
+		assert_eq(path[0], 1, "the way there starts at the gate")
+		assert_eq(path[path.size() - 1], node, "and ends there")
+		# the path is walkable: each step is an edge that exists
+		for i: int in path.size() - 1:
+			assert_true(_routes.edge_between(path[i], path[i + 1]) != EntityIds.NONE,
+				"step %d of the way to %d is a road" % [i, node])
+
+
+## A straight line is never longer than the road, and the road is never shorter than
+## the straight line: the two together say the distance is a real route and not a guess.
+func test_the_road_is_never_shorter_than_the_crow_flies() -> void:
+	_setup()
+	for node: int in _routes.node_ids():
+		var by_road: int = _routes.distance_between(1, node)
+		var there: Vector2i = _routes.position_of(node)
+		var straight: int = RouteGraph._length_mm(0, 0, there.x, there.y) / 1000
+		assert_true(by_road >= straight, "node %d: %d m by road, %d m straight" % [node, by_road, straight])
+
+
+## M7 spec claim 4's property, over a sample of worlds and every pair in each: the
+## distance is symmetric, obeys the triangle inequality, and is never longer than a
+## path the test can find for itself.
+func test_property_distance_is_symmetric_and_obeys_the_triangle_inequality() -> void:
+	var graph: RouteGraph = RouteGraph.new()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SEED_PROPERTY
+	var asymmetric: int = 0
+	var triangles: int = 0
+	var beaten: int = 0
+	var pairs: int = 0
+	for i: int in 300:
+		graph.generate(SEED_PROPERTY + i)
+		var ids: Array[int] = graph.node_ids()
+		for a: int in ids:
+			for b: int in ids:
+				pairs += 1
+				var there: int = graph.distance_between(a, b)
+				if there != graph.distance_between(b, a):
+					asymmetric += 1
+					if asymmetric <= 3:
+						fail("seed %d: %d to %d is not %d to %d" % [SEED_PROPERTY + i, a, b, b, a])
+				# the path the query itself returns is a path, so the distance may not
+				# be longer than walking it
+				var walked: int = 0
+				var path: Array[int] = graph.path_between(a, b)
+				for step: int in path.size() - 1:
+					var rec: Dictionary = graph.edge(graph.edge_between(path[step], path[step + 1]))
+					var length: int = rec["length"]
+					walked += length
+				if there > walked / 1000:
+					beaten += 1
+					if beaten <= 3:
+						fail("seed %d: %d m claimed, %d m walked" % [SEED_PROPERTY + i, there, walked / 1000])
+			# one random third place a pair, rather than every triple: the cost of all
+			# of them is cubic and the claim is not stronger for it
+			# in millimetres, because metres truncate: two truncations on the right can
+			# lose almost two metres the left never loses, and the inequality would
+			# fail on rounding rather than on any path being wrong
+			var c: int = ids[rng.randi_range(0, ids.size() - 1)]
+			var d: int = ids[rng.randi_range(0, ids.size() - 1)]
+			if graph.distance_mm_between(c, d) > graph.distance_mm_between(c, a) + graph.distance_mm_between(a, d):
+				triangles += 1
+				if triangles <= 3:
+					fail("seed %d: going by %d beat going straight" % [SEED_PROPERTY + i, a])
+	assert_eq(asymmetric, 0, "distance is the same both ways over %d pairs" % pairs)
+	assert_eq(beaten, 0, "and is never longer than the path it hands back")
+	assert_eq(triangles, 0, "and no detour is shorter than going straight")
+
+
+## Metres are the reading unit and millimetres are the arithmetic one. This is the
+## difference, stated, so nobody compares two distances in metres and wonders why a
+## detour came out shorter.
+func test_metres_are_the_rounded_reading_of_millimetres() -> void:
+	_setup()
+	for node: int in _routes.node_ids():
+		var mm: int = _routes.distance_mm_between(1, node)
+		assert_eq(_routes.distance_between(1, node), mm / 1000, "node %d reads as its millimetres" % node)
+	assert_eq(_routes.distance_mm_between(1, 1), 0, "nowhere from itself")
+	assert_eq(_routes.distance_mm_between(1, 99999), -1, "and nothing to a place that is not one")

@@ -236,6 +236,93 @@ func narrowest_edge_mm() -> int:
 	return narrowest
 
 
+## How far apart two places are along the roads, in whole metres, or -1 if either is
+## not a place (M7 spec claim 4; design doc §6.1 macro tier).
+##
+## This is a query, not a journey: it answers with the world unloaded, which is what
+## lets a quest say "eight to fifteen kilometres from the city" and a response time say
+## how long help takes, without a metre of terrain existing. Shortest path by corridor
+## length — a world is tens of nodes, so the simplest search that is actually shortest
+## is the right one.
+func distance_between(a: int, b: int) -> int:
+	var mm: int = distance_mm_between(a, b)
+	return mm if mm < 0 else mm / 1000
+
+
+## The same distance in millimetres, which is the one the arithmetic is done in.
+##
+## Metres are for reading and for content: a contract says "eight to fifteen
+## kilometres" and nobody means it to the millimetre. But truncating to metres loses
+## up to a metre each time, so a detour measured in metres can come out shorter than
+## the direct route by a metre or two — the triangle inequality holds here, not there.
+## Anything comparing distances to each other wants this one.
+func distance_mm_between(a: int, b: int) -> int:
+	if not has_node(a) or not has_node(b):
+		return -1
+	if a == b:
+		return 0
+	var best: Dictionary = _shortest_from(a)
+	if not best.has(b):
+		return -1
+	var mm: int = best[b]
+	return mm
+
+
+## The places passed through on the shortest way from `a` to `b`, `a` first and `b`
+## last, or empty if either is not a place. A single node is its own path.
+func path_between(a: int, b: int) -> Array[int]:
+	if not has_node(a) or not has_node(b):
+		return [] as Array[int]
+	if a == b:
+		return [a] as Array[int]
+	var came: Dictionary = {}
+	var best: Dictionary = _shortest_from(a, came)
+	if not best.has(b):
+		return [] as Array[int]
+	var out: Array[int] = [b]
+	var at: int = b
+	while at != a:
+		var previous: int = came[at]
+		out.push_front(previous)
+		at = previous
+	return out
+
+
+## Shortest distance in millimetres from one node to every node it can reach. Fills
+## `came_from` with the step before each node when one is given.
+func _shortest_from(start: int, came_from: Dictionary = {}) -> Dictionary:
+	var best: Dictionary = {start: 0}
+	var settled: Dictionary = {}
+	while true:
+		# the world is tens of nodes: scanning for the nearest unsettled one is cheaper
+		# than keeping a heap, and it cannot get the answer wrong
+		var node: int = EntityIds.NONE
+		var node_cost: int = 0
+		for key: Variant in best:
+			var id: int = key
+			if settled.has(id):
+				continue
+			var cost: int = best[id]
+			if node == EntityIds.NONE or cost < node_cost:
+				node = id
+				node_cost = cost
+		if node == EntityIds.NONE:
+			break
+		settled[node] = true
+		for edge_id: int in edges_at(node):
+			var rec: Dictionary = _edges[edge_id]
+			var x: int = rec["a"]
+			var y: int = rec["b"]
+			var length: int = rec["length"]
+			var other: int = y if x == node else x
+			var through: int = node_cost + length
+			var known: int = best[other] if best.has(other) else 0
+			if not best.has(other) or through < known:
+				best[other] = through
+				came_from[other] = node
+	return best
+
+
 ## A SHA-256 over the whole graph: every node, every corridor, in a fixed order.
 ##
 ## Not a hash of the seed. A seed is what was asked for; this is what was built, so it
