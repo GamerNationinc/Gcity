@@ -1,0 +1,7 @@
+{
+	"schema_version": 1,
+	"title": "Agricultural",
+	"description": "Land that is worked: fields, paddies, silos, a cooperative's sheds. Follows the soil rather than the road, and sits as happily at the edge of a town as alone.",
+	"biomes": ["farmland", "marsh"],
+	"node_kinds": ["settlement", "poi"]
+}

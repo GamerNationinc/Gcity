@@ -496,7 +496,7 @@
 			"tick": 328
 		}
 	],
-	"expected_hash": "980964d0c64213101903c8aef781a6a219d270ab06cd2da149cc249382ca0ef2",
+	"expected_hash": "b4c95b499fcb7c2d660f3067997c89e067b82c8fc98a05c8a768275bb3faf502",
 	"name": "m5-quest",
 	"schema_version": 1,
 	"seed": 20261150,

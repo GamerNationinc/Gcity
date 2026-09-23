@@ -1,0 +1,7 @@
+{
+	"schema_version": 1,
+	"title": "Corporate",
+	"description": "Held by a company and fenced accordingly: data halls, depots, a compound with its own gate. Stays off the wet ground and takes the road seriously, so it sits where the graph already goes.",
+	"biomes": ["scrub", "forest", "rock"],
+	"node_kinds": ["settlement", "poi"]
+}

@@ -1,0 +1,21 @@
+{
+	"schema_version": 1,
+	"description": "A tag a generated site slot can carry (M7 spec claim 5). A tag is not written onto a slot at generation: it declares where it belongs — which biomes and which kinds of graph node — and every slot that matches carries it. That is what lets a fifth tag be a new file and nothing else, without moving a single world hash.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 320},
+		"title": {"type": "string", "min_length": 1, "max_length": 40},
+		"biomes": {
+			"type": "array",
+			"max_length": 8,
+			"items": {"type": "string", "pattern": "[a-z][a-z_]*"}
+		},
+		"node_kinds": {
+			"type": "array",
+			"max_length": 4,
+			"items": {"type": "string", "pattern": "[a-z][a-z_]*"}
+		}
+	},
+	"required": ["schema_version", "description", "title", "biomes", "node_kinds"],
+	"additional_properties": false
+}

@@ -372,3 +372,125 @@ func test_metres_are_the_rounded_reading_of_millimetres() -> void:
 		assert_eq(_routes.distance_between(1, node), mm / 1000, "node %d reads as its millimetres" % node)
 	assert_eq(_routes.distance_mm_between(1, 1), 0, "nowhere from itself")
 	assert_eq(_routes.distance_mm_between(1, 99999), -1, "and nothing to a place that is not one")
+
+
+## M7 spec claim 5: slots are emitted by generation, not chosen later. Every settlement
+## and every point of interest offers exactly one candidate location; a junction offers
+## none, because a junction is where roads meet and not somewhere to put a building.
+func test_every_place_worth_building_at_offers_a_slot() -> void:
+	_setup()
+	var wanted: int = 0
+	var by_node: Dictionary = {}
+	for node: int in _routes.node_ids():
+		var kind: StringName = _routes.kind_of(node)
+		if kind == RouteGraph.KIND_POI or kind == RouteGraph.KIND_SETTLEMENT:
+			wanted += 1
+	assert_eq(_routes.slot_count(), wanted, "one slot for every place worth building at")
+	assert_true(wanted > 0, "and a world has some (%d)" % wanted)
+	for slot: int in _routes.slot_ids():
+		var node: int = _routes.slot_node(slot)
+		assert_true(_routes.has_node(node), "slot %d hangs off a real place" % slot)
+		assert_false(by_node.has(node), "and no place offers two")
+		by_node[node] = true
+		var kind: StringName = _routes.kind_of(node)
+		assert_true(kind == RouteGraph.KIND_POI or kind == RouteGraph.KIND_SETTLEMENT,
+			"slot %d is not at a junction or the gate (%s)" % [slot, kind])
+		assert_true(RouteGraph.BIOMES.has(_routes.slot_biome(slot)), "and it stands on ground the world has")
+		var at: Vector2i = _routes.slot_position(slot)
+		var from: Vector2i = _routes.position_of(node)
+		var step: Vector2i = Vector2i((at.x - from.x) / RouteGraph.SLOT_OFFSET_MM, (at.y - from.y) / RouteGraph.SLOT_OFFSET_MM)
+		assert_true(RouteGraph.SLOT_STEPS.has(step), "and it lies one step off the road (%s)" % step)
+	assert_false(_routes.has_slot(99999), "and something that is not a slot is not one")
+	assert_eq(_routes.slot_node(99999), EntityIds.NONE, "which hangs off nowhere")
+	assert_eq(_routes.slot_biome(99999), &"", "and stands on nothing")
+	assert_eq(_routes.slot_position(99999), Vector2i.ZERO, "and is not anywhere")
+
+
+## The slots are inside the thing the hash is taken over, which is what makes "the same
+## seed offers the same slots" a claim the world hash already carries rather than a
+## second promise to keep. If a slot could move without the hash moving, a save could
+## restore a world whose places had quietly changed.
+func test_slots_are_part_of_the_world_and_not_an_afterthought() -> void:
+	_setup()
+	var canonical: Dictionary = _routes.canonical()
+	assert_true(canonical.has("slots"), "the world as data includes its slots")
+	var slots: Array = canonical["slots"]
+	assert_eq(slots.size(), _routes.slot_count(), "all of them")
+	for row: Variant in slots:
+		var entry: Array = row
+		var id: int = entry[0]
+		var node: int = entry[1]
+		var x: int = entry[2]
+		var z: int = entry[3]
+		var biome: String = entry[4]
+		assert_eq(node, _routes.slot_node(id), "slot %d is written down as it is held" % id)
+		assert_eq(Vector2i(x, z), _routes.slot_position(id), "in the same place")
+		assert_eq(StringName(biome), _routes.slot_biome(id), "on the same ground")
+	assert_eq(_routes.world_hash(), StateHash.of(canonical), "and the hash is taken over exactly that")
+
+
+## What a contract means by "eight to fifteen kilometres from the city": the roads to
+## the place, then the last stretch off the road. Asked of the graph with nothing loaded.
+func test_how_far_a_slot_is_from_the_city() -> void:
+	_setup()
+	# a diagonal step is the long one: sixty metres each way is about eighty-five
+	var furthest_off_road: int = RouteGraph.SLOT_OFFSET_MM * 1415 / 1000
+	for slot: int in _routes.slot_ids():
+		var node: int = _routes.slot_node(slot)
+		var by_road: int = _routes.distance_mm_between(1, node)
+		var metres: int = _routes.slot_metres_from_gate(slot)
+		assert_true(metres * M >= by_road - M, "slot %d is at least as far as its place (%d m)" % [slot, metres])
+		assert_true(metres * M <= by_road + furthest_off_road, "and no further than one step past it")
+		assert_true(metres > 0, "and somewhere out there")
+	assert_eq(_routes.slot_metres_from_gate(99999), -1, "and nothing is no distance at all")
+
+
+## The property the milestone rests on: over ten thousand worlds a slot is always at a
+## real place of a kind that can hold one, one step off the road, on ground the world
+## knows — and the same seed offers the same slots down to the last one.
+func test_property_every_world_offers_the_same_slots_every_time() -> void:
+	var first: RouteGraph = RouteGraph.new()
+	var second: RouteGraph = RouteGraph.new()
+	var disagreed: int = 0
+	var misplaced: int = 0
+	var empty: int = 0
+	var counts: Dictionary = {}
+	var biomes: Dictionary = {}
+	for i: int in PROPERTY_CASES:
+		var world: int = SEED_PROPERTY + i
+		first.generate(world)
+		second.generate(world)
+		counts[first.slot_count()] = true
+		if first.slot_count() == 0:
+			empty += 1
+			if empty <= 3:
+				fail("seed %d built a world with nowhere to build" % world)
+		if first.slot_ids() != second.slot_ids():
+			disagreed += 1
+			if disagreed <= 3:
+				fail("seed %d offered two different sets of slots" % world)
+			continue
+		for slot: int in first.slot_ids():
+			var node: int = first.slot_node(slot)
+			var kind: StringName = first.kind_of(node)
+			var at: Vector2i = first.slot_position(slot)
+			var from: Vector2i = first.position_of(node)
+			var step: Vector2i = Vector2i((at.x - from.x) / RouteGraph.SLOT_OFFSET_MM, (at.y - from.y) / RouteGraph.SLOT_OFFSET_MM)
+			biomes[first.slot_biome(slot)] = true
+			var wrong: bool = (
+				not first.has_node(node)
+				or (kind != RouteGraph.KIND_POI and kind != RouteGraph.KIND_SETTLEMENT)
+				or not RouteGraph.SLOT_STEPS.has(step)
+				or not RouteGraph.BIOMES.has(first.slot_biome(slot))
+				or second.slot_position(slot) != at
+				or second.slot_biome(slot) != first.slot_biome(slot))
+			if wrong:
+				misplaced += 1
+				if misplaced <= 3:
+					fail("seed %d put slot %d somewhere it should not be" % [world, slot])
+				break
+	assert_eq(empty, 0, "every world has somewhere to build (%d worlds)" % PROPERTY_CASES)
+	assert_eq(disagreed, 0, "and offers the same slots twice running")
+	assert_eq(misplaced, 0, "each one at a real place, one step off the road")
+	assert_true(counts.size() >= 8, "worlds differ in how much they offer (%d counts)" % counts.size())
+	assert_eq(biomes.size(), RouteGraph.BIOMES.size(), "and every kind of ground is used somewhere")

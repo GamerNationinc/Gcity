@@ -1,0 +1,7 @@
+{
+	"schema_version": 1,
+	"title": "Ruin",
+	"description": "Something that was here before and mostly is not any more. Names no biome and no node kind, which means every slot carries it: whatever else a place is, it can always be the wreck of an older one, and that is what keeps every slot bindable.",
+	"biomes": [],
+	"node_kinds": []
+}

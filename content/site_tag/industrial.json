@@ -1,0 +1,7 @@
+{
+	"schema_version": 1,
+	"title": "Industrial",
+	"description": "Works, yards and plant. Wants flat dry ground it can stand heavy things on, and it is never a town: a refinery is the reason for a settlement nearby, not part of one.",
+	"biomes": ["scrub", "rock"],
+	"node_kinds": ["poi"]
+}

@@ -23,6 +23,16 @@ const KIND_POI: StringName = &"poi"
 const KIND_JUNCTION: StringName = &"junction"
 const KINDS: Array[StringName] = [KIND_GATE, KIND_SETTLEMENT, KIND_POI, KIND_JUNCTION]
 
+## What the ground at a place is. Structural like the node kinds: terrain (claim 7) is
+## a consumer of this, not the author of it — the graph says what a place stands on
+## before there is any terrain to ask.
+const BIOME_SCRUB: StringName = &"scrub"
+const BIOME_FOREST: StringName = &"forest"
+const BIOME_ROCK: StringName = &"rock"
+const BIOME_MARSH: StringName = &"marsh"
+const BIOME_FARMLAND: StringName = &"farmland"
+const BIOMES: Array[StringName] = [BIOME_SCRUB, BIOME_FOREST, BIOME_ROCK, BIOME_MARSH, BIOME_FARMLAND]
+
 ## The narrowest corridor the graph may contain, in millimetres. An edge below this is a
 ## corridor something cannot walk down, which is the failure the graph exists to prevent.
 const MIN_WIDTH_MM: int = 3000
@@ -40,6 +50,15 @@ const LOOP_PERMILLE: int = 350
 ## How many times placement will try for a spot far enough from its neighbours before
 ## giving up on that node. Bounded so generation always terminates.
 const PLACEMENT_TRIES: int = 24
+## How far a site slot sits off the node that offers it, in millimetres: near enough to
+## be that place, far enough that a building is beside the road rather than on it.
+const SLOT_OFFSET_MM: int = 60_000
+## The eight ways a slot can lie from its node. A table rather than an angle, because an
+## angle means a sine and a sine means a float, and the graph is state.
+const SLOT_STEPS: Array[Vector2i] = [
+	Vector2i(1, 0), Vector2i(1, 1), Vector2i(0, 1), Vector2i(-1, 1),
+	Vector2i(-1, 0), Vector2i(-1, -1), Vector2i(0, -1), Vector2i(1, -1),
+]
 
 ## node id -> {"kind": StringName, "x": int, "z": int}
 var _nodes: Dictionary = {}
@@ -47,6 +66,8 @@ var _nodes: Dictionary = {}
 var _edges: Dictionary = {}
 ## node id -> Array[int] of edge ids, in the order they were made
 var _at_node: Dictionary = {}
+## slot id -> {"node": int, "x": int, "z": int, "biome": StringName}
+var _slots: Dictionary = {}
 var _seed: int = 0
 
 
@@ -71,6 +92,15 @@ func snapshot() -> Dictionary:
 
 
 func attach(sim: SimRoot) -> Error:
+	# the tags are read here and never kept: a tag that names a biome the world does not
+	# have is dead content and should fail assembly, but generation stays a function of
+	# the seed alone, and it cannot read what nothing holds a reference to
+	var db: SimSystem = sim.get_system(ContentDb.SYSTEM_ID)
+	if db != null:
+		var content: ContentDb = db
+		var bad: Error = SiteTags.validate(content)
+		if bad != OK:
+			return bad
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
@@ -90,6 +120,7 @@ func generate(world_seed: int) -> void:
 	_nodes.clear()
 	_edges.clear()
 	_at_node.clear()
+	_slots.clear()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = world_seed
 	# the city gate is node 1 and sits at the origin: the world is measured from it
@@ -112,6 +143,7 @@ func generate(world_seed: int) -> void:
 			break
 	_join_everything(rng)
 	_add_loops(rng)
+	_offer_slots(rng)
 
 
 ## Every node after the first is joined to the nearest already-joined node, so the graph
@@ -142,6 +174,31 @@ func _add_loops(rng: RandomNumberGenerator) -> void:
 		if a == b or _edge_between(a, b) != EntityIds.NONE:
 			continue
 		_add_edge(a, b, rng)
+
+
+## Site slots (M7 spec claim 5): every settlement and every point of interest offers one
+## candidate location, and junctions offer none — a junction is where roads meet, not
+## somewhere to put a building.
+##
+## Emitted here, with the graph, rather than searched for later. A slot is a position,
+## the ground it stands on and the place it hangs off; what it is *for* is read from
+## content afterwards (see [SiteTags]), and how far it is from the city is asked of the
+## graph. Nothing is stored that could later disagree with the graph that made it.
+func _offer_slots(rng: RandomNumberGenerator) -> void:
+	for node: int in node_ids():
+		var kind: StringName = kind_of(node)
+		if kind != KIND_POI and kind != KIND_SETTLEMENT:
+			continue
+		var step: Vector2i = SLOT_STEPS[rng.randi_range(0, SLOT_STEPS.size() - 1)]
+		var biome: StringName = BIOMES[rng.randi_range(0, BIOMES.size() - 1)]
+		var at: Vector2i = position_of(node)
+		var id: int = _slots.size() + 1
+		_slots[id] = {
+			"node": node,
+			"x": at.x + step.x * SLOT_OFFSET_MM,
+			"z": at.y + step.y * SLOT_OFFSET_MM,
+			"biome": biome,
+		}
 
 
 func _kind_for(rng: RandomNumberGenerator) -> StringName:
@@ -349,7 +406,15 @@ func canonical() -> Dictionary:
 		var width: int = rec["width"]
 		var length: int = rec["length"]
 		edges.append([id, a, b, width, length])
-	return {"nodes": nodes, "edges": edges}
+	var slots: Array = []
+	for id: int in slot_ids():
+		var rec: Dictionary = _slots[id]
+		var node: int = rec["node"]
+		var x: int = rec["x"]
+		var z: int = rec["z"]
+		var biome: StringName = rec["biome"]
+		slots.append([id, node, x, z, String(biome)])
+	return {"nodes": nodes, "edges": edges, "slots": slots}
 
 
 # ---------------------------------------------------------------- queries
@@ -373,8 +438,74 @@ func edge_ids() -> Array[int]:
 	return out
 
 
+## Slot ids, lowest first. Handed out in node order, so the same seed offers the same
+## slots under the same names (M7 spec claim 5).
+func slot_ids() -> Array[int]:
+	var out: Array[int] = []
+	for key: Variant in _slots:
+		var id: int = key
+		out.append(id)
+	out.sort()
+	return out
+
+
 func node_count() -> int:
 	return _nodes.size()
+
+
+func slot_count() -> int:
+	return _slots.size()
+
+
+func has_slot(slot: int) -> bool:
+	return _slots.has(slot)
+
+
+## The node that offers a slot, or NONE.
+func slot_node(slot: int) -> int:
+	var stored: Variant = _slots.get(slot)
+	if typeof(stored) != TYPE_DICTIONARY:
+		return EntityIds.NONE
+	var rec: Dictionary = stored
+	return rec["node"]
+
+
+## Where a slot is, in millimetres on the ground plane.
+func slot_position(slot: int) -> Vector2i:
+	var stored: Variant = _slots.get(slot)
+	if typeof(stored) != TYPE_DICTIONARY:
+		return Vector2i.ZERO
+	var rec: Dictionary = stored
+	var x: int = rec["x"]
+	var z: int = rec["z"]
+	return Vector2i(x, z)
+
+
+## The ground a slot stands on.
+func slot_biome(slot: int) -> StringName:
+	var stored: Variant = _slots.get(slot)
+	if typeof(stored) != TYPE_DICTIONARY:
+		return &""
+	var rec: Dictionary = stored
+	return rec["biome"]
+
+
+## How far a slot is from the city gate in whole metres, by road to its node and then
+## the last stretch off the road, or -1 if it is not a slot.
+##
+## Asked rather than stored: a contract says "eight to fifteen kilometres from the city"
+## and this is the number it means. Storing it would be a second copy of something the
+## graph already knows, free to drift from it.
+func slot_metres_from_gate(slot: int) -> int:
+	if not has_slot(slot):
+		return -1
+	var node: int = slot_node(slot)
+	var by_road: int = distance_mm_between(1, node)
+	if by_road < 0:
+		return -1
+	var at: Vector2i = slot_position(slot)
+	var from: Vector2i = position_of(node)
+	return (by_road + _length_mm(from.x, from.y, at.x, at.y)) / 1000
 
 
 func edge_count() -> int:
