@@ -3275,6 +3275,33 @@
 				1,
 				-5
 			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				1,
+				1,
+				10
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				3,
+				1,
+				10
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "door_archive",
+			"rel": [
+				2,
+				1,
+				10
+			]
 		}
 	],
 	"schema_version": 1,
@@ -3356,6 +3383,14 @@
 				10
 			],
 			"terminal": "cs_server"
+		},
+		{
+			"rel": [
+				2,
+				1,
+				11
+			],
+			"terminal": "cs_archive"
 		}
 	],
 	"title": "Cold Storage"

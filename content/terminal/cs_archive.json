@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "The archive machine behind the server room's own door: twice the wait of the server outside it, the same coprocessor, and a second set of records nobody has asked about until now.",
+	"title": "Cold Storage archive",
+	"hack_ticks": 640,
+	"requires": "daemon_coprocessor",
+	"reach_mm": 1800,
+	"yields_kind": "ammo",
+	"yields": "archive_data",
+	"emits": "signal.data_theft"
+}

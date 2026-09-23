@@ -73,10 +73,15 @@ func _do(kind: StringName, payload: Dictionary) -> bool:
 
 func test_a_site_places_its_terminal_and_the_hack_needs_reach_and_hardware() -> void:
 	_setup(false)
-	assert_eq(_sites.terminals_of(&"cold_storage").size(), 1, "the server the routes converge on")
+	# two machines since the Q4 exercise: the server the three routes converge on, and
+	# the archive behind its own door a metre further in
+	assert_eq(_sites.terminals_of(&"cold_storage").size(), 2, "the server and the archive")
 	assert_eq(_terminals.template_of(_terminal), &"cs_server", "its template")
 	assert_eq(_terminals.hack_ticks_of(_terminal), HACK_TICKS, "eight seconds of standing still")
-	assert_eq(_terminals.in_reach_of(_player), [_terminal] as Array[int], "standing at it: in reach")
+	# the two machines are a metre apart, so standing at one puts both in reach: the
+	# hacking pane lists them and the player picks, which is the point of its cursor
+	assert_true(_terminals.in_reach_of(_player).has(_terminal), "standing at it: in reach")
+	assert_eq(_terminals.in_reach_of(_player).size(), 2, "and the archive beside it is too")
 	assert_false(_terminals.can_hack(_player, _terminal), "no coprocessor: the device cannot talk to it")
 	assert_false(_do(&"terminal.hack_start", {"actor": _player, "terminal": _terminal}), "so the hack is refused")
 	# fit the coprocessor and it opens up

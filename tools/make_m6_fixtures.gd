@@ -105,6 +105,7 @@ func _stealth() -> void:
 	_command(&"run.end", {"actor": _player})
 	_walk_to_the_fixer()
 	_command(&"quest.turn_in", {"actor": _player, "quest": "cold_storage"})
+	_alive_or_shout("m6-stealth")
 	_report("m6-stealth")
 	_write("m6-stealth")
 
@@ -122,10 +123,16 @@ func _loud() -> void:
 	_command(&"build.remove", {"actor": _player, "piece_id": panel})
 	# stay out in the street and fight through the hole: four armed guards in an open
 	# lobby is a losing hand, and a breach is a door only one of them fits through
+	# fight from the open street, three cells back: they have to come out through the
+	# hole one at a time and cross ground with nothing on it. Standing in the doorway
+	# means meeting all four at once, which is how the player died the last time this
+	# was authored.
+	_walk_to(Vector3i(1, 1, -3))
+	_fight(1800)
 	_walk_to(Vector3i(1, 1, -1))
-	_fight(1200)
+	_fight(1800)
 	_walk_to(Vector3i(1, 1, 1))
-	_fight(1200)
+	_fight(1800)
 	_walk_to(Vector3i(2, 1, 2))
 	_fight(1200)
 	_walk_to(Vector3i(2, 1, 7))
@@ -146,6 +153,7 @@ func _loud() -> void:
 	_command(&"run.end", {"actor": _player})
 	_walk_to_the_fixer()
 	_command(&"quest.turn_in", {"actor": _player, "quest": "cold_storage"})
+	_alive_or_shout("m6-loud")
 	_report("m6-loud")
 	_write("m6-loud")
 
@@ -493,6 +501,13 @@ func _watch_alerts() -> void:
 		print("    alert %d: tick %d, agent %d at cell %s saw the player at cell %s" % [
 			seen[0], sim.get_tick(), observer,
 			BuildSystem.cell_of(actors.position_of(observer)), BuildSystem.cell_of(actors.position_of(player))]))
+
+
+## A run that was supposed to be survived and was not writes a fixture in which the
+## player lies where they fell and every later step quietly does nothing. Say so.
+func _alive_or_shout(name: String) -> void:
+	if not _actors.is_alive(_player):
+		push_error("%s: the player died; the rest of this fixture is a corpse not moving" % name)
 
 
 func _report(name: String) -> void:

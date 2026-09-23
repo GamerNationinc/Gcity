@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "The archive door at the back of Cold Storage's server room: it opens for a maintenance token and for nobody else. Breachable like any wall, at the price the wall costs.",
+	"kind": "door_check",
+	"material": "scrap_steel",
+	"open_cost": 0,
+	"value": 0,
+	"access": "access.archive"
+}

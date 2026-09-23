@@ -20,18 +20,59 @@ assembly test, which every system is registered in.
 from __future__ import annotations
 
 import argparse
+import atexit
 import json
 import random
 import re
+import signal
 import subprocess
 import sys
 import time
+import types
 from dataclasses import dataclass, field
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+#: The file currently holding a mutant, and what it should say again. A mutation run
+#: rewrites a source file, tests it, and puts it back; killed between those two and it
+#: would leave the mutant in the working tree. That happened, on a Deck that ran out of
+#: memory mid-run, and the inverted type check it left behind was only spotted because
+#: the tree was checked. Everything that can end the process restores it first.
+_IN_FLIGHT: tuple[Path, str] | None = None
+
+
+def _hold(path: Path, original: str) -> None:
+    global _IN_FLIGHT
+    _IN_FLIGHT = (path, original)
+
+
+def restore_in_flight() -> bool:
+    """Puts the file being mutated back. True if there was one. Safe to call twice."""
+    global _IN_FLIGHT
+    if _IN_FLIGHT is None:
+        return False
+    path, original = _IN_FLIGHT
+    _IN_FLIGHT = None
+    try:
+        path.write_text(original, encoding="utf-8")
+    except OSError as exc:  # the disk is the last thing that can save us
+        print(f"could not restore {path}: {exc}", file=sys.stderr)
+        return False
+    return True
+
+
+def _on_signal(signum: int, _frame: types.FrameType | None) -> None:
+    if restore_in_flight():
+        print(f"\nsignal {signum}: restored the file being mutated", file=sys.stderr)
+    raise SystemExit(128 + signum)
 #: Always run: every system registers here, so a mutant that breaks assembly dies fast.
-ALWAYS = ["res://tests/sim/test_sim_assembly.gd"]
+#: Always run. The assembly test registers every system; the corpus test is a hostile
+#: payload for every command kind, so it covers the argument checking in every handler
+#: — which is why it is worth its own file and worth running against every mutant.
+ALWAYS = [
+    "res://tests/sim/test_sim_assembly.gd",
+    "res://tests/fuzz/test_command_corpus.gd",
+]
 #: Files whose tests live somewhere the naming rule does not find.
 EXTRA_TESTS = {
     "sim/core/sim_root.gd": ["res://tests/sim/test_sim_root.gd", "res://tests/sim/test_pause.gd"],
@@ -55,7 +96,16 @@ EXTRA_TESTS = {
     "sim/nav/portal_graph.gd": ["res://tests/nav/test_portal_graph.gd"],
     "sim/world/site_system.gd": ["res://tests/world/test_site_system.gd"],
     "sim/threat/standing_system.gd": ["res://tests/threat/test_standing.gd"],
+    "sim/agents/aim_system.gd": ["res://tests/agents/test_aim_and_stress.gd"],
+    "sim/agents/stress_system.gd": ["res://tests/agents/test_aim_and_stress.gd"],
+    "sim/agents/pathing_system.gd": ["res://tests/agents/test_agent_pathing.gd"],
+    "sim/agents/stance_system.gd": ["res://tests/agents/test_stance_scoring.gd"],
+    "sim/core/replay_fixture.gd": ["res://tests/sim/test_replay_fixture.gd"],
+    "sim/core/sim_command.gd": ["res://tests/sim/test_sim_root.gd"],
+    "sim/assembly.gd": ["res://tests/sim/test_sim_assembly.gd"],
 }
+#: Files with no tests of their own and nothing to mutate worth scoring.
+NO_TESTS_NEEDED = {"sim/core/sim_system.gd"}
 #: Lines that are not worth mutating: a mutant here is noise, not a hole in the tests.
 SKIP_LINE = re.compile(r"^\s*(#|##|@|class_name|extends|assert\()")
 
@@ -174,7 +224,12 @@ def _operator_at(line: str, op: str) -> int:
 
 
 def tests_for(rel: str) -> list[str]:
-    """The test files that cover a sim file."""
+    """The test files that cover a sim file, or just ALWAYS if nothing does.
+
+    A file that falls through to ALWAYS is not covered: the assembly test would not
+    notice most changes, so every mutant in it survives and the score reports the
+    tests as weaker than they are. `unmapped()` is what keeps that from being silent.
+    """
     if rel in EXTRA_TESTS:
         return EXTRA_TESTS[rel] + ALWAYS
     parts = Path(rel).parts
@@ -186,12 +241,38 @@ def tests_for(rel: str) -> list[str]:
     return list(ALWAYS)
 
 
+def unmapped() -> list[str]:
+    """Sim files nothing but the assembly test covers.
+
+    A silent fallback here is worse than a missing number: it reports real tests as
+    absent and sends whoever reads the score hunting for holes that are not there.
+    The first full pass called four systems untested because their test files are
+    named for what they test rather than for the file.
+    """
+    out: list[str] = []
+    for path in sorted((ROOT / "sim").rglob("*.gd")):
+        rel = path.relative_to(ROOT).as_posix()
+        if rel in NO_TESTS_NEEDED:
+            continue
+        if tests_for(rel) == ALWAYS:
+            out.append(rel)
+    return out
+
+
 def sim_files(under: list[str]) -> list[Path]:
+    """The files to mutate. An argument may be a directory or a single file: after
+    adding a test you want to mutate the one file it covers, not the whole tree."""
     roots = [ROOT / u for u in under] if under else [ROOT / "sim"]
     found: list[Path] = []
     for root in roots:
-        found.extend(sorted(p for p in root.rglob("*.gd")))
-    return found
+        if root.is_file():
+            found.append(root)
+        else:
+            found.extend(sorted(p for p in root.rglob("*.gd")))
+    seen: dict[Path, None] = {}
+    for path in found:
+        seen.setdefault(path, None)
+    return list(seen)
 
 
 def run(tests: list[str], godot: str, timeout: int) -> tuple[str, str]:
@@ -235,10 +316,24 @@ def main() -> int:
         print("could not find the engine; is tools/godot.sh working?", file=sys.stderr)
         return 2
 
+    atexit.register(restore_in_flight)
+    for sig in (signal.SIGINT, signal.SIGTERM, signal.SIGHUP):
+        signal.signal(sig, _on_signal)
+
+    missing = unmapped()
+    if missing:
+        print("no tests are mapped to these, so every mutant in them would survive:", file=sys.stderr)
+        for rel in missing:
+            print(f"  {rel}", file=sys.stderr)
+        print("add them to EXTRA_TESTS in tools/mutate.py", file=sys.stderr)
+        return 2
+
     rng = random.Random(args.seed)
     report = Report()
     for path in sim_files(args.under):
         rel = path.relative_to(ROOT).as_posix()
+        if rel in NO_TESTS_NEEDED:
+            continue
         original = path.read_text(encoding="utf-8")
         lines = original.splitlines(keepends=True)
         candidates: list[Mutant] = []
@@ -252,6 +347,7 @@ def main() -> int:
         tests = tests_for(rel)
         for mutant in chosen:
             lines[mutant.line - 1] = mutant.after + "\n"
+            _hold(path, original)
             path.write_text("".join(lines), encoding="utf-8")
             started = time.monotonic()
             outcome, why = run(tests, godot, args.timeout)
@@ -259,7 +355,7 @@ def main() -> int:
             mutant.outcome = outcome
             mutant.by = why
             lines[mutant.line - 1] = mutant.before + "\n"
-            path.write_text(original, encoding="utf-8")
+            restore_in_flight()
             report.mutants.append(mutant)
             mark = {"failed": "killed  ", "passed": "SURVIVED", "invalid": "invalid "}[outcome]
             print(f"{mark} {rel}:{mutant.line} {mutant.operator}  ({mutant.seconds:.1f}s)", flush=True)

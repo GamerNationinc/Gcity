@@ -346,3 +346,15 @@ func test_stress_restore_round_trip_and_rejections() -> void:
 	records[_player] = records[guard]
 	assert_eq(stress.restore(bad), ERR_INVALID_DATA, "a record for a non-agent")
 	assert_eq(stress.snapshot(), state, "rejections leave the state untouched")
+
+
+## Mutation testing (M6 claim 12): the cone of something that is not an agent read as
+## zero and nothing said so, so `return 0` could become `return 1` unnoticed. An
+## actor with no aim profile has no cone, which is different from having a cone of one.
+func test_something_that_is_not_an_agent_has_no_cone_at_all() -> void:
+	_setup()
+	var bystander: int = _actors.spawn(&"arcade", 3)
+	assert_true(_aim.aim_profile_of(bystander).is_empty(), "no aim profile")
+	assert_eq(_aim.cone_of(bystander), 0, "and so no cone")
+	assert_eq(_aim.cone_of(99999), 0, "nor has an actor that does not exist")
+	assert_eq(_aim.target_of(bystander), 0, "and it is aiming at nobody")

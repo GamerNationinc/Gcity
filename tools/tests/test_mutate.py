@@ -1,4 +1,7 @@
+import signal
+import tempfile
 import unittest
+from pathlib import Path
 
 from tools import mutate
 
@@ -114,3 +117,76 @@ class InvalidMutants(unittest.TestCase):
 
     def test_a_score_with_nothing_to_score_is_zero_not_a_crash(self) -> None:
         self.assertEqual(mutate.Report().score, 0.0)
+
+
+class Coverage(unittest.TestCase):
+    """Every sim file must map to tests that actually exercise it."""
+
+    def test_no_sim_file_falls_back_to_the_assembly_test_alone(self) -> None:
+        # a silent fallback reports real tests as absent: four systems were called
+        # untested on the first full pass because their test files are named for what
+        # they test rather than for the file
+        self.assertEqual(mutate.unmapped(), [], "add these to EXTRA_TESTS")
+
+    def test_a_file_with_no_mapping_is_reported_not_guessed(self) -> None:
+        self.assertEqual(mutate.tests_for("sim/nowhere/imaginary.gd"), mutate.ALWAYS)
+
+    def test_the_abstract_base_needs_no_tests_of_its_own(self) -> None:
+        self.assertIn("sim/core/sim_system.gd", mutate.NO_TESTS_NEEDED)
+
+
+class RestoreOnExit(unittest.TestCase):
+    """A run that is killed must not leave a mutant in the working tree.
+
+    A Deck that ran out of memory killed a full pass between writing a mutant and
+    putting the file back, and left an inverted type check in the item system.
+    """
+
+    def setUp(self) -> None:
+        self._tmp = tempfile.TemporaryDirectory()
+        self.path = Path(self._tmp.name) / "victim.gd"
+        self.path.write_text("func f() -> bool:\n\treturn true\n", encoding="utf-8")
+        self.original = self.path.read_text(encoding="utf-8")
+
+    def tearDown(self) -> None:
+        mutate.restore_in_flight()
+        self._tmp.cleanup()
+
+    def test_a_held_file_is_put_back(self) -> None:
+        mutate._hold(self.path, self.original)
+        self.path.write_text("func f() -> bool:\n\treturn false\n", encoding="utf-8")
+        self.assertTrue(mutate.restore_in_flight())
+        self.assertEqual(self.path.read_text(encoding="utf-8"), self.original)
+
+    def test_restoring_twice_is_harmless(self) -> None:
+        mutate._hold(self.path, self.original)
+        self.assertTrue(mutate.restore_in_flight())
+        self.assertFalse(mutate.restore_in_flight(), "nothing left to restore")
+
+    def test_with_nothing_in_flight_there_is_nothing_to_do(self) -> None:
+        self.assertFalse(mutate.restore_in_flight())
+
+    def test_a_signal_restores_and_then_exits(self) -> None:
+        mutate._hold(self.path, self.original)
+        self.path.write_text("mutated\n", encoding="utf-8")
+        with self.assertRaises(SystemExit) as caught:
+            mutate._on_signal(signal.SIGTERM, None)
+        self.assertEqual(caught.exception.code, 128 + signal.SIGTERM)
+        self.assertEqual(self.path.read_text(encoding="utf-8"), self.original)
+
+
+class Selection(unittest.TestCase):
+    """After adding a test you mutate the one file it covers, not the whole tree."""
+
+    def test_a_single_file_can_be_named(self) -> None:
+        chosen = mutate.sim_files(["sim/core/entity_ids.gd"])
+        self.assertEqual([p.name for p in chosen], ["entity_ids.gd"])
+
+    def test_a_directory_still_walks(self) -> None:
+        chosen = mutate.sim_files(["sim/core"])
+        self.assertIn("entity_ids.gd", [p.name for p in chosen])
+        self.assertGreater(len(chosen), 1)
+
+    def test_naming_a_file_twice_mutates_it_once(self) -> None:
+        both = mutate.sim_files(["sim/core/entity_ids.gd", "sim/core/entity_ids.gd"])
+        self.assertEqual(len(both), 1)

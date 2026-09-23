@@ -211,3 +211,19 @@ func test_leaving_a_parcel_is_an_event_carrying_what_you_hold() -> void:
 	# open ground to open ground is not
 	assert_true(_movement.move(_player, 150, 0), "further out")
 	assert_eq(left.size(), 2, "still two")
+
+
+## Mutation testing (M6 claim 12): the refusal when a step would carry an actor out of
+## the world was never exercised, so `return false` there could become `return true`
+## and nothing would notice an actor reporting a move it had not made.
+func test_a_step_out_of_the_world_is_refused_and_moves_nothing() -> void:
+	_setup()
+	var edge: int = ActorSystem.MAX_COORD
+	assert_eq(_actors.set_position(_player, Vector3i(edge - 50, 0, 0)), OK, "out at the edge")
+	var before: Vector3i = _actors.position_of(_player)
+	var moves: int = _movement.move_count()
+	assert_false(_movement.move(_player, 150, 0), "a step past the edge is refused")
+	assert_eq(_actors.position_of(_player), before, "and the actor did not move")
+	assert_eq(_movement.move_count(), moves, "nor was it counted as a move")
+	assert_true(_movement.move(_player, -150, 0), "back the other way is fine")
+	assert_eq(_movement.move_count(), moves + 1, "and that one counted")

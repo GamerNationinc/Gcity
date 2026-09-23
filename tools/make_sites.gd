@@ -150,8 +150,16 @@ func _cold_storage() -> void:
 	_armed_spawn("guard_sim", Vector3i(1, 1, 7), 90, 2, "cs_hall_round")
 	_armed_spawn("guard_sim", Vector3i(1, 2, 2), 90, 2, "cs_upper_patrol")
 	_armed_spawn("guard_sim", Vector3i(3, 2, 6), 270, 2, "cs_upper_patrol_reverse")
+	# --- the archive, behind its own door at the back of the server room (standards §11
+	# Q4, the M6 extension exercise): a second machine for a second contract, reached
+	# with a maintenance token or by the window on the fire stair and down the flight.
+	# It sits north of everything the first contract's routes touch.
+	for x: int in [1, 3]:
+		_place("wall_panel", Vector3i(x, 1, 10), "pz")
+	_place("door_archive", Vector3i(2, 1, 10), "pz")
 	# the server the three routes converge on, in the back room
 	_terminal("cs_server", Vector3i(2, 1, 10))
+	_terminal("cs_archive", Vector3i(2, 1, 11))
 	_write("cold_storage", "Cold Storage", Vector3i(40, 0, 40), ["cold_storage_lot"],
 		"The first contract's site (design doc §15): a slab of ground, a lobby whose street door checks for a token, a stair well to an upper floor with a maintenance window off the outside fire stair, and a service tunnel that is a gap in the slab, entered by cutting a street grate. Three routes in, one server room.")
 

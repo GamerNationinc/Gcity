@@ -81,7 +81,7 @@ func test_cold_storage_stands_with_its_three_routes_in() -> void:
 	_setup()
 	var site: StringName = &"cold_storage"
 	_raise(site)
-	assert_eq(_sites.pieces_of(site).size(), 363, "every piece of the site stands")
+	assert_eq(_sites.pieces_of(site).size(), 366, "every piece of the site stands")
 	assert_eq(_sites.agents_of(site).size(), 4, "four guards (design doc §15.3)")
 	var unsupported: int = 0
 	for id: int in _sites.pieces_of(site):
@@ -141,7 +141,7 @@ func test_a_site_raises_through_its_command_and_survives_the_round_trip() -> voi
 	assert_eq(other.restore_root(snap), OK, "root restored")
 	var sites: SiteSystem = SimAssembly.sites_of(other)
 	assert_true(sites.is_raised(&"cold_storage"), "still raised")
-	assert_eq(sites.pieces_of(&"cold_storage").size(), 363, "with its pieces")
+	assert_eq(sites.pieces_of(&"cold_storage").size(), 366, "with its pieces")
 	_sim.step()
 	other.step()
 	assert_eq(other.state_hash(), _sim.state_hash(), "hashes agree")
