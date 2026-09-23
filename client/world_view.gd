@@ -10,6 +10,11 @@
 ## `--demo` after `--` plays a scripted sequence through the same action path;
 ## `--demo-quit=<s>`, `--screenshot=<path>`, `--screenshot-at=<s>` as in the other views;
 ## `--demo-loop` repeats the demo until quit and `--capture=<path>` writes frame times.
+## `--mission` raises Cold Storage as its operator and plays the under route end to end
+## (M6 spec claim 13): the player owns nothing, so what you watch is a break-in. The
+## route is `MissionDemo`, written there rather than read from the m6-stealth fixture
+## because `tests/` is not in the export; the fixture proves the run is clean and this
+## shows it.
 class_name WorldView extends Node3D
 
 const M: float = 1000.0
@@ -17,6 +22,10 @@ const PROFILE: StringName = &"arcade"
 const GUARD_PROFILES: Array[String] = ["guard_sim", "guard_arcade"]
 const CUTTER: String = "cutter"
 const READY: int = 6
+## `--mission`: the player turns up 44 m out on the x axis and walks in from there.
+const MISSION_SPAWN_M: int = 44
+## The street grate, relative to Cold Storage's base.
+const GRATE_REL: Vector3i = Vector3i(4, 1, -2)
 const KIT_ITEMS: int = 17
 const STANCE_COLOURS: Dictionary = {
 	&"hold": Color(0.55, 0.65, 0.5), &"advance": Color(0.95, 0.5, 0.15), &"flank": Color(0.7, 0.35, 0.85),
@@ -76,6 +85,14 @@ var _capture_path: String = ""
 var _frame_usec: PackedInt32Array = PackedInt32Array()
 var _demo_loop: bool = false
 var _demo_loops: int = 0
+## `--mission`: raise Cold Storage instead of the M4 building and play the under route
+## end to end (M6 spec claim 13). The route lives in `MissionDemo`.
+var _mission: bool = false
+var _mission_steps: Array[Dictionary] = []
+var _mission_index: int = 0
+var _mission_wait: int = 0
+var _mission_patience: int = 0
+var _operator: int = 0
 
 
 func _ready() -> void:
@@ -92,12 +109,15 @@ func _ready() -> void:
 			_capture_path = arg.trim_prefix("--capture=")
 		elif arg == "--demo-loop":
 			_demo_loop = true
+		elif arg == "--mission":
+			_mission = true
 	_piece_templates = _host.content().ids(&"build_piece")
 	_glyphs.set_deck(_steam.is_deck())
 	_glyphs.set_controller_active(_steam.is_deck() or not Input.get_connected_joypads().is_empty())
 	_build_static_scene()
 	_build_device()
 	_demo_script = _build_demo_script()
+	_mission_steps = MissionDemo.steps()
 
 
 func _build_demo_script() -> Array:
@@ -404,7 +424,7 @@ func _process(delta: float) -> void:
 		_frame_usec.append(int(delta * 1_000_000.0))
 	var sim: SimRoot = _host.sim()
 	_advance_setup(sim)
-	if _demo:
+	if _demo and not _mission:
 		if _demo_next < _demo_script.size():
 			var step: Array = _demo_script[_demo_next]
 			var at: float = step[0]
@@ -426,6 +446,17 @@ func _process(delta: float) -> void:
 			_save_capture()
 			get_tree().quit()
 			return
+	elif _mission and _demo:
+		if not _screenshot_path.is_empty() and _demo_t >= _screenshot_at_s:
+			_sync_scene(sim)
+			_place_camera(sim)
+			_render(sim)
+			await RenderingServer.frame_post_draw
+			_save_screenshot()
+		if _demo_quit_s > 0.0 and _demo_t >= _demo_quit_s:
+			_save_capture()
+			get_tree().quit()
+			return
 	elif not _device_raised:
 		var look: float = Input.get_action_strength("world_look_right") - Input.get_action_strength("world_look_left")
 		_yaw -= look * LOOK_SPEED * delta
@@ -436,11 +467,15 @@ func _process(delta: float) -> void:
 
 
 func _physics_process(_delta: float) -> void:
-	if _demo:
+	if _demo or _mission:
 		_demo_t += 1.0 / SimRoot.TICK_HZ  # sim-driven demo clock, see plot_view
 	if _setup_stage < READY:
 		return
 	var sim: SimRoot = _host.sim()
+	if _mission and _demo:
+		# --mission --demo drives the route itself; --mission alone hands it to you
+		_mission_tick(sim)
+		return
 	var input: Vector2 = Vector2.ZERO
 	if _demo:
 		if _demo_walk_ticks > 0:
@@ -567,9 +602,145 @@ func _unhandled_input(event: InputEvent) -> void:
 # ---------------------------------------------------------------- setup and actions
 
 ## The player on the street with the pistol kit and both parcels owned; the M4
+## Cold Storage raised by its operator, and the player turning up on the street with a
+## handset and a coprocessor and nothing else (M6 spec claim 13). The player owns
+## nothing, so the demo that follows is a break-in rather than a tour.
+func _advance_mission_setup(sim: SimRoot) -> void:
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var items: ItemSystem = SimAssembly.items_of(sim)
+	var sites: SiteSystem = SimAssembly.sites_of(sim)
+	match _setup_stage:
+		0:
+			_submit(sim, &"actor.spawn", {"profile": String(PROFILE), "range_m": 0})
+			_setup_stage = 1
+		1:
+			var ids: Array[int] = actors.actor_ids()
+			if ids.is_empty():
+				return
+			_operator = ids[0]
+			_submit(sim, &"land.identify", {"actor": _operator, "owner": "corp.coldchain"})
+			_submit(sim, &"site.raise", {"actor": _operator, "site": String(MissionDemo.SITE)})
+			_submit(sim, &"actor.spawn", {"profile": String(PROFILE), "range_m": MISSION_SPAWN_M})
+			_setup_stage = 2
+		2:
+			if not sites.is_raised(MissionDemo.SITE):
+				return
+			var ids2: Array[int] = actors.actor_ids()
+			if ids2.size() < 2:
+				return
+			_player = ids2[ids2.size() - 1]
+			var inv: String = String(ItemSystem.inventory_of(_player))
+			_submit(sim, &"item.spawn", {"kind": "device_frame", "template": "handset", "container": inv, "seed": 1, "count": 1})
+			_submit(sim, &"item.spawn", {"kind": "device_module", "template": "daemon_coprocessor", "container": inv, "seed": 2, "count": 1})
+			# a pistol as well, because a player who is seen should have a choice; the
+			# scripted route never draws it, which is the point of the score
+			_submit_kit(sim, _player, 3, 4, 30)
+			_setup_stage = 3
+		3:
+			if items.items_in(ItemSystem.inventory_of(_player)).size() < 2 + 1 + 2 + 30:
+				return
+			var handset: int = _kind_in(items, _player, ItemSystem.KIND_DEVICE_FRAME)
+			var module: int = _kind_in(items, _player, ItemSystem.KIND_DEVICE_MODULE)
+			_submit(sim, &"actor.equip_device", {"actor": _player, "device": handset})
+			_submit(sim, &"item.attach", {"actor": _player, "weapon": handset, "part": module})
+			var frame: int = _load_all_mags(items, _player)
+			if frame != 0:
+				_submit(sim, &"actor.wield", {"actor": _player, "weapon": frame})
+			_setup_stage = 4
+		4:
+			if actors.device_of(_player) == EntityIds.NONE:
+				return
+			_submit(sim, &"run.begin", {"actor": _player})
+			_submit(sim, &"quest.accept", {"actor": _player, "quest": String(MissionDemo.SITE)})
+			_setup_stage = 5
+		5:
+			_note("t%d mission: Cold Storage raised, player %d on the street" % [sim.get_tick(), _player])
+			_setup_stage = READY
+
+
+func _kind_in(items: ItemSystem, actor: int, kind: StringName) -> int:
+	for id: int in items.items_in(ItemSystem.inventory_of(actor)):
+		if items.item_kind(id) == kind:
+			return id
+	return EntityIds.NONE
+
+
+## One step of the route a tick: the whole run, played rather than described. Each
+## case submits at most one command, so the demo moves at the pace a player would.
+func _mission_tick(sim: SimRoot) -> void:
+	if _mission_index >= _mission_steps.size():
+		return
+	if _mission_wait > 0:
+		_mission_wait -= 1
+		return
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var sites: SiteSystem = SimAssembly.sites_of(sim)
+	var step: Dictionary = _mission_steps[_mission_index]
+	var kind: int = step["do"]
+	match kind:
+		MissionDemo.Step.WALK:
+			var rel: Vector3i = step["rel"]
+			var cell: Vector3i = sites.cell_of(MissionDemo.SITE, rel)
+			var target: Vector3i = BuildSystem.cell_centre(cell)
+			var here: Vector3i = actors.position_of(_player)
+			var speed: int = SimAssembly.movement_of(sim).speed_of(_player)
+			var dx: int = clampi(target.x - here.x, -speed, speed)
+			var dz: int = clampi(target.z - here.z, -speed, speed)
+			if dx == 0 and dz == 0:
+				_mission_index += 1
+				return
+			if dx != 0:
+				dz = 0
+			_submit(sim, &"actor.move", {"actor": _player, "dx": dx, "dz": dz, "dy": 0})
+		MissionDemo.Step.CLIMB:
+			var dy: int = step["dy"]
+			_submit(sim, &"actor.move", {"actor": _player, "dx": 0, "dz": 0, "dy": dy})
+			_mission_index += 1
+		MissionDemo.Step.CUT:
+			var grate: int = _grate(sim)
+			if grate != EntityIds.NONE:
+				_submit(sim, &"build.remove", {"actor": _player, "piece_id": grate})
+			_mission_index += 1
+		MissionDemo.Step.PATCH:
+			var centre: Vector3i = BuildSystem.cell_centre(sites.cell_of(MissionDemo.SITE, GRATE_REL))
+			_submit(sim, &"build.place", {"actor": _player, "piece": "floor_panel", "x": centre.x, "y": centre.y, "z": centre.z, "facing": "ny"})
+			_mission_index += 1
+		MissionDemo.Step.HACK:
+			var terminals: TerminalSystem = SimAssembly.terminals_of(sim)
+			var terminal: int = sites.terminals_of(MissionDemo.SITE)[0]
+			_submit(sim, &"terminal.hack_start", {"actor": _player, "terminal": terminal})
+			_mission_wait = terminals.hack_ticks_of(terminal) + 2
+			_mission_index += 1
+		MissionDemo.Step.WIPE:
+			var terminal2: int = sites.terminals_of(MissionDemo.SITE)[0]
+			_submit(sim, &"terminal.wipe", {"actor": _player, "terminal": terminal2})
+			_mission_index += 1
+		MissionDemo.Step.WAIT_CLEAR:
+			_mission_patience += 1
+			if MissionDemo.hall_is_clear(sim, _player, _operator) or _mission_patience > MissionDemo.PATIENCE:
+				_mission_patience = 0
+				_mission_index += 1
+		MissionDemo.Step.DONE:
+			_submit(sim, &"run.end", {"actor": _player})
+			var score: RunScoreSystem = SimAssembly.score_of(sim)
+			_note("t%d run scored: seen %d, alarms %d, bodies %d, traces %d" % [
+				sim.get_tick(), score.times_detected(_player), score.alarms_raised(_player),
+				score.bodies(_player), score.traces_left(_player)])
+			_mission_index += 1
+
+
+func _grate(sim: SimRoot) -> int:
+	var sites: SiteSystem = SimAssembly.sites_of(sim)
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	return build.face_piece_at(BuildSystem.face_key(sites.cell_of(MissionDemo.SITE, GRATE_REL), "ny"))
+
+
 ## building raised from `M4Building.commands`; four guards spawned and armed the same
 ## way the player is, through commands. Stages wait for the sim to catch up.
 func _advance_setup(sim: SimRoot) -> void:
+	if _mission:
+		_advance_mission_setup(sim)
+		return
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
 	var items: ItemSystem = SimAssembly.items_of(sim)
 	match _setup_stage:
@@ -852,6 +1023,8 @@ func _submit(sim: SimRoot, kind: StringName, payload: Dictionary) -> void:
 
 
 func _note(text: String) -> void:
+	if _mission:
+		print(text)  # the mission demo is also run headless for the gate's evidence
 	_log.append(text)
 	if _log.size() > 5:
 		_log.pop_front()
@@ -922,7 +1095,8 @@ func _load_game() -> void:
 
 func _render(sim: SimRoot) -> void:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("Gcity M5 world   tick %d   state %s%s" % [sim.get_tick(), sim.state_hash().left(12), "   PAUSED" if sim.is_paused() else ""])
+	var title: String = "M6 mission" if _mission else "M5 world"
+	lines.append("Gcity %s   tick %d   state %s%s" % [title, sim.get_tick(), sim.state_hash().left(12), "   PAUSED" if sim.is_paused() else ""])
 	if _setup_stage < READY:
 		lines.append("setting up (stage %d)..." % _setup_stage)
 		_status.text = "\n".join(lines)
