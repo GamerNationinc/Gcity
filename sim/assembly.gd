@@ -91,6 +91,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var corpses: CorpseSystem = CorpseSystem.new(content, actors, items, ids, land, events)
 	if corpses.attach(sim) != OK:
 		return null
+	var routes: RouteGraph = RouteGraph.new()
+	if routes.attach(sim) != OK:
+		return null
 	return sim
 
 
@@ -128,7 +131,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, CorpseSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, CorpseSystem.SYSTEM_ID, RouteGraph.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -184,6 +187,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = standing_of(sim).restore(state)
 			CorpseSystem.SYSTEM_ID:
 				err = corpses_of(sim).restore(state)
+			RouteGraph.SYSTEM_ID:
+				err = routes_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -412,3 +417,12 @@ static func corpses_of(sim: SimRoot) -> CorpseSystem:
 		return null
 	var corpses: CorpseSystem = system
 	return corpses
+
+
+static func routes_of(sim: SimRoot) -> RouteGraph:
+	var system: SimSystem = sim.get_system(RouteGraph.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % RouteGraph.SYSTEM_ID)
+		return null
+	var routes: RouteGraph = system
+	return routes

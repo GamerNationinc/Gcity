@@ -1,7 +1,8 @@
 # M7 — Route graph and procedural wilds: specification
 
 Milestone M7 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **proposed**, awaiting CEOGG.
+before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG, 2026-09-23); implementation on branch
+`m7-procgen`.
 
 **Preconditions.** G6 is signed (`docs/gates/M6-gate.md`, Accepted 2026-09-23).
 **ADR-003** is accepted as **B**, volumetric voxels with surface nets, proven on the
