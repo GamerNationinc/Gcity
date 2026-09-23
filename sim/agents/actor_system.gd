@@ -11,6 +11,10 @@ const COMMAND_WIELD: StringName = &"actor.wield"
 ## The personal device an actor carries (design doc §12; M5 spec claim 2): one device
 ## frame in its inventory, inheriting its modifiers like a wielded weapon.
 const COMMAND_EQUIP_DEVICE: StringName = &"actor.equip_device"
+## Emitted once, on the tick an actor's last fatal node reaches zero. What is done
+## about the body is CorpseSystem's (M6 spec claim 10, ADR-007 C); this system only
+## says who died and where.
+const EVENT_DIED: StringName = &"actor.died"
 const MAX_RANGE_M: int = 10_000
 const MAX_COORD: int = 100_000_000
 
@@ -18,16 +22,18 @@ var _content: ContentDb
 var _stats: StatResolver
 var _ids: EntityIds
 var _items: ItemSystem
+var _events: EventBus
 ## actor id -> {"profile": StringName, "health": {node: int}, "wielded": int, "device": int, "pos": [x, y, z] mm, "alive": bool}
 ## Positions are integer millimetres (M3 claim set P1). `actor.spawn`'s range_m places
 ## the actor at (range_m × 1000, 0, 0) so the M1 range keeps its meaning.
 var _actors: Dictionary = {}
 
 
-func _init(content: ContentDb, stats: StatResolver, ids: EntityIds, items: ItemSystem) -> void:
+func _init(content: ContentDb, stats: StatResolver, ids: EntityIds, items: ItemSystem, events: EventBus) -> void:
 	_content = content
 	_stats = stats
 	_ids = ids
+	_events = events
 	_items = items
 
 
@@ -252,9 +258,37 @@ func damage_node(actor: int, node: StringName, amount: int) -> int:
 	var applied: int = mini(current, amount)
 	health[node] = current - applied
 	var profile: StringName = rec["profile"]
-	if health[node] == 0 and _is_fatal(profile, node):
+	var was_alive: bool = rec["alive"]
+	if was_alive and health[node] == 0 and _is_fatal(profile, node):
 		rec["alive"] = false
+		var pos: Array = rec["pos"]
+		_events.emit(EVENT_DIED, {"actor": actor, "x": pos[0], "y": pos[1], "z": pos[2]})
 	return applied
+
+
+## Brings a dead actor back with a full health graph. Who decides an actor comes back,
+## and at what cost, is not this system's business (M6 spec claim 11): this only undoes
+## the damage. Refuses an actor that is already standing.
+func revive(actor: int) -> bool:
+	if not _actors.has(actor):
+		return false
+	var rec: Dictionary = _actors[actor]
+	var alive: bool = rec["alive"]
+	if alive:
+		return false
+	var profile: StringName = rec["profile"]
+	var t: Dictionary = _content.get_entry(KIND_PROFILE, profile)
+	var health_t: Dictionary = t["health"]
+	var nodes: Array = health_t["nodes"]
+	var health: Dictionary = {}
+	for n: Variant in nodes:
+		var nd: Dictionary = n
+		var id_s: String = nd["id"]
+		var max_hp: int = nd["max"]
+		health[StringName(id_s)] = max_hp
+	rec["health"] = health
+	rec["alive"] = true
+	return true
 
 
 func _is_fatal(profile: StringName, node: StringName) -> bool:
@@ -292,6 +326,13 @@ func _on_wield(_sim: SimRoot, payload: Dictionary) -> bool:
 		return false
 	var actor: int = payload["actor"]
 	var weapon: int = payload["weapon"]
+	return wield(actor, weapon)
+
+
+## Puts a frame from the actor's inventory in their hands, or NONE to put it away, and
+## makes the weapon inherit the actor's tags. Split out of the command so a site can
+## hand its own guards something to hold; the rules are the same either way.
+func wield(actor: int, weapon: int) -> bool:
 	if not _actors.has(actor) or not is_alive(actor):
 		return false
 	var rec: Dictionary = _actors[actor]

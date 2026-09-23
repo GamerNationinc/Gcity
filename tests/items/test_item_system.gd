@@ -443,3 +443,92 @@ func test_hostile_snapshots_are_rejected_and_leave_the_system_untouched() -> voi
 static func _sub(dict: Dictionary, key: String) -> Dictionary:
 	var out: Dictionary = dict[key]
 	return out
+
+
+## M6 spec claim 9: money is an item. A note's face value is a `value` stat, which is
+## both what it is worth and what it adds to visible wealth while it is being carried.
+func test_credits_are_items_with_a_face_value() -> void:
+	_build()
+	assert_true(ItemSystem.SPAWNABLE.has(ItemSystem.KIND_CURRENCY), "currency can be spawned like any item")
+	assert_eq(_items.face_value_of_template(&"credit_note"), 100, "a note's face value")
+	assert_eq(_items.face_value_of_template(&"g19"), 0, "a pistol is not money, whatever it is worth")
+	assert_eq(_items.credits_in(_inv()), 0, "an empty pocket")
+	var first: int = _items.spawn(ItemSystem.KIND_CURRENCY, &"credit_note", _inv(), 1)
+	assert_true(first > 0, "a note")
+	assert_eq(_items.item_kind(first), ItemSystem.KIND_CURRENCY, "of the currency kind")
+	assert_eq(_stats.resolve(first, &"value"), 100, "worth its face value through the resolver")
+	assert_true(_stats.get_tags(first).has(&"currency"), "and tagged as money")
+	for i: int in 11:
+		assert_true(_items.spawn(ItemSystem.KIND_CURRENCY, &"credit_note", _inv(), 2 + i) > 0, "note %d" % i)
+	assert_eq(_items.credits_in(_inv()), 1200, "twelve notes is twelve hundred credits")
+	# money moves like anything else, and nothing else counts as money
+	_kit()
+	assert_eq(_items.credits_in(_inv()), 1200, "a pistol in the same bag adds nothing to the total")
+	assert_true(_do(&"item.spawn", {"kind": "currency", "template": "credit_note", "container": "world", "seed": 9, "count": 3}), "spawned into the world")
+	assert_eq(_items.credits_in(&"world"), 300, "three notes on the ground")
+	assert_eq(_items.credits_in(ItemSystem.inventory_of(OTHER_ACTOR)), 0, "and none in the other pocket")
+
+
+## M6 spec claim 10: a corpse's pockets are an ordinary open container, and death and
+## looting are both one whole-container move, so nothing is spawned or destroyed.
+func test_a_corpse_container_is_open_and_a_whole_container_moves_at_once() -> void:
+	_build()
+	var kit: Dictionary = _kit()
+	var pistol: int = kit["pistol"]
+	var loose: Array = kit["rounds"]
+	var first_round: int = loose[0]
+	assert_true(_do(&"magazine.load", {"actor": ACTOR, "magazine": kit["mag_a"], "round": first_round}), "one round in the magazine")
+	var before: int = _items.item_count()
+	var held: int = _items.items_in(_inv()).size()
+	assert_true(held > 0, "a kit in the pocket")
+	var corpse: StringName = ItemSystem.corpse_container(ACTOR)
+	assert_eq(String(corpse), "corpse.%d" % ACTOR, "named after the corpse")
+	assert_eq(_items.move_container(_inv(), corpse), held, "the whole kit moves at once")
+	assert_eq(_items.item_count(), before, "and not one item was made or lost")
+	assert_eq(_items.items_in(_inv()).size(), 0, "the pocket is empty")
+	assert_eq(_items.container_of(pistol), corpse, "the pistol is on the body")
+	# a loaded magazine keeps its rounds: they live in the magazine, not the pocket
+	var mag: int = kit["mag_a"]
+	var rounds: Array[int] = _items.items_in(ItemSystem.magazine_container(mag))
+	assert_eq(_items.container_of(mag), corpse, "the magazine went with the rest")
+	assert_eq(_items.items_in(ItemSystem.magazine_container(mag)), rounds, "and its rounds are still in it")
+	# looting is the same move the other way
+	assert_eq(_items.move_container(corpse, ItemSystem.inventory_of(OTHER_ACTOR)), held, "and back off it")
+	assert_eq(_items.item_count(), before, "still conserved")
+	assert_eq(_items.items_in(corpse).size(), 0, "the body is stripped")
+	assert_eq(_items.move_container(corpse, _inv()), 0, "an empty container moves nothing")
+	# the ends have to be real open containers
+	assert_eq(_items.move_container(_inv(), _inv()), 0, "a container cannot move into itself")
+	assert_eq(_items.move_container(ItemSystem.inventory_of(OTHER_ACTOR), &"mag.3"), 0, "not into a magazine")
+	assert_eq(_items.move_container(ItemSystem.inventory_of(OTHER_ACTOR), &"corpse.0"), 0, "not into corpse zero")
+	assert_eq(_items.move_container(&"nowhere", _inv()), 0, "not out of nothing")
+	assert_eq(_items.item_count(), before, "every refusal left the count alone")
+
+
+## M6: a site raises its own guards, so something has to be able to arm an actor in one
+## call. Ids are allocated as commands execute, so the command path cannot name what it
+## has just spawned.
+func test_arming_an_actor_from_a_kit_seats_the_magazine_and_chambers_a_round() -> void:
+	_build()
+	var before: int = _items.item_count()
+	var pistol: int = _items.arm(ACTOR, &"g19", &"g19_mag_15", &"9x19_fmj", 15, 700)
+	assert_true(pistol > 0, "armed")
+	assert_eq(_items.item_template(pistol), &"g19", "the frame")
+	assert_eq(_items.container_of(pistol), _inv(), "in the pocket")
+	var magazine: int = _items.magazine_of(pistol)
+	assert_true(magazine > 0, "with a magazine seated in it")
+	assert_eq(_items.container_of(magazine), ItemSystem.socket_container(pistol, &"magazine"), "in the magazine socket")
+	assert_eq(_items.rounds_in(magazine).size(), 14, "fourteen left in it")
+	assert_true(_items.chambered(pistol) > 0, "and one up the spout")
+	assert_eq(_items.item_count(), before + 1 + 1 + 15, "a frame, a magazine and fifteen rounds")
+	# the magazine's modifiers are on the weapon, exactly as an attach would leave them
+	assert_true(_stats.resolve(pistol, &"ergonomics") != 0, "the frame resolves")
+	# a kit that does not fit is refused rather than half-applied
+	var mid: int = _items.item_count()
+	assert_eq(_items.arm(OTHER_ACTOR, &"g19", &"m9_mag_15", &"9x19_fmj", 15, 800), EntityIds.NONE, "an m9 magazine does not fit a g19")
+	assert_eq(_items.arm(OTHER_ACTOR, &"nothing", &"g19_mag_15", &"9x19_fmj", 15, 900), EntityIds.NONE, "a frame that does not exist")
+	assert_true(_items.item_count() >= mid, "and nothing was destroyed by the refusals")
+	# a magazine only holds what it holds
+	var over: int = _items.arm(OTHER_ACTOR, &"g19", &"g19_mag_15", &"9x19_fmj", 99, 1000)
+	assert_true(over > 0, "armed with more rounds than fit")
+	assert_eq(_items.rounds_in(_items.magazine_of(over)).size(), 14, "the magazine took fifteen and chambered one")

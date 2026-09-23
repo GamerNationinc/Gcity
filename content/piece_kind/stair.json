@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "A flight an actor climbs: it occupies a vertical face, passes movement within a level, and lets an actor change level through it (M6 spec claim 1).",
+	"occupies": "face",
+	"orientation": "vertical",
+	"passable": true,
+	"target": false,
+	"climb": true
+}

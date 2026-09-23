@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "The fixer's office, two lots north of the starter plot. The fixer is a place with a name and not yet a person: a contract is turned in by standing here (M6 spec claim 9; dialogue is M7).",
+	"district": "starter_ghetto",
+	"owner": "npc.fixer",
+	"footprint": [[0, 24384], [12192, 24384], [12192, 36576], [0, 36576]],
+	"floor_y": -3000,
+	"ceiling_y": 9000
+}

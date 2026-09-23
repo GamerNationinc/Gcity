@@ -4,5 +4,6 @@
 	"kind": "floor",
 	"material": "scrap_steel",
 	"open_cost": 0,
-	"value": 0
+	"value": 0,
+	"access": ""
 }

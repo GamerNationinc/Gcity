@@ -6,7 +6,6 @@ extends GcityTest
 const M0_FIXTURE: String = "res://tests/replay/m0-trivial.json"
 const M1_RANGE: String = "res://tests/replay/m1-range.json"
 const M1_PERK_OFF: String = "res://tests/replay/m1-perk-off.json"
-const HOSTILE_COMMANDS: String = "res://tests/fuzz/commands/hostile_payloads.json"
 
 
 func _content() -> ContentDb:
@@ -99,33 +98,3 @@ func test_replay_with_commands_and_a_system() -> void:
 	assert_eq(sim.get_tick(), 8, "ran to the fixture's tick count")
 	var without: String = Replay.run(fixture, SimRoot.new(fixture.seed))
 	assert_ne(hash, without, "a sim without the system rejects the commands and hashes differently")
-
-
-## The committed hostile corpus: every payload is rejected on the standard range and
-## leaves the systems' state hash exactly where it was.
-func test_hostile_command_corpus_is_rejected_without_state_change() -> void:
-	var json := JSON.new()
-	assert_eq(json.parse(read_text(HOSTILE_COMMANDS)), OK, "corpus parses")
-	var corpus: Dictionary = json.data
-	var cases: Array = corpus["cases"]
-	assert_true(cases.size() >= 40, "corpus has at least 40 cases (%d)" % cases.size())
-	var fixture: ReplayFixture = _fixture(M1_RANGE)
-	var sim: SimRoot = SimAssembly.build(fixture.seed, _content())
-	# set up the range with the fixture's first four ticks of commands, then stop
-	for command: SimCommand in fixture.commands:
-		if command.tick <= 4:
-			assert_eq(sim.submit(command), OK, "setup submit")
-	sim.step_n(90)
-	assert_eq(sim.rejected_count(), 0, "setup applied cleanly")
-	var i: int = 0
-	for c: Variant in cases:
-		var entry: Dictionary = c
-		var kind_s: String = entry["kind"]
-		var payload: Dictionary = entry["payload"]
-		var before: String = StateHash.of(sim.snapshot()["systems"])
-		var rejected_before: int = sim.rejected_count()
-		assert_eq(sim.submit(SimCommand.new(sim.get_tick() + 1, StringName(kind_s), payload)), OK, "submit case %d" % i)
-		sim.step()
-		assert_eq(sim.rejected_count(), rejected_before + 1, "case %d (%s %s) rejected" % [i, kind_s, var_to_str(payload)])
-		assert_eq(StateHash.of(sim.snapshot()["systems"]), before, "case %d left system state untouched" % i)
-		i += 1

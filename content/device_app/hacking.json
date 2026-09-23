@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "The G5 extension exercise: an app gated on a module nothing else provides. The hacking itself is M6.",
+	"description": "The device's way into a terminal: start a hack, watch it run with the world running, wipe the log afterwards. Needs a daemon coprocessor in the device (M6 spec claim 6).",
 	"title": "Hacking",
 	"icon": "#",
 	"order": 60,

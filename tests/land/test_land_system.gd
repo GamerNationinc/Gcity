@@ -11,6 +11,8 @@ const M: int = 1000
 const PLOT: StringName = &"starter_plot"
 const EAST: StringName = &"neighbour_east"
 const NORTH: StringName = &"neighbour_north"
+const FIXER: StringName = &"fixers_office"
+const LOT: StringName = &"cold_storage_lot"
 
 var _sim: SimRoot
 var _land: LandSystem
@@ -52,7 +54,9 @@ func _rights(pos: Vector3i, actor: int) -> String:
 
 func test_content_parcels_are_placed_at_assembly() -> void:
 	_build()
-	assert_eq(_land.parcel_ids(), [EAST, NORTH, PLOT] as Array[StringName], "three content parcels, sorted")
+	assert_eq(_land.parcel_ids(), [LOT, FIXER, EAST, NORTH, PLOT] as Array[StringName], "five content parcels, sorted")
+	assert_eq(_land.owner_of(LOT), &"corp.coldchain", "the cold store's operator owns its lot")
+	assert_eq(_land.owner_of(FIXER), &"npc.fixer", "and the fixer their office")
 	assert_eq(_land.owner_of(PLOT), &"", "plot starts unowned")
 	assert_eq(_land.owner_of(EAST), &"npc.landlord_east", "east landlord")
 	assert_eq(_land.district_of(PLOT), &"starter_ghetto", "plot district")
@@ -182,7 +186,7 @@ func test_add_parcel_rejects_bad_polygons_and_overlaps() -> void:
 	assert_eq(_land.add_parcel(&"c", &"starter_ghetto", &"", _rect(110 * M, 100 * M, 10 * M, 10 * M), 0, M), OK, "sharing an edge is fine")
 	assert_eq(_land.add_parcel(&"d", &"starter_ghetto", &"", _rect(110 * M, 110 * M, 10 * M, 10 * M), 0, M), OK, "sharing a corner is fine")
 	assert_eq(_land.add_parcel(&"e", &"starter_ghetto", &"", [[0, 0], [10 * M, 0], [0, 10 * M]], 0, M), ERR_ALREADY_EXISTS, "overlaps the starter plot")
-	assert_eq(_land.parcel_ids().size(), 7, "seven parcels")
+	assert_eq(_land.parcel_ids().size(), 9, "the five from content and the four added here")
 
 
 func test_diagonal_split_assigns_the_diagonal_to_one_triangle() -> void:
@@ -247,8 +251,9 @@ func test_property_parcels_never_overlap_and_points_resolve_uniquely() -> void:
 				if _rects_overlap(rect, other):
 					oracle_free = false
 					break
-			# content parcels occupy [0, 24384] on both axes: keep generated ones clear of them
-			if x0 < 30 * M and x0 + w > -5 * M and z0 < 30 * M and z0 + h > -5 * M:
+			# content parcels reach [0, 49 000] by [0, 55 000] once the fixer's office and
+			# the Cold Storage lot are in: keep generated ones clear of all of them
+			if x0 < 60 * M and x0 + w > -5 * M and z0 < 60 * M and z0 + h > -5 * M:
 				continue
 			var footprint: Array = _rect(x0, z0, w, h)
 			var gen_id: StringName = rect[6]
@@ -260,7 +265,7 @@ func test_property_parcels_never_overlap_and_points_resolve_uniquely() -> void:
 				accepted.append(rect)
 		for _q: int in 100:
 			var p := Vector3i(rng.randi_range(-110 * M, 110 * M), rng.randi_range(-12 * M, 17 * M), rng.randi_range(-110 * M, 110 * M))
-			if p.x < 30 * M and p.x > -5 * M and p.z < 30 * M and p.z > -5 * M:
+			if p.x < 60 * M and p.x > -5 * M and p.z < 60 * M and p.z > -5 * M:
 				continue
 			queries += 1
 			var expected: StringName = LandSystem.UNPARCELLED

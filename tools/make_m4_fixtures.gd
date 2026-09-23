@@ -47,9 +47,9 @@ func _write(name: String, profile: String, range_m: int, moves: Array, tail: int
 	_at(2, &"land.identify", {"actor": player, "owner": "player"})
 	_at(2, &"land.transfer", {"parcel": "starter_plot", "owner": "player"})
 	_at(2, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"})
-	for c: Dictionary in M4Building.commands(player):
+	for c: Dictionary in M4Building.commands(player, db):
 		_at(2, &"build.place", c)
-	for g: Dictionary in M4Building.guards(profile):
+	for g: Dictionary in M4Building.guards(profile, db):
 		_at(2, &"agent.spawn", g)
 	for cell: Vector3i in cover:
 		var c: Vector3i = BuildSystem.cell_centre(cell)

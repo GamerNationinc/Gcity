@@ -45,6 +45,10 @@
 		{
 			"stat": "noise",
 			"value": 60000
+		},
+		{
+			"stat": "value",
+			"value": 1200
 		}
 	]
 }

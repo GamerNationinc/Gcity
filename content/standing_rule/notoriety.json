@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "What the city remembers (design doc §7.3). Raised by finishing a contract, and it fades far more slowly than heat: a name is harder to shed than a patrol.",
+	"title": "Notoriety",
+	"source": "events",
+	"period_ticks": 400,
+	"raise": [
+		{"event": "quest.completed", "credit": "actor", "tags_any": [], "when": "always", "amount": 100}
+	],
+	"decay": {"amount": 1, "index": "", "mode": "flat"},
+	"max": 100000
+}

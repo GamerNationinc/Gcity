@@ -1,0 +1,59 @@
+{
+	"schema_version": 1,
+	"description": "A terminal a device can hack (M6 spec claim 5): how long it takes, the device hardware it needs, how close the actor must stay, the item it yields and the signal it emits. The hack runs in real time with the world running, which is the exposure the mission is built on.",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 320
+		},
+		"title": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 60
+		},
+		"hack_ticks": {
+			"type": "int",
+			"min": 1,
+			"max": 100000
+		},
+		"requires": {
+			"type": "string",
+			"pattern": "([a-z0-9][a-z0-9_.]*)?"
+		},
+		"reach_mm": {
+			"type": "int",
+			"min": 100,
+			"max": 20000
+		},
+		"yields_kind": {
+			"type": "string",
+			"pattern": "[a-z0-9][a-z0-9_]*"
+		},
+		"yields": {
+			"type": "string",
+			"pattern": "[a-z0-9][a-z0-9_]*"
+		},
+		"emits": {
+			"type": "string",
+			"pattern": "([a-z0-9][a-z0-9_.]*)?"
+		}
+	},
+	"required": [
+		"schema_version",
+		"description",
+		"title",
+		"hack_ticks",
+		"requires",
+		"reach_mm",
+		"yields_kind",
+		"yields",
+		"emits"
+	],
+	"additional_properties": false
+}

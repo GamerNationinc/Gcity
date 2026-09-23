@@ -66,3 +66,21 @@ it from the pieces and refuses a saved graph that differs.
   be modifiers on the piece's stats or a registered edge rule.
 - Read the graph's node numbers as stable across changes. Volumes renumber when the
   structure changes; keep a cell, ask `node_at()`.
+
+
+## Climbable faces and standing (M6)
+
+`content/piece_kind/<id>.json` carries `climb`: a face an actor may change level
+through (`stair`). An actor may move a level when a climbable face touches the cell
+it leaves or the cell it enters, the floor between them is passable or absent, and
+the cell it enters is standable — you climb onto something, never into the air.
+
+A cell is **standable** when a solid horizontal face carries it from below, a solid
+piece fills the cell beneath, it is at or below the ground level of its parcel, or it
+carries a climbable face (you are on the stairs). An actor over nothing falls a level
+a tick and takes its combat profile's `fall_damage_per_level` for every level beyond
+the first.
+
+A flight that ends in open air ends there: the move up is refused rather than
+dropping the actor. A floor panel blocks its own stairwell, so put a `roof_hatch` (a
+passable horizontal face) at the cell the flight passes through.

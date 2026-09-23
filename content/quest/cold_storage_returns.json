@@ -1,0 +1,37 @@
+{
+	"schema_version": 1,
+	"description": "The second contract against the same site (standards §11 Q4, the M6 extension exercise): a different machine behind a different door, priced by a different sheet, and not one line of sim.",
+	"title": "Cold Storage again",
+	"text": "The client came back. There is a second machine behind the door at the back of that server room, and they want what is on it. The door takes a maintenance token, or you can come in at the window on the fire stair and go down. It is a longer sit at the keyboard than last time. Nobody is in a hurry, so the sheet is different: a body costs more than it did and a hole in a wall costs almost nothing.",
+	"objectives": [
+		{
+			"description": "Hack the archive machine",
+			"event": "terminal.hacked",
+			"credit": "actor",
+			"tags_any": [],
+			"count": 1
+		},
+		{
+			"description": "Leave the site carrying the archive",
+			"event": "actor.left_parcel",
+			"credit": "actor",
+			"tags_any": [
+				"data.archive"
+			],
+			"count": 1
+		}
+	],
+	"turn_in": {
+		"parcel": "fixers_office",
+		"curve": "fixer_patient",
+		"currency": "credit_note",
+		"notes": 18
+	},
+	"reward": [
+		{
+			"kind": "weapon_part",
+			"template": "g19_mag_15",
+			"count": 1
+		}
+	]
+}

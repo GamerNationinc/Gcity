@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "The fixer's terms for a job nobody is in a hurry about: less for a clean run than the standard sheet pays, far less forgiving of a body, and almost indifferent to a hole left in a wall.",
+	"clean_bonus": 1500,
+	"base": 1200,
+	"floor": 400,
+	"per_detection": 60,
+	"per_alarm": 120,
+	"per_body": 500,
+	"per_trace": 40
+}

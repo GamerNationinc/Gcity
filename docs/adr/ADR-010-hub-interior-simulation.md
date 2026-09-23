@@ -1,6 +1,6 @@
 # ADR-010: Are hub interiors simulated while the player is elsewhere?
 
-Status: proposed
+Status: accepted
 Date: 2026-09-20
 Design doc: §17 (D-10); §5.1 regions; §6.2 hydration
 
@@ -30,7 +30,7 @@ agents on the route graph.
 
 ## Decision
 
-Proposed: **B**, as the uniform rule for both region types: everything unloaded runs on
+**B** (CEOGG, 2026-09-23), as the uniform rule for both region types: everything unloaded runs on
 tokens and schedules; everything loaded runs fully. That is the hydration rule of §6.2
 applied to hubs.
 
@@ -47,4 +47,6 @@ Recorded at G7.
 
 ## Sign-off
 
-Approver: CEOGG — _pending_
+Approver: CEOGG — **accepted as B**, 2026-09-23. One uniform hydration rule for both
+region types: unloaded runs on tokens and schedules, loaded runs fully. The metamorphic
+verification above is a G7 gate item.

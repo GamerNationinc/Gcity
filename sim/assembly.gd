@@ -22,11 +22,13 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var items: ItemSystem = ItemSystem.new(content, stats, ids)
 	if items.attach(sim) != OK:
 		return null
-	var actors: ActorSystem = ActorSystem.new(content, stats, ids, items)
+	# the bus is built before the first system that emits on it: an actor's death is
+	# an event, and actors are the earliest system that has one
+	var events: EventBus = EventBus.new()
+	var actors: ActorSystem = ActorSystem.new(content, stats, ids, items, events)
 	if actors.attach(sim) != OK:
 		return null
 	items.set_actor_check(actors.has_actor)
-	var events: EventBus = EventBus.new()
 	var combat: CombatSystem = CombatSystem.new(content, stats, items, actors, events)
 	if combat.attach(sim) != OK:
 		return null
@@ -45,7 +47,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var portals: PortalGraph = PortalGraph.new(content, stats, build)
 	if portals.attach(sim, events) != OK:
 		return null
-	var movement: MovementSystem = MovementSystem.new(content, actors, land, build)
+	var movement: MovementSystem = MovementSystem.new(content, actors, land, build, events, items, stats)
 	if movement.attach(sim) != OK:
 		return null
 	var raids: RaidTokenSystem = RaidTokenSystem.new(content, build, portals, events)
@@ -70,8 +72,24 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var stances: StanceSystem = StanceSystem.new(content, actors, items, perception, aim, stress, pathing, squads)
 	if stances.attach(sim) != OK:
 		return null
-	var quests: QuestSystem = QuestSystem.new(content, actors, items, events)
+	var quests: QuestSystem = QuestSystem.new(content, actors, items, land, events)
 	if quests.attach(sim) != OK:
+		return null
+	var terminals: TerminalSystem = TerminalSystem.new(content, actors, items, ids, events)
+	if terminals.attach(sim) != OK:
+		return null
+	var sites: SiteSystem = SiteSystem.new(content, build, perception, actors, events, terminals, items)
+	if sites.attach(sim) != OK:
+		return null
+	var score: RunScoreSystem = RunScoreSystem.new(content, actors, perception, terminals, build, events)
+	if score.attach(sim) != OK:
+		return null
+	quests.set_payout_source(score.multiplier)
+	var standing: StandingSystem = StandingSystem.new(content, actors, items, stats, land, events)
+	if standing.attach(sim) != OK:
+		return null
+	var corpses: CorpseSystem = CorpseSystem.new(content, actors, items, ids, land, events)
+	if corpses.attach(sim) != OK:
 		return null
 	return sim
 
@@ -110,7 +128,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, CorpseSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -156,9 +174,28 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = stances_of(sim).restore(state)
 			QuestSystem.SYSTEM_ID:
 				err = quests_of(sim).restore(state)
+			TerminalSystem.SYSTEM_ID:
+				err = terminals_of(sim).restore(state)
+			SiteSystem.SYSTEM_ID:
+				err = sites_of(sim).restore(state)
+			RunScoreSystem.SYSTEM_ID:
+				err = score_of(sim).restore(state)
+			StandingSystem.SYSTEM_ID:
+				err = standing_of(sim).restore(state)
+			CorpseSystem.SYSTEM_ID:
+				err = corpses_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
+
+
+static func content_of(sim: SimRoot) -> ContentDb:
+	var system: SimSystem = sim.get_system(&"content")
+	if system == null:
+		push_error("SimAssembly: sim has no 'content' system")
+		return null
+	var content: ContentDb = system
+	return content
 
 
 static func stats_of(sim: SimRoot) -> StatResolver:
@@ -330,3 +367,48 @@ static func quests_of(sim: SimRoot) -> QuestSystem:
 		return null
 	var quests: QuestSystem = system
 	return quests
+
+
+static func sites_of(sim: SimRoot) -> SiteSystem:
+	var system: SimSystem = sim.get_system(SiteSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % SiteSystem.SYSTEM_ID)
+		return null
+	var sites: SiteSystem = system
+	return sites
+
+
+static func terminals_of(sim: SimRoot) -> TerminalSystem:
+	var system: SimSystem = sim.get_system(TerminalSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % TerminalSystem.SYSTEM_ID)
+		return null
+	var terminals: TerminalSystem = system
+	return terminals
+
+
+static func score_of(sim: SimRoot) -> RunScoreSystem:
+	var system: SimSystem = sim.get_system(RunScoreSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % RunScoreSystem.SYSTEM_ID)
+		return null
+	var score: RunScoreSystem = system
+	return score
+
+
+static func standing_of(sim: SimRoot) -> StandingSystem:
+	var system: SimSystem = sim.get_system(StandingSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % StandingSystem.SYSTEM_ID)
+		return null
+	var standing: StandingSystem = system
+	return standing
+
+
+static func corpses_of(sim: SimRoot) -> CorpseSystem:
+	var system: SimSystem = sim.get_system(CorpseSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % CorpseSystem.SYSTEM_ID)
+		return null
+	var corpses: CorpseSystem = system
+	return corpses

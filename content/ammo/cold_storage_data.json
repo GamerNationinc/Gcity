@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "The data lifted from Cold Storage's server: carried like any item, sold to the fixer. An ammo-kind instance until items have their own kinds (M6 debt).",
+	"calibre": "9x19",
+	"tags": [
+		"data.cold_storage",
+		"contraband"
+	],
+	"stats": []
+}

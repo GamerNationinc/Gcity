@@ -1,0 +1,37 @@
+{
+	"schema_version": 1,
+	"description": "The first contract (design doc §15): take the data off Cold Storage's server and walk it back to the fixer. How you get in, and what you leave behind, is priced at turn-in rather than forbidden.",
+	"title": "Cold Storage",
+	"text": "A client wants what is on the server in the back room of the cold store on the east lot. Three ways in that we know of: the front door takes a staff token, the fire stair reaches a maintenance window, and the service tunnel runs under the slab from a street grate. Get the data, get out of the lot with it, and bring it here. Quiet pays double.",
+	"objectives": [
+		{
+			"description": "Hack the Cold Storage server",
+			"event": "terminal.hacked",
+			"credit": "actor",
+			"tags_any": [],
+			"count": 1
+		},
+		{
+			"description": "Leave the site carrying the data",
+			"event": "actor.left_parcel",
+			"credit": "actor",
+			"tags_any": [
+				"data.cold_storage"
+			],
+			"count": 1
+		}
+	],
+	"turn_in": {
+		"parcel": "fixers_office",
+		"curve": "fixer_standard",
+		"currency": "credit_note",
+		"notes": 12
+	},
+	"reward": [
+		{
+			"kind": "device_module",
+			"template": "radio_module",
+			"count": 1
+		}
+	]
+}

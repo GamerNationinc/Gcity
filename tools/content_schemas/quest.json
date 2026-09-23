@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "A quest record (M5 spec claim 9): objectives are bus events credited to an actor field of the payload, optionally filtered by tags, counted to a target; the reward is item templates spawned into the actor's inventory once on completion. Offers, dialogue and site binding are the director's (M6/M7).",
+	"description": "A quest record (M5 spec claim 9; M6 spec claim 9): objectives are bus events credited to an actor field of the payload, optionally filtered by tags, counted to a target; the reward is item templates spawned into the actor's inventory. A quest with a `turn_in` block is not paid when its objectives are done but when `quest.turn_in` is issued inside the named parcel, and its money is scaled by the run's payout curve.",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -93,6 +93,35 @@
 				],
 				"additional_properties": false
 			}
+		},
+		"turn_in": {
+			"type": "object",
+			"properties": {
+				"parcel": {
+					"type": "string",
+					"ref": "parcel"
+				},
+				"curve": {
+					"type": "string",
+					"ref": "payout_curve"
+				},
+				"currency": {
+					"type": "string",
+					"ref": "currency"
+				},
+				"notes": {
+					"type": "int",
+					"min": 1,
+					"max": 100
+				}
+			},
+			"required": [
+				"parcel",
+				"curve",
+				"currency",
+				"notes"
+			],
+			"additional_properties": false
 		}
 	},
 	"required": [

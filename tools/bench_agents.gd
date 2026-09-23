@@ -61,10 +61,10 @@ func _run(ticks: int, agents: bool) -> Dictionary:
 	sim.submit(SimCommand.new(at, &"land.identify", {"actor": owner, "owner": "player"}))
 	sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "starter_plot", "owner": "player"}))
 	sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"}))
-	for c: Dictionary in M4Building.commands(owner):
+	for c: Dictionary in M4Building.commands(owner, db):
 		sim.submit(SimCommand.new(at, &"build.place", c))
 	if agents:
-		for g: Dictionary in M4Building.guards("guard_sim"):
+		for g: Dictionary in M4Building.guards("guard_sim", db):
 			sim.submit(SimCommand.new(at, &"agent.spawn", g))
 		for rel: Vector3i in EXTRA_GUARDS:
 			var cell: Vector3i = M4Building.BASE + rel

@@ -4,5 +4,6 @@
 	"kind": "door",
 	"material": "scrap_steel",
 	"open_cost": 40,
-	"value": 0
+	"value": 0,
+	"access": ""
 }

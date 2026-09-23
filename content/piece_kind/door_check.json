@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "A door that reads the actor: passable only to an actor carrying an item with the door's access tag (M6 spec claim 4, the front route). Solid to everyone else, and breachable like any wall.",
+	"occupies": "face",
+	"orientation": "vertical",
+	"passable": false,
+	"target": false,
+	"climb": false
+}

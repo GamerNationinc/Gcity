@@ -14,6 +14,9 @@ class_name ItemSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"items"
 const WORLD: StringName = &"world"
+## A corpse's pockets (M6 spec claim 10, ADR-007 C). Open like an inventory, because
+## death moves a kit rather than destroying it and looting moves it back.
+const CORPSE_PREFIX: String = "corpse."
 const KIND_FRAME: StringName = &"weapon_frame"
 const KIND_PART: StringName = &"weapon_part"
 const KIND_AMMO: StringName = &"ammo"
@@ -24,7 +27,12 @@ const KIND_CALIBRE: StringName = &"calibre"
 const KIND_DEVICE_FRAME: StringName = &"device_frame"
 const KIND_DEVICE_MODULE: StringName = &"device_module"
 const KIND_DEVICE_SOCKET: StringName = &"device_socket"
-const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE]
+## Money is an item (M6 spec claim 9), so the save and the conservation property cover
+## it with no new mechanism, and carrying a payout is carrying something visible.
+const KIND_CURRENCY: StringName = &"currency"
+## The stat a currency note's face value lives on.
+const STAT_VALUE: StringName = &"value"
+const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_CURRENCY]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
 const COMMAND_LOAD: StringName = &"magazine.load"
@@ -189,7 +197,38 @@ func validate_content() -> Error:
 				return _content_fail("device_module/%s uses unregistered modifier class '%s'" % [module, cls])
 			if not _stats.has_stat(_as_name(md["stat"])):
 				return _content_fail("device_module/%s modifies unregistered stat '%s'" % [module, md["stat"]])
+	for note: StringName in _content.ids(KIND_CURRENCY):
+		var t: Dictionary = _content.get_entry(KIND_CURRENCY, note)
+		if _check_stats_list(t["stats"], "currency/%s" % note) != OK:
+			return ERR_INVALID_DATA
+		if face_value_of_template(note) <= 0:
+			return _content_fail("currency/%s is worth nothing: a note needs a positive `value` stat" % note)
 	return OK
+
+
+## The face value a currency template declares, or 0 for anything that is not money.
+func face_value_of_template(note: StringName) -> int:
+	if not _content.has(KIND_CURRENCY, note):
+		return 0
+	var t: Dictionary = _content.get_entry(KIND_CURRENCY, note)
+	var stats: Array = t["stats"]
+	for e: Variant in stats:
+		var d: Dictionary = e
+		if _as_name(d["stat"]) == STAT_VALUE:
+			var value: int = d["value"]
+			return value
+	return 0
+
+
+## What the container holds in money: the face value of every currency item in it.
+## Anything that is not a note is worth nothing here, whatever else it is worth.
+func credits_in(container: StringName) -> int:
+	var total: int = 0
+	for item: int in items_in(container):
+		if item_kind(item) != KIND_CURRENCY:
+			continue
+		total += face_value_of_template(item_template(item))
+	return total
 
 
 func _check_stats_list(list: Variant, where: String) -> Error:
@@ -217,6 +256,10 @@ func _content_fail(reason: String) -> Error:
 
 static func inventory_of(actor: int) -> StringName:
 	return StringName("inv.%d" % actor)
+
+
+static func corpse_container(corpse: int) -> StringName:
+	return StringName("%s%d" % [CORPSE_PREFIX, corpse])
 
 
 static func magazine_container(magazine: int) -> StringName:
@@ -453,9 +496,18 @@ func _on_attach(sim: SimRoot, payload: Dictionary) -> bool:
 		return false
 	if not _fits(part, weapon) or socket_part(weapon, socket) != EntityIds.NONE:
 		return false
+	_seat_part(weapon, part, socket)
+	return true
+
+
+## Seats a validated part in a socket and hangs its modifiers on the weapon. Split out
+## of the attach command so arming an actor from a kit takes the same path rather than
+## a second, slightly different one.
+func _seat_part(weapon: int, part: int, socket: StringName) -> void:
 	_move(part, socket_container(weapon, socket))
 	_set_socket(weapon, socket, part)
 	var handles: Array[int] = []
+	var part_t: Dictionary = _template_of(part)
 	var mods: Array = part_t["modifiers"]
 	for m: Variant in mods:
 		var md: Dictionary = m
@@ -467,7 +519,6 @@ func _on_attach(sim: SimRoot, payload: Dictionary) -> bool:
 		assert(handle >= 1, "content was validated; modifier must be accepted")
 		handles.append(handle)
 	_part_handles[part] = handles
-	return true
 
 
 ## {"actor": int, "weapon": int, "socket": name}: remove the part in a socket to the inventory.
@@ -783,6 +834,79 @@ func _fits(part: int, weapon: int) -> bool:
 	return false
 
 
+## Arms an actor from a kit: a frame, a magazine seated in it, and `rounds` rounds in
+## that magazine with one in the chamber. Returns the frame, or NONE if the kit names
+## anything that does not exist or does not fit.
+##
+## This exists because ids are allocated as commands execute, so nothing that has to
+## arm somebody in one call — a site raising its own guards — can do it by submitting
+## `item.spawn` and then naming what it just made.
+func arm(actor: int, frame_template: StringName, magazine_template: StringName, ammo_template: StringName, rounds: int, seed: int) -> int:
+	var inv: StringName = inventory_of(actor)
+	var frame: int = spawn(KIND_FRAME, frame_template, inv, seed)
+	if frame == EntityIds.NONE:
+		return EntityIds.NONE
+	var magazine: int = spawn(KIND_PART, magazine_template, inv, seed + 1)
+	if magazine == EntityIds.NONE:
+		return EntityIds.NONE
+	var magazine_t: Dictionary = _template_of(magazine)
+	var socket: StringName = _as_name(magazine_t["socket"])
+	if item_kind(magazine) != part_kind_for(item_kind(frame)) or not _fits(magazine, frame):
+		push_error("ItemSystem.arm: %s does not fit %s" % [magazine_template, frame_template])
+		return EntityIds.NONE
+	_seat_part(frame, magazine, socket)
+	var capacity: int = capacity_of(magazine_container(magazine))
+	var wanted: int = rounds if capacity < 0 else mini(rounds, capacity)
+	for i: int in wanted:
+		var round: int = spawn(KIND_AMMO, ammo_template, inv, seed + 10 + i)
+		if round == EntityIds.NONE:
+			return EntityIds.NONE
+		_move(round, magazine_container(magazine))
+	chamber_next(frame)
+	return frame
+
+
+## Moves a named set of items into one open container, keeping their order, and returns
+## how many moved. All of it or none: every item must exist, none may already be there,
+## and the destination must have room for all of them.
+func move_items(items: Array[int], to: StringName) -> int:
+	if items.is_empty():
+		return 0
+	if not _is_open_container(to):
+		push_error("ItemSystem: '%s' is not an open container" % to)
+		return 0
+	var seen: Dictionary = {}
+	for item: int in items:
+		if not _items.has(item) or seen.has(item):
+			push_error("ItemSystem: move_items names item %d twice or not at all" % item)
+			return 0
+		seen[item] = true
+		var from: StringName = _location[item]
+		if from == to:
+			push_error("ItemSystem: item %d is already in '%s'" % [item, to])
+			return 0
+		if not _is_open_container(from):
+			push_error("ItemSystem: item %d is in '%s', which nothing moves out of wholesale" % [item, from])
+			return 0
+	var cap: int = capacity_of(to)
+	if cap >= 0 and items_in(to).size() + items.size() > cap:
+		push_error("ItemSystem: '%s' has no room for %d more" % [to, items.size()])
+		return 0
+	for item: int in items:
+		_move(item, to)
+	return items.size()
+
+
+## Moves every item of one open container into another. The whole-container form of
+## [method move_items]: this is what death and looting are built from, so M1 claim 10's
+## conservation property covers both.
+func move_container(from: StringName, to: StringName) -> int:
+	if from == to or not _is_open_container(from) or not _is_open_container(to):
+		push_error("ItemSystem: move_container needs two different open containers, not '%s' -> '%s'" % [from, to])
+		return 0
+	return move_items(items_in(from), to)
+
+
 func _move(item: int, to: StringName) -> void:
 	var from: StringName = _location[item]
 	var from_list: Array[int] = _containers[from]
@@ -837,9 +961,14 @@ func _is_open_container(name: StringName) -> bool:
 	if name == WORLD:
 		return true
 	var text: String = String(name)
-	if not text.begins_with("inv."):
+	var prefix: String = ""
+	if text.begins_with("inv."):
+		prefix = "inv."
+	elif text.begins_with(CORPSE_PREFIX):
+		prefix = CORPSE_PREFIX
+	else:
 		return false
-	var rest: String = text.trim_prefix("inv.")
+	var rest: String = text.trim_prefix(prefix)
 	return rest.is_valid_int() and int(rest) >= 1 and str(int(rest)) == rest
 
 

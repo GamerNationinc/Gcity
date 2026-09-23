@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "The fixer's usual terms: double for a run nobody saw, and a quarter of the base at worst. A body costs most, an alarm next, a trace and a sighting least.",
+	"clean_bonus": 2000,
+	"base": 1000,
+	"floor": 250,
+	"per_detection": 100,
+	"per_alarm": 200,
+	"per_body": 400,
+	"per_trace": 150
+}

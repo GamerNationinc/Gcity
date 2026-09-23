@@ -10,6 +10,11 @@
 			"stat": "memory_capacity",
 			"class": "add",
 			"value": 1000
+		},
+		{
+			"stat": "value",
+			"class": "add",
+			"value": 900
 		}
 	],
 	"provides": [

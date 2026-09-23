@@ -1,0 +1,186 @@
+{
+	"schema_version": 1,
+	"description": "An authored site (M6 spec claim 3): the build pieces it stands on, the agents posted in it and the patrol routes they walk, all relative to a base cell. SiteSystem raises it with one command; nothing here is generated (procgen is M7). A spawn may carry a `kit`, which is what the guard is holding: without one a raised building is guarded by people with nothing in their hands (M6 spec claim 4).",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 320
+		},
+		"title": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 60
+		},
+		"base": {
+			"type": "array",
+			"min_length": 3,
+			"max_length": 3,
+			"items": {
+				"type": "int",
+				"min": -100000,
+				"max": 100000
+			}
+		},
+		"parcels": {
+			"type": "array",
+			"max_length": 8,
+			"items": {
+				"type": "string",
+				"ref": "parcel"
+			}
+		},
+		"pieces": {
+			"type": "array",
+			"min_length": 1,
+			"max_length": 2048,
+			"items": {
+				"type": "object",
+				"properties": {
+					"piece": {
+						"type": "string",
+						"ref": "build_piece"
+					},
+					"rel": {
+						"type": "array",
+						"min_length": 3,
+						"max_length": 3,
+						"items": {
+							"type": "int",
+							"min": -100000,
+							"max": 100000
+						}
+					},
+					"facing": {
+						"type": "string",
+						"pattern": "(px|nx|py|ny|pz|nz)?"
+					}
+				},
+				"required": [
+					"piece",
+					"rel",
+					"facing"
+				],
+				"additional_properties": false
+			}
+		},
+		"spawns": {
+			"type": "array",
+			"max_length": 64,
+			"items": {
+				"type": "object",
+				"properties": {
+					"profile": {
+						"type": "string",
+						"ref": "agent_profile"
+					},
+					"rel": {
+						"type": "array",
+						"min_length": 3,
+						"max_length": 3,
+						"items": {
+							"type": "int",
+							"min": -100000,
+							"max": 100000
+						}
+					},
+					"facing": {
+						"type": "int",
+						"min": 0,
+						"max": 359
+					},
+					"squad": {
+						"type": "int",
+						"min": 0,
+						"max": 64
+					},
+					"route": {
+						"type": "string",
+						"pattern": "([a-z0-9][a-z0-9_]*)?"
+					},
+					"kit": {
+						"type": "object",
+						"properties": {
+							"frame": {
+								"type": "string",
+								"ref": "weapon_frame"
+							},
+							"magazine": {
+								"type": "string",
+								"ref": "weapon_part"
+							},
+							"ammo": {
+								"type": "string",
+								"ref": "ammo"
+							},
+							"rounds": {
+								"type": "int",
+								"min": 0,
+								"max": 200
+							}
+						},
+						"required": [
+							"frame",
+							"magazine",
+							"ammo",
+							"rounds"
+						],
+						"additional_properties": false
+					}
+				},
+				"required": [
+					"profile",
+					"rel",
+					"facing",
+					"squad",
+					"route"
+				],
+				"additional_properties": false
+			}
+		},
+		"terminals": {
+			"type": "array",
+			"max_length": 16,
+			"items": {
+				"type": "object",
+				"properties": {
+					"terminal": {
+						"type": "string",
+						"ref": "terminal"
+					},
+					"rel": {
+						"type": "array",
+						"min_length": 3,
+						"max_length": 3,
+						"items": {
+							"type": "int",
+							"min": -100000,
+							"max": 100000
+						}
+					}
+				},
+				"required": [
+					"terminal",
+					"rel"
+				],
+				"additional_properties": false
+			}
+		}
+	},
+	"required": [
+		"schema_version",
+		"description",
+		"title",
+		"base",
+		"parcels",
+		"pieces",
+		"spawns",
+		"terminals"
+	],
+	"additional_properties": false
+}

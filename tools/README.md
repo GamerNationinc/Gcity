@@ -17,6 +17,7 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `export.sh` | Native Linux export with the pinned engine and pinned, SHA-512-verified export templates; the preset excludes `tests/`, `tools/`, `docs/`, `spikes/`. |
 | `screenshot.sh` | Renders the client demo under Xvfb and saves a PNG at a given second; every delivery carries one. |
 | `bench_device.gd` | Time-to-complete for each core device task (M5 claim 14): presses, sim ticks and seconds, driven through the same shell the player uses. |
+| `make_sites.gd` | Authors the `content/site/` files (M6 claim 3): the layout lives here as reviewable code, the JSON it writes is what the sim reads. |
 | `make_m5_fixtures.gd` | Regenerates the three M5 replay fixtures; re-record their hashes afterwards. |
 | `bench_agents.gd` | The agent budget on the Deck (M4 claim 13): the M4 building with six armed guards for 12 000 ticks headless, per-tick sim time at the 99th and 99.9th percentiles, with and without agents, and the rebuild ticks, as JSON. |
 | `make_m4_fixtures.gd` | Regenerates the six M4 replay fixtures from `M4Building`; re-record their hashes afterwards. |

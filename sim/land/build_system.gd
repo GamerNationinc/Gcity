@@ -10,7 +10,10 @@
 ## chain of touching pieces no longer than its material's `max_span`. Placement that
 ## would be unsupported is rejected; removal collapses whatever it left unsupported, in
 ## one deterministic pass on the tick of the change. Every successful change emits
-## `build.changed {added, removed, actor}` for the portal graph and the quests.
+## `build.changed {added, removed, removed_at, actor}` for the portal graph, the quests
+## and the scoring: `removed_at` is where each removed piece stood, because the piece
+## record is gone by the time anyone hears about it, and "is that gap still there?" is
+## a question the scoring has to be able to ask later.
 class_name BuildSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"build"
@@ -228,6 +231,21 @@ func cell_of_piece(id: int) -> Vector3i:
 	return Vector3i(x, y, z)
 
 
+## Where a piece stands: its face key, or its cell key for a cell piece. This is the
+## slot it occupies, so an empty one means the gap it left is still open.
+func key_of_piece(id: int) -> String:
+	if not _pieces.has(id):
+		return ""
+	var record: Dictionary = _pieces[id]
+	var face: String = record["face"]
+	return face if not face.is_empty() else cell_key(cell_of_piece(id))
+
+
+## True when nothing stands in that slot, whether it names a face or a cell.
+func slot_is_empty(key: String) -> bool:
+	return not _occupied.has(key)
+
+
 ## The cells a piece touches: one for a cell piece, two for a face piece.
 func cells_of_piece(id: int) -> Array[Vector3i]:
 	var record: Dictionary = _pieces[id]
@@ -339,7 +357,7 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 	var noise: int = m["breach_noise"]
 	_stats.set_base(id, STAT_HP, hp)
 	_stats.set_base(id, STAT_NOISE, noise)
-	_events.emit(EVENT_CHANGED, {"added": [id] as Array[int], "removed": [] as Array[int], "actor": actor})
+	_events.emit(EVENT_CHANGED, {"added": [id] as Array[int], "removed": [] as Array[int], "removed_at": [] as Array[String], "actor": actor})
 	return id
 
 
@@ -365,16 +383,23 @@ func breach(id: int) -> Array[int]:
 ## `actor` is who changed the build (NONE for a breach): the event carries it so a
 ## quest or a skill can credit the builder (M5 spec claim 9).
 func _remove_and_collapse(ids: Array[int], actor: int) -> Array[int]:
+	var went: Dictionary = {}
 	for id: int in ids:
+		went[id] = key_of_piece(id)
 		_drop(id)
 	var supported: Dictionary = supported_set()
 	var removed: Array[int] = ids.duplicate()
 	for id: int in piece_ids():
 		if not supported.has(id):
+			went[id] = key_of_piece(id)
 			_drop(id)
 			removed.append(id)
 	removed.sort()
-	_events.emit(EVENT_CHANGED, {"added": [] as Array[int], "removed": removed, "actor": actor})
+	var removed_at: Array[String] = []
+	for id: int in removed:
+		var key: String = went[id]
+		removed_at.append(key)
+	_events.emit(EVENT_CHANGED, {"added": [] as Array[int], "removed": removed, "removed_at": removed_at, "actor": actor})
 	return removed
 
 

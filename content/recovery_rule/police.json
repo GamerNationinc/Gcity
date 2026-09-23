@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "Die where the law is thick and the scene is held: two fifths of the kit is at the station when you come round, at fifty credits an item, and the rest is gone. Die in the badlands and nobody touches anything, which is worse and better at once.",
+	"title": "Police recovery",
+	"law_threshold": 200,
+	"returned_permille": 400,
+	"fee_per_item": 50,
+	"fallback_parcel": "starter_plot"
+}

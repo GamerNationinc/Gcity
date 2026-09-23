@@ -10,6 +10,11 @@
 			"stat": "antenna_gain",
 			"class": "add",
 			"value": 400000
+		},
+		{
+			"stat": "value",
+			"class": "add",
+			"value": 250
 		}
 	],
 	"provides": [

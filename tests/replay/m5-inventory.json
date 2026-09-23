@@ -258,7 +258,7 @@
 			"tick": 117
 		}
 	],
-	"expected_hash": "a0b49937d65fb1e08de1485b09695a46e0001ab60846afd9d2495c19a852dbba",
+	"expected_hash": "890f0c8c83c52619cd1f526f2099aff32865588a4ae56708ec00d914768a6b09",
 	"name": "m5-inventory",
 	"schema_version": 1,
 	"seed": 20261150,

@@ -1,0 +1,2059 @@
+{
+	"score": 76.8,
+	"mutants": 177,
+	"killed": 136,
+	"invalid": 28,
+	"per_file": 6,
+	"detail": [
+		{
+			"path": "sim/agents/actor_system.gd",
+			"line": 341,
+			"operator": "== -> !=",
+			"before": "\t\tif current == EntityIds.NONE:",
+			"after": "\t\tif current != EntityIds.NONE:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_actor_system.gd::test_wield_requires_a_held_frame_and_links_inheritance",
+			"seconds": 2.8976108159986325
+		},
+		{
+			"path": "sim/agents/actor_system.gd",
+			"line": 345,
+			"operator": "return true -> false",
+			"before": "\t\treturn true",
+			"after": "\t\treturn false",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_actor_system.gd::test_wield_requires_a_held_frame_and_links_inheritance",
+			"seconds": 2.6337729330116417
+		},
+		{
+			"path": "sim/agents/actor_system.gd",
+			"line": 348,
+			"operator": "== -> !=",
+			"before": "\tif current == weapon:",
+			"after": "\tif current != weapon:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_actor_system.gd::test_wield_requires_a_held_frame_and_links_inheritance",
+			"seconds": 2.881614465994062
+		},
+		{
+			"path": "sim/agents/actor_system.gd",
+			"line": 343,
+			"operator": "statement deleted",
+			"before": "\t\t_stats.set_inherits(current, -1)",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_actor_system.gd::test_wield_requires_a_held_frame_and_links_inheritance",
+			"seconds": 2.9394224110001232
+		},
+		{
+			"path": "sim/agents/actor_system.gd",
+			"line": 313,
+			"operator": "!= -> ==",
+			"before": "\tif profile.is_empty() or typeof(payload[\"range_m\"]) != TYPE_INT:",
+			"after": "\tif profile.is_empty() or typeof(payload[\"range_m\"]) == TYPE_INT:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_actor_system.gd::test_spawn_from_profile_and_health_graph",
+			"seconds": 2.706564553984208
+		},
+		{
+			"path": "sim/agents/actor_system.gd",
+			"line": 326,
+			"operator": "return false -> true",
+			"before": "\t\treturn false",
+			"after": "\t\treturn true",
+			"outcome": "failed",
+			"by": "FAIL res://tests/fuzz/test_command_corpus.gd::test_hostile_command_corpus_is_rejected_without_state_change",
+			"seconds": 2.9873302709893323
+		},
+		{
+			"path": "sim/agents/aim_system.gd",
+			"line": 165,
+			"operator": "0 -> 1",
+			"before": "\t\t\tif handle != 0:",
+			"after": "\t\t\tif handle != 1:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_aim_and_stress.gd::test_the_cone_settles_on_a_visible_target_resets_on_break_and_swings_on_return",
+			"seconds": 6.139984891022323
+		},
+		{
+			"path": "sim/agents/aim_system.gd",
+			"line": 95,
+			"operator": "0 -> 1",
+			"before": "\t\treturn 0",
+			"after": "\t\treturn 1",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_aim_and_stress.gd::test_something_that_is_not_an_agent_has_no_cone_at_all",
+			"seconds": 6.4289445580216125
+		},
+		{
+			"path": "sim/agents/aim_system.gd",
+			"line": 199,
+			"operator": "!= -> ==",
+			"before": "\t\tif typeof(key) != TYPE_INT or typeof(aim_in[key]) != TYPE_DICTIONARY:",
+			"after": "\t\tif typeof(key) == TYPE_INT or typeof(aim_in[key]) != TYPE_DICTIONARY:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_aim_and_stress.gd::test_restore_round_trip_and_rejections",
+			"seconds": 6.206138453999301
+		},
+		{
+			"path": "sim/agents/aim_system.gd",
+			"line": 151,
+			"operator": "== -> !=",
+			"before": "\t\telif target == previous:",
+			"after": "\t\telif target != previous:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_aim_and_stress.gd::test_the_cone_settles_on_a_visible_target_resets_on_break_and_swings_on_return",
+			"seconds": 6.226785457984079
+		},
+		{
+			"path": "sim/agents/aim_system.gd",
+			"line": 129,
+			"operator": "> -> >=",
+			"before": "\tif swing > 0:",
+			"after": "\tif swing >= 0:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_aim_and_stress.gd::test_cone_arithmetic",
+			"seconds": 6.237886143004289
+		},
+		{
+			"path": "sim/agents/aim_system.gd",
+			"line": 171,
+			"operator": "statement deleted",
+			"before": "\t\t\trec[\"value\"] = value",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 6.189492798002902
+		},
+		{
+			"path": "sim/agents/corpse_system.gd",
+			"line": 311,
+			"operator": "statement deleted",
+			"before": "\t\t\tmax_x = px",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 12.586190212983638
+		},
+		{
+			"path": "sim/agents/corpse_system.gd",
+			"line": 69,
+			"operator": "statement deleted",
+			"before": "\terr = sim.commands().register(COMMAND_RESPAWN, _on_respawn, true)",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_corpse.gd::test_property_no_item_is_made_or_lost_by_dying_looting_or_the_police",
+			"seconds": 3.2503165890229866
+		},
+		{
+			"path": "sim/agents/corpse_system.gd",
+			"line": 20,
+			"operator": "statement deleted",
+			"before": "const EVENT_LOOTED: StringName = &\"corpse.looted\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 0.5156004909949843
+		},
+		{
+			"path": "sim/agents/corpse_system.gd",
+			"line": 41,
+			"operator": "statement deleted",
+			"before": "\t_ids = ids",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_corpse.gd::test_a_death_leaves_the_kit_on_the_body",
+			"seconds": 3.4415339060069527
+		},
+		{
+			"path": "sim/agents/corpse_system.gd",
+			"line": 217,
+			"operator": "<= -> <",
+			"before": "\t\tvar affordable: int = wanted if per_item <= 0 else mini(wanted, purse / per_item)",
+			"after": "\t\tvar affordable: int = wanted if per_item < 0 else mini(wanted, purse / per_item)",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 12.38022223598091
+		},
+		{
+			"path": "sim/agents/corpse_system.gd",
+			"line": 198,
+			"operator": "!= -> ==",
+			"before": "\tif payload.size() != 1 or typeof(payload.get(\"actor\")) != TYPE_INT:",
+			"after": "\tif payload.size() == 1 or typeof(payload.get(\"actor\")) != TYPE_INT:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_corpse.gd::test_property_no_item_is_made_or_lost_by_dying_looting_or_the_police",
+			"seconds": 3.5466250120080076
+		},
+		{
+			"path": "sim/agents/movement_system.gd",
+			"line": 132,
+			"operator": "0 -> 1",
+			"before": "\tvar under: Vector3i = cell - Vector3i(0, 1, 0)",
+			"after": "\tvar under: Vector3i = cell - Vector3i(1, 1, 0)",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_vertical_movement.gd::test_a_cell_is_standable_on_a_floor_a_solid_below_or_the_ground",
+			"seconds": 51.404130940994946
+		},
+		{
+			"path": "sim/agents/movement_system.gd",
+			"line": 288,
+			"operator": "!= -> ==",
+			"before": "\t\tif piece != EntityIds.NONE and not passes(actor, piece):",
+			"after": "\t\tif piece == EntityIds.NONE and not passes(actor, piece):",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_movement_system.gd::test_walls_block_doors_pass_and_solids_are_impassable",
+			"seconds": 50.6795985000208
+		},
+		{
+			"path": "sim/agents/movement_system.gd",
+			"line": 248,
+			"operator": "return false -> true",
+			"before": "\t\treturn false",
+			"after": "\t\treturn true",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_movement_system.gd::test_a_step_out_of_the_world_is_refused_and_moves_nothing",
+			"seconds": 50.97702561400365
+		},
+		{
+			"path": "sim/agents/movement_system.gd",
+			"line": 218,
+			"operator": "statement deleted",
+			"before": "\t\t\t_blocked += 1",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 50.87175145800575
+		},
+		{
+			"path": "sim/agents/movement_system.gd",
+			"line": 64,
+			"operator": "statement deleted",
+			"before": "\t\t\tcontinue",
+			"after": "\t\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_vertical_movement.gd::test_a_level_change_needs_a_climbable_face",
+			"seconds": 51.79496857599588
+		},
+		{
+			"path": "sim/agents/movement_system.gd",
+			"line": 45,
+			"operator": "statement deleted",
+			"before": "\t_events = events",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_movement_system.gd::test_leaving_a_parcel_is_an_event_carrying_what_you_hold",
+			"seconds": 51.451863832975505
+		},
+		{
+			"path": "sim/agents/pathing_system.gd",
+			"line": 272,
+			"operator": ">= -> >",
+			"before": "\tif index >= path.size():",
+			"after": "\tif index > path.size():",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_agent_pathing.gd::test_a_guard_walks_through_the_door_never_through_the_wall_and_re_plans_when_it_closes",
+			"seconds": 106.2392844639835
+		},
+		{
+			"path": "sim/agents/pathing_system.gd",
+			"line": 323,
+			"operator": "!= -> ==",
+			"before": "\tif state.size() != 3 or typeof(state.get(\"routes\")) != TYPE_DICTIONARY or typeof(state.get(\"replan\")) != TYPE_BOOL or typeof(state.get(\"expanded\")) != TYPE_INT:",
+			"after": "\tif state.size() == 3 or typeof(state.get(\"routes\")) != TYPE_DICTIONARY or typeof(state.get(\"replan\")) != TYPE_BOOL or typeof(state.get(\"expanded\")) != TYPE_INT:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_agent_pathing.gd::test_sliced_planning_survives_the_save_round_trip_mid_search_and_mid_walk",
+			"seconds": 107.42266466200817
+		},
+		{
+			"path": "sim/agents/pathing_system.gd",
+			"line": 361,
+			"operator": "!= -> ==",
+			"before": "\t\t\t\tif typeof(k) != TYPE_STRING or typeof(open_in[k]) != TYPE_ARRAY:",
+			"after": "\t\t\t\tif typeof(k) == TYPE_STRING or typeof(open_in[k]) != TYPE_ARRAY:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_agent_pathing.gd::test_sliced_planning_survives_the_save_round_trip_mid_search_and_mid_walk",
+			"seconds": 106.44956739898771
+		},
+		{
+			"path": "sim/agents/pathing_system.gd",
+			"line": 350,
+			"operator": "0 -> 1",
+			"before": "\t\tif index < 0 or index > path.size():",
+			"after": "\t\tif index < 1 or index > path.size():",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_agent_pathing.gd::test_sliced_planning_survives_the_save_round_trip_mid_search_and_mid_walk",
+			"seconds": 106.45233170600841
+		},
+		{
+			"path": "sim/agents/pathing_system.gd",
+			"line": 161,
+			"operator": "statement deleted",
+			"before": "\t\t_routes[agent] = rec",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_agent_pathing.gd::test_a_guard_walks_through_the_door_never_through_the_wall_and_re_plans_when_it_closes",
+			"seconds": 110.56773508599144
+		},
+		{
+			"path": "sim/agents/pathing_system.gd",
+			"line": 107,
+			"operator": "!= -> ==",
+			"before": "\tif absi(d.x) + absi(d.y) + absi(d.z) != 1:",
+			"after": "\tif absi(d.x) + absi(d.y) + absi(d.z) == 1:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_agent_pathing.gd::test_a_guard_walks_through_the_door_never_through_the_wall_and_re_plans_when_it_closes",
+			"seconds": 51.492158851993736
+		},
+		{
+			"path": "sim/agents/perception_system.gd",
+			"line": 562,
+			"operator": "return false -> true",
+			"before": "\t\treturn false",
+			"after": "\t\treturn true",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_perception_system.gd::test_spawn_and_set_profile_command_contracts",
+			"seconds": 35.249674869002774
+		},
+		{
+			"path": "sim/agents/perception_system.gd",
+			"line": 204,
+			"operator": "!= -> ==",
+			"before": "\tif typeof(rec_v) != TYPE_DICTIONARY:",
+			"after": "\tif typeof(rec_v) == TYPE_DICTIONARY:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_perception_system.gd::test_time_to_alert_is_the_recorded_tick_count_for_both_profiles",
+			"seconds": 43.52575036897906
+		},
+		{
+			"path": "sim/agents/perception_system.gd",
+			"line": 525,
+			"operator": "0 -> 1",
+			"before": "\tvar actor: int = _actors.spawn(StringName(combat_s), 0)",
+			"after": "\tvar actor: int = _actors.spawn(StringName(combat_s), 1)",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 35.604581496998435
+		},
+		{
+			"path": "sim/agents/perception_system.gd",
+			"line": 638,
+			"operator": "!= -> ==",
+			"before": "\t\t\tif rec.size() != 4 or typeof(rec.get(\"aw\")) != TYPE_INT or typeof(rec.get(\"last\")) != TYPE_ARRAY \\",
+			"after": "\t\t\tif rec.size() == 4 or typeof(rec.get(\"aw\")) != TYPE_INT or typeof(rec.get(\"last\")) != TYPE_ARRAY \\",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_perception_system.gd::test_restore_round_trip_and_rejections",
+			"seconds": 35.223121126007754
+		},
+		{
+			"path": "sim/agents/perception_system.gd",
+			"line": 485,
+			"operator": "== -> !=",
+			"before": "\tvar rec: Dictionary = rec_v if typeof(rec_v) == TYPE_DICTIONARY else {\"aw\": 0, \"last\": [] as Array[int], \"memory\": 0, \"alerted\": false}",
+			"after": "\tvar rec: Dictionary = rec_v if typeof(rec_v) != TYPE_DICTIONARY else {\"aw\": 0, \"last\": [] as Array[int], \"memory\": 0, \"alerted\": false}",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 35.25635322800372
+		},
+		{
+			"path": "sim/agents/perception_system.gd",
+			"line": 398,
+			"operator": "0 -> 1",
+			"before": "\t\t\t\taw = maxi(aw - decay, 0)",
+			"after": "\t\t\t\taw = maxi(aw - decay, 1)",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_perception_system.gd::test_walls_and_solids_block_sight_and_openings_pass_it",
+			"seconds": 35.02295000498998
+		},
+		{
+			"path": "sim/agents/raid_token_system.gd",
+			"line": 198,
+			"operator": "statement deleted",
+			"before": "\t\tcrossing = pieces[0]",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_raid_token_system.gd::test_token_walks_through_the_door_in_four_ticks_and_arrives",
+			"seconds": 3.057077103003394
+		},
+		{
+			"path": "sim/agents/raid_token_system.gd",
+			"line": 162,
+			"operator": "statement deleted",
+			"before": "\t\t\tcontinue",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 3.2715901160263456
+		},
+		{
+			"path": "sim/agents/raid_token_system.gd",
+			"line": 265,
+			"operator": "statement deleted",
+			"before": "\t\tout[tk] = {\"cell\": [cx, cy, cz] as Array[int], \"target\": rec[\"target\"], \"tool\": tool, \"crossing\": rec[\"crossing\"],",
+			"after": "\t\tpass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 0.48310827297973447
+		},
+		{
+			"path": "sim/agents/raid_token_system.gd",
+			"line": 64,
+			"operator": "statement deleted",
+			"before": "\tout.assign(_tokens.keys())",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_raid_token_system.gd::test_token_walks_through_the_door_in_four_ticks_and_arrives",
+			"seconds": 3.3581902040168643
+		},
+		{
+			"path": "sim/agents/raid_token_system.gd",
+			"line": 35,
+			"operator": "statement deleted",
+			"before": "\t_events = events",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_raid_token_system.gd::test_token_walks_through_the_door_in_four_ticks_and_arrives",
+			"seconds": 3.4613403549883515
+		},
+		{
+			"path": "sim/agents/raid_token_system.gd",
+			"line": 192,
+			"operator": "statement deleted",
+			"before": "\t\t\trec[\"state\"] = STATE_FAILED",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 3.370129335002275
+		},
+		{
+			"path": "sim/agents/squad_system.gd",
+			"line": 233,
+			"operator": "statement deleted",
+			"before": "\t\t\t\tcontinue",
+			"after": "\t\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 34.3394288290001
+		},
+		{
+			"path": "sim/agents/squad_system.gd",
+			"line": 279,
+			"operator": "!= -> ==",
+			"before": "\tif state.size() != 4 or typeof(state.get(\"reports\")) != TYPE_ARRAY or typeof(state.get(\"assignments\")) != TYPE_DICTIONARY \\",
+			"after": "\tif state.size() == 4 or typeof(state.get(\"reports\")) != TYPE_ARRAY or typeof(state.get(\"assignments\")) != TYPE_DICTIONARY \\",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_squad.gd::test_restore_round_trip_and_rejections",
+			"seconds": 34.62537147500552
+		},
+		{
+			"path": "sim/agents/squad_system.gd",
+			"line": 211,
+			"operator": "0 -> 1",
+			"before": "\tvar next: int = 0",
+			"after": "\tvar next: int = 1",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_squad.gd::test_the_planner_hands_out_distinct_entry_edges_cheapest_first",
+			"seconds": 34.79637506802101
+		},
+		{
+			"path": "sim/agents/squad_system.gd",
+			"line": 273,
+			"operator": "0 -> 1",
+			"before": "\treturn Vector3i(0, -1, 0)",
+			"after": "\treturn Vector3i(1, -1, 0)",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 34.8912882010045
+		},
+		{
+			"path": "sim/agents/squad_system.gd",
+			"line": 304,
+			"operator": "!= -> ==",
+			"before": "\t\tif typeof(key) != TYPE_INT or not PathingSystem._is_cell(assignments_in[key]):",
+			"after": "\t\tif typeof(key) == TYPE_INT or not PathingSystem._is_cell(assignments_in[key]):",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 34.87772597698495
+		},
+		{
+			"path": "sim/agents/squad_system.gd",
+			"line": 164,
+			"operator": "statement deleted",
+			"before": "\t\t\t_assignments.erase(agent)",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 34.78327171399724
+		},
+		{
+			"path": "sim/agents/stance_system.gd",
+			"line": 33,
+			"operator": "statement deleted",
+			"before": "const RETREAT_CELLS: int = 6",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.8476020880043507
+		},
+		{
+			"path": "sim/agents/stance_system.gd",
+			"line": 272,
+			"operator": "0 -> 1",
+			"before": "\treturn maxi(300_000 + (400_000 if not known else 0) - stress / 4, 0)",
+			"after": "\treturn maxi(300_000 + (400_000 if not known else 1) - stress / 4, 0)",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 3.555491235019872
+		},
+		{
+			"path": "sim/agents/stance_system.gd",
+			"line": 418,
+			"operator": "statement deleted",
+			"before": "\t\t\trec[\"goal\"] = PathingSystem._arr(goal)",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 3.644384363986319
+		},
+		{
+			"path": "sim/agents/stance_system.gd",
+			"line": 347,
+			"operator": "statement deleted",
+			"before": "\t\t\trec[\"score\"] = choice[\"score\"]",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 3.2097598769760225
+		},
+		{
+			"path": "sim/agents/stance_system.gd",
+			"line": 137,
+			"operator": "!= -> ==",
+			"before": "\t\tif typeof(t.get(\"cells\")) != TYPE_ARRAY:",
+			"after": "\t\tif typeof(t.get(\"cells\")) == TYPE_ARRAY:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_stance_scoring.gd::test_stances_are_content_with_registered_scorers",
+			"seconds": 1.7744543470034841
+		},
+		{
+			"path": "sim/agents/stance_system.gd",
+			"line": 103,
+			"operator": "statement deleted",
+			"before": "\t\tnames.append(String(name))",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_stance_scoring.gd::test_stances_are_content_with_registered_scorers",
+			"seconds": 3.33090946500306
+		},
+		{
+			"path": "sim/agents/stress_system.gd",
+			"line": 216,
+			"operator": "== -> !=",
+			"before": "\t\tif handle == 0 or value != current:",
+			"after": "\t\tif handle != 0 or value != current:",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 6.134700875001727
+		},
+		{
+			"path": "sim/agents/stress_system.gd",
+			"line": 216,
+			"operator": "0 -> 1",
+			"before": "\t\tif handle == 0 or value != current:",
+			"after": "\t\tif handle == 1 or value != current:",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 6.447606832982274
+		},
+		{
+			"path": "sim/agents/stress_system.gd",
+			"line": 60,
+			"operator": "statement deleted",
+			"before": "\t\t\tpush_error(\"StressSystem: agent_profile/%s has no stress_profile\" % id)",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 6.317097646999173
+		},
+		{
+			"path": "sim/agents/stress_system.gd",
+			"line": 14,
+			"operator": "statement deleted",
+			"before": "const TAG_WEAPON: StringName = &\"weapon\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.7839310640119947
+		},
+		{
+			"path": "sim/agents/stress_system.gd",
+			"line": 224,
+			"operator": "statement deleted",
+			"before": "\t\t_stress[agent] = rec",
+			"after": "\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 6.417691252980148
+		},
+		{
+			"path": "sim/agents/stress_system.gd",
+			"line": 187,
+			"operator": "0 -> 1",
+			"before": "\treturn squad > 0 and squad == _perception.squad_of(b)",
+			"after": "\treturn squad > 1 and squad == _perception.squad_of(b)",
+			"outcome": "failed",
+			"by": "FAIL res://tests/agents/test_aim_and_stress.gd::test_stress_rises_when_fired_at_hit_or_bereaved_and_decays",
+			"seconds": 6.32058137198328
+		},
+		{
+			"path": "sim/assembly.gd",
+			"line": 18,
+			"operator": "!= -> ==",
+			"before": "\tif stats.register_stats_from(content) != OK:",
+			"after": "\tif stats.register_stats_from(content) == OK:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_sim_assembly.gd::test_real_content_loads_and_registers_every_stat",
+			"seconds": 1.4031176019925624
+		},
+		{
+			"path": "sim/assembly.gd",
+			"line": 374,
+			"operator": "== -> !=",
+			"before": "\tif system == null:",
+			"after": "\tif system != null:",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 3.0167483190016355
+		},
+		{
+			"path": "sim/assembly.gd",
+			"line": 61,
+			"operator": "!= -> ==",
+			"before": "\tif aim.attach(sim) != OK:",
+			"after": "\tif aim.attach(sim) == OK:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_sim_assembly.gd::test_real_content_loads_and_registers_every_stat",
+			"seconds": 1.6857296139933169
+		},
+		{
+			"path": "sim/assembly.gd",
+			"line": 113,
+			"operator": "== -> !=",
+			"before": "\tif sim == null:",
+			"after": "\tif sim != null:",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 2.617139248002786
+		},
+		{
+			"path": "sim/assembly.gd",
+			"line": 48,
+			"operator": "!= -> ==",
+			"before": "\tif portals.attach(sim, events) != OK:",
+			"after": "\tif portals.attach(sim, events) == OK:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_sim_assembly.gd::test_real_content_loads_and_registers_every_stat",
+			"seconds": 1.688565776014002
+		},
+		{
+			"path": "sim/assembly.gd",
+			"line": 76,
+			"operator": "!= -> ==",
+			"before": "\tif quests.attach(sim) != OK:",
+			"after": "\tif quests.attach(sim) == OK:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_sim_assembly.gd::test_real_content_loads_and_registers_every_stat",
+			"seconds": 1.671203161997255
+		},
+		{
+			"path": "sim/core/command_registry.gd",
+			"line": 26,
+			"operator": "statement deleted",
+			"before": "\t\t_pause_safe[kind] = true",
+			"after": "\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 2.915702867001528
+		},
+		{
+			"path": "sim/core/command_registry.gd",
+			"line": 16,
+			"operator": "statement deleted",
+			"before": "\t\tpush_error(\"CommandRegistry: empty command kind\")",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 2.812305510014994
+		},
+		{
+			"path": "sim/core/command_registry.gd",
+			"line": 22,
+			"operator": "statement deleted",
+			"before": "\t\tpush_error(\"CommandRegistry: kind '%s' already registered\" % kind)",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 2.5343705840059556
+		},
+		{
+			"path": "sim/core/command_registry.gd",
+			"line": 44,
+			"operator": "statement deleted",
+			"before": "\tnames.sort()",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_command_registry.gd::test_kinds_are_sorted",
+			"seconds": 2.820285926980432
+		},
+		{
+			"path": "sim/core/command_registry.gd",
+			"line": 47,
+			"operator": "statement deleted",
+			"before": "\t\tresult.append(StringName(name))",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_command_registry.gd::test_kinds_are_sorted",
+			"seconds": 3.114493812987348
+		},
+		{
+			"path": "sim/core/command_registry.gd",
+			"line": 19,
+			"operator": "statement deleted",
+			"before": "\t\tpush_error(\"CommandRegistry: invalid handler for kind '%s'\" % kind)",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 2.714839959022356
+		},
+		{
+			"path": "sim/core/content_db.gd",
+			"line": 36,
+			"operator": "statement deleted",
+			"before": "\t\tpush_error(\"ContentDb: cannot add %s/%s after the first tick\" % [kind, id])",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 2.796147237997502
+		},
+		{
+			"path": "sim/core/content_db.gd",
+			"line": 57,
+			"operator": "statement deleted",
+			"before": "\tfrozen.make_read_only()",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_content_db.gd::test_add_and_read_back",
+			"seconds": 2.603903198003536
+		},
+		{
+			"path": "sim/core/content_db.gd",
+			"line": 9,
+			"operator": "statement deleted",
+			"before": "const ID_PATTERN: String = \"^[a-z0-9][a-z0-9_]*$\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.2123114129935857
+		},
+		{
+			"path": "sim/core/content_db.gd",
+			"line": 67,
+			"operator": "return false -> true",
+			"before": "\t\treturn false",
+			"after": "\t\treturn true",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 2.997394844016526
+		},
+		{
+			"path": "sim/core/content_db.gd",
+			"line": 60,
+			"operator": "statement deleted",
+			"before": "\t_digest_cache = \"\"",
+			"after": "\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 3.0061351299809758
+		},
+		{
+			"path": "sim/core/content_db.gd",
+			"line": 14,
+			"operator": "0 -> 1",
+			"before": "var _count: int = 0",
+			"after": "var _count: int = 1",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_content_db.gd::test_add_and_read_back",
+			"seconds": 3.003165629983414
+		},
+		{
+			"path": "sim/core/entity_ids.gd",
+			"line": 7,
+			"operator": "statement deleted",
+			"before": "const NONE: int = 0",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 0.5059614229830913
+		},
+		{
+			"path": "sim/core/entity_ids.gd",
+			"line": 43,
+			"operator": "statement deleted",
+			"before": "\t_next = next",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_entity_ids.gd::test_restore_validates",
+			"seconds": 3.017599192011403
+		},
+		{
+			"path": "sim/core/entity_ids.gd",
+			"line": 9,
+			"operator": "1 -> 2",
+			"before": "var _next: int = 1",
+			"after": "var _next: int = 2",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_entity_ids.gd::test_ids_start_at_one_and_never_repeat",
+			"seconds": 2.7476161910162773
+		},
+		{
+			"path": "sim/core/entity_ids.gd",
+			"line": 36,
+			"operator": "!= -> ==",
+			"before": "\tif state.size() != 1 or typeof(state.get(\"next\")) != TYPE_INT:",
+			"after": "\tif state.size() == 1 or typeof(state.get(\"next\")) != TYPE_INT:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_entity_ids.gd::test_restore_validates",
+			"seconds": 2.7046242479991633
+		},
+		{
+			"path": "sim/core/entity_ids.gd",
+			"line": 6,
+			"operator": "statement deleted",
+			"before": "const SYSTEM_ID: StringName = &\"entities\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.0317511899920646
+		},
+		{
+			"path": "sim/core/entity_ids.gd",
+			"line": 37,
+			"operator": "statement deleted",
+			"before": "\t\tpush_error(\"EntityIds: snapshot must be {\\\"next\\\": int}\")",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 2.933294221991673
+		},
+		{
+			"path": "sim/core/event_bus.gd",
+			"line": 36,
+			"operator": "0 -> 1",
+			"before": "\t\treturn 0",
+			"after": "\t\treturn 1",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_event_bus.gd::test_delivery_in_subscription_order_with_frozen_payload",
+			"seconds": 2.617329492000863
+		},
+		{
+			"path": "sim/core/event_bus.gd",
+			"line": 26,
+			"operator": "statement deleted",
+			"before": "\tlist.append(handler)",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_event_bus.gd::test_delivery_in_subscription_order_with_frozen_payload",
+			"seconds": 2.39510295400396
+		},
+		{
+			"path": "sim/core/event_bus.gd",
+			"line": 41,
+			"operator": "statement deleted",
+			"before": "\t\thandler.call(frozen)",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_event_bus.gd::test_delivery_in_subscription_order_with_frozen_payload",
+			"seconds": 2.634716324013425
+		},
+		{
+			"path": "sim/core/event_bus.gd",
+			"line": 33,
+			"operator": "1 -> 2",
+			"before": "\t_emitted += 1",
+			"after": "\t_emitted += 2",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_event_bus.gd::test_delivery_in_subscription_order_with_frozen_payload",
+			"seconds": 2.603120507992571
+		},
+		{
+			"path": "sim/core/event_bus.gd",
+			"line": 12,
+			"operator": "0 -> 1",
+			"before": "var _emitted: int = 0",
+			"after": "var _emitted: int = 1",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_event_bus.gd::test_delivery_in_subscription_order_with_frozen_payload",
+			"seconds": 2.6036871600081213
+		},
+		{
+			"path": "sim/core/event_bus.gd",
+			"line": 38,
+			"operator": "statement deleted",
+			"before": "\tfrozen.make_read_only()",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_event_bus.gd::test_delivery_in_subscription_order_with_frozen_payload",
+			"seconds": 2.807463175005978
+		},
+		{
+			"path": "sim/core/json_numbers.gd",
+			"line": 18,
+			"operator": "== -> !=",
+			"before": "\t\t\tif f == floorf(f) and absf(f) < MAX_EXACT:",
+			"after": "\t\t\tif f != floorf(f) and absf(f) < MAX_EXACT:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_json_numbers.gd::test_integral_floats_become_ints_everything_else_is_untouched",
+			"seconds": 1.342175891972147
+		},
+		{
+			"path": "sim/core/json_numbers.gd",
+			"line": 9,
+			"operator": "statement deleted",
+			"before": "const MAX_EXACT: float = 9007199254740992.0",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.3592593009816483
+		},
+		{
+			"path": "sim/core/json_numbers.gd",
+			"line": 24,
+			"operator": "statement deleted",
+			"before": "\t\t\t\tdict[key] = normalise(dict[key])",
+			"after": "\t\t\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_json_numbers.gd::test_integral_floats_become_ints_everything_else_is_untouched",
+			"seconds": 1.3260696979996283
+		},
+		{
+			"path": "sim/core/json_numbers.gd",
+			"line": 29,
+			"operator": "statement deleted",
+			"before": "\t\t\t\tarr[i] = normalise(arr[i])",
+			"after": "\t\t\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_json_numbers.gd::test_integral_floats_become_ints_everything_else_is_untouched",
+			"seconds": 1.5410688999982085
+		},
+		{
+			"path": "sim/core/replay.gd",
+			"line": 23,
+			"operator": "!= -> ==",
+			"before": "\t\tif err != OK:",
+			"after": "\t\tif err == OK:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_replay.gd::test_m1_range_fixture_runs_the_whole_chain",
+			"seconds": 2.868534320994513
+		},
+		{
+			"path": "sim/core/replay.gd",
+			"line": 24,
+			"operator": "statement deleted",
+			"before": "\t\t\tpush_error(\"Replay: submit of '%s' for tick %d failed: %s\" % [command.kind, command.tick, error_string(err)])",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 3.36309251197963
+		},
+		{
+			"path": "sim/core/replay.gd",
+			"line": 18,
+			"operator": "!= -> ==",
+			"before": "\tif sim.get_seed() != fixture.seed:",
+			"after": "\tif sim.get_seed() == fixture.seed:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_replay.gd::test_m0_fixture_replays_identically_and_matches_its_recorded_hash",
+			"seconds": 2.868369815987535
+		},
+		{
+			"path": "sim/core/replay.gd",
+			"line": 19,
+			"operator": "statement deleted",
+			"before": "\t\tpush_error(\"Replay: sim seed %d does not match fixture seed %d\" % [sim.get_seed(), fixture.seed])",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 2.977578985999571
+		},
+		{
+			"path": "sim/core/replay.gd",
+			"line": 26,
+			"operator": "statement deleted",
+			"before": "\tsim.step_n(fixture.ticks)",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_replay.gd::test_m0_fixture_replays_identically_and_matches_its_recorded_hash",
+			"seconds": 3.367555999022443
+		},
+		{
+			"path": "sim/core/replay.gd",
+			"line": 13,
+			"operator": "statement deleted",
+			"before": "\t\tpush_error(\"Replay: invalid fixture: %s\" % fixture.error)",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 3.388888385001337
+		},
+		{
+			"path": "sim/core/replay_fixture.gd",
+			"line": 165,
+			"operator": "!= -> ==",
+			"before": "\tif text.length() != 64:",
+			"after": "\tif text.length() == 64:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_replay_fixture.gd::test_hash_field_validation",
+			"seconds": 1.9142833770019934
+		},
+		{
+			"path": "sim/core/replay_fixture.gd",
+			"line": 14,
+			"operator": "statement deleted",
+			"before": "const MAX_NAME_LENGTH: int = 128",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.463596426998265
+		},
+		{
+			"path": "sim/core/replay_fixture.gd",
+			"line": 41,
+			"operator": "statement deleted",
+			"before": "\t\tfixture.commands.clear()",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_replay_fixture.gd::test_random_mutations_never_crash_and_never_validate_silently",
+			"seconds": 3.098357629001839
+		},
+		{
+			"path": "sim/core/replay_fixture.gd",
+			"line": 66,
+			"operator": "!= -> ==",
+			"before": "\tif typeof(root[\"name\"]) != TYPE_STRING:",
+			"after": "\tif typeof(root[\"name\"]) == TYPE_STRING:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_replay_fixture.gd::test_valid_fixture_parses",
+			"seconds": 2.0905777020088863
+		},
+		{
+			"path": "sim/core/replay_fixture.gd",
+			"line": 72,
+			"operator": "statement deleted",
+			"before": "\terr = _read_int(root, \"seed\", -MAX_EXACT_INT, MAX_EXACT_INT)",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_replay_fixture.gd::test_hostile_inputs_are_rejected_with_a_message",
+			"seconds": 3.036108875996433
+		},
+		{
+			"path": "sim/core/replay_fixture.gd",
+			"line": 12,
+			"operator": "statement deleted",
+			"before": "const MAX_TICKS: int = 10_000_000",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.4847689379821531
+		},
+		{
+			"path": "sim/core/save_file.gd",
+			"line": 231,
+			"operator": "> -> >=",
+			"before": "\t\tif value > (limit - c) / 10:",
+			"after": "\t\tif value >= (limit - c) / 10:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_save_file.gd::test_big_integers_and_prefixed_strings_survive",
+			"seconds": 232.47306913600187
+		},
+		{
+			"path": "sim/core/save_file.gd",
+			"line": 138,
+			"operator": "== -> !=",
+			"before": "\t\t\t\tif typeof(e) == TYPE_NIL:",
+			"after": "\t\t\t\tif typeof(e) != TYPE_NIL:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_save_file.gd::test_load_of_save_hashes_equal_and_keeps_stepping_equal",
+			"seconds": 63.81868248200044
+		},
+		{
+			"path": "sim/core/save_file.gd",
+			"line": 82,
+			"operator": "== -> !=",
+			"before": "\tif typeof(decoded) == TYPE_NIL:",
+			"after": "\tif typeof(decoded) != TYPE_NIL:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_save_file.gd::test_load_of_save_hashes_equal_and_keeps_stepping_equal",
+			"seconds": 80.92982856498566
+		},
+		{
+			"path": "sim/core/save_file.gd",
+			"line": 56,
+			"operator": "> -> >=",
+			"before": "\tif text.length() > MAX_BYTES:",
+			"after": "\tif text.length() >= MAX_BYTES:",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 217.85883310801
+		},
+		{
+			"path": "sim/core/save_file.gd",
+			"line": 16,
+			"operator": "statement deleted",
+			"before": "const MAX_BYTES: int = 16 * 1024 * 1024",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 2.979499344015494
+		},
+		{
+			"path": "sim/core/save_file.gd",
+			"line": 168,
+			"operator": "4 -> 5",
+			"before": "\t\t\t\tvar digits: String = s.substr(4)",
+			"after": "\t\t\t\tvar digits: String = s.substr(5)",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_save_file.gd::test_load_of_save_hashes_equal_and_keeps_stepping_equal",
+			"seconds": 174.651452488004
+		},
+		{
+			"path": "sim/core/sim_command.gd",
+			"line": 19,
+			"operator": "statement deleted",
+			"before": "\tpayload = p_payload",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_sim_root.gd::test_commands_dispatch_on_their_tick_in_submission_order",
+			"seconds": 4.180702593992464
+		},
+		{
+			"path": "sim/core/sim_command.gd",
+			"line": 17,
+			"operator": "statement deleted",
+			"before": "\ttick = p_tick",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_sim_root.gd::test_late_commands_are_rejected_at_submit",
+			"seconds": 4.092613621003693
+		},
+		{
+			"path": "sim/core/sim_command.gd",
+			"line": 18,
+			"operator": "statement deleted",
+			"before": "\tkind = p_kind",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_sim_root.gd::test_commands_dispatch_on_their_tick_in_submission_order",
+			"seconds": 4.38642095902469
+		},
+		{
+			"path": "sim/core/sim_root.gd",
+			"line": 123,
+			"operator": "statement deleted",
+			"before": "\t_paused = paused",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_pause.gd::test_pause_is_gated_by_safe_and_a_refusal_is_a_violation",
+			"seconds": 12.851551401021425
+		},
+		{
+			"path": "sim/core/sim_root.gd",
+			"line": 13,
+			"operator": "statement deleted",
+			"before": "const TICK_HZ: int = 40",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 0.47392432499327697
+		},
+		{
+			"path": "sim/core/sim_root.gd",
+			"line": 34,
+			"operator": "0 -> 1",
+			"before": "var _paused_steps: int = 0",
+			"after": "var _paused_steps: int = 1",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_pause.gd::test_paused_the_tick_freezes_and_only_pause_safe_commands_dispatch",
+			"seconds": 12.864831785002025
+		},
+		{
+			"path": "sim/core/sim_root.gd",
+			"line": 169,
+			"operator": "statement deleted",
+			"before": "\t\tstep()",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_sim_root.gd::test_step_advances_tick_and_ticks_systems_in_registration_order",
+			"seconds": 13.102861694002058
+		},
+		{
+			"path": "sim/core/sim_root.gd",
+			"line": 256,
+			"operator": "statement deleted",
+			"before": "\t_rejected = rejected",
+			"after": "\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 14.248153310996713
+		},
+		{
+			"path": "sim/core/sim_root.gd",
+			"line": 132,
+			"operator": "1 -> 2",
+			"before": "\t\t_paused_steps += 1",
+			"after": "\t\t_paused_steps += 2",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_pause.gd::test_paused_the_tick_freezes_and_only_pause_safe_commands_dispatch",
+			"seconds": 14.432239956018748
+		},
+		{
+			"path": "sim/core/state_hash.gd",
+			"line": 111,
+			"operator": "statement deleted",
+			"before": "\t_append_u32(out, keys.size())",
+			"after": "\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 2.8999973469763063
+		},
+		{
+			"path": "sim/core/state_hash.gd",
+			"line": 18,
+			"operator": "statement deleted",
+			"before": "const _TAG_STRING_NAME: int = 0x05",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.5123072479909752
+		},
+		{
+			"path": "sim/core/state_hash.gd",
+			"line": 17,
+			"operator": "statement deleted",
+			"before": "const _TAG_STRING: int = 0x04",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.3227530329895671
+		},
+		{
+			"path": "sim/core/state_hash.gd",
+			"line": 97,
+			"operator": "statement deleted",
+			"before": "\t\t\tpush_error(\"StateHash: unsupported type %s\" % type_string(typeof(value)))",
+			"after": "\t\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 2.882742910995148
+		},
+		{
+			"path": "sim/core/state_hash.gd",
+			"line": 98,
+			"operator": "return false -> true",
+			"before": "\t\t\treturn false",
+			"after": "\t\t\treturn true",
+			"outcome": "failed",
+			"by": "FAIL res://tests/sim/test_state_hash.gd::test_unsupported_types_fail_loudly_with_empty_hash",
+			"seconds": 2.802803477010457
+		},
+		{
+			"path": "sim/core/state_hash.gd",
+			"line": 26,
+			"operator": "statement deleted",
+			"before": "const _KEY_RANK_TEXT: int = 1",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.2185394710104447
+		},
+		{
+			"path": "sim/items/combat_system.gd",
+			"line": 179,
+			"operator": "== -> !=",
+			"before": "\tif round == EntityIds.NONE:",
+			"after": "\tif round != EntityIds.NONE:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/items/test_combat_system.gd::test_fire_consumes_exactly_one_round_and_chambers_the_next",
+			"seconds": 7.373561889020493
+		},
+		{
+			"path": "sim/items/combat_system.gd",
+			"line": 214,
+			"operator": "statement deleted",
+			"before": "\t\t_kills += 1",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/items/test_combat_system.gd::test_hits_apply_resolved_damage_misses_do_not_and_kills_end_it",
+			"seconds": 7.747887070989236
+		},
+		{
+			"path": "sim/items/combat_system.gd",
+			"line": 14,
+			"operator": "statement deleted",
+			"before": "const EVENT_FIRE: StringName = &\"combat.fire\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 0.5909380539960694
+		},
+		{
+			"path": "sim/items/combat_system.gd",
+			"line": 83,
+			"operator": "statement deleted",
+			"before": "\t\tpush_error(\"CombatSystem: stage '%s' already registered\" % name)",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 7.704317064984934
+		},
+		{
+			"path": "sim/items/combat_system.gd",
+			"line": 305,
+			"operator": "!= -> ==",
+			"before": "\t\tif typeof(node_v) != TYPE_STRING_NAME and typeof(node_v) != TYPE_STRING:",
+			"after": "\t\tif typeof(node_v) == TYPE_STRING_NAME and typeof(node_v) != TYPE_STRING:",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 8.022885446989676
+		},
+		{
+			"path": "sim/items/combat_system.gd",
+			"line": 271,
+			"operator": "statement deleted",
+			"before": "\tctx[\"node\"] = node",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/items/test_combat_system.gd::test_hits_apply_resolved_damage_misses_do_not_and_kills_end_it",
+			"seconds": 7.745859263988677
+		},
+		{
+			"path": "sim/items/item_system.gd",
+			"line": 543,
+			"operator": "statement deleted",
+			"before": "\t_move(part, inv)",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/items/test_item_system.gd::test_attach_and_detach_move_the_part_and_its_modifiers",
+			"seconds": 18.709928094001953
+		},
+		{
+			"path": "sim/items/item_system.gd",
+			"line": 744,
+			"operator": "statement deleted",
+			"before": "\t\tnew_handles[pk] = list",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/items/test_item_system.gd::test_item_state_survives_a_round_trip_with_partial_magazines",
+			"seconds": 18.07795930901193
+		},
+		{
+			"path": "sim/items/item_system.gd",
+			"line": 202,
+			"operator": "!= -> ==",
+			"before": "\t\tif _check_stats_list(t[\"stats\"], \"currency/%s\" % note) != OK:",
+			"after": "\t\tif _check_stats_list(t[\"stats\"], \"currency/%s\" % note) == OK:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/items/test_item_system.gd::test_spawn_sets_bases_and_tags_from_the_template",
+			"seconds": 2.2392255399900023
+		},
+		{
+			"path": "sim/items/item_system.gd",
+			"line": 116,
+			"operator": "statement deleted",
+			"before": "\t\t\"part_handles\": _part_handles.duplicate(true),",
+			"after": "\t\tpass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 0.5238008440064732
+		},
+		{
+			"path": "sim/items/item_system.gd",
+			"line": 854,
+			"operator": "!= -> ==",
+			"before": "\tif item_kind(magazine) != part_kind_for(item_kind(frame)) or not _fits(magazine, frame):",
+			"after": "\tif item_kind(magazine) == part_kind_for(item_kind(frame)) or not _fits(magazine, frame):",
+			"outcome": "failed",
+			"by": "FAIL res://tests/items/test_item_system.gd::test_arming_an_actor_from_a_kit_seats_the_magazine_and_chambers_a_round",
+			"seconds": 18.88699872198049
+		},
+		{
+			"path": "sim/items/item_system.gd",
+			"line": 390,
+			"operator": "statement deleted",
+			"before": "\t_items[id] = {\"kind\": kind, \"template\": template, \"seed\": seed, \"affixes\": [] as Array}",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/items/test_item_system.gd::test_spawn_sets_bases_and_tags_from_the_template",
+			"seconds": 12.127277543011587
+		},
+		{
+			"path": "sim/land/build_system.gd",
+			"line": 21,
+			"operator": "statement deleted",
+			"before": "const KIND_PIECE_KIND: StringName = &\"piece_kind\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.914721017004922
+		},
+		{
+			"path": "sim/land/build_system.gd",
+			"line": 466,
+			"operator": "> -> >=",
+			"before": "\t\tif absi(cx) > MAX_CELL or absi(cy) > MAX_CELL or absi(cz) > MAX_CELL:",
+			"after": "\t\tif absi(cx) >= MAX_CELL or absi(cy) > MAX_CELL or absi(cz) > MAX_CELL:",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 5.044410513015464
+		},
+		{
+			"path": "sim/land/build_system.gd",
+			"line": 48,
+			"operator": "statement deleted",
+			"before": "\t_content = content",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_build_system.gd::test_foundation_then_wall_then_door_are_supported_in_a_chain",
+			"seconds": 3.703984892985318
+		},
+		{
+			"path": "sim/land/build_system.gd",
+			"line": 130,
+			"operator": "1 -> 2",
+			"before": "\tvar axis: String = facing.substr(1, 1)",
+			"after": "\tvar axis: String = facing.substr(2, 1)",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_build_system.gd::test_cells_and_canonical_faces",
+			"seconds": 5.139526489016134
+		},
+		{
+			"path": "sim/land/build_system.gd",
+			"line": 30,
+			"operator": "0 -> 1",
+			"before": "const GROUND_CELL_Y: int = 0",
+			"after": "const GROUND_CELL_Y: int = 1",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_build_system.gd::test_foundation_then_wall_then_door_are_supported_in_a_chain",
+			"seconds": 5.340027392987395
+		},
+		{
+			"path": "sim/land/build_system.gd",
+			"line": 53,
+			"operator": "statement deleted",
+			"before": "\t_events = events",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_build_system.gd::test_foundation_then_wall_then_door_are_supported_in_a_chain",
+			"seconds": 4.501790212991182
+		},
+		{
+			"path": "sim/land/land_system.gd",
+			"line": 141,
+			"operator": "return false -> true",
+			"before": "\t\treturn false",
+			"after": "\t\treturn true",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 11.401026919978904
+		},
+		{
+			"path": "sim/land/land_system.gd",
+			"line": 423,
+			"operator": "!= -> ==",
+			"before": "\t\tif typeof(v) != TYPE_ARRAY:",
+			"after": "\t\tif typeof(v) == TYPE_ARRAY:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_land_system.gd::test_content_parcels_are_placed_at_assembly",
+			"seconds": 1.6754823040100746
+		},
+		{
+			"path": "sim/land/land_system.gd",
+			"line": 299,
+			"operator": "statement deleted",
+			"before": "\t\t\"right\": right,",
+			"after": "\t\tpass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 0.4521997440024279
+		},
+		{
+			"path": "sim/land/land_system.gd",
+			"line": 33,
+			"operator": "statement deleted",
+			"before": "const UNPARCELLED: StringName = &\"\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 0.5756896670209244
+		},
+		{
+			"path": "sim/land/land_system.gd",
+			"line": 561,
+			"operator": "return true -> false",
+			"before": "\t\t\treturn true",
+			"after": "\t\t\treturn false",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_land_system.gd::test_add_parcel_rejects_bad_polygons_and_overlaps",
+			"seconds": 11.869969396997476
+		},
+		{
+			"path": "sim/land/land_system.gd",
+			"line": 198,
+			"operator": "statement deleted",
+			"before": "\t_index(id, poly)",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_land_system.gd::test_parcel_at_geometry_and_shared_edges",
+			"seconds": 11.57084033699357
+		},
+		{
+			"path": "sim/land/structure_system.gd",
+			"line": 41,
+			"operator": "statement deleted",
+			"before": "\t_land = land",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_structure_system.gd::test_place_on_own_plot_records_owner_and_budgets",
+			"seconds": 4.184278047003318
+		},
+		{
+			"path": "sim/land/structure_system.gd",
+			"line": 220,
+			"operator": "statement deleted",
+			"before": "\t\t\t\tout[\"%d,%d\" % [c, r]] = module_id",
+			"after": "\t\t\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_structure_system.gd::test_sockets_never_overlap_and_stay_on_grid",
+			"seconds": 3.9269651739741676
+		},
+		{
+			"path": "sim/land/structure_system.gd",
+			"line": 343,
+			"operator": "== -> !=",
+			"before": "\t\tif m[\"template\"] == template:",
+			"after": "\t\tif m[\"template\"] != template:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_structure_system.gd::test_install_three_modules_within_budget_and_refuse_the_fourth",
+			"seconds": 3.7264426779875066
+		},
+		{
+			"path": "sim/land/structure_system.gd",
+			"line": 328,
+			"operator": "return false -> true",
+			"before": "\t\t\t\treturn false",
+			"after": "\t\t\t\treturn true",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_structure_system.gd::test_remove_refuses_to_orphan_dependants",
+			"seconds": 3.9089533829828724
+		},
+		{
+			"path": "sim/land/structure_system.gd",
+			"line": 254,
+			"operator": "statement deleted",
+			"before": "\t_structures[id] = {",
+			"after": "\tpass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 0.4788307439885102
+		},
+		{
+			"path": "sim/land/structure_system.gd",
+			"line": 354,
+			"operator": "statement deleted",
+			"before": "\t\tsx = sz",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/land/test_structure_system.gd::test_rotation_swaps_the_footprint",
+			"seconds": 3.831540543003939
+		},
+		{
+			"path": "sim/nav/portal_graph.gd",
+			"line": 208,
+			"operator": "> -> >=",
+			"before": "\t\treturn \"px\" if d.x > 0 else \"nx\"",
+			"after": "\t\treturn \"px\" if d.x >= 0 else \"nx\"",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 33.67770933700376
+		},
+		{
+			"path": "sim/nav/portal_graph.gd",
+			"line": 161,
+			"operator": "< -> <=",
+			"before": "\t\t\treturn ax < ay",
+			"after": "\t\t\treturn ax <= ay",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 33.50918054798967
+		},
+		{
+			"path": "sim/nav/portal_graph.gd",
+			"line": 373,
+			"operator": "< -> <=",
+			"before": "\t\tif cost < 0:",
+			"after": "\t\tif cost <= 0:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/nav/test_portal_graph.gd::test_raid_plan_goes_for_the_most_valuable_reachable_target",
+			"seconds": 33.1147592360212
+		},
+		{
+			"path": "sim/nav/portal_graph.gd",
+			"line": 248,
+			"operator": "0 -> 1",
+			"before": "\t\treturn 0",
+			"after": "\t\treturn 1",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 35.36586587599595
+		},
+		{
+			"path": "sim/nav/portal_graph.gd",
+			"line": 333,
+			"operator": "statement deleted",
+			"before": "\t\t\t\tcontinue",
+			"after": "\t\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 33.473519492021296
+		},
+		{
+			"path": "sim/nav/portal_graph.gd",
+			"line": 236,
+			"operator": "statement deleted",
+			"before": "\t\tout.append(id)",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/nav/test_portal_graph.gd::test_property_flood_fill_partitions_consistently",
+			"seconds": 34.040331739990506
+		},
+		{
+			"path": "sim/progression/progression_system.gd",
+			"line": 177,
+			"operator": "1 -> 2",
+			"before": "\t\treturn -1",
+			"after": "\t\treturn -2",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 3.3718606870097574
+		},
+		{
+			"path": "sim/progression/progression_system.gd",
+			"line": 313,
+			"operator": "statement deleted",
+			"before": "\t\t_perks[actor] = {}",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/progression/test_progression_system.gd::test_unlock_is_gated_by_level_points_prerequisites_and_pays_out_modifiers",
+			"seconds": 3.0826800980139524
+		},
+		{
+			"path": "sim/progression/progression_system.gd",
+			"line": 13,
+			"operator": "statement deleted",
+			"before": "const KIND_PERK: StringName = &\"perk\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.780420243012486
+		},
+		{
+			"path": "sim/progression/progression_system.gd",
+			"line": 30,
+			"operator": "statement deleted",
+			"before": "\t_content = content",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/progression/test_progression_system.gd::test_hits_credit_the_skill_and_levels_grant_points",
+			"seconds": 3.3589781199989375
+		},
+		{
+			"path": "sim/progression/progression_system.gd",
+			"line": 407,
+			"operator": "statement deleted",
+			"before": "\t\tout.append(StringName(s))",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/progression/test_progression_system.gd::test_content_rules_are_enforced_at_assembly",
+			"seconds": 3.400097192003159
+		},
+		{
+			"path": "sim/progression/progression_system.gd",
+			"line": 257,
+			"operator": "statement deleted",
+			"before": "\t\t\tbreak",
+			"after": "\t\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/progression/test_progression_system.gd::test_hits_credit_the_skill_and_levels_grant_points",
+			"seconds": 2.992262990010204
+		},
+		{
+			"path": "sim/progression/stat_resolver.gd",
+			"line": 488,
+			"operator": "statement deleted",
+			"before": "\t_invalidate(entity)",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/progression/test_stat_resolver.gd::test_arithmetic_is_exact_and_truncates_once",
+			"seconds": 13.886192308011232
+		},
+		{
+			"path": "sim/progression/stat_resolver.gd",
+			"line": 479,
+			"operator": "1 -> 2",
+			"before": "\t_next_handle += 1",
+			"after": "\t_next_handle += 2",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 14.526512990007177
+		},
+		{
+			"path": "sim/progression/stat_resolver.gd",
+			"line": 470,
+			"operator": "statement deleted",
+			"before": "\t\t\tpush_error(\"StatResolver: modifier tag must be id-like, got '%s'\" % text)",
+			"after": "\t\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 14.53385863598669
+		},
+		{
+			"path": "sim/progression/stat_resolver.gd",
+			"line": 403,
+			"operator": "statement deleted",
+			"before": "\t_tags.erase(entity)",
+			"after": "\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 14.71885461700731
+		},
+		{
+			"path": "sim/progression/stat_resolver.gd",
+			"line": 123,
+			"operator": "!= -> ==",
+			"before": "\t\tif typeof(ek) != TYPE_INT or typeof(bases_in[ek]) != TYPE_DICTIONARY:",
+			"after": "\t\tif typeof(ek) == TYPE_INT or typeof(bases_in[ek]) != TYPE_DICTIONARY:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/progression/test_stat_resolver.gd::test_restore_round_trips_and_rejects_hostile_input",
+			"seconds": 14.622555650013965
+		},
+		{
+			"path": "sim/progression/stat_resolver.gd",
+			"line": 378,
+			"operator": "statement deleted",
+			"before": "\t\t\twalk = _inherits[walk]",
+			"after": "\t\t\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 14.711691068019718
+		},
+		{
+			"path": "sim/quests/quest_system.gd",
+			"line": 11,
+			"operator": "statement deleted",
+			"before": "const COMMAND_ACCEPT: StringName = &\"quest.accept\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.591812305006897
+		},
+		{
+			"path": "sim/quests/quest_system.gd",
+			"line": 399,
+			"operator": "!= -> ==",
+			"before": "\t\t\t\tif typeof(progress_in[i]) != TYPE_INT:",
+			"after": "\t\t\t\tif typeof(progress_in[i]) == TYPE_INT:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_quest_system.gd::test_restore_round_trip_and_rejections",
+			"seconds": 11.175508118991274
+		},
+		{
+			"path": "sim/quests/quest_system.gd",
+			"line": 49,
+			"operator": "statement deleted",
+			"before": "\t_payout = source",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_quest_system.gd::test_a_contract_is_not_paid_until_it_is_turned_in_at_the_fixer",
+			"seconds": 10.88736523600528
+		},
+		{
+			"path": "sim/quests/quest_system.gd",
+			"line": 115,
+			"operator": "statement deleted",
+			"before": "\t\t\tcontinue",
+			"after": "\t\t\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 10.98680263600545
+		},
+		{
+			"path": "sim/quests/quest_system.gd",
+			"line": 39,
+			"operator": "statement deleted",
+			"before": "\t_content = content",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_quest_system.gd::test_accept_and_abandon_contracts",
+			"seconds": 11.104621196020162
+		},
+		{
+			"path": "sim/quests/quest_system.gd",
+			"line": 72,
+			"operator": "!= -> ==",
+			"before": "\tif err != OK:",
+			"after": "\tif err == OK:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_quest_system.gd::test_accept_and_abandon_contracts",
+			"seconds": 10.980830107000656
+		},
+		{
+			"path": "sim/quests/run_score_system.gd",
+			"line": 194,
+			"operator": "statement deleted",
+			"before": "\trec[\"detected\"] = rec[\"detected\"] + 1",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_run_score.gd::test_each_counter_is_raised_by_its_own_event",
+			"seconds": 9.7979700040014
+		},
+		{
+			"path": "sim/quests/run_score_system.gd",
+			"line": 323,
+			"operator": "statement deleted",
+			"before": "\t_runs = out",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_run_score.gd::test_restore_round_trip_and_rejections",
+			"seconds": 9.595694493997144
+		},
+		{
+			"path": "sim/quests/run_score_system.gd",
+			"line": 264,
+			"operator": "return false -> true",
+			"before": "\t\treturn false",
+			"after": "\t\treturn true",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_run_score.gd::test_a_clean_run_scores_the_bonus_and_the_counters_only_count_while_it_is_on",
+			"seconds": 9.492338003998157
+		},
+		{
+			"path": "sim/quests/run_score_system.gd",
+			"line": 75,
+			"operator": "!= -> ==",
+			"before": "\tif err != OK:",
+			"after": "\tif err == OK:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_run_score.gd::test_each_counter_is_raised_by_its_own_event",
+			"seconds": 9.786200344009558
+		},
+		{
+			"path": "sim/quests/run_score_system.gd",
+			"line": 19,
+			"operator": "statement deleted",
+			"before": "const SYSTEM_ID: StringName = &\"score\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.3019957540091127
+		},
+		{
+			"path": "sim/quests/run_score_system.gd",
+			"line": 207,
+			"operator": "statement deleted",
+			"before": "\trec[\"alarms\"] = rec[\"alarms\"] + 1",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_run_score.gd::test_each_counter_is_raised_by_its_own_event",
+			"seconds": 9.621847135975258
+		},
+		{
+			"path": "sim/quests/terminal_system.gd",
+			"line": 124,
+			"operator": "0 -> 1",
+			"before": "\t\treturn 0",
+			"after": "\t\treturn 1",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 30.851766614010558
+		},
+		{
+			"path": "sim/quests/terminal_system.gd",
+			"line": 12,
+			"operator": "statement deleted",
+			"before": "const KIND_TERMINAL: StringName = &\"terminal\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.9563983200059738
+		},
+		{
+			"path": "sim/quests/terminal_system.gd",
+			"line": 330,
+			"operator": "0 -> 1",
+			"before": "\t\tif actor == EntityIds.NONE and progress != 0:",
+			"after": "\t\tif actor == EntityIds.NONE and progress != 1:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_terminal_system.gd::test_restore_round_trip_and_rejections",
+			"seconds": 31.276881452999078
+		},
+		{
+			"path": "sim/quests/terminal_system.gd",
+			"line": 229,
+			"operator": "statement deleted",
+			"before": "\t\trec[\"hacked\"] = true",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_terminal_system.gd::test_the_hack_runs_in_real_time_and_walking_away_loses_it",
+			"seconds": 31.042149740998866
+		},
+		{
+			"path": "sim/quests/terminal_system.gd",
+			"line": 304,
+			"operator": "< -> <=",
+			"before": "\tif hacks < 0:",
+			"after": "\tif hacks <= 0:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/quests/test_terminal_system.gd::test_restore_round_trip_and_rejections",
+			"seconds": 31.086147719004657
+		},
+		{
+			"path": "sim/quests/terminal_system.gd",
+			"line": 131,
+			"operator": "0 -> 1",
+			"before": "\t\treturn 0",
+			"after": "\t\treturn 1",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 30.96872343798168
+		},
+		{
+			"path": "sim/threat/standing_system.gd",
+			"line": 152,
+			"operator": "0 -> 1",
+			"before": "\t\treturn 0",
+			"after": "\t\treturn 1",
+			"outcome": "failed",
+			"by": "FAIL res://tests/threat/test_standing.gd::test_notoriety_rises_when_a_contract_completes_and_fades_far_more_slowly",
+			"seconds": 4.098391193023417
+		},
+		{
+			"path": "sim/threat/standing_system.gd",
+			"line": 229,
+			"operator": "== -> !=",
+			"before": "\tif mode == \"flat\":",
+			"after": "\tif mode != \"flat\":",
+			"outcome": "failed",
+			"by": "FAIL res://tests/threat/test_standing.gd::test_decay_is_scaled_by_the_district_and_stops_at_zero",
+			"seconds": 4.212372002017219
+		},
+		{
+			"path": "sim/threat/standing_system.gd",
+			"line": 18,
+			"operator": "statement deleted",
+			"before": "const KIND_DISTRICT: StringName = &\"district\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.7140455410117283
+		},
+		{
+			"path": "sim/threat/standing_system.gd",
+			"line": 23,
+			"operator": "statement deleted",
+			"before": "const SOURCE_EVENTS: String = \"events\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.8762263609969523
+		},
+		{
+			"path": "sim/threat/standing_system.gd",
+			"line": 85,
+			"operator": "statement deleted",
+			"before": "\t_scalars = _content.ids(KIND_RULE)",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/threat/test_standing.gd::test_the_scalars_and_their_rules_come_from_content",
+			"seconds": 3.9152332480007317
+		},
+		{
+			"path": "sim/threat/standing_system.gd",
+			"line": 240,
+			"operator": "0 -> 1",
+			"before": "\t\treturn 0",
+			"after": "\t\treturn 1",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 4.215342354989843
+		},
+		{
+			"path": "sim/world/site_system.gd",
+			"line": 11,
+			"operator": "statement deleted",
+			"before": "const COMMAND_RAISE: StringName = &\"site.raise\"",
+			"after": "pass",
+			"outcome": "invalid",
+			"by": "did not compile",
+			"seconds": 1.5859097929787822
+		},
+		{
+			"path": "sim/world/site_system.gd",
+			"line": 275,
+			"operator": "statement deleted",
+			"before": "\tpush_error(\"SiteSystem.restore: rejected: %s\" % reason)",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "the run stopped complaining about something",
+			"seconds": 35.62594346201513
+		},
+		{
+			"path": "sim/world/site_system.gd",
+			"line": 263,
+			"operator": "!= -> ==",
+			"before": "\t\t\tif typeof(v) != TYPE_INT:",
+			"after": "\t\t\tif typeof(v) == TYPE_INT:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/world/test_site_system.gd::test_a_site_raises_through_its_command_and_survives_the_round_trip",
+			"seconds": 35.54018143299618
+		},
+		{
+			"path": "sim/world/site_system.gd",
+			"line": 29,
+			"operator": "statement deleted",
+			"before": "\t_actors = actors",
+			"after": "\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/world/test_site_system.gd::test_the_m4_building_is_a_site_file_and_raises_as_it_always_did",
+			"seconds": 2.9909333040122874
+		},
+		{
+			"path": "sim/world/site_system.gd",
+			"line": 91,
+			"operator": "statement deleted",
+			"before": "\tpush_error(\"SiteSystem: %s\" % reason)",
+			"after": "\tpass",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 35.73156291298801
+		},
+		{
+			"path": "sim/world/site_system.gd",
+			"line": 242,
+			"operator": "!= -> ==",
+			"before": "\t\tif rec.size() != 3 or typeof(rec.get(\"pieces\")) != TYPE_ARRAY or typeof(rec.get(\"agents\")) != TYPE_ARRAY \\",
+			"after": "\t\tif rec.size() == 3 or typeof(rec.get(\"pieces\")) != TYPE_ARRAY or typeof(rec.get(\"agents\")) != TYPE_ARRAY \\",
+			"outcome": "failed",
+			"by": "FAIL res://tests/world/test_site_system.gd::test_a_site_raises_through_its_command_and_survives_the_round_trip",
+			"seconds": 35.517080579011235
+		}
+	]
+}

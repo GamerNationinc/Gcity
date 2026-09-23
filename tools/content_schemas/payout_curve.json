@@ -1,0 +1,63 @@
+{
+	"schema_version": 1,
+	"description": "How a run's four stealth counters become a payout multiplier (design doc §15.4; M6 spec claim 7). `clean_bonus` is the multiplier when all four are zero; every point of a counter costs its penalty, down to `floor`. Milli-units: 1000 is the base payout.",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 320
+		},
+		"clean_bonus": {
+			"type": "int",
+			"min": 1000,
+			"max": 100000
+		},
+		"base": {
+			"type": "int",
+			"min": 0,
+			"max": 100000
+		},
+		"floor": {
+			"type": "int",
+			"min": 0,
+			"max": 100000
+		},
+		"per_detection": {
+			"type": "int",
+			"min": 0,
+			"max": 100000
+		},
+		"per_alarm": {
+			"type": "int",
+			"min": 0,
+			"max": 100000
+		},
+		"per_body": {
+			"type": "int",
+			"min": 0,
+			"max": 100000
+		},
+		"per_trace": {
+			"type": "int",
+			"min": 0,
+			"max": 100000
+		}
+	},
+	"required": [
+		"schema_version",
+		"description",
+		"clean_bonus",
+		"base",
+		"floor",
+		"per_detection",
+		"per_alarm",
+		"per_body",
+		"per_trace"
+	],
+	"additional_properties": false
+}
