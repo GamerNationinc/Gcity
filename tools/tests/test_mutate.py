@@ -190,3 +190,30 @@ class Selection(unittest.TestCase):
     def test_naming_a_file_twice_mutates_it_once(self) -> None:
         both = mutate.sim_files(["sim/core/entity_ids.gd", "sim/core/entity_ids.gd"])
         self.assertEqual(len(both), 1)
+
+
+class Diagnostics(unittest.TestCase):
+    """A deleted `push_error` is a change the run's own output shows.
+
+    Nothing in GDScript can assert "this should have complained", so fourteen deleted
+    diagnostics survived the first full pass and were reported as holes in the tests
+    when they are a hole in the harness. The engine prints them, and the runner reads
+    what the engine prints.
+    """
+
+    def test_errors_are_picked_out_of_the_noise(self) -> None:
+        out = "ok   a::b\nERROR: ItemSystem: nope\n   at: push_error\nok   a::c\n"
+        self.assertEqual(mutate.diagnostics(out), ("ERROR: ItemSystem: nope",))
+
+    def test_a_run_with_nothing_to_say_has_no_diagnostics(self) -> None:
+        self.assertEqual(mutate.diagnostics("ok   a::b\n3 tests, 0 failed\n"), ())
+
+    def test_the_order_they_arrive_in_does_not_matter(self) -> None:
+        one = mutate.diagnostics("ERROR: b\nERROR: a\n")
+        other = mutate.diagnostics("ERROR: a\nERROR: b\n")
+        self.assertEqual(one, other)
+
+    def test_losing_one_is_a_difference(self) -> None:
+        before = mutate.diagnostics("ERROR: a\nERROR: b\n")
+        after = mutate.diagnostics("ERROR: a\n")
+        self.assertNotEqual(before, after, "a silenced complaint is a change")

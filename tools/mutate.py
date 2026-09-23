@@ -275,8 +275,21 @@ def sim_files(under: list[str]) -> list[Path]:
     return list(seen)
 
 
-def run(tests: list[str], godot: str, timeout: int) -> tuple[str, str]:
-    """Runs the given test files. Returns (outcome, why).
+def diagnostics(output: str) -> tuple[str, ...]:
+    """The engine errors a test run printed, as a comparable multiset.
+
+    Deleting a `push_error` is a mutant nothing in GDScript can assert against: there
+    is no hook to say "this call should have complained". But the run's own output
+    changes, and this project's standards say errors are handled or loudly fatal — so
+    the loud part going missing *is* a behavioural change, and one that is visible from
+    out here even though it is not visible from inside a test.
+    """
+    lines = [line.strip() for line in output.splitlines() if line.strip().startswith("ERROR:")]
+    return tuple(sorted(lines))
+
+
+def run(tests: list[str], godot: str, timeout: int) -> tuple[str, str, tuple[str, ...]]:
+    """Runs the given test files. Returns (outcome, why, the errors it printed).
 
     The outcome is `passed`, `failed`, or `invalid`. A mutant that will not compile is
     invalid, not killed: nothing about the tests caught it, and counting it as a kill
@@ -289,16 +302,16 @@ def run(tests: list[str], godot: str, timeout: int) -> tuple[str, str]:
             capture_output=True, text=True, timeout=timeout, cwd=ROOT,
         )
     except subprocess.TimeoutExpired:
-        return "failed", "timed out"
+        return "failed", "timed out", ()
     output = result.stdout + result.stderr
     if "Parse Error" in output or "did not compile" in output or "Could not parse" in output:
-        return "invalid", "did not compile"
+        return "invalid", "did not compile", ()
     if result.returncode == 0:
-        return "passed", ""
+        return "passed", "", diagnostics(output)
     for line in result.stdout.splitlines():
         if line.startswith("FAIL"):
-            return "failed", line.strip()
-    return "failed", "non-zero exit"
+            return "failed", line.strip(), diagnostics(output)
+    return "failed", "non-zero exit", diagnostics(output)
 
 
 def main() -> int:
@@ -345,13 +358,19 @@ def main() -> int:
         rng.shuffle(candidates)
         chosen = candidates[: args.per_file]
         tests = tests_for(rel)
+        # what the tests say with the file untouched, so a mutant that silences a
+        # diagnostic can be told from one that changes nothing at all
+        _, _, baseline = run(tests, godot, args.timeout)
         for mutant in chosen:
             lines[mutant.line - 1] = mutant.after + "\n"
             _hold(path, original)
             path.write_text("".join(lines), encoding="utf-8")
             started = time.monotonic()
-            outcome, why = run(tests, godot, args.timeout)
+            outcome, why, printed = run(tests, godot, args.timeout)
             mutant.seconds = time.monotonic() - started
+            if outcome == "passed" and printed != baseline:
+                outcome = "failed"
+                why = "the run stopped complaining about something"
             mutant.outcome = outcome
             mutant.by = why
             lines[mutant.line - 1] = mutant.before + "\n"
