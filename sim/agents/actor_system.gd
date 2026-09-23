@@ -326,6 +326,13 @@ func _on_wield(_sim: SimRoot, payload: Dictionary) -> bool:
 		return false
 	var actor: int = payload["actor"]
 	var weapon: int = payload["weapon"]
+	return wield(actor, weapon)
+
+
+## Puts a frame from the actor's inventory in their hands, or NONE to put it away, and
+## makes the weapon inherit the actor's tags. Split out of the command so a site can
+## hand its own guards something to hold; the rules are the same either way.
+func wield(actor: int, weapon: int) -> bool:
 	if not _actors.has(actor) or not is_alive(actor):
 		return false
 	var rec: Dictionary = _actors[actor]

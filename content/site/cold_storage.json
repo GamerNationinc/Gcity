@@ -3281,6 +3281,12 @@
 	"spawns": [
 		{
 			"facing": 270,
+			"kit": {
+				"ammo": "9x19_fmj",
+				"frame": "g19",
+				"magazine": "g19_mag_15",
+				"rounds": 15
+			},
 			"profile": "guard_sim",
 			"rel": [
 				2,
@@ -3292,6 +3298,12 @@
 		},
 		{
 			"facing": 90,
+			"kit": {
+				"ammo": "9x19_fmj",
+				"frame": "g19",
+				"magazine": "g19_mag_15",
+				"rounds": 15
+			},
 			"profile": "guard_sim",
 			"rel": [
 				1,
@@ -3303,6 +3315,12 @@
 		},
 		{
 			"facing": 90,
+			"kit": {
+				"ammo": "9x19_fmj",
+				"frame": "g19",
+				"magazine": "g19_mag_15",
+				"rounds": 15
+			},
 			"profile": "guard_sim",
 			"rel": [
 				1,
@@ -3314,6 +3332,12 @@
 		},
 		{
 			"facing": 270,
+			"kit": {
+				"ammo": "9x19_fmj",
+				"frame": "g19",
+				"magazine": "g19_mag_15",
+				"rounds": 15
+			},
 			"profile": "guard_sim",
 			"rel": [
 				3,

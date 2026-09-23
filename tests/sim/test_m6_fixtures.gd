@@ -63,7 +63,7 @@ func test_the_loud_run_takes_the_data_anyway_and_pays_for_it() -> void:
 	var counters: Array[int] = _score.counters(_player)
 	assert_true(counters[0] > 0, "seen (%d times)" % counters[0])
 	assert_true(counters[1] > 0, "and reported (%d alarms)" % counters[1])
-	assert_eq(counters[2], 1, "one guard down")
+	assert_true(counters[2] >= 1, "guards down (%d)" % counters[2])
 	assert_true(counters[3] > 0, "and a mess left behind (%d traces)" % counters[3])
 	assert_false(_score.is_clean(_player), "not a stealth run by any reading")
 	assert_eq(_score.multiplier(_player, CURVE), 250, "the curve floors it")

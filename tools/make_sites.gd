@@ -146,10 +146,10 @@ func _cold_storage() -> void:
 	_place("roof_hatch", Vector3i(4, 1, -5), "ny")
 	_place("stair_flight", Vector3i(4, 1, -5), "nz")
 	# --- the guards (design doc §15.3): a lobby post, two upstairs, one roaming
-	_spawn("guard_sim", Vector3i(2, 1, 2), 270, 2, "")
-	_spawn("guard_sim", Vector3i(1, 1, 7), 90, 2, "cs_hall_round")
-	_spawn("guard_sim", Vector3i(1, 2, 2), 90, 2, "cs_upper_patrol")
-	_spawn("guard_sim", Vector3i(3, 2, 6), 270, 2, "cs_upper_patrol_reverse")
+	_armed_spawn("guard_sim", Vector3i(2, 1, 2), 270, 2, "")
+	_armed_spawn("guard_sim", Vector3i(1, 1, 7), 90, 2, "cs_hall_round")
+	_armed_spawn("guard_sim", Vector3i(1, 2, 2), 90, 2, "cs_upper_patrol")
+	_armed_spawn("guard_sim", Vector3i(3, 2, 6), 270, 2, "cs_upper_patrol_reverse")
 	# the server the three routes converge on, in the back room
 	_terminal("cs_server", Vector3i(2, 1, 10))
 	_write("cold_storage", "Cold Storage", Vector3i(40, 0, 40), ["cold_storage_lot"],
@@ -174,6 +174,13 @@ func _terminal(terminal: String, rel: Vector3i) -> void:
 
 func _spawn(profile: String, rel: Vector3i, facing: int, squad: int, route: String) -> void:
 	_spawns.append({"profile": profile, "rel": [rel.x, rel.y, rel.z], "facing": facing, "squad": squad, "route": route})
+
+
+## A guard with something in its hands. The M4 building's guards stay unarmed: its
+## client arms them itself and its fixtures were recorded that way.
+func _armed_spawn(profile: String, rel: Vector3i, facing: int, squad: int, route: String) -> void:
+	_spawns.append({"profile": profile, "rel": [rel.x, rel.y, rel.z], "facing": facing, "squad": squad, "route": route,
+		"kit": {"frame": "g19", "magazine": "g19_mag_15", "ammo": "9x19_fmj", "rounds": 15}})
 
 
 func _write(id: String, title: String, base: Vector3i, parcels: Array, description: String) -> void:

@@ -15,6 +15,8 @@ const STEP: Vector3i = Vector3i(4, 1, -5)
 ## Where the player turns up: `actor.spawn` places on the x axis at z 0, and the site
 ## is 36 m north of it, so every run begins with the walk in.
 const SPAWN_RANGE_M: int = 44
+## How long a fight waits after the last shooter goes quiet before moving on.
+const QUIET_TICKS: int = 120
 ## The middle of content/parcel/fixers_office.json.
 const FIXER: Vector3i = Vector3i(6000, 0, 30000)
 
@@ -118,12 +120,16 @@ func _loud() -> void:
 	# no token: the door will not open, so the wall beside it does
 	var panel: int = _piece_at(Vector3i(1, 1, 0), "nz")
 	_command(&"build.remove", {"actor": _player, "piece_id": panel})
+	# stay out in the street and fight through the hole: four armed guards in an open
+	# lobby is a losing hand, and a breach is a door only one of them fits through
 	_walk_to(Vector3i(1, 1, -1))
+	_fight(1200)
 	_walk_to(Vector3i(1, 1, 1))
-	_fight(400)
+	_fight(1200)
 	_walk_to(Vector3i(2, 1, 2))
-	_fight(400)
+	_fight(1200)
 	_walk_to(Vector3i(2, 1, 7))
+	_fight(1200)
 	_walk_to(Vector3i(2, 1, 8))
 	_walk_to(Vector3i(2, 1, 9))
 	_walk_to(Vector3i(2, 1, 10))
@@ -146,9 +152,7 @@ func _loud() -> void:
 
 ## Killed mid-hack: the corpse holds the kit, the recovery run gets it back.
 func _death() -> void:
-	# the only run where the guards are armed: a site's spawns carry no kit, so lethal
-	# opposition has to be handed out by whoever raises the scene
-	_begin(true, true)
+	_begin(true)
 	_command(&"run.begin", {"actor": _player})
 	_walk_to(Vector3i(4, 1, -2))
 	var grate: int = _piece_at(Vector3i(4, 1, -2), "ny")
@@ -215,7 +219,7 @@ func _side() -> void:
 
 ## The operator raises its own building, then the player turns up on the street with a
 ## handset and a daemon coprocessor, owning nothing.
-func _begin(armed: bool, guards_armed: bool = false) -> void:
+func _begin(armed: bool) -> void:
 	_commands = []
 	_tick = 0
 	var db := ContentDb.new()
@@ -243,17 +247,15 @@ func _begin(armed: bool, guards_armed: bool = false) -> void:
 	_command(&"item.spawn", {"kind": "device_frame", "template": "handset", "container": inv, "seed": 1, "count": 1})
 	_command(&"item.spawn", {"kind": "device_module", "template": "daemon_coprocessor", "container": inv, "seed": 2, "count": 1})
 
-	if guards_armed:
-		_arm_the_guards()
 	var handset: int = _find(ItemSystem.inventory_of(_player), ItemSystem.KIND_DEVICE_FRAME)
 	var module: int = _find(ItemSystem.inventory_of(_player), ItemSystem.KIND_DEVICE_MODULE)
 	_command(&"actor.equip_device", {"actor": _player, "device": handset})
 	_command(&"item.attach", {"actor": _player, "weapon": handset, "part": module})
 	if armed:
 		_arm(_player, 300)
-		# two spares, because four guards is more than one magazine of work
-		_command(&"item.spawn", {"kind": "weapon_part", "template": "g19_mag_15", "container": inv, "seed": 400, "count": 2})
-		_command(&"item.spawn", {"kind": "ammo", "template": "9x19_fmj", "container": inv, "seed": 410, "count": 30})
+		# four spares, because four armed guards is more than one magazine of work
+		_command(&"item.spawn", {"kind": "weapon_part", "template": "g19_mag_15", "container": inv, "seed": 400, "count": 4})
+		_command(&"item.spawn", {"kind": "ammo", "template": "9x19_fmj", "container": inv, "seed": 410, "count": 60})
 		_load_every_loose_magazine()
 		_wait(95)
 	# in off the street and up the step onto the slab. The landing is one cell wide, so
@@ -377,11 +379,12 @@ func _climb(dy: int) -> void:
 
 
 ## Shoots back for a budget of ticks: fires at whoever has seen the player, reloads
-## from a spare magazine when the weapon runs dry, and stops once nobody living is
-## looking. A loud run is a fight, not a single lucky shot.
+## from a spare magazine when the weapon runs dry, and waits a few beats after the last
+## of them goes quiet in case another is still on its way. A loud run is a fight.
 func _fight(budget: int) -> void:
 	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
 	var pistol: int = _actors.wielded(_player)
+	var quiet: int = 0
 	for i: int in budget:
 		if not _actors.is_alive(_player):
 			return
@@ -393,7 +396,12 @@ func _fight(budget: int) -> void:
 				target = id
 				break
 		if target == 0:
-			return
+			quiet += 1
+			if quiet > QUIET_TICKS:
+				return
+			_wait(1)
+			continue
+		quiet = 0
 		if _items.chambered(pistol) == EntityIds.NONE:
 			var spare: int = _full_magazine()
 			if spare == EntityIds.NONE:
@@ -431,20 +439,6 @@ func _walk_to_the_fixer() -> void:
 
 
 # ---------------------------------------------------------------- writing
-
-## Gives every guard the site put up a pistol and a full magazine. A site's spawns
-## carry no kit of their own, so a raised building is guarded by people with nothing in
-## their hands; the M4 client arms them the same way. Recorded for the gate: a guard's
-## weapon belongs in the site file, and that is an M7 content change.
-func _arm_the_guards() -> void:
-	var seed: int = 500
-	for id: int in _actors.actor_ids():
-		if id == _player or id == _operator or not _actors.is_alive(id):
-			continue
-		_arm(id, seed)
-		seed += 100
-	_wait(95)
-
 
 ## Fills every loose magazine the player has from their loose rounds.
 func _load_every_loose_magazine() -> void:

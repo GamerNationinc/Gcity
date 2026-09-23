@@ -141,6 +141,10 @@ func test_traces_are_what_is_left_behind_and_a_wipe_takes_one_away() -> void:
 	var sites: SiteSystem = SimAssembly.sites_of(_sim)
 	_raise_cold_storage()
 	assert_true(sites.raise_site(_player, &"cold_storage"), "the site stands")
+	# the site arms its own guards now, and this test stands still at a terminal for
+	# three hundred ticks; being shot while doing it proves something other than scoring
+	for guard: int in sites.agents_of(&"cold_storage"):
+		_actors.wield(guard, EntityIds.NONE)
 	var terminal: int = sites.terminals_of(&"cold_storage")[0]
 	assert_true(_do(&"run.begin", {"actor": _player}), "begin")
 	assert_eq(_score.traces_left(_player), 0, "nothing left behind yet")

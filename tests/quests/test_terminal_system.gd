@@ -43,7 +43,17 @@ func _setup(with_coprocessor: bool = true) -> void:
 	if with_coprocessor:
 		var module: int = _items.spawn(&"device_module", &"daemon_coprocessor", inv, 2)
 		_do(&"item.attach", {"actor": _player, "weapon": handset, "part": module})
+	_disarm_the_guards()
 	_actors.set_position(_player, _terminals.position_of(_terminal))
+
+
+## Takes the guards' weapons off them. These tests stand the player at a terminal for
+## three hundred ticks to prove the hack runs in real time; since the site started
+## arming its own guards that is long enough to be shot dead, which proves something
+## else. The mission fixtures are where being shot at belongs.
+func _disarm_the_guards() -> void:
+	for guard: int in _sites.agents_of(&"cold_storage"):
+		_actors.wield(guard, EntityIds.NONE)
 
 
 func _on_hacked(payload: Dictionary) -> void:

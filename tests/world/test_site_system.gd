@@ -226,3 +226,30 @@ func test_the_site_can_be_walked_into_from_the_street() -> void:
 			break
 	assert_true(reached, "standing on the grate, having walked the whole way")
 	assert_eq(SimAssembly.land_of(_sim).parcel_at(_actors.position_of(_player)), &"", "still out in the public street")
+
+
+## M6 spec claim 4: a guard with nothing in its hands cannot defend anything, so what
+## the guard is holding is part of the site rather than something whoever raises it has
+## to remember. Cold Storage's four guards come armed; the M4 building's do not,
+## because its client arms them itself.
+func test_a_site_arms_the_guards_it_raises() -> void:
+	_setup()
+	_raise(&"cold_storage")
+	var items: ItemSystem = SimAssembly.items_of(_sim)
+	var armed: int = 0
+	for guard: int in _sites.agents_of(&"cold_storage"):
+		var weapon: int = _actors.wielded(guard)
+		if weapon == EntityIds.NONE:
+			continue
+		armed += 1
+		assert_eq(items.item_template(weapon), &"g19", "guard %d holds the kit's frame" % guard)
+		var magazine: int = items.magazine_of(weapon)
+		assert_true(magazine > 0, "with a magazine in it")
+		assert_eq(items.rounds_in(magazine).size(), 14, "fourteen in the magazine")
+		assert_true(items.chambered(weapon) > 0, "and one chambered")
+		assert_eq(items.container_of(weapon), ItemSystem.inventory_of(guard), "carried, not lying about")
+	assert_eq(armed, 4, "all four guards are armed")
+	_setup()
+	_raise(&"m4_test_building")
+	for guard: int in _sites.agents_of(&"m4_test_building"):
+		assert_eq(_actors.wielded(guard), EntityIds.NONE, "the M4 guards are still empty-handed")

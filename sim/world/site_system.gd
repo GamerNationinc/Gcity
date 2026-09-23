@@ -17,17 +17,19 @@ var _perception: PerceptionSystem
 var _actors: ActorSystem
 var _events: EventBus
 var _terminals: TerminalSystem
+var _items: ItemSystem
 ## site id -> {"pieces": Array[int], "agents": Array[int], "terminals": Array[int]}
 var _raised: Dictionary = {}
 
 
-func _init(content: ContentDb, build: BuildSystem, perception: PerceptionSystem, actors: ActorSystem, events: EventBus, terminals: TerminalSystem) -> void:
+func _init(content: ContentDb, build: BuildSystem, perception: PerceptionSystem, actors: ActorSystem, events: EventBus, terminals: TerminalSystem, items: ItemSystem) -> void:
 	_content = content
 	_build = build
 	_perception = perception
 	_actors = actors
 	_events = events
 	_terminals = terminals
+	_items = items
 
 
 func system_id() -> StringName:
@@ -179,6 +181,7 @@ func raise_site(actor: int, site: StringName) -> bool:
 		var agent: int = _perception.spawn(StringName(profile_s), base + rel, facing, squad, route)
 		if agent != EntityIds.NONE:
 			agents.append(agent)
+			_hand_out_kit(agent, spawn)
 	var terminals: Array[int] = []
 	var terminal_entries: Array = t["terminals"]
 	for e: Variant in terminal_entries:
@@ -192,6 +195,25 @@ func raise_site(actor: int, site: StringName) -> bool:
 	_raised[site] = {"pieces": placed, "agents": agents, "terminals": terminals}
 	_events.emit(EVENT_RAISED, {"site": site, "pieces": placed.size(), "agents": agents.size(), "terminals": terminals.size()})
 	return true
+
+
+## Gives a spawn its kit, if it has one. A guard with nothing in its hands cannot
+## defend anything, so what the guard is holding is part of the site rather than
+## something whoever raised it has to remember (M6 spec claim 4).
+func _hand_out_kit(agent: int, spawn: Dictionary) -> void:
+	if not spawn.has("kit"):
+		return
+	var kit: Dictionary = spawn["kit"]
+	var frame_s: String = kit["frame"]
+	var magazine_s: String = kit["magazine"]
+	var ammo_s: String = kit["ammo"]
+	var rounds: int = kit["rounds"]
+	var weapon: int = _items.arm(agent, StringName(frame_s), StringName(magazine_s), StringName(ammo_s), rounds, agent * 1000)
+	if weapon == EntityIds.NONE:
+		push_error("SiteSystem: could not arm agent %d with %s" % [agent, frame_s])
+		return
+	if not _actors.wield(agent, weapon):
+		push_error("SiteSystem: agent %d would not hold %s" % [agent, frame_s])
 
 
 ## {"actor": int, "site": string}

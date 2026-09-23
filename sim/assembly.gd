@@ -78,7 +78,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var terminals: TerminalSystem = TerminalSystem.new(content, actors, items, ids, events)
 	if terminals.attach(sim) != OK:
 		return null
-	var sites: SiteSystem = SiteSystem.new(content, build, perception, actors, events, terminals)
+	var sites: SiteSystem = SiteSystem.new(content, build, perception, actors, events, terminals, items)
 	if sites.attach(sim) != OK:
 		return null
 	var score: RunScoreSystem = RunScoreSystem.new(content, actors, perception, terminals, build, events)

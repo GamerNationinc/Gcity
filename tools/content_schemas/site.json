@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "An authored site (M6 spec claim 3): the build pieces it stands on, the agents posted in it and the patrol routes they walk, all relative to a base cell. SiteSystem raises it with one command; nothing here is generated (procgen is M7).",
+	"description": "An authored site (M6 spec claim 3): the build pieces it stands on, the agents posted in it and the patrol routes they walk, all relative to a base cell. SiteSystem raises it with one command; nothing here is generated (procgen is M7). A spawn may carry a `kit`, which is what the guard is holding: without one a raised building is guarded by people with nothing in their hands (M6 spec claim 4).",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -102,6 +102,35 @@
 					"route": {
 						"type": "string",
 						"pattern": "([a-z0-9][a-z0-9_]*)?"
+					},
+					"kit": {
+						"type": "object",
+						"properties": {
+							"frame": {
+								"type": "string",
+								"ref": "weapon_frame"
+							},
+							"magazine": {
+								"type": "string",
+								"ref": "weapon_part"
+							},
+							"ammo": {
+								"type": "string",
+								"ref": "ammo"
+							},
+							"rounds": {
+								"type": "int",
+								"min": 0,
+								"max": 200
+							}
+						},
+						"required": [
+							"frame",
+							"magazine",
+							"ammo",
+							"rounds"
+						],
+						"additional_properties": false
 					}
 				},
 				"required": [

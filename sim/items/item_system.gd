@@ -496,9 +496,18 @@ func _on_attach(sim: SimRoot, payload: Dictionary) -> bool:
 		return false
 	if not _fits(part, weapon) or socket_part(weapon, socket) != EntityIds.NONE:
 		return false
+	_seat_part(weapon, part, socket)
+	return true
+
+
+## Seats a validated part in a socket and hangs its modifiers on the weapon. Split out
+## of the attach command so arming an actor from a kit takes the same path rather than
+## a second, slightly different one.
+func _seat_part(weapon: int, part: int, socket: StringName) -> void:
 	_move(part, socket_container(weapon, socket))
 	_set_socket(weapon, socket, part)
 	var handles: Array[int] = []
+	var part_t: Dictionary = _template_of(part)
 	var mods: Array = part_t["modifiers"]
 	for m: Variant in mods:
 		var md: Dictionary = m
@@ -510,7 +519,6 @@ func _on_attach(sim: SimRoot, payload: Dictionary) -> bool:
 		assert(handle >= 1, "content was validated; modifier must be accepted")
 		handles.append(handle)
 	_part_handles[part] = handles
-	return true
 
 
 ## {"actor": int, "weapon": int, "socket": name}: remove the part in a socket to the inventory.
@@ -824,6 +832,38 @@ func _fits(part: int, weapon: int) -> bool:
 		if _as_name(f) == frame:
 			return true
 	return false
+
+
+## Arms an actor from a kit: a frame, a magazine seated in it, and `rounds` rounds in
+## that magazine with one in the chamber. Returns the frame, or NONE if the kit names
+## anything that does not exist or does not fit.
+##
+## This exists because ids are allocated as commands execute, so nothing that has to
+## arm somebody in one call — a site raising its own guards — can do it by submitting
+## `item.spawn` and then naming what it just made.
+func arm(actor: int, frame_template: StringName, magazine_template: StringName, ammo_template: StringName, rounds: int, seed: int) -> int:
+	var inv: StringName = inventory_of(actor)
+	var frame: int = spawn(KIND_FRAME, frame_template, inv, seed)
+	if frame == EntityIds.NONE:
+		return EntityIds.NONE
+	var magazine: int = spawn(KIND_PART, magazine_template, inv, seed + 1)
+	if magazine == EntityIds.NONE:
+		return EntityIds.NONE
+	var magazine_t: Dictionary = _template_of(magazine)
+	var socket: StringName = _as_name(magazine_t["socket"])
+	if item_kind(magazine) != part_kind_for(item_kind(frame)) or not _fits(magazine, frame):
+		push_error("ItemSystem.arm: %s does not fit %s" % [magazine_template, frame_template])
+		return EntityIds.NONE
+	_seat_part(frame, magazine, socket)
+	var capacity: int = capacity_of(magazine_container(magazine))
+	var wanted: int = rounds if capacity < 0 else mini(rounds, capacity)
+	for i: int in wanted:
+		var round: int = spawn(KIND_AMMO, ammo_template, inv, seed + 10 + i)
+		if round == EntityIds.NONE:
+			return EntityIds.NONE
+		_move(round, magazine_container(magazine))
+	chamber_next(frame)
+	return frame
 
 
 ## Moves a named set of items into one open container, keeping their order, and returns

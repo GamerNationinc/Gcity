@@ -45,6 +45,14 @@ re-record the fixture hashes.
   the grate is in the street, and what the tunnel buys is a way past the lobby rather
   than a way to commit a second trespass.
 
+### Arming the guards
+
+A spawn may carry a `kit`: `{frame, magazine, ammo, rounds}`. Without one the guard
+stands there with nothing in its hands, which is a building that cannot defend itself.
+`SiteSystem` seats the magazine and chambers a round as the site goes up, through
+`ItemSystem.arm`, because entity ids are handed out as commands execute and nothing
+that arms somebody in one call can name what it has just spawned.
+
 ## A new patrol route: one file
 
 `content/patrol_route/<id>.json`: absolute world cells, in order, looped. A route's
