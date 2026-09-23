@@ -210,3 +210,68 @@ func test_property_worlds_differ_in_shape_and_not_only_in_position() -> void:
 			break
 	assert_true(sizes.size() >= 8, "worlds vary in how many places they hold (%d sizes)" % sizes.size())
 	assert_true(edges.size() >= 8, "and in how many roads (%d)" % edges.size())
+
+
+## M7 spec claim 3: connectivity is true by construction. Every node is joined to one
+## already joined as it is placed, so a disconnected world is not a thing that needs
+## repairing — it is a bug in how the graph is built.
+func test_everywhere_can_be_reached_from_the_gate() -> void:
+	_setup()
+	assert_true(_routes.everywhere_is_reachable(), "the whole world is one piece")
+	var from_gate: Array[int] = _routes.reachable_from(1)
+	assert_eq(from_gate, _routes.node_ids(), "and all of it is reachable from the gate")
+	for node: int in _routes.node_ids():
+		assert_eq(_routes.reachable_from(node).size(), _routes.node_count(), "and from %d" % node)
+	assert_eq(_routes.reachable_from(99999), [] as Array[int], "nowhere is reachable from nowhere")
+	assert_true(_routes.narrowest_edge_mm() >= RouteGraph.MIN_WIDTH_MM, "and every road can be walked")
+
+
+## The property the G7 bar names. A seed that fails is a named regression case, not a
+## retry: `sim/world/route_graph.gd` would be wrong, not unlucky.
+func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
+	var graph: RouteGraph = RouteGraph.new()
+	var broken: int = 0
+	var narrow: int = 0
+	var malformed: int = 0
+	var widths: Dictionary = {}
+	for i: int in PROPERTY_CASES:
+		var world: int = SEED_PROPERTY + i
+		graph.generate(world)
+		if not graph.everywhere_is_reachable():
+			broken += 1
+			if broken <= 3:
+				fail("seed %d built a world in pieces" % world)
+		var narrowest: int = graph.narrowest_edge_mm()
+		widths[narrowest / 1000] = true
+		if narrowest < RouteGraph.MIN_WIDTH_MM:
+			narrow += 1
+			if narrow <= 3:
+				fail("seed %d built a road %d mm wide" % [world, narrowest])
+		# no corridor joins a place to itself, and no two places are joined twice
+		var pairs: Dictionary = {}
+		for id: int in graph.edge_ids():
+			var rec: Dictionary = graph.edge(id)
+			var a: int = rec["a"]
+			var b: int = rec["b"]
+			var key: String = "%d-%d" % [a, b]
+			if a == b or pairs.has(key) or a > b:
+				malformed += 1
+				if malformed <= 3:
+					fail("seed %d: edge %d joins %d and %d" % [world, id, a, b])
+			pairs[key] = true
+	assert_eq(broken, 0, "every one of %d worlds is one piece" % PROPERTY_CASES)
+	assert_eq(narrow, 0, "and has no road too narrow to walk")
+	assert_eq(malformed, 0, "and no road to nowhere or road built twice")
+	assert_true(widths.size() > 1, "the narrowest road is not the same in every world")
+
+
+## A tree would satisfy claim 3 and still be a poor world: one way to anywhere means a
+## single blocked corridor cuts the map in half. The loop pass is what prevents that.
+func test_a_world_is_not_a_tree() -> void:
+	var graph: RouteGraph = RouteGraph.new()
+	var trees: int = 0
+	for i: int in 200:
+		graph.generate(SEED_PROPERTY + i)
+		if graph.edge_count() <= graph.node_count() - 1:
+			trees += 1
+	assert_true(trees < 40, "most worlds have more than one way to somewhere (%d of 200 were trees)" % trees)

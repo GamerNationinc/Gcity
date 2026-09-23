@@ -188,6 +188,54 @@ func _add_edge(a: int, b: int, rng: RandomNumberGenerator) -> int:
 	return id
 
 
+## Every node reachable from this one, lowest first. A breadth-first walk of the graph,
+## which is cheap because a world is tens of nodes and the world is not loaded.
+func reachable_from(start: int) -> Array[int]:
+	if not has_node(start):
+		return [] as Array[int]
+	var seen: Dictionary = {start: true}
+	var queue: Array[int] = [start]
+	var at: int = 0
+	while at < queue.size():
+		var node: int = queue[at]
+		at += 1
+		for other: int in neighbours(node):
+			if not seen.has(other):
+				seen[other] = true
+				queue.append(other)
+	var out: Array[int] = []
+	for key: Variant in seen:
+		var id: int = key
+		out.append(id)
+	out.sort()
+	return out
+
+
+## True when every place can be reached from every other (M7 spec claim 3). Named the
+## long way round because `is_connected` is Object's, and quietly overriding the signal
+## API is a trap for whoever reads this next.
+##
+## This is not how connectivity is achieved — it is achieved by joining each node to
+## one already joined as it is placed — it is how the claim is checked. A generator
+## that stopped being connected would be a bug in construction, not something to repair
+## afterwards, which is why nothing calls this to fix anything.
+func everywhere_is_reachable() -> bool:
+	if _nodes.is_empty():
+		return true
+	return reachable_from(node_ids()[0]).size() == _nodes.size()
+
+
+## The narrowest corridor in the world, or 0 if there are none.
+func narrowest_edge_mm() -> int:
+	var narrowest: int = 0
+	for id: int in edge_ids():
+		var rec: Dictionary = _edges[id]
+		var width: int = rec["width"]
+		if narrowest == 0 or width < narrowest:
+			narrowest = width
+	return narrowest
+
+
 ## A SHA-256 over the whole graph: every node, every corridor, in a fixed order.
 ##
 ## Not a hash of the seed. A seed is what was asked for; this is what was built, so it
