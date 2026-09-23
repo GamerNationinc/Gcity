@@ -61,8 +61,13 @@ func tick(_sim: SimRoot) -> void:
 ## The world is a function of its seed, so the seed is the state (design doc §5.6: a
 ## save is a seed plus an overlay). Restoring regenerates rather than storing a graph
 ## that could disagree with the seed it claims to come from.
+##
+## The hash rides along, and restore checks it. Without it a save carries no evidence
+## of *which* generator made it, so changing generation would silently hand an old save
+## a different world under the same name — and no fixture would notice, because the
+## seed alone would not have moved.
 func snapshot() -> Dictionary:
-	return {"seed": _seed}
+	return {"seed": _seed, "world": world_hash()}
 
 
 func attach(sim: SimRoot) -> Error:
@@ -181,6 +186,35 @@ func _add_edge(a: int, b: int, rng: RandomNumberGenerator) -> int:
 	var at_hi: Array = _at_node[hi]
 	at_hi.append(id)
 	return id
+
+
+## A SHA-256 over the whole graph: every node, every corridor, in a fixed order.
+##
+## Not a hash of the seed. A seed is what was asked for; this is what was built, so it
+## moves when generation changes and two machines can compare worlds without shipping
+## one to the other (M7 spec claim 2).
+func world_hash() -> String:
+	return StateHash.of(canonical())
+
+
+## The graph as plain data, in the one order everyone agrees on.
+func canonical() -> Dictionary:
+	var nodes: Array = []
+	for node: int in node_ids():
+		var rec: Dictionary = _nodes[node]
+		var kind: StringName = rec["kind"]
+		var x: int = rec["x"]
+		var z: int = rec["z"]
+		nodes.append([node, String(kind), x, z])
+	var edges: Array = []
+	for id: int in edge_ids():
+		var rec: Dictionary = _edges[id]
+		var a: int = rec["a"]
+		var b: int = rec["b"]
+		var width: int = rec["width"]
+		var length: int = rec["length"]
+		edges.append([id, a, b, width, length])
+	return {"nodes": nodes, "edges": edges}
 
 
 # ---------------------------------------------------------------- queries
@@ -317,9 +351,19 @@ static func _isqrt(value: int) -> int:
 # ---------------------------------------------------------------- restore
 
 func restore(state: Dictionary) -> Error:
-	if state.size() != 1 or typeof(state.get("seed")) != TYPE_INT:
-		push_error("RouteGraph.restore: snapshot must be {\"seed\": int}")
+	if state.size() != 2 or typeof(state.get("seed")) != TYPE_INT or typeof(state.get("world")) != TYPE_STRING:
+		push_error("RouteGraph.restore: snapshot must be {\"seed\": int, \"world\": String}")
 		return ERR_INVALID_DATA
 	var world: int = state["seed"]
+	var claimed: String = state["world"]
+	var was_seed: int = _seed
 	generate(world)
+	if world_hash() != claimed:
+		# the seed is the same and the world is not: this save was written by a
+		# different generator, and loading it would quietly put the player somewhere
+		# else under the same name
+		push_error("RouteGraph.restore: seed %d now builds a different world (%s, save says %s)" % [
+			world, world_hash().left(12), claimed.left(12)])
+		generate(was_seed)
+		return ERR_INVALID_DATA
 	return OK
