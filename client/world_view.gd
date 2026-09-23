@@ -26,6 +26,16 @@ const READY: int = 6
 const MISSION_SPAWN_M: int = 44
 ## The street grate, relative to Cold Storage's base.
 const GRATE_REL: Vector3i = Vector3i(4, 1, -2)
+## The four shapes a build piece is drawn as: a cell box and a wall on each axis.
+## How often the HUD's state hash is recomputed. Hashing the world is not free.
+const DIGEST_EVERY_TICKS: int = 40
+const PIECE_SHAPES: Array[String] = ["cell", "x", "y", "z"]
+const PIECE_SIZES: Dictionary[String, Vector3] = {
+	"cell": Vector3(0.98, 0.98, 0.98),
+	"x": Vector3(0.1, 0.98, 0.98),
+	"y": Vector3(0.98, 0.1, 0.98),
+	"z": Vector3(0.98, 0.98, 0.1),
+}
 const KIT_ITEMS: int = 17
 const STANCE_COLOURS: Dictionary = {
 	&"hold": Color(0.55, 0.65, 0.5), &"advance": Color(0.95, 0.5, 0.15), &"flank": Color(0.7, 0.35, 0.85),
@@ -64,7 +74,12 @@ const RESTART_HOLD_S: float = 1.5
 var _piece_templates: Array[StringName] = []
 var _piece_index: int = 0
 var _log: Array[String] = []
-var _piece_nodes: Dictionary = {}
+## shape -> MultiMeshInstance3D, and the checksum of the piece ids last drawn.
+var _piece_holders: Dictionary = {}
+var _piece_signature: int = -1
+## The HUD's state hash, and the tick it was taken on.
+var _digest: String = ""
+var _digest_tick: int = -1000
 var _token_nodes: Dictionary = {}
 var _actor_nodes: Dictionary = {}
 var _bar_nodes: Dictionary = {}
@@ -288,20 +303,7 @@ func _capsule(colour: Color) -> MeshInstance3D:
 ## Rebuilds piece, actor and token meshes to match the sim. Cheap at M3 sizes; a
 ## diff-based refresh is a G4 item if the profiler says so.
 func _sync_scene(sim: SimRoot) -> void:
-	var build: BuildSystem = SimAssembly.build_of(sim)
-	var present: Dictionary = {}
-	for id: int in build.piece_ids():
-		present[id] = true
-		if _piece_nodes.has(id):
-			continue
-		var node: MeshInstance3D = _piece_mesh(build, id)
-		_piece_nodes[id] = node
-		add_child(node)
-	for id: int in _piece_nodes.keys():
-		if not present.has(id):
-			var node: MeshInstance3D = _piece_nodes[id]
-			node.queue_free()
-			_piece_nodes.erase(id)
+	_sync_pieces(SimAssembly.build_of(sim))
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
 	var perception: PerceptionSystem = SimAssembly.perception_of(sim)
 	var stances: StanceSystem = SimAssembly.stances_of(sim)
@@ -386,35 +388,92 @@ func _sync_guard_overlay(guard: int, alive: bool, p: Vector3i, perception: Perce
 		marker.position = Vector3(float(last.x) / M, 0.15, float(last.z) / M)
 
 
-func _piece_mesh(build: BuildSystem, id: int) -> MeshInstance3D:
-	var rec: Dictionary = build.piece(id)
-	var face: String = rec["face"]
-	var kind: StringName = build.kind_of(id)
-	var colour: Color = Color(0.6, 0.6, 0.62)
+## Draws every standing piece as a handful of multimeshes rather than one node each.
+##
+## A piece was a MeshInstance3D with its own BoxMesh and its own material, so a site
+## cost one draw call per piece: measured on the Deck, the 93-piece M4 building ran at
+## 68 fps and Cold Storage's 363 pieces at 37, under the 40 fps floor. Pieces come in
+## four shapes — a cell box and a wall on each axis — so four multimeshes with a colour
+## per instance draw the lot, and the rebuild only happens when the build changes.
+func _sync_pieces(build: BuildSystem) -> void:
+	var ids: Array[int] = build.piece_ids()
+	var signature: int = ids.size()
+	for id: int in ids:
+		signature = (signature * 31 + id) & 0x3FFFFFFF
+	if signature == _piece_signature:
+		return
+	_piece_signature = signature
+	var buckets: Dictionary = {}
+	for id: int in ids:
+		var rec: Dictionary = build.piece(id)
+		var face: String = rec["face"]
+		var cell: Vector3i = build.cell_of_piece(id)
+		var shape: String = "cell"
+		var offset: Vector3 = Vector3(0.5, 0.5, 0.5)
+		if not face.is_empty():
+			var axis: String = face.split("|")[1]
+			shape = axis
+			offset = Vector3(1.0, 0.5, 0.5) if axis == "x" else (Vector3(0.5, 1.0, 0.5) if axis == "y" else Vector3(0.5, 0.5, 1.0))
+		if not buckets.has(shape):
+			buckets[shape] = []
+		var list: Array = buckets[shape]
+		list.append([Vector3(cell) + offset, _piece_colour(build.kind_of(id))])
+	for shape: String in PIECE_SHAPES:
+		var holder: MultiMeshInstance3D = _piece_holder(shape)
+		var list: Array = buckets.get(shape, [])
+		var multi: MultiMesh = holder.multimesh
+		multi.instance_count = list.size()
+		for i: int in list.size():
+			var entry: Array = list[i]
+			var where: Vector3 = entry[0]
+			var colour: Color = entry[1]
+			multi.set_instance_transform(i, Transform3D(Basis(), where))
+			multi.set_instance_color(i, colour)
+
+
+## The multimesh for one piece shape, made on first use.
+func _piece_holder(shape: String) -> MultiMeshInstance3D:
+	if _piece_holders.has(shape):
+		return _piece_holders[shape]
+	var mesh := BoxMesh.new()
+	mesh.size = PIECE_SIZES[shape]
+	var multi := MultiMesh.new()
+	multi.transform_format = MultiMesh.TRANSFORM_3D
+	multi.use_colors = true
+	multi.mesh = mesh
+	var holder := MultiMeshInstance3D.new()
+	holder.multimesh = multi
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	holder.material_override = material
+	holder.name = "pieces_%s" % shape
+	add_child(holder)
+	_piece_holders[shape] = holder
+	return holder
+
+
+## Drops the batches so the next sync rebuilds them: a fresh sim has fresh pieces and
+## the old checksum would say nothing had changed.
+func _forget_pieces() -> void:
+	for holder: MultiMeshInstance3D in _piece_holders.values():
+		holder.queue_free()
+	_piece_holders.clear()
+	_piece_signature = -1
+
+
+static func _piece_colour(kind: StringName) -> Color:
 	match kind:
 		&"door":
-			colour = Color(0.75, 0.55, 0.3)
+			return Color(0.75, 0.55, 0.3)
 		&"window":
-			colour = Color(0.55, 0.75, 0.9)
+			return Color(0.55, 0.75, 0.9)
 		&"hatch":
-			colour = Color(0.7, 0.6, 0.4)
+			return Color(0.7, 0.6, 0.4)
 		&"crate":
-			colour = Color(0.85, 0.7, 0.2)
+			return Color(0.85, 0.7, 0.2)
 		&"foundation":
-			colour = Color(0.45, 0.45, 0.47)
-	var cell: Vector3i = build.cell_of_piece(id)
-	var node: MeshInstance3D
-	if face.is_empty():
-		node = _box(Vector3(0.98, 0.98, 0.98), colour)
-		node.position = Vector3(float(cell.x) + 0.5, float(cell.y) + 0.5, float(cell.z) + 0.5)
-	else:
-		var axis: String = face.split("|")[1]
-		var size: Vector3 = Vector3(0.1, 0.98, 0.98) if axis == "x" else (Vector3(0.98, 0.1, 0.98) if axis == "y" else Vector3(0.98, 0.98, 0.1))
-		node = _box(size, colour)
-		var offset: Vector3 = Vector3(1.0, 0.5, 0.5) if axis == "x" else (Vector3(0.5, 1.0, 0.5) if axis == "y" else Vector3(0.5, 0.5, 1.0))
-		node.position = Vector3(cell) + offset
-	node.name = "piece_%d" % id
-	return node
+			return Color(0.45, 0.45, 0.47)
+	return Color(0.6, 0.6, 0.62)
 
 
 # ---------------------------------------------------------------- loop
@@ -1022,6 +1081,20 @@ func _submit(sim: SimRoot, kind: StringName, payload: Dictionary) -> void:
 		_note("submit %s failed: %s" % [kind, error_string(err)])
 
 
+## The state hash for the HUD, at most `DIGEST_EVERY_TICKS` apart.
+##
+## `state_hash()` snapshots the whole world and runs SHA-256 over it, so drawing it
+## every frame made the HUD cost grow with the size of the site: measured on the Deck,
+## Cold Storage's 363 pieces ran at 37 fps against the 93-piece M4 building's 68. It is
+## a debugging read-out, and a debugging read-out does not get to set the frame rate.
+func _state_digest(sim: SimRoot) -> String:
+	var tick: int = sim.get_tick()
+	if tick - _digest_tick >= DIGEST_EVERY_TICKS or _digest.is_empty():
+		_digest_tick = tick
+		_digest = sim.state_hash().left(12)
+	return _digest
+
+
 func _note(text: String) -> void:
 	if _mission:
 		print(text)  # the mission demo is also run headless for the gate's evidence
@@ -1033,10 +1106,11 @@ func _note(text: String) -> void:
 ## A fresh sim and a fresh scene, for the Deck: no relaunch after a death.
 func _restart() -> void:
 	_host.restart()
-	for table: Dictionary in [_piece_nodes, _token_nodes, _actor_nodes, _bar_nodes, _line_nodes, _marker_nodes]:
+	for table: Dictionary in [_token_nodes, _actor_nodes, _bar_nodes, _line_nodes, _marker_nodes]:
 		for node: Node in table.values():
 			node.queue_free()
 		table.clear()
+	_forget_pieces()
 	if _device_raised:
 		_device_raised = false
 		_device_screen.visible = false
@@ -1082,9 +1156,7 @@ func _load_game() -> void:
 		_note("load refused by the sim")
 		return
 	_host.adopt(sim)
-	for node: MeshInstance3D in _piece_nodes.values():
-		node.queue_free()
-	_piece_nodes.clear()
+	_forget_pieces()
 	_guards = []
 	for id: int in SimAssembly.perception_of(sim).agent_ids():
 		_guards.append(id)
@@ -1096,7 +1168,7 @@ func _load_game() -> void:
 func _render(sim: SimRoot) -> void:
 	var lines: PackedStringArray = PackedStringArray()
 	var title: String = "M6 mission" if _mission else "M5 world"
-	lines.append("Gcity %s   tick %d   state %s%s" % [title, sim.get_tick(), sim.state_hash().left(12), "   PAUSED" if sim.is_paused() else ""])
+	lines.append("Gcity %s   tick %d   state %s%s" % [title, sim.get_tick(), _state_digest(sim), "   PAUSED" if sim.is_paused() else ""])
 	if _setup_stage < READY:
 		lines.append("setting up (stage %d)..." % _setup_stage)
 		_status.text = "\n".join(lines)

@@ -21,6 +21,8 @@ const CANVAS_RIGHT: float = 800.0
 @onready var _host: LocalHost = $LocalHost
 @onready var _status: Label = $Status
 
+var _digest: String = ""
+var _digest_tick: int = -1000
 var _player: int = 0
 var _setup_stage: int = 0
 var _cursor: Vector3i = Vector3i(2 * M, 0, 4 * M)
@@ -410,7 +412,7 @@ func _module_colour(template: StringName) -> Color:
 func _render(sim: SimRoot) -> void:
 	var lines: PackedStringArray = PackedStringArray()
 	lines.append("Gcity M2 plot   seed %d   tick %d" % [sim.get_seed(), sim.get_tick()])
-	lines.append("state %s" % sim.state_hash().left(16))
+	lines.append("state %s" % _state_digest(sim))
 	lines.append("content %d entries %s" % [_host.content().count(), _host.content().digest().left(12)])
 	lines.append("dispatched %d   rejected %d" % [sim.dispatched_count(), sim.rejected_count()])
 	lines.append("")
@@ -462,3 +464,13 @@ func _render(sim: SimRoot) -> void:
 	for entry: String in _log:
 		lines.append(entry)
 	_status.text = "\n".join(lines)
+
+
+## The state hash for the read-out, at most a second apart. Hashing the whole world
+## every frame made the frame rate fall as the world grew; see client/world_view.gd.
+func _state_digest(sim: SimRoot) -> String:
+	var tick: int = sim.get_tick()
+	if tick - _digest_tick >= 40 or _digest.is_empty():
+		_digest_tick = tick
+		_digest = sim.state_hash().left(16)
+	return _digest

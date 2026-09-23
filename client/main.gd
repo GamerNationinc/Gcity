@@ -20,6 +20,8 @@ const PERK: StringName = &"handgun_focus"
 @onready var _host: LocalHost = $LocalHost
 @onready var _status: Label = $Status
 
+var _digest: String = ""
+var _digest_tick: int = -1000
 var _player: int = 0
 var _dummy: int = 0
 var _pistol: int = 0
@@ -229,7 +231,7 @@ static func _all_of(items: ItemSystem, ids: Array[int], kind: StringName, templa
 
 func _render(sim: SimRoot) -> void:
 	var lines: PackedStringArray = PackedStringArray()
-	lines.append("Gcity M1 range    seed %d   tick %d   state %s" % [sim.get_seed(), sim.get_tick(), sim.state_hash().left(16)])
+	lines.append("Gcity M1 range    seed %d   tick %d   state %s" % [sim.get_seed(), sim.get_tick(), _state_digest(sim)])
 	lines.append("content %d entries %s    dispatched %d   rejected %d" % [
 		_host.content().count(), _host.content().digest().left(12), sim.dispatched_count(), sim.rejected_count()])
 	lines.append("")
@@ -315,3 +317,13 @@ static func _milli(value: int) -> String:
 
 static func _milli2(value: int) -> String:
 	return "%.2f" % (value / 1000.0)
+
+
+## The state hash for the read-out, at most a second apart. Hashing the whole world
+## every frame made the frame rate fall as the world grew; see client/world_view.gd.
+func _state_digest(sim: SimRoot) -> String:
+	var tick: int = sim.get_tick()
+	if tick - _digest_tick >= 40 or _digest.is_empty():
+		_digest_tick = tick
+		_digest = sim.state_hash().left(16)
+	return _digest
