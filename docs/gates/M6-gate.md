@@ -5,7 +5,7 @@ standards §11 row G6; `docs/specs/M6-cold-storage.md`, approved 2026-09-22 with
 ADR-007 as C)
 Submitted: 2026-09-23 by Claude Code, on branch `m6-cold-storage` (PR #8),
 commits `78b8939` … the package commit
-Outcome: awaiting CEOGG; the Deck run goes in §7
+Outcome: **Accepted** (CEOGG, 2026-09-23); the Deck run is recorded in §7
 
 ---
 
@@ -247,12 +247,23 @@ curve being content buys. `docs/extending-missions.md` records the procedure.
 
 Approver: CEOGG
 
-Date:
+Date: 2026-09-23
 
-Outcome:
+Outcome: **Accepted**
 
-Conditions (if any):
+Conditions (if any): none
 
 ## 7. Deck run and feel notes
 
-_For CEOGG, after the demo script in §3._
+The Deck runs recorded in §2 are the scripted ones: `--mission --demo` played end to
+end on the approver's Deck, scoring seen 0, alarms 0, bodies 0, traces 0 at tick 957,
+at 90.0 fps median and 80.0 fps 1% low over 3 992 frames, with `0 rejected` and Steam
+online. The screenshot in `docs/gates/screenshots/M6-mission.png` is from that run
+against the pushed build.
+
+**No hand-played feel notes were given at sign-off.** The numbers to move when they
+are wanted are all content, and §3 step 16 lists them: what quiet is worth
+(`payout_curve/fixer_standard.json`), how fast heat cools and where
+(`standing_rule/heat.json`), what dying costs (`recovery_rule/police.json`), how long
+the exposure lasts (`terminal/cs_server.json`), and the guards' routes and kit in
+`site/cold_storage.json`.

@@ -30,8 +30,8 @@ Project-specific additions:
 
 - **Check `docs/adr/README.md` first.** If the work depends on an ADR still marked
   `proposed`, stop and say so. Do not pick a side to keep moving. An implementation
-  built on a guessed decision is worse than no implementation. (ADR-002 to 009 are accepted;
-  ADR-001 and 010 remain, and 010 blocks M7.)
+  built on a guessed decision is worse than no implementation. (ADR-002 to 010 are accepted;
+  ADR-001 remains and blocks nothing.)
 - **Check the design doc and the milestone spec before inventing a design.** If what
   you're about to build is already specified, follow the spec. If the spec is wrong,
   say why — don't quietly deviate.
