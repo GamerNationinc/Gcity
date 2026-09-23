@@ -713,7 +713,9 @@ func _advance_mission_setup(sim: SimRoot) -> void:
 			_submit(sim, &"quest.accept", {"actor": _player, "quest": String(MissionDemo.SITE)})
 			_setup_stage = 5
 		5:
-			_note("t%d mission: Cold Storage raised, player %d on the street" % [sim.get_tick(), _player])
+			var refused: int = sim.rejected_count()
+			_note("t%d mission: Cold Storage raised, player %d on the street%s" % [
+				sim.get_tick(), _player, "" if refused == 0 else ", %d commands refused setting up" % refused])
 			_setup_stage = READY
 
 
@@ -887,11 +889,15 @@ func _load_all_mags(items: ItemSystem, actor: int) -> int:
 	var mags: Array[int] = []
 	var rounds: Array[int] = []
 	for id: int in items.items_in(ItemSystem.inventory_of(actor)):
-		if items.item_kind(id) == &"weapon_frame":
+		# a round is ammo, not "everything else": the device frame and its modules are
+		# in this inventory too, and feeding them to a magazine is two refused commands
+		# at every start-up
+		var kind: StringName = items.item_kind(id)
+		if kind == ItemSystem.KIND_FRAME:
 			frame = id
-		elif items.item_kind(id) == &"weapon_part":
+		elif kind == ItemSystem.KIND_PART:
 			mags.append(id)
-		else:
+		elif kind == ItemSystem.KIND_AMMO:
 			rounds.append(id)
 	for m: int in mags.size():
 		for i: int in 15:
@@ -1212,7 +1218,10 @@ func _render(sim: SimRoot) -> void:
 	lines.append(_glyphs.line([[&"world_build_place", "place"], [&"world_build_remove", "remove"], [&"world_build_next", "next piece"], [&"world_device", "device (hold: restart)"], [&"world_profile", "guard profile"], [&"world_overlay", "overlay"], [&"world_restart", "restart"], [&"world_save", "save"], [&"world_load", "load"]]))
 	lines.append("steam: %s%s" % [_steam.status(), ("  (%s)" % _steam.persona()) if _steam.is_online() else ""])
 	if _demo:
-		lines.append("DEMO %.1fs  step %d/%d" % [_demo_t, _demo_next, _demo_script.size()])
+		if _mission:
+			lines.append("DEMO %.1fs  step %d/%d of the under route" % [_demo_t, _mission_index, _mission_steps.size()])
+		else:
+			lines.append("DEMO %.1fs  step %d/%d" % [_demo_t, _demo_next, _demo_script.size()])
 	for entry: String in _log:
 		lines.append(entry)
 	_status.text = "\n".join(lines)
