@@ -65,6 +65,9 @@ func attach(sim: SimRoot) -> Error:
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
+	err = _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+	if err != OK:
+		return err
 	err = sim.commands().register(COMMAND_BEGIN, _on_begin, true)
 	if err != OK:
 		return err
@@ -270,6 +273,13 @@ func _on_end(_sim: SimRoot, payload: Dictionary) -> bool:
 	rec["traces"] = counts[3]
 	_events.emit(EVENT_SCORED, {"actor": actor, "detected": counts[0], "alarms": counts[1], "bodies": counts[2], "traces": counts[3], "clean": counts[0] == 0 and counts[1] == 0 and counts[2] == 0 and counts[3] == 0})
 	return true
+
+
+## A removed actor's run goes with it (M7 spec claim 12). The bodies a run counted are
+## dead, and the dead are never removed, so no other run loses one.
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_runs.erase(actor)
 
 
 # ---------------------------------------------------------------- restore

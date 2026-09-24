@@ -77,6 +77,9 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.register_system(self)
 	if err != OK:
 		return err
+	err = _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+	if err != OK:
+		return err
 	err = sim.commands().register(COMMAND_ACCEPT, _on_accept, true)
 	if err != OK:
 		return err
@@ -381,6 +384,13 @@ func _reward(actor: int, t: Dictionary) -> void:
 			var id: int = _items.spawn(StringName(kind_s), StringName(template_s), inv, seed)
 			assert(id != EntityIds.NONE, "content was validated; a reward spawns")
 			seed += 1
+
+
+## A removed actor's contracts go with it (M7 spec claim 12). A site a contract bound
+## stays bound: binding is the world's, not the actor's.
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_quests.erase(actor)
 
 
 # ---------------------------------------------------------------- restore

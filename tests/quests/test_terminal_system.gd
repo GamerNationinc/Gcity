@@ -127,6 +127,23 @@ func test_the_hack_runs_in_real_time_and_walking_away_loses_it() -> void:
 	assert_false(_do(&"terminal.hack_start", {"actor": _player, "terminal": _terminal}), "and it cannot be hacked twice")
 
 
+## M7 spec claim 12: a hacker taken out of the sim mid-hack abandons it, exactly as
+## walking away would, and the save that follows names nobody who is not there.
+func test_a_hacker_who_is_removed_abandons_the_hack() -> void:
+	_setup()
+	assert_true(_do(&"terminal.hack_start", {"actor": _player, "terminal": _terminal}), "started")
+	_sim.step_n(40)
+	assert_true(_actors.remove(_player, ItemSystem.token_container(1)), "the hacker is removed")
+	assert_eq(_cancelled.size(), 1, "and the hack is abandoned, once")
+	assert_eq(_cancelled[0]["reason"], "removed", "saying why")
+	assert_eq(_cancelled[0]["actor"], _player, "and who")
+	assert_eq(_terminals.hacker_of(_terminal), EntityIds.NONE, "nobody is at the terminal")
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, _sim.snapshot()), OK, "and the save loads")
+
+
 func test_a_hacked_terminal_is_a_trace_until_it_is_wiped() -> void:
 	_setup()
 	assert_eq(_terminals.traces(), 0, "nothing left behind yet")

@@ -49,6 +49,9 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.register_system(self)
 	if err != OK:
 		return err
+	err = _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+	if err != OK:
+		return err
 	for pair: Array in [[COMMAND_START, _on_start], [COMMAND_CANCEL, _on_cancel], [COMMAND_WIPE, _on_wipe]]:
 		var kind: StringName = pair[0]
 		var handler: Callable = pair[1]
@@ -293,6 +296,17 @@ func _on_wipe(_sim: SimRoot, payload: Dictionary) -> bool:
 		return false
 	rec["hacked"] = false
 	return true
+
+
+## A hack whose hacker is removed is abandoned, exactly as walking away abandons it
+## (M7 spec claim 12).
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	for terminal: int in terminal_ids():
+		var rec: Dictionary = _terminals[terminal]
+		var hacker: int = rec["actor"]
+		if hacker == actor:
+			_cancel(terminal, rec, "removed")
 
 
 # ---------------------------------------------------------------- restore
