@@ -505,6 +505,34 @@ func test_a_corpse_container_is_open_and_a_whole_container_moves_at_once() -> vo
 	assert_eq(_items.item_count(), before, "every refusal left the count alone")
 
 
+## M7 spec claim 12: a squad that goes off-screen takes its kit with it. The token's
+## container is open like a pocket, and going off-screen and coming back is two
+## whole-container moves: nothing made, nothing lost, a spent round still spent.
+func test_a_token_carries_the_kit_while_its_squad_is_off_screen() -> void:
+	_build()
+	var kit: Dictionary = _kit()
+	var mag: int = kit["mag_a"]
+	var loose: Array = kit["rounds"]
+	var first_round: int = loose[0]
+	assert_true(_do(&"magazine.load", {"actor": ACTOR, "magazine": mag, "round": first_round}), "one round in the magazine")
+	var before: int = _items.item_count()
+	var held: Array[int] = _items.items_in(_inv())
+	var token: StringName = ItemSystem.token_container(7)
+	assert_eq(String(token), "token.7", "named after the token")
+	assert_eq(_items.move_container(_inv(), token), held.size(), "the whole kit goes with the token")
+	assert_eq(_items.item_count(), before, "and nothing was made or lost")
+	assert_eq(_items.items_in(ItemSystem.magazine_container(mag)), [first_round] as Array[int], "the loaded round is still loaded")
+	var snap: Dictionary = _sim.snapshot()
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(1, db)
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "a save with a kit off-screen loads")
+	assert_eq(_items.move_container(token, ItemSystem.inventory_of(OTHER_ACTOR)), held.size(), "and it comes back to whoever hydrates")
+	assert_eq(_items.items_in(ItemSystem.inventory_of(OTHER_ACTOR)), held, "in the order it went")
+	assert_eq(_items.move_container(_inv(), &"token.0"), 0, "there is no token zero")
+	assert_eq(_items.move_container(_inv(), &"token.x"), 0, "nor a token called x")
+
+
 ## M6: a site raises its own guards, so something has to be able to arm an actor in one
 ## call. Ids are allocated as commands execute, so the command path cannot name what it
 ## has just spawned.

@@ -17,6 +17,11 @@ const WORLD: StringName = &"world"
 ## A corpse's pockets (M6 spec claim 10, ADR-007 C). Open like an inventory, because
 ## death moves a kit rather than destroying it and looting moves it back.
 const CORPSE_PREFIX: String = "corpse."
+## What a squad off-screen is carrying (M7 spec claim 12, design doc §6.2). Open like an
+## inventory: dehydrating moves each member's kit here, hydrating moves it back, so
+## going off-screen neither makes nor loses an item and a magazine emptied on-screen
+## stays empty.
+const TOKEN_PREFIX: String = "token."
 const KIND_FRAME: StringName = &"weapon_frame"
 const KIND_PART: StringName = &"weapon_part"
 const KIND_AMMO: StringName = &"ammo"
@@ -260,6 +265,10 @@ static func inventory_of(actor: int) -> StringName:
 
 static func corpse_container(corpse: int) -> StringName:
 	return StringName("%s%d" % [CORPSE_PREFIX, corpse])
+
+
+static func token_container(token: int) -> StringName:
+	return StringName("%s%d" % [TOKEN_PREFIX, token])
 
 
 static func magazine_container(magazine: int) -> StringName:
@@ -966,6 +975,8 @@ func _is_open_container(name: StringName) -> bool:
 		prefix = "inv."
 	elif text.begins_with(CORPSE_PREFIX):
 		prefix = CORPSE_PREFIX
+	elif text.begins_with(TOKEN_PREFIX):
+		prefix = TOKEN_PREFIX
 	else:
 		return false
 	var rest: String = text.trim_prefix(prefix)
