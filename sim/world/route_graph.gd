@@ -22,6 +22,10 @@ const KIND_SETTLEMENT: StringName = &"settlement"
 const KIND_POI: StringName = &"poi"
 const KIND_JUNCTION: StringName = &"junction"
 const KINDS: Array[StringName] = [KIND_GATE, KIND_SETTLEMENT, KIND_POI, KIND_JUNCTION]
+## A bound site (M7 spec claim 9). Not one of [KINDS]: generation never places one. It
+## is stitched on afterwards, when a contract binds a slot, and belongs to the overlay
+## rather than to the world the seed builds.
+const KIND_SITE: StringName = &"site"
 
 ## What the ground at a place is. Structural like the node kinds: terrain (claim 7) is
 ## a consumer of this, not the author of it — the graph says what a place stands on
@@ -77,6 +81,13 @@ var _towns: Dictionary = {}
 ## rather than read, so a restore rebuilds the same world it saved.
 var _kits: Array[Dictionary] = []
 var _seed: int = 0
+## How many nodes and edges the seed built. Everything past these was stitched on by
+## binding: ids are handed out in order, so the generated world is exactly the ids up to
+## here, and that is what the world hash is taken over.
+var _world_nodes: int = 0
+var _world_edges: int = 0
+## slot id -> the site node stitched onto it
+var _stitched: Dictionary = {}
 
 
 func system_id() -> StringName:
@@ -149,6 +160,7 @@ func generate(world_seed: int) -> void:
 	_at_node.clear()
 	_slots.clear()
 	_towns.clear()
+	_stitched.clear()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = world_seed
 	# the city gate is node 1 and sits at the origin: the world is measured from it
@@ -173,6 +185,70 @@ func generate(world_seed: int) -> void:
 	_add_loops(rng)
 	_raise_towns(rng)
 	_offer_slots(rng)
+	_world_nodes = _nodes.size()
+	_world_edges = _edges.size()
+
+
+# ---------------------------------------------------------------- bound sites
+
+## Stitches a site onto a slot (M7 spec claim 9): a node where the slot is, joined to
+## the node that offers it by a track as narrow as the world allows. Returns the site
+## node, the same one every time for the same slot, or NONE if it is not a slot.
+##
+## A leaf, always: one edge, to a node already in the world. That is what keeps binding
+## from disturbing anything the graph has already promised — it cannot disconnect a
+## place, and it cannot be a shortcut, so no distance between two places that were
+## there before changes. The way there is the road to the slot's node and then the last
+## stretch off it, which is exactly what [slot_metres_from_gate] already said it was.
+##
+## Not part of the world hash. A seed builds a world; a save binds sites in it. The
+## binder holds which slots are bound and stitches them again on restore.
+func stitch_slot(slot: int) -> int:
+	if not has_slot(slot):
+		return EntityIds.NONE
+	if _stitched.has(slot):
+		return _stitched[slot]
+	var at: Vector2i = slot_position(slot)
+	var site: int = _add_node(KIND_SITE, at.x, at.y)
+	_add_edge_wide(slot_node(slot), site, MIN_WIDTH_MM)
+	_stitched[slot] = site
+	return site
+
+
+## The site node stitched onto a slot, or NONE if the slot is not bound.
+func site_node_of(slot: int) -> int:
+	if not _stitched.has(slot):
+		return EntityIds.NONE
+	return _stitched[slot]
+
+
+func _slot_of_site(node: int) -> int:
+	for key: Variant in _stitched:
+		var slot: int = key
+		if _stitched[slot] == node:
+			return slot
+	return EntityIds.NONE
+
+
+## Takes every stitched site off again, leaving the world the seed built. For restore:
+## the binder puts back the ones its save names, in the order they were bound, so they
+## come back under the same ids.
+func unstitch_all() -> void:
+	for id: int in edge_ids():
+		if id <= _world_edges:
+			continue
+		var rec: Dictionary = _edges[id]
+		for end: String in ["a", "b"]:
+			var node: int = rec[end]
+			if node <= _world_nodes:
+				var at: Array = _at_node[node]
+				at.erase(id)
+		_edges.erase(id)
+	for node: int in node_ids():
+		if node > _world_nodes:
+			_nodes.erase(node)
+			_at_node.erase(node)
+	_stitched.clear()
 
 
 ## Every node after the first is joined to the nearest already-joined node, so the graph
@@ -510,10 +586,14 @@ func world_hash() -> String:
 	return StateHash.of(canonical())
 
 
-## The graph as plain data, in the one order everyone agrees on.
+## The graph the seed built as plain data, in the one order everyone agrees on. Bound
+## sites are left out: they are the save's overlay, not the world (see [stitch_slot]).
 func canonical() -> Dictionary:
 	var nodes: Array = []
 	for node: int in node_ids():
+		if node > _world_nodes:
+			# a bound site: the save's, not the seed's
+			continue
 		var rec: Dictionary = _nodes[node]
 		var kind: StringName = rec["kind"]
 		var x: int = rec["x"]
@@ -522,6 +602,8 @@ func canonical() -> Dictionary:
 		nodes.append([node, String(kind), x, z, town])
 	var edges: Array = []
 	for id: int in edge_ids():
+		if id > _world_edges:
+			continue
 		var rec: Dictionary = _edges[id]
 		var a: int = rec["a"]
 		var b: int = rec["b"]
@@ -695,11 +777,26 @@ func slot_metres_from_gate(slot: int) -> int:
 	if not has_slot(slot):
 		return -1
 	var node: int = slot_node(slot)
-	var by_road: int = distance_mm_between(1, node)
+	return _slot_metres(slot, distance_mm_between(1, node))
+
+
+## Every slot's distance from the city gate, slot id -> whole metres: the same answer as
+## [slot_metres_from_gate] for each, from one search rather than one per slot.
+func slots_metres_from_gate() -> Dictionary:
+	var out: Dictionary = {}
+	var best: Dictionary = _shortest_from(1) if has_node(1) else {}
+	for slot: int in slot_ids():
+		var node: int = slot_node(slot)
+		var by_road: int = best[node] if best.has(node) else -1
+		out[slot] = _slot_metres(slot, by_road)
+	return out
+
+
+func _slot_metres(slot: int, by_road: int) -> int:
 	if by_road < 0:
 		return -1
 	var at: Vector2i = slot_position(slot)
-	var from: Vector2i = position_of(node)
+	var from: Vector2i = position_of(slot_node(slot))
 	return (by_road + _length_mm(from.x, from.y, at.x, at.y)) / 1000
 
 
@@ -818,6 +915,10 @@ func restore(state: Dictionary) -> Error:
 	var world: int = state["seed"]
 	var claimed: String = state["world"]
 	var was_seed: int = _seed
+	var was_bound: Array[int] = []
+	for node: int in node_ids():
+		if node > _world_nodes:
+			was_bound.append(_slot_of_site(node))
 	generate(world)
 	if world_hash() != claimed:
 		# the seed is the same and the world is not: this save was written by a
@@ -826,5 +927,7 @@ func restore(state: Dictionary) -> Error:
 		push_error("RouteGraph.restore: seed %d now builds a different world (%s, save says %s)" % [
 			world, world_hash().left(12), claimed.left(12)])
 		generate(was_seed)
+		for slot: int in was_bound:
+			stitch_slot(slot)
 		return ERR_INVALID_DATA
 	return OK

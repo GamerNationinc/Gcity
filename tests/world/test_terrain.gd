@@ -207,3 +207,34 @@ func test_property_every_edge_is_traversable_in_the_terrain_it_produced() -> voi
 	assert_eq(steep, 0, "no world built a road too steep to walk (%d roads)" % edges)
 	assert_eq(blocked, 0, "and none built one it then blocked")
 	assert_true(carved > 0, "and some of them needed building (%d)" % carved)
+
+
+## A bound site's track (M7 spec claim 9) is the one road in the world shorter than
+## [RouteGraph.MIN_SPACING_MM], which is the premise [Terrain.MAX_GRADE_PERMILLE] is
+## derived from. It holds anyway, because the base field is too long and shallow to
+## swing far over sixty metres — and this is the property that says so rather than the
+## argument. One slot per world, for the same reason as the property above.
+func test_property_a_bound_sites_track_is_traversable_too() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var routes: RouteGraph = RouteGraph.new()
+	routes.set_kits(SettlementKits.prepared(db))
+	var terrain: Terrain = Terrain.new(routes)
+	var blocked: int = 0
+	var steepest: int = 0
+	for i: int in PROPERTY_CASES:
+		var world: int = SEED_PROPERTY + i
+		routes.generate(world)
+		terrain.generate(world)
+		var slots: Array[int] = routes.slot_ids()
+		var slot: int = slots[world % slots.size()]
+		var site: int = routes.stitch_slot(slot)
+		var track: int = routes.edge_between(site, routes.slot_node(slot))
+		steepest = maxi(steepest, terrain.grade_permille(track))
+		if not terrain.is_traversable(track):
+			blocked += 1
+			if blocked <= 3:
+				fail("seed %d: the track to slot %d cannot be walked" % [world, slot])
+	assert_eq(blocked, 0, "every bound site can be reached on foot (%d tracks)" % PROPERTY_CASES)
+	assert_true(steepest <= Terrain.MAX_GRADE_PERMILLE / 2, "and the steepest is nowhere near the limit (%d ‰ of %d)" % [
+		steepest, Terrain.MAX_GRADE_PERMILLE])

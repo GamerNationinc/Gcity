@@ -476,7 +476,10 @@ func test_how_far_a_slot_is_from_the_city() -> void:
 	_setup()
 	# a diagonal step is the long one: sixty metres each way is about eighty-five
 	var furthest_off_road: int = RouteGraph.SLOT_OFFSET_MM * 1415 / 1000
+	var all_at_once: Dictionary = _routes.slots_metres_from_gate()
+	assert_eq(all_at_once.size(), _routes.slot_count(), "asked all at once, every slot answers")
 	for slot: int in _routes.slot_ids():
+		assert_eq(all_at_once[slot], _routes.slot_metres_from_gate(slot), "slot %d: the same answer as asked alone" % slot)
 		var node: int = _routes.slot_node(slot)
 		var by_road: int = _routes.distance_mm_between(1, node)
 		var metres: int = _routes.slot_metres_from_gate(slot)
@@ -484,6 +487,64 @@ func test_how_far_a_slot_is_from_the_city() -> void:
 		assert_true(metres * M <= by_road + furthest_off_road, "and no further than one step past it")
 		assert_true(metres > 0, "and somewhere out there")
 	assert_eq(_routes.slot_metres_from_gate(99999), -1, "and nothing is no distance at all")
+
+
+## M7 spec claim 9, the graph's half: a bound site is stitched on as a leaf. It is a
+## place on the map with a road to it, and it is the save's rather than the seed's, so
+## it does not move the world hash — or a save with a bound site would fail its own
+## check that the seed still builds the world it names.
+func test_a_bound_site_is_stitched_on_as_a_leaf() -> void:
+	_setup()
+	var world: String = _routes.world_hash()
+	var nodes: int = _routes.node_count()
+	var edges: int = _routes.edge_count()
+	var before: Dictionary = {}
+	for node: int in _routes.node_ids():
+		before[node] = _routes.distance_mm_between(1, node)
+	var slot: int = _routes.slot_ids()[0]
+	assert_eq(_routes.site_node_of(slot), EntityIds.NONE, "nothing is stitched to begin with")
+	var site: int = _routes.stitch_slot(slot)
+	assert_eq(site, nodes + 1, "a new place, after every place the seed built")
+	assert_eq(_routes.kind_of(site), RouteGraph.KIND_SITE, "of its own kind")
+	assert_false(RouteGraph.KINDS.has(RouteGraph.KIND_SITE), "which generation never places")
+	assert_eq(_routes.position_of(site), _routes.slot_position(slot), "where the slot is")
+	assert_eq(_routes.node_town(site), EntityIds.NONE, "put there by no kit")
+	assert_eq(_routes.neighbours(site), [_routes.slot_node(slot)] as Array[int], "with one road, to the place that offered it")
+	assert_eq(_routes.edge_count(), edges + 1, "and that road is the only new one")
+	var track: Dictionary = _routes.edge(_routes.edge_between(site, _routes.slot_node(slot)))
+	assert_eq(track["width"], RouteGraph.MIN_WIDTH_MM, "as narrow as the world allows")
+	assert_eq(_routes.stitch_slot(slot), site, "stitching it again is the same place")
+	assert_eq(_routes.node_count(), nodes + 1, "not a second one")
+	assert_eq(_routes.stitch_slot(99999), EntityIds.NONE, "and something that is not a slot stitches nothing")
+	assert_eq(_routes.distance_between(1, site), _routes.slot_metres_from_gate(slot), "as far out as the slot said")
+	for node: int in before:
+		assert_eq(_routes.distance_mm_between(1, node), before[node], "a leaf is no shortcut: node %d is where it was" % node)
+	assert_true(_routes.everywhere_is_reachable(), "the world is one piece")
+	assert_eq(_routes.world_hash(), world, "and the same world")
+	# a second site goes after the first, and taking them all off leaves the seed's world
+	var second: int = _routes.stitch_slot(_routes.slot_ids()[1])
+	assert_eq(second, site + 1, "the next site is the next id")
+	_routes.unstitch_all()
+	assert_eq(_routes.node_count(), nodes, "unstitched, the places are the seed's")
+	assert_eq(_routes.edge_count(), edges, "and so are the roads")
+	assert_eq(_routes.site_node_of(slot), EntityIds.NONE, "and nothing is bound")
+	assert_eq(_routes.edges_at(_routes.slot_node(slot)).size(), _routes.neighbours(_routes.slot_node(slot)).size(),
+		"with no road left dangling from where the site was")
+	assert_eq(_routes.stitch_slot(slot), site, "so stitching again comes back under the same id")
+
+
+## A save the graph refuses leaves the world in hand as it was, bound sites included.
+func test_a_refused_restore_keeps_the_bound_sites() -> void:
+	_setup()
+	var site: int = _routes.stitch_slot(_routes.slot_ids()[2])
+	var nodes: int = _routes.node_count()
+	var lying: Dictionary = _routes.snapshot()
+	lying["world"] = StateHash.of({"a different": "world"})
+	assert_eq(_routes.restore(lying), ERR_INVALID_DATA, "refused")
+	assert_eq(_routes.node_count(), nodes, "and the site is still there")
+	assert_eq(_routes.site_node_of(_routes.slot_ids()[2]), site, "under the same id")
+	assert_eq(_routes.restore(_routes.snapshot()), OK, "a good restore is the seed's world")
+	assert_eq(_routes.site_node_of(_routes.slot_ids()[2]), EntityIds.NONE, "and puts the sites back to the binder, whose they are")
 
 
 ## The property the milestone rests on: over ten thousand worlds a slot is always at a
