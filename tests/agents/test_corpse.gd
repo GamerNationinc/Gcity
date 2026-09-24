@@ -206,10 +206,6 @@ func test_restore_round_trip_and_rejections() -> void:
 	assert_eq(restored.restore({}), ERR_INVALID_DATA, "empty")
 	var bad: Dictionary = state.duplicate(true)
 	var all: Dictionary = bad["corpses"]
-	all[corpse] = {"actor": _player, "pos": [0, 0, 0]}
-	assert_eq(restored.restore(bad), ERR_INVALID_DATA, "a corpse of somebody still standing")
-	bad = state.duplicate(true)
-	all = bad["corpses"]
 	all[corpse] = {"actor": 99999, "pos": [0, 0, 0]}
 	assert_eq(restored.restore(bad), ERR_INVALID_DATA, "a corpse of nobody")
 	bad = state.duplicate(true)
@@ -217,11 +213,55 @@ func test_restore_round_trip_and_rejections() -> void:
 	var rec: Dictionary = all[corpse]
 	rec["pos"] = [0, 0]
 	assert_eq(restored.restore(bad), ERR_INVALID_DATA, "a position with two numbers")
-	bad = state.duplicate(true)
-	all = bad["corpses"]
-	all[corpse + 1] = {"actor": guard, "pos": [0, 0, 0]}
-	assert_eq(restored.restore(bad), ERR_INVALID_DATA, "two bodies for one actor")
 	assert_eq(restored.snapshot(), state, "rejections leave the state untouched")
+
+
+## A body outlives a respawn (M6 spec claims 10-11: it persists with the gear on it),
+## so a save taken after one has a corpse whose actor is standing again. The first
+## version of restore refused exactly that, and a save made after any respawn would
+## not load; the round-trip property never reached it because its stream almost never
+## kills the player and brings them back.
+func test_a_save_taken_after_a_respawn_loads() -> void:
+	_setup()
+	_actors.set_position(_player, IN_THE_BADLANDS)
+	_actors.damage_node(_player, &"body", 999999)
+	var corpse: int = _corpses.corpse_of(_player)
+	assert_true(_do(&"actor.respawn", {"actor": _player}), "come back")
+	assert_true(_corpses.has_corpse(corpse), "the body is still out there")
+	var snap: Dictionary = _sim.snapshot()
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "the save loads")
+	assert_eq(other.restore_root(snap), OK, "root restored")
+	assert_eq(other.state_hash(), _sim.state_hash(), "as the world it was")
+
+
+## Every death leaves a body (M6 spec claim 10). The first version made a corpse only
+## if the actor had none yet, so dying a second time after a respawn left no body and
+## the kit stayed in a dead actor's pockets, out of reach of anyone.
+func test_dying_twice_leaves_two_bodies() -> void:
+	_setup()
+	var inv: StringName = ItemSystem.inventory_of(_player)
+	_actors.set_position(_player, IN_THE_BADLANDS)
+	_actors.damage_node(_player, &"body", 999999)
+	var first: int = _corpses.corpse_of(_player)
+	assert_true(_do(&"actor.respawn", {"actor": _player}), "come back")
+	for i: int in 3:
+		assert_true(_items.spawn(&"currency", &"credit_note", inv, i + 1) > 0, "note %d" % i)
+	_actors.set_position(_player, IN_THE_BADLANDS + Vector3i(10 * M, 0, 0))
+	_actors.damage_node(_player, &"body", 999999)
+	var second: int = _corpses.corpse_of(_player)
+	assert_true(second != EntityIds.NONE and second != first, "a second body (%d, then %d)" % [first, second])
+	assert_true(_corpses.has_corpse(first), "and the first is still where it fell")
+	assert_eq(_corpses.items_on(second).size(), 3, "with what was carried the second time on it")
+	assert_eq(_items.items_in(inv).size(), 0, "and nothing left in a dead actor's pockets")
+	assert_true(_do(&"actor.respawn", {"actor": _player}), "and coming back works a second time")
+	var snap: Dictionary = _sim.snapshot()
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "and a save with two bodies for one actor loads")
 
 
 ## M6 spec claim 11: where you died decides what you come back with. Above the rule's

@@ -102,14 +102,17 @@ func has_corpse(corpse: int) -> bool:
 	return _corpses.has(corpse)
 
 
-## The corpse of an actor, or EntityIds.NONE if that actor left none.
+## The actor's most recent corpse, or EntityIds.NONE if that actor has never died. An
+## actor who died, came back and died again has two bodies; this is the one respawn
+## recovers from, and the older one stays where it fell until somebody strips it.
 func corpse_of(actor: int) -> int:
+	var latest: int = EntityIds.NONE
 	for corpse: int in corpse_ids():
 		var rec: Dictionary = _corpses[corpse]
 		var who: int = rec["actor"]
 		if who == actor:
-			return corpse
-	return EntityIds.NONE
+			latest = corpse
+	return latest
 
 
 func position_of(corpse: int) -> Vector3i:
@@ -154,8 +157,6 @@ func respawn_position_of(actor: int) -> Vector3i:
 ## empty-handed still leaves a body: it is evidence whether or not it is loot.
 func _on_died(payload: Dictionary) -> void:
 	var actor: int = payload["actor"]
-	if corpse_of(actor) != EntityIds.NONE:
-		return
 	var x: int = payload["x"]
 	var y: int = payload["y"]
 	var z: int = payload["z"]
@@ -337,7 +338,6 @@ func restore(state: Dictionary) -> Error:
 		return _restore_fail("shape")
 	var in_all: Dictionary = state["corpses"]
 	var out: Dictionary = {}
-	var seen_actors: Array[int] = []
 	for key: Variant in in_all:
 		if typeof(key) != TYPE_INT or typeof(in_all[key]) != TYPE_DICTIONARY:
 			return _restore_fail("corpse key")
@@ -348,13 +348,10 @@ func restore(state: Dictionary) -> Error:
 		if rec.size() != 2 or typeof(rec.get("actor")) != TYPE_INT or typeof(rec.get("pos")) != TYPE_ARRAY:
 			return _restore_fail("corpse %d record" % corpse)
 		var actor: int = rec["actor"]
+		# a body outlives a respawn, and a second death leaves a second one: neither a
+		# standing actor nor an actor with two bodies is a corrupt save
 		if not _actors.has_actor(actor):
 			return _restore_fail("corpse %d is nobody" % corpse)
-		if _actors.is_alive(actor):
-			return _restore_fail("corpse %d belongs to a living actor" % corpse)
-		if seen_actors.has(actor):
-			return _restore_fail("actor %d has two corpses" % actor)
-		seen_actors.append(actor)
 		var pos: Array = rec["pos"]
 		if pos.size() != 3:
 			return _restore_fail("corpse %d position" % corpse)
