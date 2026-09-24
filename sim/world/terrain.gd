@@ -27,6 +27,11 @@ class_name Terrain extends SimSystem
 
 const SYSTEM_ID: StringName = &"terrain"
 
+## Outside the gate the land is levelled to the city's ground for this far, so the road
+## leaves the city on the level and the gate is a gate rather than a cliff (M7 design
+## note, regions). Every place in the world is further out than this.
+const GATE_APRON_MM: int = RouteGraph.MIN_SPACING_MM / 2
+
 ## How far the land rises and falls under the roads, in millimetres either way.
 const BASE_AMPLITUDE_MM: int = 25_000
 ## How far apart the base field's lattice points are: long and shallow.
@@ -116,6 +121,8 @@ func relief_mm(x: int, z: int) -> int:
 ## towns are and what keeps a town's short streets from being the steepest roads there
 ## are.
 func ground_mm(x: int, z: int) -> int:
+	if RouteGraph._length_mm(0, 0, x, z) <= GATE_APRON_MM:
+		return 0
 	var anchor: int = town_under(x, z)
 	if anchor != EntityIds.NONE:
 		var at: Vector2i = _routes.position_of(anchor)
@@ -135,7 +142,7 @@ func town_under(x: int, z: int) -> int:
 ## How high the road stands where it meets a place. The base field, or the town's
 ## levelled ground when the place is part of one.
 func node_height_mm(node: int) -> int:
-	if not _routes.has_node(node):
+	if not _routes.has_node(node) or _routes.kind_of(node) == RouteGraph.KIND_GATE:
 		return 0
 	var town: int = _routes.node_town(node)
 	var at: Vector2i = _routes.position_of(town if town != EntityIds.NONE else node)

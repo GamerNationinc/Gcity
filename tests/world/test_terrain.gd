@@ -99,6 +99,24 @@ func test_there_is_no_seam_through_the_origin() -> void:
 	assert_eq(Terrain._floor_div(7, 8), 0, "positives are unchanged")
 
 
+## Outside the gate the ground is levelled to the city's for GATE_APRON_MM, and the gate
+## itself stands at the city's height: the road leaves the city on the level and there is
+## no cliff at the seam (M7 design note, regions).
+func test_the_ground_outside_the_gate_is_levelled_to_the_city() -> void:
+	_setup()
+	assert_eq(_terrain.node_height_mm(1), 0, "the gate is at the city's height")
+	for i: int in 16:
+		var angle_x: int = [1, 1, 0, -1, -1, -1, 0, 1][i % 8]
+		var angle_z: int = [0, 1, 1, 1, 0, -1, -1, -1][i % 8]
+		var r: int = Terrain.GATE_APRON_MM * (i + 1) / 17
+		assert_eq(_terrain.ground_mm(angle_x * r * 7 / 10, angle_z * r * 7 / 10), 0, "levelled %d m out" % (r / 1000))
+	var bumpy: bool = false
+	for i: int in 16:
+		var z: int = -Terrain.GATE_APRON_MM - (i + 1) * 97_000
+		bumpy = bumpy or _terrain.ground_mm(i * 13_000, z) != 0
+	assert_true(bumpy, "and beyond the apron the land is the land again")
+
+
 ## A settlement stands on ground someone levelled. That is both how towns are and what
 ## keeps a town's sixty-metre streets from being the steepest roads in the world.
 func test_a_town_stands_on_level_ground() -> void:

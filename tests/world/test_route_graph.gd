@@ -262,6 +262,7 @@ func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 	var broken: int = 0
 	var narrow: int = 0
 	var malformed: int = 0
+	var north: int = 0
 	var widths: Dictionary = {}
 	for i: int in PROPERTY_CASES:
 		var world: int = SEED_PROPERTY + i
@@ -276,6 +277,17 @@ func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 			narrow += 1
 			if narrow <= 3:
 				fail("seed %d built a road %d mm wide" % [world, narrowest])
+		# the city backs onto the north: every place but the gate lies south of it, the
+		# world's own places at least a node's spacing south, so no road crosses the city
+		for node: int in graph.node_ids():
+			if node == 1:
+				continue
+			var z: int = graph.position_of(node).y
+			var limit: int = -RouteGraph.SOUTH_OF_GATE_MM if graph.node_town(node) == EntityIds.NONE else -1
+			if z > limit:
+				north += 1
+				if north <= 3:
+					fail("seed %d put node %d at z %d, north of where the wilds are" % [world, node, z])
 		# no corridor joins a place to itself, and no two places are joined twice
 		var pairs: Dictionary = {}
 		for id: int in graph.edge_ids():
@@ -291,6 +303,7 @@ func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 	assert_eq(broken, 0, "every one of %d worlds is one piece" % PROPERTY_CASES)
 	assert_eq(narrow, 0, "and has no road too narrow to walk")
 	assert_eq(malformed, 0, "and no road to nowhere or road built twice")
+	assert_eq(north, 0, "and nothing but the gate on the city's side of it")
 	assert_true(widths.size() > 1, "the narrowest road is not the same in every world")
 
 

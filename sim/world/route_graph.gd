@@ -43,6 +43,11 @@ const MIN_WIDTH_MM: int = 3000
 const MAX_WIDTH_MM: int = 12000
 ## How far out the world reaches, in millimetres. The city gate sits at the origin.
 const WORLD_RADIUS_MM: int = 30_000_000
+## The city backs onto the north (M7 design note, regions): every place the world has
+## lies south of the gate, at least this far below it, so no road can run through the
+## city and every road that reaches it arrives at the gate. The whole north is the one
+## authored region.
+const SOUTH_OF_GATE_MM: int = MIN_SPACING_MM
 ## Nodes never sit closer together than this, so an edge is always a journey.
 const MIN_SPACING_MM: int = 400_000
 ## How many nodes a world has, besides the single gate.
@@ -170,7 +175,7 @@ func generate(world_seed: int) -> void:
 		var placed: bool = false
 		for attempt: int in PLACEMENT_TRIES:
 			var x: int = rng.randi_range(-WORLD_RADIUS_MM, WORLD_RADIUS_MM)
-			var z: int = rng.randi_range(-WORLD_RADIUS_MM, WORLD_RADIUS_MM)
+			var z: int = rng.randi_range(-WORLD_RADIUS_MM, -SOUTH_OF_GATE_MM)
 			if not _far_enough(x, z):
 				continue
 			_add_node(_kind_for(rng), x, z)
