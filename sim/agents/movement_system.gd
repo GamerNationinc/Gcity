@@ -103,7 +103,15 @@ func attach(sim: SimRoot) -> Error:
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
+	err = _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+	if err != OK:
+		return err
 	return sim.commands().register(COMMAND_MOVE, _on_move)
+
+
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_falling.erase(actor)
 
 
 func move_count() -> int:

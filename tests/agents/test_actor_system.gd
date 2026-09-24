@@ -148,3 +148,114 @@ func test_death_is_announced_once_with_the_position() -> void:
 	# a corpse cannot die twice, however much it is shot
 	assert_eq(_actors.damage_node(victim, &"body", 100), 0, "no health left to take")
 	assert_eq(died.size(), 1, "still one")
+
+
+## M7 spec claim 12: a living actor can be taken out of the sim entirely, which is what
+## a squad going back to being a token is. Everything it carried goes to the stash;
+## every system that kept a row for it drops the row, releasing the modifiers it held;
+## and the sim runs on and saves as though the actor had never been there.
+func test_a_living_agent_can_be_removed_and_leaves_nothing_behind() -> void:
+	_build()
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	var aim: AimSystem = SimAssembly.aim_of(_sim)
+	var stress: StressSystem = SimAssembly.stress_of(_sim)
+	var events: EventBus = SimAssembly.combat_of(_sim).events()
+	var player: int = _actors.spawn(&"arcade", 0)
+	var gone: int = perception.spawn(&"guard_sim", Vector3i(6, 0, 0), 180, 1, "")
+	var stays: int = perception.spawn(&"guard_sim", Vector3i(7, 0, 2), 180, 1, "")
+	var pistol: int = _items.arm(gone, &"g19", &"g19_mag_15", &"9x19_fmj", 15, gone * 1000)
+	assert_true(pistol != EntityIds.NONE and _actors.wield(gone, pistol), "the agent is armed")
+	var removed: Array[int] = []
+	events.subscribe(ActorSystem.EVENT_REMOVED, func(payload: Dictionary) -> void:
+		var who: int = payload["actor"]
+		removed.append(who))
+	# a shot past it for stress, and time for both to see the player, aim and decide
+	events.emit(CombatSystem.EVENT_FIRE, {"actor": player, "shooter": player, "weapon": 0, "target": gone, "x": 6000, "y": 0, "z": 0})
+	_sim.step_n(60)
+	var before: Dictionary = _sim.snapshot()
+	assert_true(_mentions(before, gone), "the agent is all over the state before")
+	assert_true(perception.awareness_of(gone, player) > 0, "it knows about the player")
+	assert_true(perception.awareness_of(stays, gone) >= 0, "and its squadmate is next to it")
+	var items_before: int = _items.item_count()
+	var kit: Array[int] = _items.items_in(ItemSystem.inventory_of(gone))
+	var stash: StringName = ItemSystem.token_container(1)
+	assert_true(_actors.remove(gone, stash), "removed")
+	assert_eq(removed, [gone] as Array[int], "announced once, naming it")
+	assert_false(_actors.has_actor(gone), "no longer an actor")
+	assert_false(perception.is_agent(gone), "nor an agent")
+	assert_eq(_items.items_in(stash), kit, "its kit is in the stash, in order")
+	assert_eq(_items.item_count(), items_before, "and not one item was made or lost")
+	assert_eq(_stats.get_inherits(pistol), -1, "the pistol no longer inherits from anybody")
+	assert_eq(aim.target_of(stays) == gone, false, "nobody is aiming at it")
+	assert_eq(stress.stress_of(gone), 0, "it has no stress, because it is not there")
+	assert_false(_mentions(_sim.snapshot(), gone), "and no system keeps a row for it")
+	# the sim runs on, and the one that stayed is still an agent doing agent things
+	_sim.step_n(100)
+	assert_true(perception.is_agent(stays), "its squadmate is still there")
+	assert_false(_mentions(_sim.snapshot(), gone), "and nothing brought it back")
+
+
+func test_removal_refuses_the_dead_the_embodied_and_nowhere() -> void:
+	_build()
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	var corpses: CorpseSystem = SimAssembly.corpses_of(_sim)
+	var agent: int = perception.spawn(&"guard_sim", Vector3i(6, 0, 0), 180, 1, "")
+	var pistol: int = _items.arm(agent, &"g19", &"g19_mag_15", &"9x19_fmj", 15, agent * 1000)
+	assert_true(_actors.wield(agent, pistol), "armed")
+	var before: String = StateHash.of(_sim.snapshot())
+	assert_false(_actors.remove(99999, ItemSystem.token_container(1)), "nobody")
+	assert_false(_actors.remove(agent, &"mag.3"), "a stash that is not somewhere to put a kit")
+	assert_eq(StateHash.of(_sim.snapshot()), before, "and a refusal changes nothing")
+	assert_eq(_actors.wielded(agent), pistol, "not even the pistol in its hand")
+	var dead: int = perception.spawn(&"guard_sim", Vector3i(9, 0, 0), 180, 1, "")
+	_actors.damage_node(dead, &"body", 999999)
+	assert_false(_actors.remove(dead, ItemSystem.token_container(1)), "a body is a trace, and stays")
+	# a living actor that left a body once is named by it
+	var player: int = _actors.spawn(&"arcade", 0)
+	_actors.set_position(player, Vector3i(500_000, 0, 500_000))
+	_actors.damage_node(player, &"body", 999999)
+	assert_true(_do(&"actor.respawn", {"actor": player}), "back")
+	assert_true(corpses.has_body(player), "with a body out there")
+	assert_false(_actors.remove(player, ItemSystem.token_container(1)), "which keeps them in the world")
+	# an actor with empty pockets needs no stash at all
+	var bare: int = _actors.spawn(&"arcade", 0)
+	assert_true(_actors.remove(bare, &""), "nothing to carry, nowhere needed")
+	assert_eq(_items.items_in(ItemSystem.inventory_of(bare)), [] as Array[int], "and no pocket left behind")
+	assert_false(_actors.remove(bare, &""), "and it cannot go twice")
+
+
+## The systems that drop every row for a removed actor. Grows one module at a time as
+## each learns to (M7 claim 12), until it is every system that keeps rows by actor.
+const REMOVAL_CLEAN: Array[StringName] = [&"actors", &"movement", &"perception", &"aim", &"stress", &"pathing", &"squads", &"stances", &"corpses"]
+
+
+## True when an actor's id appears in any of those systems anywhere a per-actor row
+## could hold it: as a key or a value of any dictionary or array in its state. Coarse on
+## purpose: a stale row anywhere is the bug being looked for.
+func _mentions(snapshot: Dictionary, actor: int) -> bool:
+	var systems: Dictionary = snapshot["systems"]
+	for key: Variant in systems:
+		var id: StringName = key
+		if not REMOVAL_CLEAN.has(id):
+			continue
+		if _holds(systems[key], actor, 0):
+			return true
+	return false
+
+
+func _holds(value: Variant, actor: int, depth: int) -> bool:
+	match typeof(value):
+		TYPE_DICTIONARY:
+			var d: Dictionary = value
+			for k: Variant in d:
+				if typeof(k) == TYPE_INT and k == actor and depth <= 1:
+					return true
+				if _holds(d[k], actor, depth + 1):
+					return true
+		TYPE_ARRAY:
+			var a: Array = value
+			if depth <= 3:
+				for v: Variant in a:
+					if typeof(v) == TYPE_INT and v == actor:
+						return true
+	return false

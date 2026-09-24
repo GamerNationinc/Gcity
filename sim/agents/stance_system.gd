@@ -43,6 +43,7 @@ var _aim: AimSystem
 var _stress: StressSystem
 var _pathing: PathingSystem
 var _squads: SquadSystem
+var _events: EventBus
 ## stance name -> Callable(ctx: Dictionary) -> int (0..1 000 000)
 var _scorers: Dictionary = {}
 ## agent -> {"stance": StringName, "since": int, "score": int, "waypoint": int, "goal": [] | [x, y, z]}
@@ -51,7 +52,8 @@ var _fires: int = 0
 var _scored: int = 0
 
 
-func _init(content: ContentDb, actors: ActorSystem, items: ItemSystem, perception: PerceptionSystem, aim: AimSystem, stress: StressSystem, pathing: PathingSystem, squads: SquadSystem) -> void:
+func _init(content: ContentDb, actors: ActorSystem, items: ItemSystem, perception: PerceptionSystem, aim: AimSystem, stress: StressSystem, pathing: PathingSystem, squads: SquadSystem, events: EventBus) -> void:
+	_events = events
 	_content = content
 	_actors = actors
 	_items = items
@@ -80,7 +82,15 @@ func attach(sim: SimRoot) -> Error:
 	var err: Error = validate_content()
 	if err != OK:
 		return err
-	return sim.register_system(self)
+	err = sim.register_system(self)
+	if err != OK:
+		return err
+	return _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+
+
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_stances.erase(actor)
 
 
 ## A scorer for a stance name: func(ctx: Dictionary) -> int in [0, 1 000 000]. A

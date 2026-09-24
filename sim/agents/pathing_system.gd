@@ -52,7 +52,15 @@ func attach(sim: SimRoot) -> Error:
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
-	return _events.subscribe(BuildSystem.EVENT_CHANGED, _on_build_changed)
+	err = _events.subscribe(BuildSystem.EVENT_CHANGED, _on_build_changed)
+	if err != OK:
+		return err
+	return _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+
+
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_routes.erase(actor)
 
 
 func _on_build_changed(_payload: Dictionary) -> void:

@@ -15,6 +15,10 @@ const COMMAND_EQUIP_DEVICE: StringName = &"actor.equip_device"
 ## about the body is CorpseSystem's (M6 spec claim 10, ADR-007 C); this system only
 ## says who died and where.
 const EVENT_DIED: StringName = &"actor.died"
+## Emitted when a living actor is taken out of the sim (M7 spec claim 12: a squad going
+## off-screen), before anything about it is erased, so every system that keeps a table
+## by actor drops its rows while the actor's modifiers still exist to be released.
+const EVENT_REMOVED: StringName = &"actor.removed"
 const MAX_RANGE_M: int = 10_000
 const MAX_COORD: int = 100_000_000
 
@@ -27,6 +31,9 @@ var _events: EventBus
 ## Positions are integer millimetres (M3 claim set P1). `actor.spawn`'s range_m places
 ## the actor at (range_m × 1000, 0, 0) so the M1 range keeps its meaning.
 var _actors: Dictionary = {}
+## (actor) -> bool: true when the actor has left a body. Wired by the assembly to
+## CorpseSystem; an actor with a body is never removed, because the body names it.
+var _has_body: Callable = Callable()
 
 
 func _init(content: ContentDb, stats: StatResolver, ids: EntityIds, items: ItemSystem, events: EventBus) -> void:
@@ -242,6 +249,44 @@ func spawn(profile: StringName, range_m: int) -> int:
 	var id: int = _ids.allocate()
 	_actors[id] = {"profile": profile, "health": health, "wielded": EntityIds.NONE, "device": EntityIds.NONE, "pos": [range_m * 1000, 0, 0] as Array[int], "alive": true}
 	return id
+
+
+## Where a body check comes from, wired by the assembly.
+func set_body_check(check: Callable) -> void:
+	_has_body = check
+
+
+## Takes a living actor out of the sim entirely (M7 spec claim 12): a squad member
+## going back to being a token. Its whole inventory moves to `stash` first, so nothing
+## is made or lost; then [EVENT_REMOVED] lets every system drop what it keeps about
+## the actor; then the actor and everything the resolver holds about it are gone. Ids
+## are never reused, so nothing that comes later can be mistaken for it.
+##
+## Refuses a dead actor, whose body is a trace other systems count, and a living one
+## that left a body before, which that body still names.
+func remove(actor: int, stash: StringName) -> bool:
+	if not is_alive(actor):
+		return false
+	if _has_body.is_valid():
+		var has_body: bool = _has_body.call(actor)
+		if has_body:
+			return false
+	# the kit moves first, because it is the one step that can be refused (a stash that
+	# is not a container), and a refusal must leave the actor exactly as it was
+	var inv: StringName = ItemSystem.inventory_of(actor)
+	if not _items.items_in(inv).is_empty() and _items.move_container(inv, stash) == 0:
+		return false
+	var rec: Dictionary = _actors[actor]
+	for slot: String in ["wielded", "device"]:
+		var held: int = rec[slot]
+		if held != EntityIds.NONE:
+			_stats.set_inherits(held, -1)
+			rec[slot] = EntityIds.NONE
+	_events.emit(EVENT_REMOVED, {"actor": actor})
+	_actors.erase(actor)
+	_items.forget_inventory(actor)
+	_stats.forget_entity(actor)
+	return true
 
 
 ## Subtracts damage from a node, never below zero. A fatal node at zero kills the actor.

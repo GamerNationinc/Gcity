@@ -18,15 +18,17 @@ var _content: ContentDb
 var _stats: StatResolver
 var _actors: ActorSystem
 var _perception: PerceptionSystem
+var _events: EventBus
 ## agent -> {"target": int (0 = none), "settle": int, "swing": int, "handle": int, "value": int}
 var _aim: Dictionary = {}
 
 
-func _init(content: ContentDb, stats: StatResolver, actors: ActorSystem, perception: PerceptionSystem) -> void:
+func _init(content: ContentDb, stats: StatResolver, actors: ActorSystem, perception: PerceptionSystem, events: EventBus) -> void:
 	_content = content
 	_stats = stats
 	_actors = actors
 	_perception = perception
+	_events = events
 
 
 func system_id() -> StringName:
@@ -41,7 +43,28 @@ func attach(sim: SimRoot) -> Error:
 	var err: Error = validate_content()
 	if err != OK:
 		return err
-	return sim.register_system(self)
+	err = sim.register_system(self)
+	if err != OK:
+		return err
+	return _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+
+
+## A removed agent's aim goes with it, its modifier released first; anyone aiming at a
+## removed actor is aiming at nothing, and picks again on its next tick.
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	if _aim.has(actor):
+		var rec: Dictionary = _aim[actor]
+		var handle: int = rec["handle"]
+		if handle != 0:
+			var removed: Error = _stats.remove_modifier(handle)
+			assert(removed == OK, "the aim modifier is live until the agent goes")
+		_aim.erase(actor)
+	for key: Variant in _aim:
+		var rec: Dictionary = _aim[key]
+		var target: int = rec["target"]
+		if target == actor:
+			rec["target"] = EntityIds.NONE
 
 
 ## Every agent profile binds an aim profile that exists; hit_chance is registered.

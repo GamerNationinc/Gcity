@@ -72,7 +72,23 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.commands().register(COMMAND_SET_PROFILE, _on_set_profile)
 	if err != OK:
 		return err
-	return _events.subscribe(CombatSystem.EVENT_FIRE, _on_fire)
+	err = _events.subscribe(CombatSystem.EVENT_FIRE, _on_fire)
+	if err != OK:
+		return err
+	return _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+
+
+## A removed actor is forgotten from both sides: it is no longer an agent watching
+## anyone, and nobody still remembers it as a contact.
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_agents.erase(actor)
+	_last_pos.erase(actor)
+	for table: Dictionary in [_contacts, _heard, _visible]:
+		table.erase(actor)
+		for key: Variant in table:
+			var inner: Dictionary = table[key]
+			inner.erase(actor)
 
 
 ## Every agent profile binds profiles that exist, and the noise stat is registered.

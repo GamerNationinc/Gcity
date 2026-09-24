@@ -49,7 +49,22 @@ func attach(sim: SimRoot) -> Error:
 	err = _events.subscribe(CombatSystem.EVENT_FIRE, _on_fire)
 	if err != OK:
 		return err
-	return _events.subscribe(CombatSystem.EVENT_HIT, _on_hit)
+	err = _events.subscribe(CombatSystem.EVENT_HIT, _on_hit)
+	if err != OK:
+		return err
+	return _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+
+
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	if not _stress.has(actor):
+		return
+	var rec: Dictionary = _stress[actor]
+	var handle: int = rec["handle"]
+	if handle != 0:
+		var removed: Error = _stats.remove_modifier(handle)
+		assert(removed == OK, "the stress modifier is live until the agent goes")
+	_stress.erase(actor)
 
 
 ## Every agent profile binds a stress profile that exists.

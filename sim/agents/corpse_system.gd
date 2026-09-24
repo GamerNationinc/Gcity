@@ -102,6 +102,12 @@ func has_corpse(corpse: int) -> bool:
 	return _corpses.has(corpse)
 
 
+## True when the actor has ever left a body. The actor system asks this before removing
+## anyone: a body names its actor, and a save with a body of nobody would not load.
+func has_body(actor: int) -> bool:
+	return corpse_of(actor) != EntityIds.NONE
+
+
 ## The actor's most recent corpse, or EntityIds.NONE if that actor has never died. An
 ## actor who died, came back and died again has two bodies; this is the one respawn
 ## recovers from, and the older one stays where it fell until somebody strips it.

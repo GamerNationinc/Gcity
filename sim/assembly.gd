@@ -57,7 +57,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	if perception.attach(sim) != OK:
 		return null
 	combat.set_sight_check(perception.can_target)
-	var aim: AimSystem = AimSystem.new(content, stats, actors, perception)
+	var aim: AimSystem = AimSystem.new(content, stats, actors, perception, events)
 	if aim.attach(sim) != OK:
 		return null
 	var stress: StressSystem = StressSystem.new(content, stats, actors, perception, events)
@@ -69,7 +69,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var squads: SquadSystem = SquadSystem.new(content, actors, perception, portals, build, events)
 	if squads.attach(sim) != OK:
 		return null
-	var stances: StanceSystem = StanceSystem.new(content, actors, items, perception, aim, stress, pathing, squads)
+	var stances: StanceSystem = StanceSystem.new(content, actors, items, perception, aim, stress, pathing, squads, events)
 	if stances.attach(sim) != OK:
 		return null
 	var quests: QuestSystem = QuestSystem.new(content, actors, items, land, events)
@@ -91,6 +91,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var corpses: CorpseSystem = CorpseSystem.new(content, actors, items, ids, land, events)
 	if corpses.attach(sim) != OK:
 		return null
+	actors.set_body_check(corpses.has_body)
 	var routes: RouteGraph = RouteGraph.new()
 	if routes.attach(sim) != OK:
 		return null

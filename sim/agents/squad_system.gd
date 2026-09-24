@@ -57,7 +57,25 @@ func attach(sim: SimRoot) -> Error:
 	err = _events.subscribe(PerceptionSystem.EVENT_ALERTED, _on_alerted)
 	if err != OK:
 		return err
-	return _events.subscribe(BuildSystem.EVENT_CHANGED, _on_build_changed)
+	err = _events.subscribe(BuildSystem.EVENT_CHANGED, _on_build_changed)
+	if err != OK:
+		return err
+	return _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+
+
+## A removed agent has no entry to take, and a report it sent or a report about it is
+## news about somebody who is not here.
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_assignments.erase(actor)
+	var kept: Array = []
+	for v: Variant in _reports:
+		var report: Dictionary = v
+		var reporter: int = report["reporter"]
+		var contact: int = report["contact"]
+		if reporter != actor and contact != actor:
+			kept.append(report)
+	_reports = kept
 
 
 func validate_content() -> Error:
