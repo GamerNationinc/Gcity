@@ -1,0 +1,63 @@
+{
+	"schema_version": 1,
+	"description": "A settlement kit (M7 spec claim 6): a town as a prefab subgraph rather than noise. `nodes` are streets and yards relative to the settlement node that anchors it, `edges` the roads between them, and `sockets` the points where the outside road arrives. A node with an empty `block` is always there; the rest belong to optional blocks, and generation picks between `min_blocks` and `max_blocks` of them, plus a quarter turn. `district` is the rights table the town already has (design doc §7.2), so nobody has to invent one when the player walks in.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 400},
+		"title": {"type": "string", "min_length": 1, "max_length": 60},
+		"district": {"type": "string", "ref": "district"},
+		"min_blocks": {"type": "int", "min": 0, "max": 8},
+		"max_blocks": {"type": "int", "min": 0, "max": 8},
+		"nodes": {
+			"type": "array",
+			"min_length": 1,
+			"max_length": 64,
+			"items": {
+				"type": "object",
+				"properties": {
+					"rel": {
+						"type": "array",
+						"min_length": 2,
+						"max_length": 2,
+						"items": {"type": "int", "min": -200000, "max": 200000}
+					},
+					"kind": {"type": "string", "pattern": "(junction|poi)"},
+					"block": {"type": "string", "pattern": "([a-z][a-z0-9_]*)?"}
+				},
+				"required": ["rel", "kind", "block"],
+				"additional_properties": false
+			}
+		},
+		"edges": {
+			"type": "array",
+			"min_length": 1,
+			"max_length": 128,
+			"items": {
+				"type": "object",
+				"properties": {
+					"a": {"type": "int", "min": 0, "max": 63},
+					"b": {"type": "int", "min": 0, "max": 63},
+					"width": {"type": "int", "min": 3000, "max": 12000}
+				},
+				"required": ["a", "b", "width"],
+				"additional_properties": false
+			}
+		},
+		"sockets": {
+			"type": "array",
+			"min_length": 1,
+			"max_length": 8,
+			"items": {
+				"type": "object",
+				"properties": {
+					"node": {"type": "int", "min": 0, "max": 63},
+					"width": {"type": "int", "min": 3000, "max": 12000}
+				},
+				"required": ["node", "width"],
+				"additional_properties": false
+			}
+		}
+	},
+	"required": ["schema_version", "description", "title", "district", "min_blocks", "max_blocks", "nodes", "edges", "sockets"],
+	"additional_properties": false
+}

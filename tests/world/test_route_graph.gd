@@ -11,10 +11,21 @@ extends GcityTest
 const SEED: int = 20261250
 const SEED_PROPERTY: int = 20261251
 const PROPERTY_CASES: int = 10_000
+## How many pairs of places each world in the distance property is asked about.
+const PAIRS_PER_WORLD: int = 4
 const M: int = 1000
 
 var _sim: SimRoot
 var _routes: RouteGraph
+
+
+## The kits the shipped world is built from. The property tests build bare graphs
+## rather than whole sims for speed, but a bare graph with no kits has no towns — and a
+## world without towns is not the world these properties are supposed to be about.
+func _kits() -> Array[Dictionary]:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	return SettlementKits.prepared(db)
 
 
 func _setup(world: int = SEED) -> void:
@@ -40,17 +51,30 @@ func test_a_world_has_a_gate_at_the_origin_and_places_around_it() -> void:
 	assert_eq(_routes.kind_of(99999), &"", "and a node that is not one has no kind")
 
 
+## The spacing rule is about the world's own places: it is what makes a world edge a
+## journey rather than a step. It is **not** about a town's streets, which are close
+## together on purpose (claim 6) — so the second half of this asserts they are, or the
+## first half would still pass on a world with no towns in it and quietly stop meaning
+## anything.
 func test_nodes_are_spread_out_enough_that_an_edge_is_a_journey() -> void:
 	_setup()
 	var ids: Array[int] = _routes.node_ids()
 	var closest: int = RouteGraph.WORLD_RADIUS_MM
+	var closest_street: int = RouteGraph.WORLD_RADIUS_MM
 	for i: int in ids.size():
 		for j: int in range(i + 1, ids.size()):
 			var a: Vector2i = _routes.position_of(ids[i])
 			var b: Vector2i = _routes.position_of(ids[j])
 			var d: int = RouteGraph._length_mm(a.x, a.y, b.x, b.y)
-			closest = mini(closest, d)
+			var in_town: bool = (_routes.node_town(ids[i]) != EntityIds.NONE
+				or _routes.node_town(ids[j]) != EntityIds.NONE)
+			if in_town:
+				closest_street = mini(closest_street, d)
+			else:
+				closest = mini(closest, d)
 	assert_true(closest >= RouteGraph.MIN_SPACING_MM, "nothing is closer than the spacing (%d mm)" % closest)
+	assert_true(closest_street < RouteGraph.MIN_SPACING_MM,
+		"and a town's streets are closer than that (%d mm), or this world has no towns" % closest_street)
 
 
 func test_every_corridor_is_wide_enough_to_walk_down() -> void:
@@ -174,8 +198,11 @@ func test_property_the_same_seed_is_the_same_world_and_no_two_are_the_same() -> 
 	var seen: Dictionary = {}
 	var disagreed: int = 0
 	var collided: int = 0
+	var kits: Array[Dictionary] = _kits()
 	var first: RouteGraph = RouteGraph.new()
 	var second: RouteGraph = RouteGraph.new()
+	first.set_kits(kits)
+	second.set_kits(kits)
 	for i: int in PROPERTY_CASES:
 		var world: int = SEED_PROPERTY + i
 		first.generate(world)
@@ -201,6 +228,7 @@ func test_property_worlds_differ_in_shape_and_not_only_in_position() -> void:
 	var sizes: Dictionary = {}
 	var edges: Dictionary = {}
 	var graph: RouteGraph = RouteGraph.new()
+	graph.set_kits(_kits())
 	for i: int in PROPERTY_CASES:
 		graph.generate(SEED_PROPERTY + i)
 		sizes[graph.node_count()] = true
@@ -230,6 +258,7 @@ func test_everywhere_can_be_reached_from_the_gate() -> void:
 ## retry: `sim/world/route_graph.gd` would be wrong, not unlucky.
 func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 	var graph: RouteGraph = RouteGraph.new()
+	graph.set_kits(_kits())
 	var broken: int = 0
 	var narrow: int = 0
 	var malformed: int = 0
@@ -269,6 +298,7 @@ func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 ## single blocked corridor cuts the map in half. The loop pass is what prevents that.
 func test_a_world_is_not_a_tree() -> void:
 	var graph: RouteGraph = RouteGraph.new()
+	graph.set_kits(_kits())
 	var trees: int = 0
 	for i: int in 200:
 		graph.generate(SEED_PROPERTY + i)
@@ -315,37 +345,48 @@ func test_the_road_is_never_shorter_than_the_crow_flies() -> void:
 ## M7 spec claim 4's property, over a sample of worlds and every pair in each: the
 ## distance is symmetric, obeys the triangle inequality, and is never longer than a
 ## path the test can find for itself.
+## Ten thousand worlds with a few pairs sampled in each, rather than three hundred
+## worlds and every pair in them.
+##
+## Exhausting the pairs inside a world is quadratic in its places, and each answer is
+## its own search over those places. Once claim 6 spliced towns in and a world went from
+## twenty-odd places to eighty-odd, the same test took fifty minutes to say the same
+## thing. Sampling spreads the cases over thirty times as many worlds for a fraction of
+## the work, which is the direction that matters: the G7 bar is stated in seeds, not in
+## pairs within one seed.
 func test_property_distance_is_symmetric_and_obeys_the_triangle_inequality() -> void:
 	var graph: RouteGraph = RouteGraph.new()
+	graph.set_kits(_kits())
 	var rng := RandomNumberGenerator.new()
 	rng.seed = SEED_PROPERTY
 	var asymmetric: int = 0
 	var triangles: int = 0
 	var beaten: int = 0
 	var pairs: int = 0
-	for i: int in 300:
+	for i: int in PROPERTY_CASES:
 		graph.generate(SEED_PROPERTY + i)
 		var ids: Array[int] = graph.node_ids()
-		for a: int in ids:
-			for b: int in ids:
-				pairs += 1
-				var there: int = graph.distance_between(a, b)
-				if there != graph.distance_between(b, a):
-					asymmetric += 1
-					if asymmetric <= 3:
-						fail("seed %d: %d to %d is not %d to %d" % [SEED_PROPERTY + i, a, b, b, a])
-				# the path the query itself returns is a path, so the distance may not
-				# be longer than walking it
-				var walked: int = 0
-				var path: Array[int] = graph.path_between(a, b)
-				for step: int in path.size() - 1:
-					var rec: Dictionary = graph.edge(graph.edge_between(path[step], path[step + 1]))
-					var length: int = rec["length"]
-					walked += length
-				if there > walked / 1000:
-					beaten += 1
-					if beaten <= 3:
-						fail("seed %d: %d m claimed, %d m walked" % [SEED_PROPERTY + i, there, walked / 1000])
+		for sample: int in PAIRS_PER_WORLD:
+			var a: int = ids[rng.randi_range(0, ids.size() - 1)]
+			var b: int = ids[rng.randi_range(0, ids.size() - 1)]
+			pairs += 1
+			var there: int = graph.distance_between(a, b)
+			if there != graph.distance_between(b, a):
+				asymmetric += 1
+				if asymmetric <= 3:
+					fail("seed %d: %d to %d is not %d to %d" % [SEED_PROPERTY + i, a, b, b, a])
+			# the path the query itself returns is a path, so the distance may not
+			# be longer than walking it
+			var walked: int = 0
+			var path: Array[int] = graph.path_between(a, b)
+			for step: int in path.size() - 1:
+				var rec: Dictionary = graph.edge(graph.edge_between(path[step], path[step + 1]))
+				var length: int = rec["length"]
+				walked += length
+			if there > walked / 1000:
+				beaten += 1
+				if beaten <= 3:
+					fail("seed %d: %d m claimed, %d m walked" % [SEED_PROPERTY + i, there, walked / 1000])
 			# one random third place a pair, rather than every triple: the cost of all
 			# of them is cubic and the claim is not stronger for it
 			# in millimetres, because metres truncate: two truncations on the right can
@@ -449,8 +490,11 @@ func test_how_far_a_slot_is_from_the_city() -> void:
 ## real place of a kind that can hold one, one step off the road, on ground the world
 ## knows — and the same seed offers the same slots down to the last one.
 func test_property_every_world_offers_the_same_slots_every_time() -> void:
+	var kits: Array[Dictionary] = _kits()
 	var first: RouteGraph = RouteGraph.new()
 	var second: RouteGraph = RouteGraph.new()
+	first.set_kits(kits)
+	second.set_kits(kits)
 	var disagreed: int = 0
 	var misplaced: int = 0
 	var empty: int = 0

@@ -60,7 +60,10 @@ const SLOT_STEPS: Array[Vector2i] = [
 	Vector2i(-1, 0), Vector2i(-1, -1), Vector2i(0, -1), Vector2i(1, -1),
 ]
 
-## node id -> {"kind": StringName, "x": int, "z": int}
+## node id -> {"kind": StringName, "x": int, "z": int, "town": int}
+## `town` is the settlement node whose kit put it there, or NONE for one of the world's
+## own places. A town's streets are close together on purpose, so the spacing rule that
+## makes an edge a journey is about the world's places and not a town's (claim 6).
 var _nodes: Dictionary = {}
 ## edge id -> {"a": int, "b": int, "width": int, "length": int}
 var _edges: Dictionary = {}
@@ -68,6 +71,11 @@ var _edges: Dictionary = {}
 var _at_node: Dictionary = {}
 ## slot id -> {"node": int, "x": int, "z": int, "biome": StringName}
 var _slots: Dictionary = {}
+## settlement node id -> {"kit": StringName, "turn": int, "blocks": Array}
+var _towns: Dictionary = {}
+## The settlement kits this world is built from, handed over once at assembly. Kept
+## rather than read, so a restore rebuilds the same world it saved.
+var _kits: Array[Dictionary] = []
 var _seed: int = 0
 
 
@@ -95,22 +103,41 @@ func attach(sim: SimRoot) -> Error:
 	# the tags are read here and never kept: a tag that names a biome the world does not
 	# have is dead content and should fail assembly, but generation stays a function of
 	# the seed alone, and it cannot read what nothing holds a reference to
+	var kits: Array[Dictionary] = []
 	var db: SimSystem = sim.get_system(ContentDb.SYSTEM_ID)
 	if db != null:
 		var content: ContentDb = db
 		var bad: Error = SiteTags.validate(content)
 		if bad != OK:
 			return bad
+		bad = SettlementKits.validate(content)
+		if bad != OK:
+			return bad
+		kits = SettlementKits.prepared(content)
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
+	set_kits(kits)
 	generate(sim.get_seed())
 	return OK
 
 
 # ---------------------------------------------------------------- generation
 
+## The settlement kits every later world is built from (M7 spec claim 6). Handed over
+## once, before the first generation; a graph with none simply has no towns, which is
+## what the graph-only property tests want.
+func set_kits(kits: Array[Dictionary]) -> void:
+	_kits = kits
+
+
+
 ## Builds the graph for a world seed, discarding whatever was there.
+##
+## A function of the seed and of the kits this graph was given at assembly, and of
+## nothing else: it reads no content, no terrain and not the sim's shared generator. The
+## kits are handed over once by [set_kits] rather than read here, so generation cannot
+## quietly start depending on anything more.
 ##
 ## Nodes are placed first, then joined: every node after the first is joined to one that
 ## is already connected, which is what makes the result connected without checking. The
@@ -121,6 +148,7 @@ func generate(world_seed: int) -> void:
 	_edges.clear()
 	_at_node.clear()
 	_slots.clear()
+	_towns.clear()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = world_seed
 	# the city gate is node 1 and sits at the origin: the world is measured from it
@@ -143,6 +171,7 @@ func generate(world_seed: int) -> void:
 			break
 	_join_everything(rng)
 	_add_loops(rng)
+	_raise_towns(rng)
 	_offer_slots(rng)
 
 
@@ -201,6 +230,92 @@ func _offer_slots(rng: RandomNumberGenerator) -> void:
 		}
 
 
+## Towns (M7 spec claim 6). Every settlement node gets a kit spliced onto it: the kit's
+## own streets become graph nodes, its roads become edges, and its sockets are joined to
+## the node the outside road already arrives at. A town is therefore a subgraph of the
+## world rather than a label on a node, and its navigation is in the graph from the
+## moment it exists.
+##
+## Raised after the world is joined and looped, so a town's dense streets never take
+## part in spanning the world or in the spacing rule that makes a world edge a journey.
+## Nothing here can disconnect anything: every node placed is joined to the kit's
+## always-built part, which is joined to the socket, which is joined to a node that is
+## already part of the world. [SettlementKits.validate] is what makes that true of any
+## kit, and it runs at assembly.
+func _raise_towns(rng: RandomNumberGenerator) -> void:
+	if _kits.is_empty():
+		return
+	for node: int in node_ids():
+		if kind_of(node) != KIND_SETTLEMENT:
+			continue
+		_raise_town(node, _kits[rng.randi_range(0, _kits.size() - 1)], rng)
+
+
+func _raise_town(anchor: int, kit: Dictionary, rng: RandomNumberGenerator) -> void:
+	var turn: int = rng.randi_range(0, 3)
+	var min_blocks: int = kit["min_blocks"]
+	var max_blocks: int = kit["max_blocks"]
+	var names: Array = kit["blocks"]
+	var pool: Array = names.duplicate()
+	var wanted: int = rng.randi_range(min_blocks, max_blocks)
+	var built: Array = []
+	for i: int in wanted:
+		if pool.is_empty():
+			break
+		built.append(pool.pop_at(rng.randi_range(0, pool.size() - 1)))
+	built.sort()
+	var chosen: Dictionary = {}
+	for v: Variant in built:
+		var name: String = v
+		chosen[name] = true
+	var at: Vector2i = position_of(anchor)
+	var made: Dictionary = {}
+	var nodes: Array = kit["nodes"]
+	for i: int in nodes.size():
+		var rec: Dictionary = nodes[i]
+		var block: String = rec["block"]
+		if not block.is_empty() and not chosen.has(block):
+			continue
+		var x: int = rec["x"]
+		var z: int = rec["z"]
+		var rel: Vector2i = _turned(Vector2i(x, z), turn)
+		var kind: StringName = rec["kind"]
+		made[i] = _add_node(kind, at.x + rel.x, at.y + rel.y, anchor)
+	for v: Variant in kit["edges"]:
+		var rec: Dictionary = v
+		var a: int = rec["a"]
+		var b: int = rec["b"]
+		if not made.has(a) or not made.has(b):
+			# an edge into a block nobody built is not a road to nowhere, it is no road
+			continue
+		var width: int = rec["width"]
+		var from: int = made[a]
+		var to: int = made[b]
+		_add_edge_wide(from, to, width)
+	for v: Variant in kit["sockets"]:
+		var rec: Dictionary = v
+		var node: int = rec["node"]
+		var width: int = rec["width"]
+		var street: int = made[node]
+		_add_edge_wide(anchor, street, width)
+	var id: StringName = kit["id"]
+	_towns[anchor] = {"kit": id, "turn": turn, "blocks": built}
+
+
+## A quarter turn about the node that anchors the town, on integers: a rotation matrix
+## of ones and zeroes, so a town can face four ways without a sine anywhere near the
+## state.
+static func _turned(rel: Vector2i, turn: int) -> Vector2i:
+	match turn:
+		1:
+			return Vector2i(-rel.y, rel.x)
+		2:
+			return Vector2i(-rel.x, -rel.y)
+		3:
+			return Vector2i(rel.y, -rel.x)
+	return rel
+
+
 func _kind_for(rng: RandomNumberGenerator) -> StringName:
 	var roll: int = rng.randi_range(0, 99)
 	if roll < 25:
@@ -220,14 +335,20 @@ func _far_enough(x: int, z: int) -> bool:
 	return true
 
 
-func _add_node(kind: StringName, x: int, z: int) -> int:
+func _add_node(kind: StringName, x: int, z: int, town: int = EntityIds.NONE) -> int:
 	var id: int = _nodes.size() + 1
-	_nodes[id] = {"kind": kind, "x": x, "z": z}
+	_nodes[id] = {"kind": kind, "x": x, "z": z, "town": town}
 	_at_node[id] = [] as Array[int]
 	return id
 
 
 func _add_edge(a: int, b: int, rng: RandomNumberGenerator) -> int:
+	return _add_edge_wide(a, b, rng.randi_range(MIN_WIDTH_MM, MAX_WIDTH_MM))
+
+
+## A road of a width someone chose: a town's streets are as wide as its kit says, not
+## as wide as the world rolled.
+func _add_edge_wide(a: int, b: int, width: int) -> int:
 	# an edge is stored one way round only, lower node first, so two nodes can never be
 	# joined twice by the same pair written in the other order
 	var lo: int = mini(a, b)
@@ -235,7 +356,7 @@ func _add_edge(a: int, b: int, rng: RandomNumberGenerator) -> int:
 	var id: int = _edges.size() + 1
 	_edges[id] = {
 		"a": lo, "b": hi,
-		"width": rng.randi_range(MIN_WIDTH_MM, MAX_WIDTH_MM),
+		"width": width,
 		"length": _distance_mm(lo, hi),
 	}
 	var at_lo: Array = _at_node[lo]
@@ -397,7 +518,8 @@ func canonical() -> Dictionary:
 		var kind: StringName = rec["kind"]
 		var x: int = rec["x"]
 		var z: int = rec["z"]
-		nodes.append([node, String(kind), x, z])
+		var town: int = rec["town"]
+		nodes.append([node, String(kind), x, z, town])
 	var edges: Array = []
 	for id: int in edge_ids():
 		var rec: Dictionary = _edges[id]
@@ -414,7 +536,14 @@ func canonical() -> Dictionary:
 		var z: int = rec["z"]
 		var biome: StringName = rec["biome"]
 		slots.append([id, node, x, z, String(biome)])
-	return {"nodes": nodes, "edges": edges, "slots": slots}
+	var towns: Array = []
+	for node: int in town_ids():
+		var rec: Dictionary = _towns[node]
+		var kit: StringName = rec["kit"]
+		var turn: int = rec["turn"]
+		var blocks: Array = rec["blocks"]
+		towns.append([node, String(kit), turn, blocks.duplicate()])
+	return {"nodes": nodes, "edges": edges, "slots": slots, "towns": towns}
 
 
 # ---------------------------------------------------------------- queries
@@ -449,8 +578,74 @@ func slot_ids() -> Array[int]:
 	return out
 
 
+## The settlement nodes that have a town on them, lowest first.
+func town_ids() -> Array[int]:
+	var out: Array[int] = []
+	for key: Variant in _towns:
+		var id: int = key
+		out.append(id)
+	out.sort()
+	return out
+
+
 func node_count() -> int:
 	return _nodes.size()
+
+
+func town_count() -> int:
+	return _towns.size()
+
+
+func has_town(node: int) -> bool:
+	return _towns.has(node)
+
+
+## The town a node belongs to, or NONE if it is one of the world's own places. A town's
+## anchor is a world node, so it belongs to no town itself — it is where the road arrives.
+func node_town(node: int) -> int:
+	var stored: Variant = _nodes.get(node)
+	if typeof(stored) != TYPE_DICTIONARY:
+		return EntityIds.NONE
+	var rec: Dictionary = stored
+	return rec["town"]
+
+
+func town_kit(node: int) -> StringName:
+	var stored: Variant = _towns.get(node)
+	if typeof(stored) != TYPE_DICTIONARY:
+		return &""
+	var rec: Dictionary = stored
+	return rec["kit"]
+
+
+## Which way the town faces, as a quarter turn.
+func town_turn(node: int) -> int:
+	var stored: Variant = _towns.get(node)
+	if typeof(stored) != TYPE_DICTIONARY:
+		return 0
+	var rec: Dictionary = stored
+	return rec["turn"]
+
+
+## The optional blocks this town actually got built with, in a fixed order.
+func town_blocks(node: int) -> Array:
+	var stored: Variant = _towns.get(node)
+	if typeof(stored) != TYPE_DICTIONARY:
+		return []
+	var rec: Dictionary = stored
+	var blocks: Array = rec["blocks"]
+	return blocks.duplicate()
+
+
+## The district whose rights tables a town already has (design doc §7.2), or empty if
+## the node is not a town or the kit it used is no longer in the world's kits.
+func town_district(node: int) -> StringName:
+	var kit: StringName = town_kit(node)
+	for entry: Dictionary in _kits:
+		var id: StringName = entry["id"]
+		if id == kit:
+			return entry["district"]
+	return &""
 
 
 func slot_count() -> int:

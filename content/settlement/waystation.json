@@ -1,0 +1,30 @@
+{
+	"schema_version": 1,
+	"title": "Waystation",
+	"description": "Where the road stops being empty: a gatehouse, a main street to a crossing, and a market that is really a yard with a roof over part of it. The yard, the depot and the terrace are blocks the world may or may not have bothered to build, which is what makes two waystations on the same road feel like two places rather than one placed twice.",
+	"district": "badlands_outskirts",
+	"min_blocks": 1,
+	"max_blocks": 3,
+	"nodes": [
+		{"rel": [50000, 0], "kind": "junction", "block": ""},
+		{"rel": [120000, 0], "kind": "junction", "block": ""},
+		{"rel": [120000, 60000], "kind": "poi", "block": ""},
+		{"rel": [120000, -60000], "kind": "junction", "block": "yard"},
+		{"rel": [180000, -60000], "kind": "poi", "block": "yard"},
+		{"rel": [190000, 20000], "kind": "poi", "block": "depot"},
+		{"rel": [70000, 70000], "kind": "junction", "block": "terrace"},
+		{"rel": [70000, 140000], "kind": "poi", "block": "terrace"}
+	],
+	"edges": [
+		{"a": 0, "b": 1, "width": 8000},
+		{"a": 1, "b": 2, "width": 6000},
+		{"a": 1, "b": 3, "width": 6000},
+		{"a": 3, "b": 4, "width": 4500},
+		{"a": 1, "b": 5, "width": 5000},
+		{"a": 0, "b": 6, "width": 4000},
+		{"a": 6, "b": 7, "width": 3500}
+	],
+	"sockets": [
+		{"node": 0, "width": 9000}
+	]
+}
