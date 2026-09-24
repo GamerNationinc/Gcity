@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "A quest record (M5 spec claim 9; M6 spec claim 9): objectives are bus events credited to an actor field of the payload, optionally filtered by tags, counted to a target; the reward is item templates spawned into the actor's inventory. A quest with a `turn_in` block is not paid when its objectives are done but when `quest.turn_in` is issued inside the named parcel, and its money is scaled by the run's payout curve.",
+	"description": "A quest record (M5 spec claim 9; M6 spec claim 9): objectives are bus events credited to an actor field of the payload, optionally filtered by tags, counted to a target; the reward is item templates spawned into the actor's inventory. A quest with a `turn_in` block is not paid when its objectives are done but when `quest.turn_in` is issued inside the named parcel, and its money is scaled by the run's payout curve. A quest may also carry an optional `site` block (M7 spec claim 8): constraints rather than a place \u2014 what the site has to be good for, how far out it is, and whether it has to be somewhere the player has not already found. The director binds it to a slot when the contract is accepted; the quest never names one.",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -120,6 +120,40 @@
 				"curve",
 				"currency",
 				"notes"
+			],
+			"additional_properties": false
+		},
+		"site": {
+			"type": "object",
+			"properties": {
+				"tags_any": {
+					"type": "array",
+					"min_length": 1,
+					"max_length": 8,
+					"items": {
+						"type": "string",
+						"ref": "site_tag"
+					}
+				},
+				"min_km": {
+					"type": "int",
+					"min": 0,
+					"max": 100
+				},
+				"max_km": {
+					"type": "int",
+					"min": 0,
+					"max": 100
+				},
+				"undiscovered": {
+					"type": "bool"
+				}
+			},
+			"required": [
+				"tags_any",
+				"min_km",
+				"max_km",
+				"undiscovered"
 			],
 			"additional_properties": false
 		}

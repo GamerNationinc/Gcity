@@ -122,7 +122,14 @@ func validate_content() -> Error:
 		if not _content.has(RunScoreSystem.KIND_CURVE, StringName(curve_s)):
 			push_error("QuestSystem: quest/%s prices its payout by a curve that does not exist: %s" % [quest, curve_s])
 			return ERR_INVALID_DATA
-	return OK
+	return SiteConstraint.validate(_content)
+
+
+## What the contract asks of the place it happens at, or empty for one that happens
+## wherever it was authored (M7 spec claim 8). Constraints, never a place: see
+## [SiteConstraint].
+func site_of(quest: StringName) -> Dictionary:
+	return SiteConstraint.of_quest(_content, quest)
 
 
 ## The turn-in terms, or empty for a quest that simply pays when it is done.
