@@ -121,6 +121,43 @@ then what consumes it, then what lives on it, then the seam, then the client.
     checks from M6 keep that true. Mutation score **≥ 75 %** on `sim/` (M6 landed
     76.8 %; the bar rises rather than holds).
 
+## Design note: regions and the seam (claims 13–15) — proposed 2026-09-24
+
+CEOGG decided (2026-09-24): the wild region's ground is **voxel cells from terrain**, and
+ADR-003's unmet condition 2 (the spike's worst frames traced at frame level, the
+streamer pooling its mesh nodes) is done **before claim 16**, recorded late in the G7
+debt log. What follows is the design those decisions need, for approval before code.
+
+1. **One world frame.** The gate is the origin, as it already is; every system keeps
+   the positions it has. A region is a part of that frame, not a frame of its own.
+2. **Regions are content.** `content/region/city.json` is the one authored region:
+   `kind: "authored"`, a bounding box in millimetres covering the city's parcels, and
+   its gates (`at`, plus the graph node the gate is: node 1). Everything outside every
+   authored region is the one wild region (`content/region/wilds.json`, `kind: "wild"`).
+   Claim 18's `region` schema is this.
+3. **The city backs onto the north.** Generation places world nodes south of the gate
+   only (`z <= -MIN_SPACING_MM`), so no road can run through the city: every road
+   leaves the gate southward, and connectivity stays true by construction with no new
+   rule. The fiction is a city against the sea or the mountains. Every world hash moves
+   once, and claims 1–9's properties are re-run.
+4. **Membership is by position; the boundary is a wall except at a gate.** A move that
+   would cross an authored region's boundary anywhere but a gate is refused. Crossing
+   at a gate is `region.enter` (claim 14), refused unless the actor stands at it.
+5. **Wild ground is 1 m voxel cells**, the same grid as building: a cell is solid below
+   the terrain height (claim 7), with the road carves cut in — a cutting or tunnel
+   hollowed to the road surface, a bridge deck made solid over a ravine — so every
+   road is walkable in the sim, not just in the arithmetic. Player edits are per-chunk
+   deltas (16³ cells), which is what claim 15 saves. Solidity is derived from the seed
+   and cached per chunk; only the deltas are state. The authored region keeps the flat
+   ground and build pieces it has now.
+6. **Movement learns slopes.** In the wild region a horizontal step may rise or drop one
+   level onto standable ground without a climbable face: walking uphill. Everything
+   else about movement is unchanged.
+7. **Who talks to `Region`.** Movement (standing, solidity, the seam), perception (line
+   of sight through wild ground), hydration (where on the ground a squad stands), sites
+   (claim 10: raised at a slot) and saving (claim 15). None of them names
+   `AuthoredRegion` or `WildRegion`; `tools/check_dependencies.py` enforces it.
+
 ## Out of scope (goes to the debt log if touched)
 
 Terrain art and materials beyond what proves claim 7; weather; vegetation; interiors
