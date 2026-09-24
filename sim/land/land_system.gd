@@ -104,6 +104,9 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.register_system(self)
 	if err != OK:
 		return err
+	err = _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+	if err != OK:
+		return err
 	err = sim.commands().register(COMMAND_TRANSFER, _on_transfer)
 	if err != OK:
 		return err
@@ -341,6 +344,12 @@ func _on_identify(_sim: SimRoot, payload: Dictionary) -> bool:
 	else:
 		_actor_owner[actor] = StringName(owner)
 	return true
+
+
+## A removed actor owns nothing and is nobody's any more (M7 spec claim 12).
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_actor_owner.erase(actor)
 
 
 # ---------------------------------------------------------------- restore
