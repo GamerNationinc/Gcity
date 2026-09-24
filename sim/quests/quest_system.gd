@@ -28,6 +28,9 @@ var _events: EventBus
 ## (actor, curve) -> the run's payout multiplier in milli-units. Unset pays flat, so
 ## a quest works with no scoring system in the sim at all.
 var _payout: Callable = Callable()
+## (quest) -> the slot its handle is bound to, or NONE (M7 spec claim 9). Unset, a quest
+## that names a site cannot be taken: it would be a contract with nowhere to happen.
+var _binder: Callable = Callable()
 ## event -> [[quest id, objective index], ...]
 var _rules: Dictionary = {}
 ## actor -> quest id -> {"status": String, "progress": Array[int]}
@@ -47,6 +50,12 @@ func _init(content: ContentDb, actors: ActorSystem, items: ItemSystem, land: Lan
 ## system does not know what a run is; it only knows a contract pays by one.
 func set_payout_source(source: Callable) -> void:
 	_payout = source
+
+
+## What turns a quest's site handle into a place, wired by the assembly. The quest
+## system does not know what a slot is; it only knows a contract with a handle needs one.
+func set_site_binder(binder: Callable) -> void:
+	_binder = binder
 
 
 func system_id() -> StringName:
@@ -195,7 +204,9 @@ func _record(actor: int, quest: StringName) -> Dictionary:
 
 # ---------------------------------------------------------------- commands
 
-## {"actor": int, "quest": string}: take a quest on. Once completed it stays so.
+## {"actor": int, "quest": string}: take a quest on. Once completed it stays so. A quest
+## with a site handle binds its place here, or is refused if the world has nowhere left
+## that will do.
 func _on_accept(_sim: SimRoot, payload: Dictionary) -> bool:
 	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("quest")) != TYPE_STRING:
 		return false
@@ -206,6 +217,14 @@ func _on_accept(_sim: SimRoot, payload: Dictionary) -> bool:
 		return false
 	if not _record(actor, quest).is_empty():
 		return false
+	if not site_of(quest).is_empty():
+		# bound last, once nothing else can refuse: a binding is permanent, so a
+		# refused accept must not leave one behind
+		if not _binder.is_valid():
+			return false
+		var slot: int = _binder.call(quest)
+		if slot == EntityIds.NONE:
+			return false
 	var t: Dictionary = _content.get_entry(KIND_QUEST, quest)
 	var objectives: Array = t["objectives"]
 	var progress: Array[int] = []

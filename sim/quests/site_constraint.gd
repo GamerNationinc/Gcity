@@ -37,6 +37,10 @@ static func of_quest(content: ContentDb, quest: StringName) -> Dictionary:
 ## owns: this reads it and never writes it, so the same question can be asked of a
 ## hypothetical as easily as of the save.
 static func matches(constraint: Dictionary, content: ContentDb, routes: RouteGraph, slot: int, discovered: Dictionary) -> bool:
+	return _fits(constraint, content, routes, slot, discovered, routes.slot_metres_from_gate(slot))
+
+
+static func _fits(constraint: Dictionary, content: ContentDb, routes: RouteGraph, slot: int, discovered: Dictionary, metres: int) -> bool:
 	if constraint.is_empty():
 		# a contract that asks for nothing is happy anywhere that is a place at all
 		return routes.has_slot(slot)
@@ -45,7 +49,6 @@ static func matches(constraint: Dictionary, content: ContentDb, routes: RouteGra
 	var undiscovered: bool = constraint["undiscovered"]
 	if undiscovered and discovered.has(slot):
 		return false
-	var metres: int = routes.slot_metres_from_gate(slot)
 	var min_km: int = constraint["min_km"]
 	var max_km: int = constraint["max_km"]
 	if metres < min_km * 1000 or metres > max_km * 1000:
@@ -63,8 +66,12 @@ static func matches(constraint: Dictionary, content: ContentDb, routes: RouteGra
 ## graph's, so it is the same everywhere; which one is chosen is the binder's business.
 static func slots_matching(constraint: Dictionary, content: ContentDb, routes: RouteGraph, discovered: Dictionary) -> Array[int]:
 	var out: Array[int] = []
+	# one search for every slot's distance, not one per slot: binding asks this of the
+	# whole world each time a contract is taken
+	var metres: Dictionary = routes.slots_metres_from_gate()
 	for slot: int in routes.slot_ids():
-		if matches(constraint, content, routes, slot, discovered):
+		var far: int = metres[slot]
+		if _fits(constraint, content, routes, slot, discovered, far):
 			out.append(slot)
 	return out
 
