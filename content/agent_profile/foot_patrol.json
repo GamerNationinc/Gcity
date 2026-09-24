@@ -1,0 +1,40 @@
+{
+	"schema_version": 1,
+	"description": "A squad on foot on the roads outside the city (M7 spec claim 12): the guard under the sim tuning, walking a token's route while nobody is about and a guard again the moment somebody is.",
+	"combat_profile": "guard",
+	"perception_profile": "guard_sim",
+	"aim_profile": "guard_sim",
+	"stress_profile": "guard_sim",
+	"stances": [
+		{
+			"stance": "travel",
+			"weight": 1000
+		},
+		{
+			"stance": "hold",
+			"weight": 1000
+		},
+		{
+			"stance": "advance",
+			"weight": 1000
+		},
+		{
+			"stance": "flank",
+			"weight": 1000
+		},
+		{
+			"stance": "retreat",
+			"weight": 1000
+		},
+		{
+			"stance": "investigate",
+			"weight": 1000
+		},
+		{
+			"stance": "surrender",
+			"weight": 1000
+		}
+	],
+	"radio": true,
+	"radio_latency_ticks": 20
+}

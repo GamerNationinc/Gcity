@@ -8068,7 +8068,7 @@
 			"tick": 1231
 		}
 	],
-	"expected_hash": "1381865e511338d905bcdb9a3d5bf1fdb97ec6c32095645f2d1d36962353c244",
+	"expected_hash": "a3d570a8494fceefb256036bf2cd6e39edf7ed3ebfb6ee549797888d250c23d3",
 	"name": "m6-stealth",
 	"schema_version": 1,
 	"seed": 20261230,

@@ -33,8 +33,10 @@ const PAYLOAD_KEY_PATTERN: String = "^[a-z0-9_]+$"
 
 var _routes: RouteGraph
 ## token id -> {"route": Array[int] of nodes, "leg": int, "progress": int, "speed": int,
-## "faction": String, "payload": Dictionary}. The token is on the edge from
-## route[leg] to route[leg + 1], `progress` millimetres from route[leg].
+## "faction": String, "payload": Dictionary, "held": bool}. The token is on the edge from
+## route[leg] to route[leg + 1], `progress` millimetres from route[leg]. A held token is
+## hydrated (claim 12): its squad is walking the route in the world, and the macro tier
+## leaves it alone until the squad hands the route back.
 var _tokens: Dictionary = {}
 var _next_token: int = 1
 var _faction_regex: RegEx = RegEx.create_from_string(LandSystem.OWNER_PATTERN)
@@ -82,7 +84,7 @@ func spawn(faction: String, from: int, to: int, speed: int, payload: Dictionary)
 	_next_token += 1
 	_tokens[id] = {
 		"route": route, "leg": 0, "progress": 0, "speed": speed,
-		"faction": faction, "payload": payload.duplicate(true),
+		"faction": faction, "payload": payload.duplicate(true), "held": false,
 	}
 	return id
 
@@ -126,15 +128,30 @@ func advance(ticks: int) -> void:
 		return
 	for id: int in token_ids():
 		var rec: Dictionary = _tokens[id]
-		_advance_one(rec, ticks)
+		var held: bool = rec["held"]
+		if not held:
+			_advance_one(rec, ticks)
 
 
 func _advance_one(rec: Dictionary, ticks: int) -> void:
 	var route: Array = rec["route"]
 	var speed: int = rec["speed"]
-	var budget: int = speed * ticks
 	var leg: int = rec["leg"]
 	var progress: int = rec["progress"]
+	var at: Vector2i = along(route, leg, progress, speed * ticks)
+	rec["leg"] = at.x
+	rec["progress"] = at.y
+
+
+## Where a walker on a route ends up after `distance` more millimetres from a leg and a
+## progress along it, as (leg, progress): leftover distance at a place carries onto the
+## next leg, and at the destination it stops. The macro tier and a hydrated squad walk
+## by this one rule, which is what lets hydration hand the route back to a token without
+## the two ever disagreeing about where a distance gets you.
+func along(route: Array, from_leg: int, from_progress: int, distance: int) -> Vector2i:
+	var budget: int = distance
+	var leg: int = from_leg
+	var progress: int = from_progress
 	while true:
 		var length: int = _leg_length(route, leg)
 		if progress + budget < length:
@@ -148,8 +165,91 @@ func _advance_one(rec: Dictionary, ticks: int) -> void:
 			break
 		leg += 1
 		progress = 0
+	return Vector2i(leg, progress)
+
+
+## The ground position, in millimetres, of a point on a route: `back` millimetres behind
+## (leg, progress), walking back over earlier legs as far as the route's start and no
+## further. How a squad in file is laid out along the road behind its lead.
+func point_at(route: Array, leg: int, progress: int, back: int = 0) -> Vector2i:
+	var l: int = leg
+	var p: int = progress - back
+	while p < 0 and l > 0:
+		l -= 1
+		p += _leg_length(route, l)
+	p = maxi(p, 0)
+	var a: int = route[l]
+	var b: int = route[l + 1]
+	var from: Vector2i = _routes.position_of(a)
+	var to: Vector2i = _routes.position_of(b)
+	var length: int = _leg_length(route, l)
+	if length <= 0:
+		return from
+	return Vector2i(from.x + (to.x - from.x) * p / length, from.y + (to.y - from.y) * p / length)
+
+
+## Where a token is on the ground, in millimetres.
+func position_of(id: int) -> Vector2i:
+	if not _tokens.has(id):
+		return Vector2i.ZERO
+	var rec: Dictionary = _tokens[id]
+	var route: Array = rec["route"]
+	var leg: int = rec["leg"]
+	var progress: int = rec["progress"]
+	return point_at(route, leg, progress)
+
+
+# ---------------------------------------------------------------- hydration
+
+## Hands a token to a hydrated squad (claim 12): the macro tier stops advancing it until
+## [release]. Refuses one already held.
+func hold(id: int) -> bool:
+	if not _tokens.has(id):
+		return false
+	var rec: Dictionary = _tokens[id]
+	var held: bool = rec["held"]
+	if held:
+		return false
+	rec["held"] = true
+	return true
+
+
+## Takes a token back from its squad, where the squad got to and with what it has left.
+## Refuses a token that is not held, or a place that is not on its route.
+func release(id: int, leg: int, progress: int, payload: Dictionary) -> bool:
+	if not is_held(id) or not _payload_ok(payload):
+		return false
+	var rec: Dictionary = _tokens[id]
+	var route: Array = rec["route"]
+	if leg < 0 or leg + 1 >= route.size() or progress < 0 or progress > _leg_length(route, leg):
+		return false
 	rec["leg"] = leg
 	rec["progress"] = progress
+	rec["payload"] = payload.duplicate(true)
+	rec["held"] = false
+	return true
+
+
+## A squad that was wiped out while hydrated leaves no token behind.
+func drop(id: int) -> bool:
+	if not is_held(id):
+		return false
+	_tokens.erase(id)
+	return true
+
+
+func is_held(id: int) -> bool:
+	if not _tokens.has(id):
+		return false
+	var rec: Dictionary = _tokens[id]
+	return rec["held"]
+
+
+func leg_of(id: int) -> int:
+	if not _tokens.has(id):
+		return -1
+	var rec: Dictionary = _tokens[id]
+	return rec["leg"]
 
 
 func _leg_length(route: Array, leg: int) -> int:
@@ -285,7 +385,7 @@ func restore(state: Dictionary) -> Error:
 		if id < 1 or id >= next:
 			return _restore_fail("token %d is outside the ids handed out" % id)
 		var rec: Dictionary = in_all[key]
-		if rec.size() != 6 or typeof(rec.get("route")) != TYPE_ARRAY or typeof(rec.get("leg")) != TYPE_INT \
+		if rec.size() != 7 or typeof(rec.get("held")) != TYPE_BOOL or typeof(rec.get("route")) != TYPE_ARRAY or typeof(rec.get("leg")) != TYPE_INT \
 				or typeof(rec.get("progress")) != TYPE_INT or typeof(rec.get("speed")) != TYPE_INT \
 				or typeof(rec.get("faction")) != TYPE_STRING or typeof(rec.get("payload")) != TYPE_DICTIONARY:
 			return _restore_fail("token %d record" % id)
@@ -313,10 +413,11 @@ func restore(state: Dictionary) -> Error:
 			return _restore_fail("token %d speed" % id)
 		var faction: String = rec["faction"]
 		var payload: Dictionary = rec["payload"]
+		var held: bool = rec["held"]
 		if not _faction_regex.search(faction) or not _payload_ok(payload):
 			return _restore_fail("token %d faction or payload" % id)
 		out[id] = {"route": route, "leg": leg, "progress": progress, "speed": speed,
-			"faction": faction, "payload": payload.duplicate(true)}
+			"faction": faction, "payload": payload.duplicate(true), "held": held}
 	_tokens = out
 	_next_token = next
 	return OK

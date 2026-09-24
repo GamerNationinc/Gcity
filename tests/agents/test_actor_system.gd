@@ -272,7 +272,7 @@ func test_removal_refuses_the_dead_the_embodied_and_nowhere() -> void:
 ## The systems that drop every row for a removed actor. Grows one module at a time as
 ## each learns to (M7 claim 12), until it is every system that keeps rows by actor.
 const REMOVAL_CLEAN: Array[StringName] = [&"actors", &"movement", &"perception", &"aim", &"stress", &"pathing", &"squads", &"stances", &"corpses",
-	&"progression", &"land", &"quests", &"terminals", &"score", &"standing", &"sites"]
+	&"progression", &"land", &"quests", &"terminals", &"score", &"standing", &"sites", &"hydration"]
 
 
 ## True when an actor's id appears in any of those systems anywhere a per-actor row

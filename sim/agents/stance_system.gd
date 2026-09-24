@@ -26,6 +26,10 @@ const STANCE_FLANK: StringName = &"flank"
 const STANCE_RETREAT: StringName = &"retreat"
 const STANCE_INVESTIGATE: StringName = &"investigate"
 const STANCE_SURRENDER: StringName = &"surrender"
+## Walking a token's route (M7 spec claim 12). The walking is the hydration system's;
+## this stance is the agent deciding that walking is what it is doing, and it gives way
+## the moment the agent knows anyone is there.
+const STANCE_TRAVEL: StringName = &"travel"
 ## Stances that fire at an alerted target in sight.
 const FIRING_STANCES: Array[StringName] = [&"hold", &"advance", &"flank"]
 const ENGAGE_CELLS: int = 5
@@ -48,6 +52,9 @@ var _events: EventBus
 var _scorers: Dictionary = {}
 ## agent -> {"stance": StringName, "since": int, "score": int, "waypoint": int, "goal": [] | [x, y, z]}
 var _stances: Dictionary = {}
+## (agent) -> bool: true while the agent belongs to a hydrated squad with a route to
+## walk. Wired by the assembly to the hydration system.
+var _travelling: Callable = Callable()
 var _fires: int = 0
 var _scored: int = 0
 
@@ -65,7 +72,8 @@ func _init(content: ContentDb, actors: ActorSystem, items: ItemSystem, perceptio
 	var errs: Array[Error] = [
 		register_scorer(STANCE_HOLD, _score_hold), register_scorer(STANCE_ADVANCE, _score_advance),
 		register_scorer(STANCE_FLANK, _score_flank), register_scorer(STANCE_RETREAT, _score_retreat),
-		register_scorer(STANCE_INVESTIGATE, _score_investigate), register_scorer(STANCE_SURRENDER, _score_surrender)]
+		register_scorer(STANCE_INVESTIGATE, _score_investigate), register_scorer(STANCE_SURRENDER, _score_surrender),
+		register_scorer(STANCE_TRAVEL, _score_travel)]
 	for e: Error in errs:
 		assert(e == OK, "built-in scorers register once")
 
@@ -91,6 +99,11 @@ func attach(sim: SimRoot) -> Error:
 func _on_removed(payload: Dictionary) -> void:
 	var actor: int = payload["actor"]
 	_stances.erase(actor)
+
+
+## Where "is this agent on the road" comes from, wired by the assembly.
+func set_travel_check(check: Callable) -> void:
+	_travelling = check
 
 
 ## A scorer for a stance name: func(ctx: Dictionary) -> int in [0, 1 000 000]. A
@@ -222,7 +235,7 @@ func context_of(agent: int) -> Dictionary:
 	var contact: int = _known_contact(agent)
 	var ctx: Dictionary = {"known": contact != EntityIds.NONE, "visible": false, "alerted": false, "awareness": 0,
 		"distance_mm": 0, "stress": _stress.stress_of(agent), "broken": _stress.is_broken(agent), "routed": _stress.is_routed(agent),
-		"in_cover": false, "route": not _route_of(agent).is_empty()}
+		"in_cover": false, "route": not _route_of(agent).is_empty(), "travelling": _is_travelling(agent)}
 	if contact == EntityIds.NONE:
 		return ctx
 	ctx["visible"] = _perception.sees(agent, contact)
@@ -328,6 +341,24 @@ func _score_investigate(ctx: Dictionary) -> int:
 	return 500_000 + awareness / 4
 
 
+## Walking the road while nobody is about. Anything known — seen, heard, remembered —
+## stops the walk, and the stance scorers above decide what happens instead; once it is
+## forgotten the walk wins back by more than the hysteresis.
+func _score_travel(ctx: Dictionary) -> int:
+	var travelling: bool = ctx.get("travelling", false)
+	var known: bool = ctx["known"]
+	if not travelling or known:
+		return 0
+	return 900_000
+
+
+func _is_travelling(agent: int) -> bool:
+	if not _travelling.is_valid():
+		return false
+	var on_road: bool = _travelling.call(agent)
+	return on_road
+
+
 func _score_surrender(ctx: Dictionary) -> int:
 	var routed: bool = ctx["routed"]
 	var visible: bool = ctx["visible"]
@@ -347,7 +378,7 @@ func tick(sim: SimRoot) -> void:
 			continue
 		var rec: Dictionary = _record(agent)
 		if rec.is_empty():
-			rec = {"stance": STANCE_HOLD, "since": tick_now, "score": 0, "waypoint": 0, "goal": [] as Array[int]}
+			rec = {"stance": _first_stance(agent), "since": tick_now, "score": 0, "waypoint": 0, "goal": [] as Array[int]}
 		if tick_now % SCORE_EVERY == agent % SCORE_EVERY:
 			_scored += 1
 			var current: StringName = rec["stance"]
@@ -362,6 +393,17 @@ func tick(sim: SimRoot) -> void:
 				_pathing.cancel(agent)
 		_execute(sim, agent, rec)
 		_stances[agent] = rec
+
+
+## A new agent starts in the first stance its profile lists, so a squad hydrated onto a
+## road is walking from its first tick rather than standing until its first scoring.
+## Every profile before M7 lists hold first, so for them this is the hold it always was.
+func _first_stance(agent: int) -> StringName:
+	var allowed: Array[Dictionary] = allowed_stances(agent)
+	if allowed.is_empty():
+		return STANCE_HOLD
+	var first: StringName = allowed[0]["stance"]
+	return first
 
 
 func _execute(sim: SimRoot, agent: int, rec: Dictionary) -> void:

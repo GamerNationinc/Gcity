@@ -80,7 +80,7 @@ func _hit_event(target: int) -> void:
 
 func test_stances_are_content_with_registered_scorers() -> void:
 	_setup()
-	assert_eq(_stances.implemented_stances(), [&"advance", &"flank", &"hold", &"investigate", &"retreat", &"surrender"] as Array[StringName], "six built-in scorers")
+	assert_eq(_stances.implemented_stances(), [&"advance", &"flank", &"hold", &"investigate", &"retreat", &"surrender", &"travel"] as Array[StringName], "seven built-in scorers")
 	assert_eq(_stances.register_scorer(&"hold", _hit_event), ERR_ALREADY_EXISTS, "a second scorer for a name is refused")
 	var db: ContentDb = _db()
 	db.add(&"stance", &"dance", {"schema_version": 1, "description": "no scorer"})
@@ -204,6 +204,41 @@ func test_hysteresis_keeps_a_stance_for_its_minimum_duration() -> void:
 	_combat.events().emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": guard, "round": 0, "tags": []})  # a second shot keeps the noise worth a look
 	_sim.step_n(StanceSystem.MIN_STANCE_TICKS - 12)
 	assert_eq(_stances.stance_of(guard), &"investigate", "after the minimum it switches")
+
+
+## M7 spec claim 12: a hydrated squad walks its token's route in the travel stance. It
+## starts in it — a new agent starts in the first stance its profile lists — keeps it
+## while nobody is about, and gives it up the moment it knows somebody is there. An
+## agent with no road to walk never picks it.
+func test_travel_is_the_walk_and_anybody_known_ends_it() -> void:
+	_setup()
+	var on_road: Dictionary = {}
+	_stances.set_travel_check(func(agent: int) -> bool: return on_road.has(agent))
+	var walker: int = _perception.spawn(&"foot_patrol", _cell(0, 0), 180, 1, "")
+	var stray: int = _perception.spawn(&"foot_patrol", _cell(0, 30), 180, 2, "")
+	on_road[walker] = true
+	_sim.step()
+	assert_eq(_stances.stance_of(walker), StanceSystem.STANCE_TRAVEL, "a squad on the road starts out walking")
+	assert_eq(_stances.stance_of(stray), StanceSystem.STANCE_TRAVEL, "and so does one that has lost its road, for now")
+	_sim.step_n(StanceSystem.MIN_STANCE_TICKS + StanceSystem.SCORE_EVERY)
+	assert_eq(_stances.stance_of(walker), StanceSystem.STANCE_TRAVEL, "nobody about: it keeps walking")
+	assert_eq(_stances.stance_of(stray), StanceSystem.STANCE_HOLD, "with no road to walk it stops and holds")
+	# a shot heard is somebody known, and the walk gives way to whatever that calls for
+	var pistol: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(_player), 1)
+	_actors.set_position(_player, _at(10, 0))
+	_combat.events().emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": walker, "round": 0, "tags": []})
+	_sim.step_n(StanceSystem.SCORE_EVERY)
+	assert_true(_stances.stance_of(walker) != StanceSystem.STANCE_TRAVEL, "it stops walking (%s)" % _stances.stance_of(walker))
+	# the scores themselves, so the numbers the walk depends on are pinned
+	var calm: Dictionary = _stances.context_of(stray)
+	calm["travelling"] = true
+	calm["known"] = false
+	var allowed: Array[Dictionary] = _stances.allowed_stances(stray)
+	assert_eq(_stances.choose(allowed, calm, StanceSystem.STANCE_HOLD, StanceSystem.MIN_STANCE_TICKS)["stance"], StanceSystem.STANCE_TRAVEL,
+		"a calm agent with a road goes back to walking from hold")
+	calm["known"] = true
+	var chosen: StringName = _stances.choose(allowed, calm, StanceSystem.STANCE_TRAVEL, StanceSystem.MIN_STANCE_TICKS)["stance"]
+	assert_true(chosen != StanceSystem.STANCE_TRAVEL, "and anybody known takes it off the road (%s)" % chosen)
 
 
 func test_property_choice_is_allowed_and_routed_never_advances() -> void:

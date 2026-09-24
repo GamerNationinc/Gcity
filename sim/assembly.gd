@@ -105,6 +105,10 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var tokens: MacroTokenSystem = MacroTokenSystem.new(routes)
 	if tokens.attach(sim) != OK:
 		return null
+	var hydration: HydrationSystem = HydrationSystem.new(content, routes, tokens, actors, perception, movement, items, stances, events)
+	if hydration.attach(sim) != OK:
+		return null
+	stances.set_travel_check(hydration.is_travelling)
 	return sim
 
 
@@ -142,7 +146,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, CorpseSystem.SYSTEM_ID, RouteGraph.SYSTEM_ID, Terrain.SYSTEM_ID, SiteBinder.SYSTEM_ID, MacroTokenSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, CorpseSystem.SYSTEM_ID, RouteGraph.SYSTEM_ID, Terrain.SYSTEM_ID, SiteBinder.SYSTEM_ID, MacroTokenSystem.SYSTEM_ID, HydrationSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -206,6 +210,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = binder_of(sim).restore(state)
 			MacroTokenSystem.SYSTEM_ID:
 				err = tokens_of(sim).restore(state)
+			HydrationSystem.SYSTEM_ID:
+				err = hydration_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -461,6 +467,15 @@ static func tokens_of(sim: SimRoot) -> MacroTokenSystem:
 		return null
 	var tokens: MacroTokenSystem = system
 	return tokens
+
+
+static func hydration_of(sim: SimRoot) -> HydrationSystem:
+	var system: SimSystem = sim.get_system(HydrationSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % HydrationSystem.SYSTEM_ID)
+		return null
+	var hydration: HydrationSystem = system
+	return hydration
 
 
 static func routes_of(sim: SimRoot) -> RouteGraph:

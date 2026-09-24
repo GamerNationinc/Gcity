@@ -1,0 +1,4 @@
+{
+	"schema_version": 1,
+	"description": "Walk the road: a hydrated squad following its token's route at the token's pace (M7 spec claim 12). Gives way the moment anybody is known to be about."
+}

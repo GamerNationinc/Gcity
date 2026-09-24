@@ -164,7 +164,7 @@ func _on_fire(payload: Dictionary) -> void:
 	var a: Vector3i = _actors.position_of(shooter)
 	var b: Vector3i = _actors.position_of(target)
 	for agent: int in _perception.agent_ids():
-		if agent == shooter or not _actors.is_alive(agent) or _same_squad(agent, shooter):
+		if agent == shooter or not _actors.is_alive(agent) or _perception.same_side(agent, shooter):
 			continue
 		var p: Dictionary = stress_profile_of(agent)
 		var near: int = p["near_miss_mm"]
@@ -193,13 +193,6 @@ func _on_hit(payload: Dictionary) -> void:
 		var p: Dictionary = stress_profile_of(agent)
 		var gain: int = p["gain_squadmate_down"]
 		_add(agent, gain)
-
-
-func _same_squad(a: int, b: int) -> bool:
-	if not _perception.is_agent(a) or not _perception.is_agent(b):
-		return false
-	var squad: int = _perception.squad_of(a)
-	return squad > 0 and squad == _perception.squad_of(b)
 
 
 func _add(agent: int, gain: int) -> void:

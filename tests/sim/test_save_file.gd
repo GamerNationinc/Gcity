@@ -326,7 +326,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 			32:
 				# M7 claim 11: tokens on the graph, which then walk every tick of the stream
 				out.append([at, &"token.spawn", {"faction": ["faction.scrapline", "Not A Tag"][rng.randi_range(0, 1)], "from": rng.randi_range(1, 20), "to": rng.randi_range(1, 20),
-					"speed": rng.randi_range(0, MacroTokenSystem.MAX_SPEED_MM_PER_TICK), "payload": {"members": rng.randi_range(1, 6)}}])
+					"speed": rng.randi_range(0, 80), "payload": {"profile": ["foot_patrol", "guard_sim"][rng.randi_range(0, 1)], "members": rng.randi_range(1, 6)}}])
 			23:
 				out.append([at, &"site.raise", {"actor": rng.randi_range(1, 3), "site": ["m4_test_building", "cold_storage", "nowhere"][rng.randi_range(0, 2)]}])
 			24:
