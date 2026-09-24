@@ -77,6 +77,10 @@ then what consumes it, then what lives on it, then the seam, then the client.
 10. **Cold Storage becomes a bound site.** The M6 mission keeps working, unchanged,
     with its authored building placed at a bound slot rather than at a fixed base
     cell. Its four fixtures are re-recorded and still record the same four runs.
+    **Order amended (CEOGG, 2026-09-24): lands after claims 11–14.** Slots lie in the
+    wilds, and design doc §15.1 has the mission's travel leg cross a region transition,
+    so the building is raised inside the wild region at its slot and reached through
+    the gate seam. Before regions exist there is nowhere honest to put it.
 
 ### Life off-screen (`sim/agents/`, ADR-010 B)
 
