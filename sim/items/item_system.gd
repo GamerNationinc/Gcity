@@ -906,6 +906,23 @@ func move_items(items: Array[int], to: StringName) -> int:
 	return items.size()
 
 
+## Drops an actor's inventory once the actor itself is gone (M7 spec claim 12). An
+## inventory is kept when empty, because a living actor with nothing in their pockets
+## still has pockets; an actor removed from the sim does not, and every squad that goes
+## off-screen would otherwise leave an empty one behind in every save. Refuses one that
+## still holds anything: removal moves the kit out first, and an item is never dropped
+## with its container.
+func forget_inventory(actor: int) -> bool:
+	var inv: StringName = inventory_of(actor)
+	if not _containers.has(inv):
+		return true
+	var held: Array[int] = _containers[inv]
+	if not held.is_empty():
+		return false
+	_containers.erase(inv)
+	return true
+
+
 ## Moves every item of one open container into another. The whole-container form of
 ## [method move_items]: this is what death and looting are built from, so M1 claim 10's
 ## conservation property covers both.

@@ -560,3 +560,19 @@ func test_arming_an_actor_from_a_kit_seats_the_magazine_and_chambers_a_round() -
 	var over: int = _items.arm(OTHER_ACTOR, &"g19", &"g19_mag_15", &"9x19_fmj", 99, 1000)
 	assert_true(over > 0, "armed with more rounds than fit")
 	assert_eq(_items.rounds_in(_items.magazine_of(over)).size(), 14, "the magazine took fifteen and chambered one")
+
+
+## M7 spec claim 12: a removed actor's empty pocket goes with it, so squads going off-
+## screen do not leave one behind in every save. A pocket with anything in it stays.
+func test_an_empty_inventory_can_be_forgotten_and_a_full_one_cannot() -> void:
+	_build()
+	_kit()
+	assert_false(_items.forget_inventory(ACTOR), "a pocket with a kit in it is not dropped")
+	assert_true(_items.items_in(_inv()).size() > 0, "and still holds the kit")
+	var held: int = _items.items_in(_inv()).size()
+	assert_eq(_items.move_container(_inv(), ItemSystem.token_container(1)), held, "emptied")
+	assert_true(_items.forget_inventory(ACTOR), "an empty one is")
+	var containers: Dictionary = _items.snapshot()["containers"]
+	assert_false(containers.has(_inv()) or containers.has(String(_inv())), "and is gone from the state")
+	assert_true(_items.forget_inventory(ACTOR), "forgetting it again is harmless")
+	assert_true(_items.forget_inventory(99999), "as is forgetting a pocket that never was")
