@@ -52,6 +52,9 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.register_system(self)
 	if err != OK:
 		return err
+	err = _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+	if err != OK:
+		return err
 	err = sim.commands().register(COMMAND_UNLOCK, _on_unlock)
 	if err != OK:
 		return err
@@ -314,6 +317,23 @@ func _on_unlock(_sim: SimRoot, payload: Dictionary) -> bool:
 	var per_actor_perks: Dictionary = _perks[actor]
 	per_actor_perks[perk] = handles
 	return true
+
+
+## A removed actor's skills go with it, and its perks' modifiers are released before
+## the actor is forgotten by the resolver (M7 spec claim 12).
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_skills.erase(actor)
+	if not _perks.has(actor):
+		return
+	var per_actor: Dictionary = _perks[actor]
+	for perk: Variant in per_actor:
+		var handles: Array = per_actor[perk]
+		for v: Variant in handles:
+			var handle: int = v
+			var removed: Error = _stats.remove_modifier(handle)
+			assert(removed == OK, "a perk's modifier is live until its actor goes")
+	_perks.erase(actor)
 
 
 # ---------------------------------------------------------------- restore
