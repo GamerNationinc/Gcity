@@ -69,6 +69,9 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.register_system(self)
 	if err != OK:
 		return err
+	err = _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+	if err != OK:
+		return err
 	for event: StringName in _sorted_names(_raises.keys()):
 		err = _events.subscribe(event, _on_event.bind(event))
 		if err != OK:
@@ -318,6 +321,12 @@ func _write(actor: int, scalar: StringName, value: int) -> void:
 			_standing.erase(actor)
 		return
 	per_actor[scalar] = clamped
+
+
+## A removed actor has no standing (M7 spec claim 12).
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_standing.erase(actor)
 
 
 # ---------------------------------------------------------------- restore
