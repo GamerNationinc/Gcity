@@ -201,6 +201,16 @@
 		{"kind": "actor.respawn", "payload": {"actor": 1, "extra": 1}},
 		{"kind": "actor.respawn", "payload": {"actor": 99999}},
 		{"kind": "actor.respawn", "payload": {"actor": -1}},
-		{"kind": "actor.respawn", "payload": {"actor": 1}}
+		{"kind": "actor.respawn", "payload": {"actor": 1}},
+		{"kind": "token.spawn", "payload": {}},
+		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 1, "speed": 100, "payload": {}}},
+		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 999999, "speed": 100, "payload": {}}},
+		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 2, "speed": 0, "payload": {}}},
+		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 2, "speed": 4611686018427387904, "payload": {}}},
+		{"kind": "token.spawn", "payload": {"faction": "../../etc/passwd", "from": 1, "to": 2, "speed": 100, "payload": {}}},
+		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 2, "speed": 100, "payload": {"members": [1, 2, 3]}}},
+		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 2, "speed": 100, "payload": {"Bad Key": 1}}},
+		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1.0, "to": 2, "speed": 100, "payload": {}}},
+		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 2, "speed": 100, "payload": {}, "edge": 3}}
 	]
 }

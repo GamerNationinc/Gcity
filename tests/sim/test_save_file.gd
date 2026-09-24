@@ -288,7 +288,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 	var out: Array = []
 	for _i: int in count:
 		var at: int = rng.randi_range(1, 3)
-		match rng.randi_range(0, 31):
+		match rng.randi_range(0, 32):
 			0:
 				out.append([at, &"actor.spawn", {"profile": "arcade", "range_m": rng.randi_range(0, 20)}])
 			10:
@@ -323,6 +323,10 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 			22:
 				# M6 claim 14: the mission's own commands, so the save covers them too
 				out.append([at, &"actor.move", {"actor": rng.randi_range(1, 6), "dx": rng.randi_range(-150, 150), "dz": rng.randi_range(-150, 150), "dy": rng.randi_range(-1, 1)}])
+			32:
+				# M7 claim 11: tokens on the graph, which then walk every tick of the stream
+				out.append([at, &"token.spawn", {"faction": ["faction.scrapline", "Not A Tag"][rng.randi_range(0, 1)], "from": rng.randi_range(1, 20), "to": rng.randi_range(1, 20),
+					"speed": rng.randi_range(0, MacroTokenSystem.MAX_SPEED_MM_PER_TICK), "payload": {"members": rng.randi_range(1, 6)}}])
 			23:
 				out.append([at, &"site.raise", {"actor": rng.randi_range(1, 3), "site": ["m4_test_building", "cold_storage", "nowhere"][rng.randi_range(0, 2)]}])
 			24:
