@@ -195,6 +195,51 @@ func test_a_living_agent_can_be_removed_and_leaves_nothing_behind() -> void:
 	assert_false(_mentions(_sim.snapshot(), gone), "and nothing brought it back")
 
 
+## The same, for an actor every module has a row for: a raised site's armed guard who
+## has taken a contract, begun a run, been given an owner tag, raised standing and
+## fought. Once it is removed no system keeps a row for it, and a save made afterwards
+## loads and runs on identically — which is the whole reason every row has to go, since
+## nearly every restore refuses a row naming somebody who is not there.
+func test_a_removed_actor_leaves_no_row_in_any_system_and_the_save_still_loads() -> void:
+	_build()
+	var sites: SiteSystem = SimAssembly.sites_of(_sim)
+	var player: int = _actors.spawn(&"arcade", 0)
+	assert_true(_do(&"site.raise", {"actor": player, "site": "cold_storage"}), "the site is raised, guards and all")
+	var gone: int = sites.agents_of(&"cold_storage")[0]
+	assert_true(_do(&"quest.accept", {"actor": gone, "quest": "first_blood"}), "it takes a contract")
+	assert_true(_do(&"run.begin", {"actor": gone}), "begins a run")
+	assert_true(_do(&"land.identify", {"actor": gone, "owner": "corp.coldchain"}), "and is somebody's")
+	# three handgun hits are a level, and a level is a point to spend on a perk, whose
+	# modifier sits on the guard in the resolver
+	var events: EventBus = SimAssembly.combat_of(_sim).events()
+	for i: int in 3:
+		events.emit(CombatSystem.EVENT_HIT, {"shooter": gone, "weapon": 0, "target": player, "node": &"body", "damage": 1,
+			"range_m": 5, "tags": ["weapon_class.handgun"], "killed": false})
+	assert_true(_do(&"perk.unlock", {"actor": gone, "perk": "handgun_focus"}), "and has a perk")
+	# walk the player into the lobby so the guards see, alert, report and shoot
+	_actors.set_position(player, Vector3i(44 * 1000, 1000, 43 * 1000))
+	_sim.step_n(200)
+	var before: Dictionary = _sim.snapshot()
+	for id: StringName in [&"quests", &"score", &"land", &"sites", &"progression", &"standing", &"perception", &"aim", &"stances"]:
+		assert_true(_holds(before["systems"][id], gone, 0), "%s has a row for it before" % id)
+	var stash: StringName = ItemSystem.token_container(1)
+	var items_before: int = _items.item_count()
+	assert_true(_actors.remove(gone, stash), "removed")
+	assert_eq(_items.item_count(), items_before, "nothing made or lost")
+	assert_false(_mentions(_sim.snapshot(), gone), "and no system keeps a row for it")
+	assert_false(sites.agents_of(&"cold_storage").has(gone), "the site no longer counts it among its guards")
+	_sim.step_n(60)
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	var snap: Dictionary = _sim.snapshot()
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "a save made after a removal loads")
+	assert_eq(other.restore_root(snap), OK, "root")
+	other.step_n(40)
+	_sim.step_n(40)
+	assert_eq(other.state_hash(), _sim.state_hash(), "and runs on identically")
+
+
 func test_removal_refuses_the_dead_the_embodied_and_nowhere() -> void:
 	_build()
 	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
@@ -226,7 +271,8 @@ func test_removal_refuses_the_dead_the_embodied_and_nowhere() -> void:
 
 ## The systems that drop every row for a removed actor. Grows one module at a time as
 ## each learns to (M7 claim 12), until it is every system that keeps rows by actor.
-const REMOVAL_CLEAN: Array[StringName] = [&"actors", &"movement", &"perception", &"aim", &"stress", &"pathing", &"squads", &"stances", &"corpses"]
+const REMOVAL_CLEAN: Array[StringName] = [&"actors", &"movement", &"perception", &"aim", &"stress", &"pathing", &"squads", &"stances", &"corpses",
+	&"progression", &"land", &"quests", &"terminals", &"score", &"standing", &"sites"]
 
 
 ## True when an actor's id appears in any of those systems anywhere a per-actor row

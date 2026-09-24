@@ -85,7 +85,7 @@ EXTRA_TESTS = {
     "sim/core/command_registry.gd": ["res://tests/sim/test_command_registry.gd"],
     "sim/core/json_numbers.gd": ["res://tests/sim/test_json_numbers.gd"],
     "sim/progression/stat_resolver.gd": ["res://tests/progression/test_stat_resolver.gd"],
-    "sim/progression/progression_system.gd": ["res://tests/progression/test_progression_system.gd"],
+    "sim/progression/progression_system.gd": ["res://tests/progression/test_progression_system.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/agents/corpse_system.gd": ["res://tests/agents/test_corpse.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/agents/movement_system.gd": [
         "res://tests/agents/test_movement_system.gd",
@@ -95,10 +95,11 @@ EXTRA_TESTS = {
         "res://tests/agents/test_actor_system.gd",
     ],
     "sim/agents/squad_system.gd": ["res://tests/agents/test_squad.gd", "res://tests/agents/test_actor_system.gd"],
-    "sim/quests/run_score_system.gd": ["res://tests/quests/test_run_score.gd"],
+    "sim/quests/run_score_system.gd": ["res://tests/quests/test_run_score.gd", "res://tests/agents/test_actor_system.gd"],
+    "sim/quests/quest_system.gd": ["res://tests/quests/test_quest_system.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/nav/portal_graph.gd": ["res://tests/nav/test_portal_graph.gd"],
-    "sim/world/site_system.gd": ["res://tests/world/test_site_system.gd"],
-    "sim/threat/standing_system.gd": ["res://tests/threat/test_standing.gd"],
+    "sim/world/site_system.gd": ["res://tests/world/test_site_system.gd", "res://tests/agents/test_actor_system.gd"],
+    "sim/threat/standing_system.gd": ["res://tests/threat/test_standing.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/agents/aim_system.gd": ["res://tests/agents/test_aim_and_stress.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/agents/stress_system.gd": ["res://tests/agents/test_aim_and_stress.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/agents/pathing_system.gd": ["res://tests/agents/test_agent_pathing.gd", "res://tests/agents/test_actor_system.gd"],
@@ -107,6 +108,7 @@ EXTRA_TESTS = {
     "sim/core/replay_fixture.gd": ["res://tests/sim/test_replay_fixture.gd"],
     "sim/core/sim_command.gd": ["res://tests/sim/test_sim_root.gd"],
     "sim/assembly.gd": ["res://tests/sim/test_sim_assembly.gd"],
+    "sim/land/land_system.gd": ["res://tests/land/test_land_system.gd", "res://tests/agents/test_actor_system.gd"],
 }
 #: Files with no tests of their own and nothing to mutate worth scoring.
 NO_TESTS_NEEDED = {"sim/core/sim_system.gd"}
