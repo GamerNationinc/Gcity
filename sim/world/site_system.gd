@@ -51,6 +51,9 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.register_system(self)
 	if err != OK:
 		return err
+	err = _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+	if err != OK:
+		return err
 	return sim.commands().register(COMMAND_RAISE, _on_raise)
 
 
@@ -223,6 +226,15 @@ func _on_raise(_sim: SimRoot, payload: Dictionary) -> bool:
 	var actor: int = payload["actor"]
 	var site_s: String = payload["site"]
 	return raise_site(actor, StringName(site_s))
+
+
+## A site's guard who is removed is no longer the site's (M7 spec claim 12).
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	for key: Variant in _raised:
+		var rec: Dictionary = _raised[key]
+		var agents: Array = rec["agents"]
+		agents.erase(actor)
 
 
 # ---------------------------------------------------------------- restore
