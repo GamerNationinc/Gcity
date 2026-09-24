@@ -121,12 +121,12 @@ then what consumes it, then what lives on it, then the seam, then the client.
     checks from M6 keep that true. Mutation score **≥ 75 %** on `sim/` (M6 landed
     76.8 %; the bar rises rather than holds).
 
-## Design note: regions and the seam (claims 13–15) — proposed 2026-09-24
+## Design note: regions and the seam (claims 13–15) — approved (CEOGG, 2026-09-24)
 
 CEOGG decided (2026-09-24): the wild region's ground is **voxel cells from terrain**, and
 ADR-003's unmet condition 2 (the spike's worst frames traced at frame level, the
 streamer pooling its mesh nodes) is done **before claim 16**, recorded late in the G7
-debt log. What follows is the design those decisions need, for approval before code.
+debt log. What follows is the design those decisions need.
 
 1. **One world frame.** The gate is the origin, as it already is; every system keeps
    the positions it has. A region is a part of that frame, not a frame of its own.
