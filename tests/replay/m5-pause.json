@@ -2086,7 +2086,7 @@
 			"tick": 231
 		}
 	],
-	"expected_hash": "87115302a3f8ee79ea3c3d6d034d6f458a41ecf649659f490c796ac839cced15",
+	"expected_hash": "ca93fc4977e3f7dd1b00642a299515e03f55f14a4fe499020aef25da5be32912",
 	"name": "m5-pause",
 	"schema_version": 1,
 	"seed": 20261150,

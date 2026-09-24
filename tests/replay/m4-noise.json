@@ -2325,7 +2325,7 @@
 			"tick": 90
 		}
 	],
-	"expected_hash": "1f1f86a0f62a85485440c19458f103bb1acba4ca1c8a8335873f166eb5dd2b72",
+	"expected_hash": "c28115b21a6543a8959c047b4745b46c3a77634ff6ddf2f9125746e3cee2e564",
 	"name": "m4-noise",
 	"schema_version": 1,
 	"seed": 20261100,
