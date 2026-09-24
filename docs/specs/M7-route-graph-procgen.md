@@ -169,6 +169,15 @@ of procedural settlements beyond their kits; the threat director, raids and susp
 - **The wilds are not a playground yet.** M7 proves the world is coherent, not that
   it is fun to walk across. If the G7 run wants "does it feel like a place", that is
   M8's content pass and should be said now rather than discovered at the gate.
+- **The long-run bar for the environment is Red Dead Redemption 2** (CEOGG, 2026-09-24:
+  "copy Red Dead in its meticulous detail to attention. Plan for that in the long run,
+  not in the short run"). Not M7's work, and weather and vegetation stay out of scope
+  here. What it asks of M7 is that nothing forecloses it: the wild ground is per-cell and
+  derived from the seed, so a cell can later carry a material and a biome as data;
+  vegetation, wildlife and weather belong on the models already here (seeded content
+  over the graph and terrain, macro tokens for animals, sim state for weather and time
+  of day); and persistent traces — tracks, damage, dug ground — are overlay deltas like
+  claim 15's terrain edits. Future environmental milestones get specced to that bar.
 - **Terrain cost on the Deck is the risk.** ADR-003's spike measured meshing at
   1.12 ms plugged for one chunk. A streamed region is many chunks; if the measured
   budget (§4.1) cannot hold at 40 fps, the fallback is fewer, larger chunks with a
