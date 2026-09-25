@@ -195,3 +195,166 @@ func test_regions_that_make_no_sense_fail_assembly() -> void:
 		assert_eq(db.add(Regions.KIND, id, entry), OK, "%s is well formed" % name)
 		var regions := Regions.new(_routes, _terrain)
 		assert_eq(regions.build(db), ERR_INVALID_DATA, "but %s is refused" % name)
+
+
+# ---------------------------------------------------------------- claim 14: the seam
+
+func _do(kind: StringName, payload: Dictionary) -> bool:
+	var before: int = _sim.dispatched_count()
+	assert_eq(_sim.submit(SimCommand.new(_sim.get_tick() + 1, kind, payload)), OK, "submit %s" % kind)
+	_sim.step()
+	return _sim.dispatched_count() == before + 1
+
+
+## M7 spec claim 14: the gate is a designed seam with a load window. Standing in its
+## opening, `region.enter` takes you through; for the window you are in the gate and go
+## nowhere, while the world keeps running; then you are set down on the far side, on
+## the ground. And back the same way.
+func test_the_gate_takes_you_through_after_a_load_window() -> void:
+	_setup()
+	var actors: ActorSystem = SimAssembly.actors_of(_sim)
+	var tokens: MacroTokenSystem = SimAssembly.tokens_of(_sim)
+	var player: int = actors.spawn(&"arcade", 0)
+	actors.set_position(player, Vector3i(1500, 0, 400))
+	assert_eq(_regions.gate_at(actors.position_of(player)), 1, "standing in the gate's opening")
+	# something off in the wilds, so the world visibly keeps running during the window
+	var far: Array[int] = []
+	for node: int in _routes.node_ids():
+		if node != 1 and _routes.neighbours(node).size() > 0:
+			far = [node, _routes.neighbours(node)[0]]
+			break
+	var token: int = tokens.spawn("faction.scrapline", far[0], far[1], 40, {})
+	assert_true(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "wilds"}), "through the gate")
+	assert_true(_regions.in_transit(player), "and in it")
+	var tick_in: int = _sim.get_tick()
+	var progress_in: int = tokens.progress_of(token)
+	assert_false(_do(&"actor.move", {"actor": player, "dx": 100, "dz": 0}), "going nowhere while in the gate")
+	assert_false(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "wilds"}), "and not taking it twice")
+	while _regions.in_transit(player):
+		_sim.step()
+	assert_eq(_sim.get_tick() - tick_in, Regions.LOAD_WINDOW_TICKS, "for exactly the load window")
+	assert_true(tokens.progress_of(token) > progress_in, "while the world outside kept going")
+	var out: Vector3i = actors.position_of(player)
+	assert_eq(out, Vector3i(1500, _regions.standing_cell_y(1500, -500) * BuildSystem.CELL, -500), "set down straight through it, on the ground")
+	assert_eq(_regions.region_at(out.x, out.z).id(), &"wilds", "in the wilds")
+	assert_true(_do(&"actor.move", {"actor": player, "dx": 100, "dz": -100}), "and free to walk")
+	# and back
+	actors.set_position(player, Vector3i(-2000, 0, -300))
+	assert_true(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "city"}), "back through it")
+	_sim.step_n(Regions.LOAD_WINDOW_TICKS)
+	assert_eq(actors.position_of(player), Vector3i(-2000, 0, 500), "into the city")
+
+
+func test_the_gate_is_only_taken_from_its_opening_and_only_through() -> void:
+	_setup()
+	var actors: ActorSystem = SimAssembly.actors_of(_sim)
+	var player: int = actors.spawn(&"arcade", 0)
+	actors.set_position(player, Vector3i(9000, 0, 400))
+	assert_false(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "wilds"}), "beside the gate, not in it")
+	actors.set_position(player, Vector3i(500, 0, 2500))
+	assert_false(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "wilds"}), "too far back from it")
+	actors.set_position(player, Vector3i(500, 0, 400))
+	assert_false(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "city"}), "not into the region you are already in")
+	assert_false(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "moon"}), "nor one that is not")
+	assert_false(_do(Regions.COMMAND_ENTER, {"actor": 99999, "region": "wilds"}), "nobody")
+	assert_false(_do(Regions.COMMAND_ENTER, {"actor": player}), "a short payload")
+	assert_false(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "wilds", "fast": true}), "an extra key")
+	actors.damage_node(player, &"body", 999999)
+	assert_false(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "wilds"}), "and not the dead")
+	assert_eq(_regions.transit_ids(), [] as Array[int], "and none of that put anyone in the gate")
+
+
+func test_a_save_taken_in_the_gate_loads_and_comes_out_the_same() -> void:
+	_setup()
+	var actors: ActorSystem = SimAssembly.actors_of(_sim)
+	var player: int = actors.spawn(&"arcade", 0)
+	actors.set_position(player, Vector3i(500, 0, 400))
+	assert_true(_do(Regions.COMMAND_ENTER, {"actor": player, "region": "wilds"}), "through the gate")
+	_sim.step_n(30)
+	var snap: Dictionary = _sim.snapshot()
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "restored mid-window")
+	assert_eq(other.restore_root(snap), OK, "root")
+	_sim.step_n(60)
+	other.step_n(60)
+	assert_eq(other.state_hash(), _sim.state_hash(), "and comes out the other side the same")
+	var good: Dictionary = _regions.snapshot()
+	for bad: Dictionary in [
+		{}, {"transits": [], },
+		{"transits": {99999: {"region": "wilds", "gate": 1, "due": 5}}},
+		{"transits": {player: {"region": "moon", "gate": 1, "due": 5}}},
+		{"transits": {player: {"region": "wilds", "gate": 2, "due": 5}}},
+		{"transits": {player: {"region": "wilds", "gate": 1, "due": -1}}},
+		{"transits": {player: {"region": "wilds", "gate": 1}}},
+	]:
+		assert_eq(_regions.restore(bad), ERR_INVALID_DATA, "refused: %s" % [bad])
+		assert_eq(_regions.snapshot(), good, "and nothing changed")
+
+
+# ---------------------------------------------------------------- claim 15: editing the ground
+
+## M7 spec claim 15: the wild ground can be dug out and filled in, and what has been
+## changed is the part of the ground a save carries — deltas per chunk, and nothing
+## once a cell is put back the way the seed made it.
+func test_the_wild_ground_can_be_dug_and_filled_and_the_save_holds_only_the_changes() -> void:
+	_setup()
+	var actors: ActorSystem = SimAssembly.actors_of(_sim)
+	var player: int = actors.spawn(&"arcade", 0)
+	# on the level apron outside the gate: standing in cell y 0, ground below
+	actors.set_position(player, Vector3i(500, 0, -40_500))
+	var ahead: Vector3i = Vector3i(1, -1, -41)
+	assert_true(_regions.is_solid(ahead), "the ground beside and below is ground")
+	assert_true(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [ahead.x, ahead.y, ahead.z]}), "dig it out")
+	assert_false(_regions.is_solid(ahead), "and it is a hole")
+	var edits: Dictionary = _regions.snapshot()["edits"]
+	assert_eq(edits.size(), 1, "one chunk changed")
+	assert_false(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [ahead.x, ahead.y, ahead.z]}), "a hole cannot be dug again")
+	assert_true(_do(Regions.COMMAND_FILL, {"actor": player, "cell": [ahead.x, ahead.y, ahead.z]}), "fill it back in")
+	assert_true(_regions.is_solid(ahead), "and it is ground")
+	assert_eq(_regions.snapshot()["edits"], {}, "put back the way the seed made it, it is no change at all")
+	# dig out from under yourself and you fall into it
+	var under: Vector3i = Vector3i(0, -1, -41)
+	assert_true(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [under.x, under.y, under.z]}), "dig under your own feet")
+	_sim.step_n(2)
+	assert_eq(actors.position_of(player).y, -BuildSystem.CELL, "and drop into the hole")
+	assert_true(actors.is_alive(player), "unhurt")
+	assert_false(_do(Regions.COMMAND_FILL, {"actor": player, "cell": [under.x, under.y, under.z]}), "and you cannot fill the cell you stand in")
+	# the save carries the hole
+	var snap: Dictionary = _sim.snapshot()
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "a save with a hole in it loads")
+	assert_false(SimAssembly.regions_of(other).is_solid(under), "with the hole")
+	var good: Dictionary = _regions.snapshot()
+	for bad: Dictionary in [
+		{"transits": {}},
+		{"transits": {}, "edits": {"a,b,c": {0: 0}}},
+		{"transits": {}, "edits": {"0,0,0": {}}},
+		{"transits": {}, "edits": {"0,0,0": {5000: 0}}},
+		{"transits": {}, "edits": {"0,0,0": {5: 2}}},
+		{"transits": {}, "edits": {"0,0,0": {"5": 0}}},
+	]:
+		assert_eq(_regions.restore(bad), ERR_INVALID_DATA, "refused: %s" % [bad])
+		assert_eq(_regions.snapshot(), good, "and nothing changed")
+
+
+func test_the_ground_is_only_edited_by_someone_there_where_it_can_be() -> void:
+	_setup()
+	var actors: ActorSystem = SimAssembly.actors_of(_sim)
+	var player: int = actors.spawn(&"arcade", 0)
+	actors.set_position(player, Vector3i(500, 0, -40_500))
+	var near: Array = [1, -1, -41]
+	assert_false(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [9, -1, -41]}), "out of reach")
+	assert_false(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [1, 3, -41]}), "air is not dug")
+	assert_false(_do(Regions.COMMAND_FILL, {"actor": player, "cell": near}), "ground is not filled")
+	assert_false(_do(Regions.COMMAND_DIG, {"actor": 99999, "cell": near}), "nobody")
+	assert_false(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [1, -1]}), "a short cell")
+	assert_false(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [1.0, -1, -41]}), "a fractional cell")
+	assert_false(_do(Regions.COMMAND_DIG, {"actor": player, "cell": near, "deep": true}), "an extra key")
+	# the city's ground is built on, not dug
+	actors.set_position(player, Vector3i(5_500, 0, 5_500))
+	assert_false(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [5, -1, 6]}), "not in the city")
+	assert_eq(_regions.snapshot()["edits"], {}, "and none of that changed the ground")

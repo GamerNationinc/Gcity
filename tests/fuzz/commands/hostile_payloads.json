@@ -211,6 +211,21 @@
 		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 2, "speed": 100, "payload": {"members": [1, 2, 3]}}},
 		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 2, "speed": 100, "payload": {"Bad Key": 1}}},
 		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1.0, "to": 2, "speed": 100, "payload": {}}},
-		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 2, "speed": 100, "payload": {}, "edge": 3}}
+		{"kind": "token.spawn", "payload": {"faction": "faction.scrapline", "from": 1, "to": 2, "speed": 100, "payload": {}, "edge": 3}},
+		{"kind": "region.enter", "payload": {}},
+		{"kind": "region.enter", "payload": {"actor": 1}},
+		{"kind": "region.enter", "payload": {"actor": 2, "region": "wilds"}},
+		{"kind": "region.enter", "payload": {"actor": 1, "region": "city"}},
+		{"kind": "region.enter", "payload": {"actor": 1, "region": "../../etc/passwd"}},
+		{"kind": "region.enter", "payload": {"actor": "1", "region": "wilds"}},
+		{"kind": "region.enter", "payload": {"actor": 1, "region": "wilds", "x": 0, "z": -500}},
+		{"kind": "ground.dig", "payload": {}},
+		{"kind": "ground.dig", "payload": {"actor": 1, "cell": [0, -1]}},
+		{"kind": "ground.dig", "payload": {"actor": 1, "cell": [0, -1, 0]}},
+		{"kind": "ground.dig", "payload": {"actor": 1, "cell": [0, -1, -5000]}},
+		{"kind": "ground.dig", "payload": {"actor": 1, "cell": [4611686018427387904, 0, 0]}},
+		{"kind": "ground.fill", "payload": {"actor": 1, "cell": [0, 0, 0]}},
+		{"kind": "ground.fill", "payload": {"actor": 2, "cell": ["x", 0, 0]}},
+		{"kind": "ground.fill", "payload": {"actor": 1, "cell": [0, 0, -1], "x": 1}}
 	]
 }

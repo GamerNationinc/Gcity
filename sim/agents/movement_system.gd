@@ -223,6 +223,9 @@ func speed_of(actor: int) -> int:
 func move(actor: int, dx: int, dz: int, dy: int = 0) -> bool:
 	if not _actors.is_alive(actor):
 		return false
+	# somebody in a gate goes nowhere until the gate sets them down (M7 spec claim 14)
+	if _regions != null and _regions.in_transit(actor):
+		return false
 	var speed: int = speed_of(actor)
 	if absi(dx) > speed or absi(dz) > speed or absi(dy) > 1:
 		return false

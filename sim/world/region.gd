@@ -41,6 +41,12 @@ func standing_cell_y(_x: int, _z: int) -> int:
 	return BuildSystem.GROUND_CELL_Y
 
 
+## Changes the ground in a cell, solid or not (M7 spec claim 15). False where the ground
+## is not the region's to change: the city's is built on, not dug.
+func set_ground(_cell: Vector3i, _solid: bool) -> bool:
+	return false
+
+
 ## How many levels a single horizontal step may climb onto the ground: walking uphill.
 func step_levels() -> int:
 	return 0

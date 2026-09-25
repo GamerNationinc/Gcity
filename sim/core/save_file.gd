@@ -12,7 +12,12 @@
 ## [method SimRoot.restore_root]. Nothing is applied unless the whole file is valid.
 class_name SaveFile extends RefCounted
 
-const SCHEMA_VERSION: int = 1
+## Version 2 (M7 spec claim 15) is version 1 with the world's overlay in it: the route
+## graph's seed and hash, the terrain's, the regions' edits and gate transits, bound
+## sites, tokens, hydrated squads and what has been discovered. A version-1 save still
+## loads: SimAssembly starts every system it predates as a new world at its seed.
+const SCHEMA_VERSION: int = 2
+const OLDEST_VERSION: int = 1
 const MAX_BYTES: int = 16 * 1024 * 1024
 const MAX_DEPTH: int = 64
 ## Beyond this magnitude a double no longer represents every integer.
@@ -21,6 +26,8 @@ const _KEYS: Array[String] = ["save_schema_version", "content_digest", "snapshot
 
 var content_digest: String = ""
 var snapshot: Dictionary = {}
+## The schema version the file was written in.
+var version: int = 0
 ## Empty when the file is valid; otherwise the first problem found.
 var error: String = ""
 
@@ -71,8 +78,9 @@ func _load(text: String) -> String:
 	if typeof(version_v) != TYPE_FLOAT and typeof(version_v) != TYPE_INT:
 		return "save_schema_version must be an integer"
 	var version_f: float = version_v
-	if version_f != float(SCHEMA_VERSION):
-		return "save_schema_version %s is not supported (expected %d)" % [version_v, SCHEMA_VERSION]
+	if version_f != floorf(version_f) or version_f < OLDEST_VERSION or version_f > SCHEMA_VERSION:
+		return "save_schema_version %s is not supported (expected %d to %d)" % [version_v, OLDEST_VERSION, SCHEMA_VERSION]
+	version = int(version_f)
 	if typeof(envelope["content_digest"]) != TYPE_STRING:
 		return "content_digest must be a string"
 	content_digest = envelope["content_digest"]

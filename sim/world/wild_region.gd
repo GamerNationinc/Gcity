@@ -5,13 +5,15 @@
 ## the graph runs, the road is cut in: the cells from the road surface up to
 ## ROAD_CLEARANCE are air, whether that is a cutting through a hill or a tunnel under a
 ## ridge, and the cell under the surface is solid, which over a ravine is a bridge deck.
+
 ## So every road the graph promises is walkable in the sim's own geometry, not only in
 ## the arithmetic of claim 7.
 ##
-## Nothing here is state. The ground is a function of the seed and the graph; it is
-## worked out a chunk of columns at a time when first asked for and kept in a cache
-## that is thrown away whenever the graph changes. Player edits, which are state, arrive
-## with claim 15 as chunk deltas on top of this.
+## The ground is a function of the seed and the graph; it is worked out a column at a
+## time when first asked for and kept in a cache that is thrown away whenever the graph
+## changes. What is state is the player's edits (claim 15): cells dug out or filled in,
+## kept as deltas per 16-cell cubic chunk on top of the derived ground, which is what
+## the save carries instead of any of the ground itself.
 class_name WildRegion extends Region
 
 ## Columns per chunk side. Also the edit chunk of claim 15.
@@ -20,6 +22,9 @@ const CHUNK: int = 16
 const ROAD_CLEARANCE: int = 4
 ## A column with no road over it.
 const NO_ROAD: int = -1_000_000
+## A column not worked out yet. Columns are filled in as they are asked for, since most
+## questions are about a few cells and a chunk is 256 columns of noise.
+const UNSET: int = -2_000_000
 ## Chunks kept at once. The cache is a convenience, not memory: past this it is simply
 ## dropped and rebuilt as asked, which changes nothing but time.
 const CACHE_CHUNKS: int = 4096
@@ -27,9 +32,14 @@ const CACHE_CHUNKS: int = 4096
 var _terrain: Terrain
 var _routes: RouteGraph
 var _authored: Array[Region] = []
-## Vector2i chunk -> PackedInt32Array, two per column: ground cell, road cell or NO_ROAD
+## Vector2i chunk -> PackedInt32Array, two per column: ground cell (UNSET until asked),
+## road cell or NO_ROAD
 var _columns: Dictionary = {}
+## Vector2i chunk -> the roads whose corridor could touch it, found once per chunk
+var _near: Dictionary = {}
 var _built_for: Vector2i = Vector2i(-1, -1)
+## "cx,cy,cz" chunk -> {local cell index (0..4095): 1 solid / 0 air}
+var _edits: Dictionary = {}
 
 
 func _init(id: StringName, terrain: Terrain, routes: RouteGraph, authored: Array[Region]) -> void:
@@ -48,6 +58,18 @@ func contains(x: int, z: int) -> bool:
 
 
 func is_solid(cell: Vector3i) -> bool:
+	if not _edits.is_empty():
+		var key: String = _chunk_key(cell)
+		if _edits.has(key):
+			var chunk: Dictionary = _edits[key]
+			var index: int = _local_index(cell)
+			if chunk.has(index):
+				var solid: int = chunk[index]
+				return solid == 1
+	return _derived_solid(cell)
+
+
+func _derived_solid(cell: Vector3i) -> bool:
 	var column: Vector2i = _column(cell.x, cell.z)
 	var road: int = column.y
 	if road != NO_ROAD:
@@ -68,6 +90,44 @@ func standing_cell_y(x: int, z: int) -> int:
 	return column.y if column.y != NO_ROAD else column.x
 
 
+## Digs a cell out or fills it in. An edit that puts a cell back the way the seed made
+## it is dropped rather than kept, so the overlay only ever holds real changes.
+func set_ground(cell: Vector3i, solid: bool) -> bool:
+	var key: String = _chunk_key(cell)
+	var index: int = _local_index(cell)
+	var chunk: Dictionary = _edits.get(key, {})
+	if _derived_solid(cell) == solid:
+		chunk.erase(index)
+	else:
+		chunk[index] = 1 if solid else 0
+	if chunk.is_empty():
+		_edits.erase(key)
+	else:
+		_edits[key] = chunk
+	return true
+
+
+## The edits as the save holds them.
+func edits() -> Dictionary:
+	return _edits.duplicate(true)
+
+
+## Puts back a saved set of edits, checked by [Regions] first.
+func set_edits(edits_in: Dictionary) -> void:
+	_edits = edits_in.duplicate(true)
+
+
+static func _chunk_key(cell: Vector3i) -> String:
+	return "%d,%d,%d" % [Terrain._floor_div(cell.x, CHUNK), Terrain._floor_div(cell.y, CHUNK), Terrain._floor_div(cell.z, CHUNK)]
+
+
+static func _local_index(cell: Vector3i) -> int:
+	var x: int = cell.x - Terrain._floor_div(cell.x, CHUNK) * CHUNK
+	var y: int = cell.y - Terrain._floor_div(cell.y, CHUNK) * CHUNK
+	var z: int = cell.z - Terrain._floor_div(cell.z, CHUNK) * CHUNK
+	return (y * CHUNK + z) * CHUNK + x
+
+
 ## Walking uphill: a step may climb one level onto ground.
 func step_levels() -> int:
 	return 1
@@ -80,30 +140,30 @@ func _column(cx: int, cz: int) -> Vector2i:
 	var stamp: Vector2i = Vector2i(_routes.revision(), _terrain.world_seed())
 	if stamp != _built_for:
 		_columns.clear()
+		_near.clear()
 		_built_for = stamp
 	var chunk: Vector2i = Vector2i(Terrain._floor_div(cx, CHUNK), Terrain._floor_div(cz, CHUNK))
 	if not _columns.has(chunk):
 		if _columns.size() >= CACHE_CHUNKS:
 			_columns.clear()
-		_columns[chunk] = _build_chunk(chunk)
+			_near.clear()
+		var fresh := PackedInt32Array()
+		fresh.resize(CHUNK * CHUNK * 2)
+		fresh.fill(UNSET)
+		_columns[chunk] = fresh
+		_near[chunk] = _roads_near(chunk)
 	var data: PackedInt32Array = _columns[chunk]
 	var i: int = ((cz - chunk.y * CHUNK) * CHUNK + (cx - chunk.x * CHUNK)) * 2
+	if data[i] == UNSET:
+		var c: int = BuildSystem.CELL
+		var x: int = cx * c + c / 2
+		var z: int = cz * c + c / 2
+		var near: Array[Array] = _near[chunk]
+		data[i] = Terrain._floor_div(_terrain.ground_mm(x, z) + c / 2, c)
+		data[i + 1] = _road_cell(near, x, z)
+		# a PackedInt32Array is a value: the one in the cache is the one that must change
+		_columns[chunk] = data
 	return Vector2i(data[i], data[i + 1])
-
-
-func _build_chunk(chunk: Vector2i) -> PackedInt32Array:
-	var c: int = BuildSystem.CELL
-	var near: Array[Array] = _roads_near(chunk)
-	var data := PackedInt32Array()
-	data.resize(CHUNK * CHUNK * 2)
-	for dz: int in CHUNK:
-		for dx: int in CHUNK:
-			var x: int = (chunk.x * CHUNK + dx) * c + c / 2
-			var z: int = (chunk.y * CHUNK + dz) * c + c / 2
-			var i: int = (dz * CHUNK + dx) * 2
-			data[i] = Terrain._floor_div(_terrain.ground_mm(x, z) + c / 2, c)
-			data[i + 1] = _road_cell(near, x, z)
-	return data
 
 
 ## The road surface cell over a ground position, from the lowest-numbered road whose

@@ -9,36 +9,77 @@
 ## literal: nobody on this side of the interface can branch on which kind it is.
 ##
 ## An authored region's edge is a wall. The only way across is a gate, and taking a gate
-## is `region.enter` (claim 14); a move that would cross anywhere else is refused.
+## is `region.enter` (claim 14): refused unless the actor stands in the gate's opening,
+## and then a load window of LOAD_WINDOW_TICKS during which the actor is in transit and
+## goes nowhere, before being set down on the far side. The world does not wait: the
+## sim, tokens and all, keeps running while anyone is in the gate.
 class_name Regions extends SimSystem
 
 const SYSTEM_ID: StringName = &"regions"
 const KIND: StringName = &"region"
 const KIND_AUTHORED: String = "authored"
 const KIND_WILD: String = "wild"
+const COMMAND_ENTER: StringName = &"region.enter"
+const COMMAND_DIG: StringName = &"ground.dig"
+const COMMAND_FILL: StringName = &"ground.fill"
+## How far from where an actor stands a cell can be dug or filled, to its centre.
+const REACH_MM: int = 2_500
+## How long taking a gate takes: the seam's load window, in ticks (two seconds).
+const LOAD_WINDOW_TICKS: int = 80
 
 var _routes: RouteGraph
 var _terrain: Terrain
+var _actors: ActorSystem
+var _events: EventBus
+var _land: LandSystem
+var _build: BuildSystem
+## actor -> {"region": String (where they are going), "gate": int (graph node), "due": int (tick)}
+var _transits: Dictionary = {}
 var _authored: Array[Region] = []
 var _wild: Region = null
 
 
-func _init(routes: RouteGraph, terrain: Terrain) -> void:
+func _init(routes: RouteGraph, terrain: Terrain, actors: ActorSystem = null, events: EventBus = null, land: LandSystem = null, build_system: BuildSystem = null) -> void:
 	_routes = routes
 	_terrain = terrain
+	_actors = actors
+	_events = events
+	_land = land
+	_build = build_system
 
 
 func system_id() -> StringName:
 	return SYSTEM_ID
 
 
-func tick(_sim: SimRoot) -> void:
-	pass
+## Sets down everyone whose load window is over, lowest actor first.
+func tick(sim: SimRoot) -> void:
+	var now: int = sim.get_tick()
+	for actor: int in transit_ids():
+		var rec: Dictionary = _transits[actor]
+		if not _actors.is_alive(actor):
+			_transits.erase(actor)
+			continue
+		var due: int = rec["due"]
+		if due > now:
+			continue
+		_transits.erase(actor)
+		var gate: int = rec["gate"]
+		var here: Vector3i = _actors.position_of(actor)
+		var target_s: String = rec["region"]
+		var there: Vector2i = _far_side(StringName(target_s), gate, Vector2i(here.x, here.z))
+		var err: Error = _actors.set_position(actor, Vector3i(there.x, standing_cell_y(there.x, there.y) * BuildSystem.CELL, there.y))
+		assert(err == OK, "a gate sets you down inside the world")
 
 
-## The ground is the seed's; nothing about it is state until claim 15's edits.
+## The ground is the seed's; what is state is who is in a gate and what has been dug or
+## filled (claim 15), the only part of the ground a save carries.
 func snapshot() -> Dictionary:
-	return {}
+	var edits: Dictionary = {}
+	if _wild is WildRegion:
+		var wild: WildRegion = _wild
+		edits = wild.edits()
+	return {"transits": _transits.duplicate(true), "edits": edits}
 
 
 func attach(sim: SimRoot) -> Error:
@@ -50,7 +91,20 @@ func attach(sim: SimRoot) -> Error:
 	var err: Error = build(content)
 	if err != OK:
 		return err
-	return sim.register_system(self)
+	err = sim.register_system(self)
+	if err != OK:
+		return err
+	err = _events.subscribe(ActorSystem.EVENT_REMOVED, _on_removed)
+	if err != OK:
+		return err
+	# not pause-safe: a gate is walked through in world time
+	err = sim.commands().register(COMMAND_ENTER, _on_enter, false)
+	if err != OK:
+		return err
+	err = sim.commands().register(COMMAND_DIG, _on_dig, false)
+	if err != OK:
+		return err
+	return sim.commands().register(COMMAND_FILL, _on_fill, false)
 
 
 ## Builds the regions from content: every authored region's box and gates checked, and
@@ -159,9 +213,195 @@ func gates_of(region: StringName) -> Array[Dictionary]:
 	return [] as Array[Dictionary]
 
 
+# ---------------------------------------------------------------- the seam
+
+func transit_ids() -> Array[int]:
+	var out: Array[int] = []
+	for key: Variant in _transits:
+		var id: int = key
+		out.append(id)
+	out.sort()
+	return out
+
+
+## True while an actor is in a gate: it goes nowhere until it is set down.
+func in_transit(actor: int) -> bool:
+	return _transits.has(actor)
+
+
+## The gate an actor is standing in the opening of, as a graph node, or NONE. In the
+## opening means within the gate's half-width along the edge and within a cell of the
+## edge on either side of it.
+func gate_at(pos: Vector3i) -> int:
+	for region: Region in _authored:
+		for gate: Dictionary in region.gates():
+			var gx: int = gate["x"]
+			var gz: int = gate["z"]
+			var half: int = gate["half_width_mm"]
+			var along: int = absi(pos.x - gx) if _edge_runs_along_x(region, gate) else absi(pos.z - gz)
+			var across: int = absi(pos.z - gz) if _edge_runs_along_x(region, gate) else absi(pos.x - gx)
+			if along <= half and across < BuildSystem.CELL:
+				var node: int = gate["node"]
+				return node
+	return EntityIds.NONE
+
+
+## {"actor": int, "region": string}: take the gate you are standing in, to the region on
+## the other side of it.
+func _on_enter(sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("region")) != TYPE_STRING:
+		return false
+	var actor: int = payload["actor"]
+	var target_s: String = payload["region"]
+	var target: StringName = StringName(target_s)
+	if not _actors.is_alive(actor) or _transits.has(actor) or not region_ids().has(target):
+		return false
+	var here: Vector3i = _actors.position_of(actor)
+	var gate: int = gate_at(here)
+	if gate == EntityIds.NONE:
+		return false
+	var from: Region = region_at(here.x, here.z)
+	if from.id() == target:
+		return false
+	# the gate joins its authored region to whatever lies beyond its edge, and that is
+	# the only place it goes
+	var there: Vector2i = _far_side(target, gate, Vector2i(here.x, here.z))
+	if region_at(there.x, there.y).id() != target:
+		return false
+	_transits[actor] = {"region": target_s, "gate": gate, "due": sim.get_tick() + LOAD_WINDOW_TICKS}
+	return true
+
+
+## Where taking a gate sets you down: straight through it, half a cell beyond its edge,
+## on the side that is `target`.
+func _far_side(target: StringName, gate: int, from: Vector2i) -> Vector2i:
+	var at: Vector2i = _routes.position_of(gate)
+	var half: int = BuildSystem.CELL / 2
+	for region: Region in _authored:
+		for g: Dictionary in region.gates():
+			var node: int = g["node"]
+			if node != gate:
+				continue
+			var inward: bool = target == region.id()
+			if _edge_runs_along_x(region, g):
+				var into_z: int = at.y + half if region.contains(at.x, at.y + half) == inward else at.y - half
+				return Vector2i(from.x, into_z)
+			var into_x: int = at.x + half if region.contains(at.x + half, at.y) == inward else at.x - half
+			return Vector2i(into_x, from.y)
+	return from
+
+
+## Whether a gate's edge runs along x (a north or south edge of its box).
+func _edge_runs_along_x(region: Region, gate: Dictionary) -> bool:
+	var gx: int = gate["x"]
+	var gz: int = gate["z"]
+	# a gate on a north or south edge has the region on one side of it in z
+	return region.contains(gx, gz) != region.contains(gx, gz - 1)
+
+
+# ---------------------------------------------------------------- editing the ground
+
+## {"actor": int, "cell": [x, y, z]}: dig a cell of ground out.
+func _on_dig(_sim: SimRoot, payload: Dictionary) -> bool:
+	var cell: Vector3i = _edit_cell(payload)
+	if cell == INVALID_CELL or not is_solid(cell):
+		return false
+	return region_of_cell(cell).set_ground(cell, false)
+
+
+## {"actor": int, "cell": [x, y, z]}: fill a cell in. Never where somebody is standing.
+func _on_fill(_sim: SimRoot, payload: Dictionary) -> bool:
+	var cell: Vector3i = _edit_cell(payload)
+	if cell == INVALID_CELL or is_solid(cell):
+		return false
+	for actor: int in _actors.actor_ids():
+		if _actors.is_alive(actor) and BuildSystem.cell_of(_actors.position_of(actor)) == cell:
+			return false
+	return region_of_cell(cell).set_ground(cell, true)
+
+
+const INVALID_CELL: Vector3i = Vector3i(-2147483648, -2147483648, -2147483648)
+
+
+## The cell an edit names, if the actor may edit it: alive and not in a gate, the cell
+## within reach, nothing built in it, and the right to dig there.
+func _edit_cell(payload: Dictionary) -> Vector3i:
+	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("cell")) != TYPE_ARRAY:
+		return INVALID_CELL
+	var actor: int = payload["actor"]
+	var raw: Array = payload["cell"]
+	if raw.size() != 3:
+		return INVALID_CELL
+	for v: Variant in raw:
+		if typeof(v) != TYPE_INT:
+			return INVALID_CELL
+		var n: int = v
+		if absi(n) > BuildSystem.MAX_CELL:
+			return INVALID_CELL
+	var x: int = raw[0]
+	var y: int = raw[1]
+	var z: int = raw[2]
+	var cell: Vector3i = Vector3i(x, y, z)
+	if not _actors.is_alive(actor) or _transits.has(actor):
+		return INVALID_CELL
+	var c: int = BuildSystem.CELL
+	var centre: Vector3i = Vector3i(x * c + c / 2, y * c + c / 2, z * c + c / 2)
+	if PerceptionSystem.distance_mm(_actors.position_of(actor), centre) > REACH_MM:
+		return INVALID_CELL
+	if _build.cell_piece_at(cell) != EntityIds.NONE:
+		return INVALID_CELL
+	if not _land.require(centre, actor, &"dig"):
+		return INVALID_CELL
+	return cell
+
+
+func _on_removed(payload: Dictionary) -> void:
+	var actor: int = payload["actor"]
+	_transits.erase(actor)
+
+
 # ---------------------------------------------------------------- restore
 
 func restore(state: Dictionary) -> Error:
-	if not state.is_empty():
-		return _fail("restore: the ground holds no state yet")
+	if state.size() != 2 or typeof(state.get("transits")) != TYPE_DICTIONARY or typeof(state.get("edits")) != TYPE_DICTIONARY:
+		return _fail("restore: shape")
+	var edits_in: Dictionary = state["edits"]
+	var chunk_re: RegEx = RegEx.create_from_string("^-?[0-9]+,-?[0-9]+,-?[0-9]+$")
+	for key: Variant in edits_in:
+		if typeof(key) != TYPE_STRING or typeof(edits_in[key]) != TYPE_DICTIONARY:
+			return _fail("restore: edit chunk")
+		var name: String = key
+		if not chunk_re.search(name):
+			return _fail("restore: edit chunk")
+		var chunk: Dictionary = edits_in[key]
+		if chunk.is_empty():
+			return _fail("restore: an empty edit chunk")
+		for index: Variant in chunk:
+			if typeof(index) != TYPE_INT or typeof(chunk[index]) != TYPE_INT:
+				return _fail("restore: edit entry")
+			var i: int = index
+			var solid: int = chunk[index]
+			if i < 0 or i >= WildRegion.CHUNK * WildRegion.CHUNK * WildRegion.CHUNK or (solid != 0 and solid != 1):
+				return _fail("restore: edit entry")
+	var in_all: Dictionary = state["transits"]
+	var out: Dictionary = {}
+	for key: Variant in in_all:
+		if typeof(key) != TYPE_INT or typeof(in_all[key]) != TYPE_DICTIONARY:
+			return _fail("restore: transit key")
+		var actor: int = key
+		var rec: Dictionary = in_all[key]
+		if not _actors.has_actor(actor):
+			return _fail("restore: actor %d in a gate is not there" % actor)
+		if rec.size() != 3 or (typeof(rec.get("region")) != TYPE_STRING and typeof(rec.get("region")) != TYPE_STRING_NAME) \
+				or typeof(rec.get("gate")) != TYPE_INT or typeof(rec.get("due")) != TYPE_INT:
+			return _fail("restore: transit of %d" % actor)
+		var target: StringName = StringName(str(rec["region"]))
+		var gate: int = rec["gate"]
+		var due: int = rec["due"]
+		if not region_ids().has(target) or _routes.kind_of(gate) != RouteGraph.KIND_GATE or due < 0:
+			return _fail("restore: transit of %d goes nowhere" % actor)
+		out[actor] = {"region": String(target), "gate": gate, "due": due}
+	_transits = out
+	var wild: WildRegion = _wild
+	wild.set_edits(edits_in)
 	return OK

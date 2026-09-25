@@ -295,13 +295,10 @@ func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 				if north <= 3:
 					fail("seed %d put node %d at z %d, north of where the wilds are" % [world, node, z])
 		# roads that cross meet: no two edges cross anywhere but at a place they share
-		var ids: Array[int] = graph.edge_ids()
-		for x: int in ids.size():
-			for y: int in range(x + 1, ids.size()):
-				if not graph._crossing(ids[x], ids[y]).is_empty():
-					crossed += 1
-					if crossed <= 3:
-						fail("seed %d: roads %d and %d cross without meeting" % [world, ids[x], ids[y]])
+		for pair: Array in graph.crossing_pairs():
+			crossed += 1
+			if crossed <= 3:
+				fail("seed %d: roads %d and %d cross without meeting" % [world, pair[0], pair[1]])
 		for node: int in graph.node_ids():
 			if graph.kind_of(node) == RouteGraph.KIND_CROSSING:
 				crossings += 1
@@ -322,6 +319,16 @@ func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 	assert_eq(malformed, 0, "and no road to nowhere or road built twice")
 	assert_eq(north, 0, "and nothing but the gate on the city's side of it")
 	assert_eq(crossed, 0, "and no two roads cross without meeting")
+	# the sweep finds what comparing every pair finds: checked the slow way on a sample
+	for i: int in 50:
+		graph.generate(SEED_PROPERTY + i)
+		var slow: int = 0
+		var ids: Array[int] = graph.edge_ids()
+		for x: int in ids.size():
+			for y: int in range(x + 1, ids.size()):
+				if not graph._crossing(ids[x], ids[y]).is_empty():
+					slow += 1
+		assert_eq(slow, 0, "seed %d: no pair crosses, compared one by one" % (SEED_PROPERTY + i))
 	assert_true(crossings > PROPERTY_CASES, "which is not because roads never cross (%d crossings)" % crossings)
 	assert_true(widths.size() > 1, "the narrowest road is not the same in every world")
 

@@ -98,7 +98,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var terrain: Terrain = Terrain.new(routes)
 	if terrain.attach(sim) != OK:
 		return null
-	var regions: Regions = Regions.new(routes, terrain)
+	var regions: Regions = Regions.new(routes, terrain, actors, events, land, build)
 	if regions.attach(sim) != OK:
 		return null
 	movement.set_regions(regions)
@@ -114,6 +114,10 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	if hydration.attach(sim) != OK:
 		return null
 	stances.set_travel_check(hydration.is_travelling)
+	var discovery: Discovery = Discovery.new(routes, actors, perception)
+	if discovery.attach(sim) != OK:
+		return null
+	binder.set_found_check(discovery.found_slots)
 	return sim
 
 
@@ -135,11 +139,41 @@ static func load_save(file: SaveFile, content: ContentDb) -> SimRoot:
 	var sim: SimRoot = build(seed, content)
 	if sim == null:
 		return null
-	if restore_systems(sim, file.snapshot) != OK:
+	var snapshot: Dictionary = file.snapshot
+	if file.version == 1:
+		snapshot = migrate_from_1(file.snapshot, sim)
+		if snapshot.is_empty():
+			return null
+	if restore_systems(sim, snapshot) != OK:
 		return null
-	if sim.restore_root(file.snapshot) != OK:
+	if sim.restore_root(snapshot) != OK:
 		return null
 	return sim
+
+
+## The systems save schema 2 added (M7 spec claim 15): the world's overlay.
+const SINCE_SCHEMA_2: Array[StringName] = [&"routes", &"terrain", &"regions", &"bindings", &"tokens", &"hydration", &"discovery"]
+
+
+## A version-1 snapshot brought up to version 2: every system version 1 did not have
+## starts as it does in a new world at the save's seed, which `fresh` is. Empty (after an
+## error) if the snapshot already holds one of them, since then it is not a version-1
+## save whatever its envelope says.
+static func migrate_from_1(snapshot: Dictionary, fresh: SimRoot) -> Dictionary:
+	var systems_v: Variant = snapshot.get("systems")
+	if typeof(systems_v) != TYPE_DICTIONARY:
+		push_error("SimAssembly.migrate_from_1: snapshot has no systems")
+		return {}
+	var systems: Dictionary = systems_v
+	var out: Dictionary = snapshot.duplicate(true)
+	var moved: Dictionary = out["systems"]
+	var defaults: Dictionary = fresh.snapshot()["systems"]
+	for id: StringName in SINCE_SCHEMA_2:
+		if systems.has(id) or systems.has(String(id)):
+			push_error("SimAssembly.migrate_from_1: a version-1 save cannot hold '%s'" % id)
+			return {}
+		moved[id] = defaults[id]
+	return out
 
 
 ## Restores every system of a freshly built sim from a full [method SimRoot.snapshot]
@@ -151,7 +185,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, CorpseSystem.SYSTEM_ID, RouteGraph.SYSTEM_ID, Terrain.SYSTEM_ID, Regions.SYSTEM_ID, SiteBinder.SYSTEM_ID, MacroTokenSystem.SYSTEM_ID, HydrationSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, TerminalSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, RunScoreSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, CorpseSystem.SYSTEM_ID, RouteGraph.SYSTEM_ID, Terrain.SYSTEM_ID, Regions.SYSTEM_ID, SiteBinder.SYSTEM_ID, MacroTokenSystem.SYSTEM_ID, HydrationSystem.SYSTEM_ID, Discovery.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -219,6 +253,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = tokens_of(sim).restore(state)
 			HydrationSystem.SYSTEM_ID:
 				err = hydration_of(sim).restore(state)
+			Discovery.SYSTEM_ID:
+				err = discovery_of(sim).restore(state)
 		if err != OK:
 			return err
 	return OK
@@ -483,6 +519,15 @@ static func tokens_of(sim: SimRoot) -> MacroTokenSystem:
 		return null
 	var tokens: MacroTokenSystem = system
 	return tokens
+
+
+static func discovery_of(sim: SimRoot) -> Discovery:
+	var system: SimSystem = sim.get_system(Discovery.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % Discovery.SYSTEM_ID)
+		return null
+	var discovery: Discovery = system
+	return discovery
 
 
 static func hydration_of(sim: SimRoot) -> HydrationSystem:

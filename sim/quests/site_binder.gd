@@ -24,11 +24,18 @@ var _content: ContentDb
 var _routes: RouteGraph
 ## [[quest id: String, slot: int], ...] in the order they were bound
 var _bound: Array = []
+## () -> {slot: true} for every slot whose place the player has found (claim 15),
+## wired by the assembly to Discovery. Unset, nowhere has been found.
+var _found: Callable = Callable()
 
 
 func _init(content: ContentDb, routes: RouteGraph) -> void:
 	_content = content
 	_routes = routes
+
+
+func set_found_check(found: Callable) -> void:
+	_found = found
 
 
 func system_id() -> StringName:
@@ -59,9 +66,10 @@ func bind(quest: StringName) -> int:
 	var constraint: Dictionary = SiteConstraint.of_quest(_content, quest)
 	if constraint.is_empty():
 		return EntityIds.NONE
-	# nothing discovers a place yet: discovery arrives with regions (claims 13-15), and
-	# until then everywhere is somewhere the player has not been
-	var slot: int = pick(constraint, _content, _routes, _taken(), quest)
+	var found: Dictionary = {}
+	if _found.is_valid():
+		found = _found.call()
+	var slot: int = pick(constraint, _content, _routes, _taken(), quest, found)
 	if slot == EntityIds.NONE:
 		return EntityIds.NONE
 	_routes.stitch_slot(slot)
@@ -76,9 +84,9 @@ func bind(quest: StringName) -> int:
 ## The quest is in the hash so that two contracts asking for the same kind of place do
 ## not both start from the same end of the list; the seed is, so that the same contract
 ## lands somewhere different in a different world.
-static func pick(constraint: Dictionary, content: ContentDb, routes: RouteGraph, taken: Dictionary, quest: StringName) -> int:
+static func pick(constraint: Dictionary, content: ContentDb, routes: RouteGraph, taken: Dictionary, quest: StringName, found: Dictionary = {}) -> int:
 	var free: Array[int] = []
-	for slot: int in SiteConstraint.slots_matching(constraint, content, routes, {}):
+	for slot: int in SiteConstraint.slots_matching(constraint, content, routes, found):
 		if not taken.has(slot):
 			free.append(slot)
 	if free.is_empty():
@@ -157,7 +165,8 @@ func restore(state: Dictionary) -> Error:
 			return _restore_fail("quest %s is bound twice" % quest)
 		if slots.has(slot):
 			return _restore_fail("slot %d is bound twice" % slot)
-		# the discovered set is empty here for the same reason it is when binding
+		# checked against nothing found: a place found since it was bound was not found
+		# when it was, and the binding stands
 		if not SiteConstraint.matches(constraint, _content, _routes, slot, {}):
 			return _restore_fail("slot %d is not a place quest %s could have bound" % [slot, quest])
 		quests[quest] = true

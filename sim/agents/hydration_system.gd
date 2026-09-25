@@ -34,6 +34,10 @@ const SPACING_MM: int = 2_000
 const MAX_MEMBERS: int = 8
 ## Squad ids for hydrated squads: this plus the token id, so they never meet a site's.
 const SQUAD_BASE: int = 1_000_000
+## How often, in ticks, the system looks for tokens to bring in and squads to let go.
+## Walking is every tick; looking is not, because it is most of what an idle world costs
+## and a player running flat out covers a metre in this long against a range of 120.
+const LOOK_EVERY: int = 8
 
 var _content: ContentDb
 var _tokens: MacroTokenSystem
@@ -81,14 +85,25 @@ func attach(sim: SimRoot) -> Error:
 ## Walks every squad, then lets go of the ones the player has left, then brings in the
 ## tokens the player has come near. Walking first means the tick a squad is let go is
 ## a tick it walked, exactly as the token would have.
-func tick(_sim: SimRoot) -> void:
+func tick(sim: SimRoot) -> void:
 	for token: int in squad_tokens():
-		_walk(token)
+		if _walk(token):
+			# the road runs through a gate: the squad takes it and is gone from here,
+			# and the token carries on through as a token (M7 spec claim 14)
+			_dehydrate(token)
+	if sim.get_tick() % LOOK_EVERY != 0:
+		return
 	for token: int in squad_tokens():
 		if _left_alone(token):
 			_dehydrate(token)
 	for token: int in _tokens.token_ids():
-		if not _tokens.is_held(token) and _player_within(_tokens.position_of(token), HYDRATE_MM):
+		if _tokens.is_held(token):
+			continue
+		var at: Vector2i = _tokens.position_of(token)
+		# a token in a gate's opening is between regions; it comes out when it is through
+		if _regions.gate_at(Vector3i(at.x, 0, at.y)) != EntityIds.NONE:
+			continue
+		if _player_within(at, HYDRATE_MM):
 			_hydrate(token)
 
 
@@ -227,18 +242,28 @@ func _can_hydrate(token: int, payload: Dictionary) -> bool:
 ## One tick of the walk. The route advances only when the lead is standing exactly
 ## where the token's own rule puts it, so a squad that is held up is a squad that has
 ## not got anywhere. Members not in the travel stance are left to what they are doing.
-func _walk(token: int) -> void:
+##
+## True when this tick's step takes the road through a gate: the route has advanced
+## past it, exactly as the token would have, and the squad is to be let go there,
+## because a region's edge is walked by nobody.
+func _walk(token: int) -> bool:
 	var rec: Dictionary = _squads[token]
 	var living: Array[int] = _living(rec)
 	if living.is_empty() or _arrived(token, rec):
-		return
+		return false
 	var route: Array[int] = _tokens.route_of(token)
 	var leg: int = rec["leg"]
 	var progress: int = rec["progress"]
 	var lead: int = living[0]
 	if _stances.stance_of(lead) == StanceSystem.STANCE_TRAVEL:
 		var next: Vector2i = _tokens.along(route, leg, progress, _tokens.speed_of(token))
-		if _step_to(lead, _tokens.point_at(route, next.x, next.y)):
+		var target: Vector2i = _tokens.point_at(route, next.x, next.y)
+		var here: Vector3i = _actors.position_of(lead)
+		if _regions.crosses_edge(here, Vector3i(target.x, here.y, target.y)):
+			rec["leg"] = next.x
+			rec["progress"] = next.y
+			return true
+		if _step_to(lead, target):
 			rec["leg"] = next.x
 			rec["progress"] = next.y
 			leg = next.x
@@ -247,6 +272,7 @@ func _walk(token: int) -> void:
 		var member: int = living[i]
 		if _stances.stance_of(member) == StanceSystem.STANCE_TRAVEL:
 			_step_to(member, _tokens.point_at(route, leg, progress, i * SPACING_MM))
+	return false
 
 
 ## Moves an actor toward a point on the ground, as far as its pace allows in a tick.

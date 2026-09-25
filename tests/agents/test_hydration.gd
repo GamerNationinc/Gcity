@@ -93,6 +93,14 @@ static func _on_ground(regions: Regions, x: int, z: int) -> Vector3i:
 	return Vector3i(x, regions.standing_cell_y(x, z) * BuildSystem.CELL, z)
 
 
+## Steps to the next tick the hydration system looks around on, and through it: the
+## tick after this returns is the first a load or unload could have happened on.
+func _until_look() -> void:
+	_sim.step()
+	while _sim.get_tick() % HydrationSystem.LOOK_EVERY != 0:
+		_sim.step()
+
+
 static func _patrol(members: int, armed: bool) -> Dictionary:
 	var payload: Dictionary = {"profile": "foot_patrol", "members": members}
 	if armed:
@@ -109,7 +117,7 @@ func test_a_token_near_the_player_becomes_a_squad_walking_its_road() -> void:
 	_sim.step_n(20)
 	assert_false(_hydration.is_hydrated(token), "nobody near: a token")
 	_watch(token)
-	_sim.step()
+	_until_look()
 	assert_true(_hydration.is_hydrated(token), "the player comes near and it is a squad")
 	assert_true(_tokens.is_held(token), "and the macro tier has let go of it")
 	var squad: Array[int] = _hydration.members_of(token)
@@ -136,7 +144,7 @@ func test_the_squad_goes_back_to_being_a_token_and_keeps_its_kit() -> void:
 	var pair: Array[int] = _wild_pair(_routes, rng)
 	var token: int = _tokens.spawn(FACTION, pair[0], pair[1], PACE, _patrol(3, true))
 	_watch(token)
-	_sim.step()
+	_until_look()
 	var squad: Array[int] = _hydration.members_of(token)
 	var pistols: Array[int] = []
 	for member: int in squad:
@@ -144,7 +152,7 @@ func test_the_squad_goes_back_to_being_a_token_and_keeps_its_kit() -> void:
 	var items: int = _items.item_count()
 	_sim.step_n(30)
 	_park(_player)
-	_sim.step()
+	_until_look()
 	assert_false(_hydration.is_hydrated(token), "the player leaves and it is a token again")
 	assert_false(_tokens.is_held(token), "walking on by itself")
 	assert_eq(_tokens.payload_of(token)["members"], 3, "all three of them")
@@ -155,7 +163,7 @@ func test_the_squad_goes_back_to_being_a_token_and_keeps_its_kit() -> void:
 		assert_eq(_items.container_of(pistol), ItemSystem.token_container(token), "the pistols went with the token")
 	_sim.step_n(20)
 	_watch(token)
-	_sim.step()
+	_until_look()
 	var again: Array[int] = _hydration.members_of(token)
 	assert_eq(again.size(), 3, "and when the player comes back, so does the squad")
 	var held: Array[int] = []
@@ -172,19 +180,19 @@ func test_the_dead_stay_and_a_squad_with_nobody_left_leaves_no_token() -> void:
 	var pair: Array[int] = _wild_pair(_routes, rng)
 	var token: int = _tokens.spawn(FACTION, pair[0], pair[1], PACE, _patrol(2, false))
 	_watch(token)
-	_sim.step()
+	_until_look()
 	var squad: Array[int] = _hydration.members_of(token)
 	_actors.damage_node(squad[1], &"body", 999999)
 	_park(_player)
-	_sim.step()
+	_until_look()
 	assert_eq(_tokens.payload_of(token)["members"], 1, "one went back into the token")
 	assert_true(_actors.has_actor(squad[1]), "and the dead one is still lying there")
 	_watch(token)
-	_sim.step()
+	_until_look()
 	var survivor: int = _hydration.members_of(token)[0]
 	_actors.damage_node(survivor, &"body", 999999)
 	_park(_player)
-	_sim.step()
+	_until_look()
 	assert_false(_tokens.has_token(token), "nobody left, no token")
 	assert_false(_hydration.is_hydrated(token), "and no squad")
 
@@ -206,11 +214,11 @@ func test_a_token_that_cannot_walk_stays_a_token() -> void:
 	for payload: Dictionary in cases:
 		var token: int = _tokens.spawn(FACTION, pair[0], pair[1], PACE, payload)
 		_watch(token)
-		_sim.step()
+		_until_look()
 		assert_false(_hydration.is_hydrated(token), "%s stays a token" % [payload])
 	var fast: int = _tokens.spawn(FACTION, pair[0], pair[1], MacroTokenSystem.MAX_SPEED_MM_PER_TICK, _patrol(2, false))
 	_watch(fast)
-	_sim.step()
+	_until_look()
 	assert_false(_hydration.is_hydrated(fast), "and so does one faster than its members can walk")
 
 
@@ -241,6 +249,44 @@ func test_a_save_with_a_squad_on_the_road_loads_and_walks_on_the_same() -> void:
 	for state: Dictionary in bad:
 		assert_eq(_hydration.restore(state), ERR_INVALID_DATA, "refused: %s" % [state])
 		assert_eq(_hydration.snapshot(), good, "and nothing changed")
+
+
+## M7 spec claim 14 on the macro side: a region's edge is walked by nobody, so a squad
+## whose road runs into the gate takes it — it is let go there and its token carries
+## on — and ends exactly where the same token ends unwatched.
+func test_a_squad_on_the_road_into_the_gate_takes_it_and_its_token_carries_on() -> void:
+	_setup()
+	var twin: SimRoot = SimAssembly.build(SEED, _db())
+	var twin_tokens: MacroTokenSystem = SimAssembly.tokens_of(twin)
+	var nobody: int = SimAssembly.actors_of(twin).spawn(&"arcade", 0)
+	# the twin's only actor is far off: spawned at range 0 it would be standing in the gate
+	SimAssembly.actors_of(twin).set_position(nobody, Vector3i(FAR_MM, 0, FAR_MM))
+	var start: int = _routes.neighbours(1)[0]
+	var token: int = _tokens.spawn(FACTION, start, 1, PACE, _patrol(2, false))
+	assert_eq(twin_tokens.spawn(FACTION, start, 1, PACE, _patrol(2, false)), token, "the same token unwatched")
+	# the road is kilometres long and nothing happens on it until the gate: both copies
+	# skip the same distance at once, which is the same as walking it (claim 11)
+	var length: int = _routes.distance_mm_between(start, 1)
+	var skip: int = maxi(0, (length - 300_000) / PACE)
+	_tokens.advance(skip)
+	twin_tokens.advance(skip)
+	# stand outside the gate, on the level apron, and wait for it to come by
+	_actors.set_position(_player, Vector3i(40_000, 0, -60_000))
+	var hydrated: bool = false
+	var ticks: int = 0
+	while not _tokens.is_stopped(token) and ticks < 400_000:
+		_sim.step()
+		twin.step()
+		ticks += 1
+		hydrated = hydrated or _hydration.is_hydrated(token)
+	assert_true(hydrated, "the squad came by as a squad")
+	assert_true(_tokens.is_stopped(token), "and its token reached the gate (%d ticks)" % ticks)
+	assert_false(_hydration.is_hydrated(token), "having taken the gate rather than walked through the wall")
+	for member: int in _actors.actor_ids():
+		if member != _player:
+			var at: Vector3i = _actors.position_of(member)
+			assert_true(at.z < 0, "nobody walked into the city (%s)" % at)
+	assert_eq(StateHash.of(_tokens.snapshot()), StateHash.of(twin_tokens.snapshot()), "and it is where it would have been unwatched")
 
 
 ## ADR-010's metamorphic property. Two copies of a world with the same tokens on the
@@ -298,8 +344,12 @@ func test_property_a_district_loaded_and_let_go_ends_where_it_would_have_unloade
 			if hydration.is_hydrated(id):
 				walked += 1
 			actors_visited.set_position(player, Vector3i(FAR_MM, 0, FAR_MM))
+			# through the next tick the hydration system looks around on, in both copies
 			alone.step()
 			visited.step()
+			while visited.get_tick() % HydrationSystem.LOOK_EVERY != 0:
+				alone.step()
+				visited.step()
 			visits += 1
 			var want: Dictionary = tokens_alone.snapshot()
 			var got: Dictionary = tokens_visited.snapshot()

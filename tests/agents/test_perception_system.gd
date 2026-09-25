@@ -501,9 +501,10 @@ func test_the_ground_hides_what_is_behind_it() -> void:
 	var found: bool = false
 	var a: Vector3i = Vector3i.ZERO
 	var b: Vector3i = Vector3i.ZERO
-	for i: int in 3000:
-		var cx: int = 300 + i * 7
-		var cz: int = -2000 - (i % 53) * 11
+	# along rows, so neighbouring probes share the ground chunks they read
+	for i: int in 12000:
+		var cx: int = 300 + (i % 4000) * 5
+		var cz: int = -2000 - (i / 4000) * 997
 		var y0: int = regions.standing_cell_y(cx * 1000, cz * 1000)
 		var ridge: int = regions.standing_cell_y((cx + 15) * 1000, cz * 1000)
 		var y1: int = regions.standing_cell_y((cx + 30) * 1000, cz * 1000)

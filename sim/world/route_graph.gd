@@ -411,31 +411,30 @@ func _raise_town(anchor: int, kit: Dictionary, rng: RandomNumberGenerator) -> vo
 ##
 ## Integer arithmetic throughout: the crossing point is state.
 func _meet_where_roads_cross() -> void:
+	var found: Array[Array] = crossing_pairs()
+	if found.is_empty():
+		return
 	var ids: Array[int] = edge_ids()
 	var cuts: Dictionary = {}
 	var at_point: Dictionary = {}
-	for i: int in ids.size():
-		for j: int in range(i + 1, ids.size()):
-			var found: Array[int] = _crossing(ids[i], ids[j])
-			if found.is_empty():
-				continue
-			var point: Vector2i = Vector2i(found[0], found[1])
-			var node: int = EntityIds.NONE
-			if at_point.has(point):
-				node = at_point[point]
-			else:
-				node = _add_node(KIND_CROSSING, point.x, point.y, _town_at(point))
-				at_point[point] = node
-			for e: int in [ids[i], ids[j]]:
-				var rec: Dictionary = _edges[e]
-				var a: int = rec["a"]
-				var from: Vector2i = position_of(a)
-				if not cuts.has(e):
-					cuts[e] = []
-				var list: Array = cuts[e]
-				list.append([_length_mm(from.x, from.y, point.x, point.y), node])
-	if cuts.is_empty():
-		return
+	for crossing: Array in found:
+		var e1: int = crossing[0]
+		var e2: int = crossing[1]
+		var point: Vector2i = crossing[2]
+		var node: int = EntityIds.NONE
+		if at_point.has(point):
+			node = at_point[point]
+		else:
+			node = _add_node(KIND_CROSSING, point.x, point.y, _town_at(point))
+			at_point[point] = node
+		for e: int in [e1, e2]:
+			var rec: Dictionary = _edges[e]
+			var a: int = rec["a"]
+			var from: Vector2i = position_of(a)
+			if not cuts.has(e):
+				cuts[e] = []
+			var list: Array = cuts[e]
+			list.append([_length_mm(from.x, from.y, point.x, point.y), node])
 	var old: Dictionary = _edges.duplicate(true)
 	_edges.clear()
 	for node: int in node_ids():
@@ -466,9 +465,58 @@ func _meet_where_roads_cross() -> void:
 			_add_edge_wide(previous, b, width)
 
 
+## Every pair of edges that properly cross, as [lower id, higher id, point], in id order.
+## A sweep over the edges sorted by their leftmost x, so only edges whose extents
+## overlap are compared: a world has thousands of pairs and a handful of crossings.
+func crossing_pairs() -> Array[Array]:
+	var segments: Array[Array] = []
+	for id: int in edge_ids():
+		var rec: Dictionary = _edges[id]
+		var a: int = rec["a"]
+		var b: int = rec["b"]
+		var pa: Vector2i = position_of(a)
+		var pb: Vector2i = position_of(b)
+		segments.append([mini(pa.x, pb.x), maxi(pa.x, pb.x), mini(pa.y, pb.y), maxi(pa.y, pb.y), id, a, b, pa, pb])
+	segments.sort_custom(func(x: Array, y: Array) -> bool:
+		var xm: int = x[0]
+		var ym: int = y[0]
+		var xi: int = x[4]
+		var yi: int = y[4]
+		return xm < ym or (xm == ym and xi < yi))
+	var out: Array[Array] = []
+	for i: int in segments.size():
+		var s1: Array = segments[i]
+		var right: int = s1[1]
+		for j: int in range(i + 1, segments.size()):
+			var s2: Array = segments[j]
+			var left: int = s2[0]
+			if left > right:
+				break
+			var lo1: int = s1[2]
+			var hi1: int = s1[3]
+			var lo2: int = s2[2]
+			var hi2: int = s2[3]
+			if hi1 < lo2 or hi2 < lo1:
+				continue
+			var id1: int = s1[4]
+			var id2: int = s2[4]
+			# the point is worked out from the lower-numbered edge, as it always was: the
+			# rounding depends on which way round it is asked
+			var point: Array[int] = _segments_cross(s1, s2) if id1 < id2 else _segments_cross(s2, s1)
+			if point.is_empty():
+				continue
+			out.append([mini(id1, id2), maxi(id1, id2), Vector2i(point[0], point[1])])
+	out.sort_custom(func(x: Array, y: Array) -> bool:
+		var x0: int = x[0]
+		var y0: int = y[0]
+		var x1: int = x[1]
+		var y1: int = y[1]
+		return x0 < y0 or (x0 == y0 and x1 < y1))
+	return out
+
+
 ## Where two edges properly cross — not at a place they share, not end to end, not
-## lying along each other — as [x, z]; empty if they do not. The point is rounded to
-## the millimetre with the ratio's low bits dropped first so nothing overflows.
+## lying along each other — as [x, z]; empty if they do not.
 func _crossing(e1: int, e2: int) -> Array[int]:
 	var r1: Dictionary = _edges[e1]
 	var r2: Dictionary = _edges[e2]
@@ -476,12 +524,24 @@ func _crossing(e1: int, e2: int) -> Array[int]:
 	var b1: int = r1["b"]
 	var a2: int = r2["a"]
 	var b2: int = r2["b"]
+	return _segments_cross([0, 0, 0, 0, e1, a1, b1, position_of(a1), position_of(b1)],
+		[0, 0, 0, 0, e2, a2, b2, position_of(a2), position_of(b2)])
+
+
+## The crossing test itself, on two segments as the sweep holds them. The point is
+## rounded to the millimetre with the ratio's low bits dropped first so nothing
+## overflows: the crossing is state, so there is no float anywhere in it.
+static func _segments_cross(s1: Array, s2: Array) -> Array[int]:
+	var a1: int = s1[5]
+	var b1: int = s1[6]
+	var a2: int = s2[5]
+	var b2: int = s2[6]
 	if a1 == a2 or a1 == b2 or b1 == a2 or b1 == b2:
 		return [] as Array[int]
-	var p1: Vector2i = position_of(a1)
-	var p2: Vector2i = position_of(b1)
-	var p3: Vector2i = position_of(a2)
-	var p4: Vector2i = position_of(b2)
+	var p1: Vector2i = s1[7]
+	var p2: Vector2i = s1[8]
+	var p3: Vector2i = s2[7]
+	var p4: Vector2i = s2[8]
 	var r: Vector2i = p2 - p1
 	var q: Vector2i = p4 - p3
 	var d: int = r.x * q.y - r.y * q.x
