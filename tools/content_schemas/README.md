@@ -54,3 +54,4 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `combat_profile` | M1 | `stages` (refs), `range_falloff_per_m`, `health` (`nodes` with `id`/`max`/`fatal`, `routing` with `node`/`weight`) |
 | `skill` | M1 | `xp` rules (`event`, `credit`, `tags_any`, `amount`), `levels`, `points_per_level` |
 | `perk` | M1 | `skill` (ref), `prerequisites` (`level`, `perks` refs), `cost`, `tags`, `modifiers` (`{stat: ref, class, value}`) |
+| `region` | M7 | `title`, `kind` (`authored` or `wild`), `bounds` (`[x0, z0, x1, z1]` mm for authored, empty for wild), `gates` (`node`, `x`, `z`, `half_width_mm`) |

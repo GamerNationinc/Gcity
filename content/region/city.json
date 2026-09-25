@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"title": "The city",
+	"description": "The one authored region (M7 design note, regions): the city and its outskirts, which back onto the north. Flat ground at the build grid's ground level and whatever is built on it. Its edge along the gate's line is a wall; the gate is the one way through, and taking it is region.enter.",
+	"kind": "authored",
+	"bounds": [-30000000, 0, 30000000, 30000000],
+	"gates": [
+		{"node": 1, "x": 0, "z": 0, "half_width_mm": 3000}
+	]
+}

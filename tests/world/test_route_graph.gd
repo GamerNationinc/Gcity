@@ -66,8 +66,12 @@ func test_nodes_are_spread_out_enough_that_an_edge_is_a_journey() -> void:
 			var a: Vector2i = _routes.position_of(ids[i])
 			var b: Vector2i = _routes.position_of(ids[j])
 			var d: int = RouteGraph._length_mm(a.x, a.y, b.x, b.y)
+			# a town's streets and the crossings where roads meet are where roads fall,
+			# not where the world's places were spaced
 			var in_town: bool = (_routes.node_town(ids[i]) != EntityIds.NONE
-				or _routes.node_town(ids[j]) != EntityIds.NONE)
+				or _routes.node_town(ids[j]) != EntityIds.NONE
+				or _routes.kind_of(ids[i]) == RouteGraph.KIND_CROSSING
+				or _routes.kind_of(ids[j]) == RouteGraph.KIND_CROSSING)
 			if in_town:
 				closest_street = mini(closest_street, d)
 			else:
@@ -263,6 +267,8 @@ func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 	var narrow: int = 0
 	var malformed: int = 0
 	var north: int = 0
+	var crossed: int = 0
+	var crossings: int = 0
 	var widths: Dictionary = {}
 	for i: int in PROPERTY_CASES:
 		var world: int = SEED_PROPERTY + i
@@ -288,6 +294,17 @@ func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 				north += 1
 				if north <= 3:
 					fail("seed %d put node %d at z %d, north of where the wilds are" % [world, node, z])
+		# roads that cross meet: no two edges cross anywhere but at a place they share
+		var ids: Array[int] = graph.edge_ids()
+		for x: int in ids.size():
+			for y: int in range(x + 1, ids.size()):
+				if not graph._crossing(ids[x], ids[y]).is_empty():
+					crossed += 1
+					if crossed <= 3:
+						fail("seed %d: roads %d and %d cross without meeting" % [world, ids[x], ids[y]])
+		for node: int in graph.node_ids():
+			if graph.kind_of(node) == RouteGraph.KIND_CROSSING:
+				crossings += 1
 		# no corridor joins a place to itself, and no two places are joined twice
 		var pairs: Dictionary = {}
 		for id: int in graph.edge_ids():
@@ -304,6 +321,8 @@ func test_property_every_world_is_one_piece_with_no_bad_roads() -> void:
 	assert_eq(narrow, 0, "and has no road too narrow to walk")
 	assert_eq(malformed, 0, "and no road to nowhere or road built twice")
 	assert_eq(north, 0, "and nothing but the gate on the city's side of it")
+	assert_eq(crossed, 0, "and no two roads cross without meeting")
+	assert_true(crossings > PROPERTY_CASES, "which is not because roads never cross (%d crossings)" % crossings)
 	assert_true(widths.size() > 1, "the narrowest road is not the same in every world")
 
 

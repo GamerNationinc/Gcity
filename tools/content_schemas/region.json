@@ -1,0 +1,28 @@
+{
+	"schema_version": 1,
+	"description": "A region of the world (design doc §5.1; M7 spec claims 13-14, design note). Kind is one of the two implementations behind Region; an authored region covers its bounds, a box in millimetres [x0, z0, x1, z1], and is left only through its gates; the wild region is everywhere no authored region covers, and has neither.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 400},
+		"title": {"type": "string", "min_length": 1, "max_length": 40},
+		"kind": {"type": "string", "pattern": "authored|wild"},
+		"bounds": {"type": "array", "max_length": 4, "items": {"type": "int", "min": -100000000, "max": 100000000}},
+		"gates": {
+			"type": "array",
+			"max_length": 8,
+			"items": {
+				"type": "object",
+				"properties": {
+					"node": {"type": "int", "min": 1},
+					"x": {"type": "int", "min": -100000000, "max": 100000000},
+					"z": {"type": "int", "min": -100000000, "max": 100000000},
+					"half_width_mm": {"type": "int", "min": 500, "max": 20000}
+				},
+				"required": ["node", "x", "z", "half_width_mm"],
+				"additional_properties": false
+			}
+		}
+	},
+	"required": ["schema_version", "description", "title", "kind", "bounds", "gates"],
+	"additional_properties": false
+}

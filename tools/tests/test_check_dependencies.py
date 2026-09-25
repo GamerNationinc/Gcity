@@ -109,6 +109,17 @@ class CheckDependenciesTest(unittest.TestCase):
         )
         self.assertEqual(cd.run(self.repo.root), [])
 
+    def test_only_sim_world_names_a_region_implementation(self) -> None:
+        self.repo.write("sim/world/regions.gd", "class_name Regions extends RefCounted\nvar w: WildRegion = null\nvar a: AuthoredRegion = null\n")
+        self.repo.write("sim/agents/movement_system.gd", "extends RefCounted\nvar r: Regions = null\n# a WildRegion in a comment is fine\n")
+        self.assertEqual(cd.run(self.repo.root), [])
+        self.repo.write("sim/agents/sneaky.gd", "extends RefCounted\nfunc f(r: Region) -> bool:\n\treturn r is WildRegion\n")
+        self.repo.write("client/world_view.gd", "extends Node\nvar a := AuthoredRegion.new(&\"x\", [], [])\n")
+        problems = cd.run(self.repo.root)
+        self.assertEqual(len(problems), 2, problems)
+        self.assertTrue(any("sim/agents/sneaky.gd:3" in p and "WildRegion" in p for p in problems), problems)
+        self.assertTrue(any("client/world_view.gd:2" in p and "AuthoredRegion" in p for p in problems), problems)
+
     def test_content_may_not_hold_code(self) -> None:
         self.repo.write("content/weapons/pistol.gd", "extends RefCounted\n")
         self.repo.write("content/weapons/pistol.json", "{}\n")

@@ -15,6 +15,9 @@ Rules, checked over every .gd, .tscn and .tres file:
    (`_cursor`, `_scroll`, `_page`, `_open_app`, and the map's own draw cache). An int,
    Array or Dictionary member that could hold an entity id, a count or a copy of the
    sim's tables is refused; panes rebuild from the sim every refresh.
+5. One rule for both region types (M7 spec claim 13): nothing outside sim/world/ may
+   name `AuthoredRegion` or `WildRegion`. Everything else asks `Regions`, which asks a
+   `Region`, and so can never branch on which kind of region a place is in.
 
 Exit status 0 when clean; 1 with one line per violation otherwise. Standard library only.
 """
@@ -167,6 +170,23 @@ def check_device_file(path: Path, rel: str) -> list[str]:
     return problems
 
 
+# Rule 5: the region implementations are sim/world's own.
+REGION_IMPLEMENTATIONS = re.compile(r"\b(AuthoredRegion|WildRegion)\b")
+
+
+def check_region_names(path: Path, rel: str) -> list[str]:
+    """Rule 5 for one .gd file outside sim/world/."""
+    if path.suffix != ".gd" or rel.startswith("sim/world/"):
+        return []
+    code = strip_comments(path.read_text(encoding="utf-8"))
+    problems: list[str] = []
+    for line_no, line in enumerate(code.splitlines(), start=1):
+        match = REGION_IMPLEMENTATIONS.search(line)
+        if match:
+            problems.append(f"{rel}:{line_no}: names {match.group(1)}; outside sim/world ask Regions, never an implementation (rule 5)")
+    return problems
+
+
 def check_content(root: Path) -> list[str]:
     base = root / "content"
     if not base.is_dir():
@@ -185,6 +205,9 @@ def run(root: Path) -> list[str]:
         problems.extend(check_client_file(path, path.relative_to(root).as_posix()))
     for path in collect_files(root, "sim"):
         problems.extend(check_sim_file(path, path.relative_to(root).as_posix(), client_classes))
+    for module in ("sim", "client"):
+        for path in collect_files(root, module):
+            problems.extend(check_region_names(path, path.relative_to(root).as_posix()))
     problems.extend(check_content(root))
     for path in sorted((root / "client" / "device").rglob("*.gd")):
         problems.extend(check_device_file(path, path.relative_to(root).as_posix()))

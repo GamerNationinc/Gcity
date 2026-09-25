@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"title": "The wilds",
+	"description": "The one wild region: everywhere no authored region covers. Ground is 1 m voxel cells from the terrain (claim 7) with every road's cutting, tunnel and bridge cut in, so each road of the graph is walkable in the sim and not only in the arithmetic.",
+	"kind": "wild",
+	"bounds": [],
+	"gates": []
+}

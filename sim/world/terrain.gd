@@ -93,6 +93,10 @@ func attach(sim: SimRoot) -> Error:
 	return OK
 
 
+func world_seed() -> int:
+	return _seed
+
+
 ## Points the land at a world seed. There is nothing to build: the ground is answered
 ## where it is asked for, from the seed and the place. This is the whole of generation,
 ## and it exists so the land has the same shape of API as the graph it consumes.

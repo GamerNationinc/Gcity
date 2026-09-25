@@ -21,7 +21,11 @@ const KIND_GATE: StringName = &"gate"
 const KIND_SETTLEMENT: StringName = &"settlement"
 const KIND_POI: StringName = &"poi"
 const KIND_JUNCTION: StringName = &"junction"
-const KINDS: Array[StringName] = [KIND_GATE, KIND_SETTLEMENT, KIND_POI, KIND_JUNCTION]
+## Where two roads that were generated separately cross, and so meet. Placed by
+## generation, but by where the roads fall rather than by the spacing rule, so a
+## crossing can be as close to a place as the roads happen to be.
+const KIND_CROSSING: StringName = &"crossing"
+const KINDS: Array[StringName] = [KIND_GATE, KIND_SETTLEMENT, KIND_POI, KIND_JUNCTION, KIND_CROSSING]
 ## A bound site (M7 spec claim 9). Not one of [KINDS]: generation never places one. It
 ## is stitched on afterwards, when a contract binds a slot, and belongs to the overlay
 ## rather than to the world the seed builds.
@@ -93,6 +97,10 @@ var _world_nodes: int = 0
 var _world_edges: int = 0
 ## slot id -> the site node stitched onto it
 var _stitched: Dictionary = {}
+## Bumped by every change to the graph. Not state: a consumer caching something
+## derived from the graph (the wild region's ground, claim 13) compares it to know
+## when to throw the cache away.
+var _revision: int = 0
 
 
 func system_id() -> StringName:
@@ -166,6 +174,7 @@ func generate(world_seed: int) -> void:
 	_slots.clear()
 	_towns.clear()
 	_stitched.clear()
+	_revision += 1
 	var rng := RandomNumberGenerator.new()
 	rng.seed = world_seed
 	# the city gate is node 1 and sits at the origin: the world is measured from it
@@ -189,6 +198,7 @@ func generate(world_seed: int) -> void:
 	_join_everything(rng)
 	_add_loops(rng)
 	_raise_towns(rng)
+	_meet_where_roads_cross()
 	_offer_slots(rng)
 	_world_nodes = _nodes.size()
 	_world_edges = _edges.size()
@@ -217,6 +227,7 @@ func stitch_slot(slot: int) -> int:
 	var site: int = _add_node(KIND_SITE, at.x, at.y)
 	_add_edge_wide(slot_node(slot), site, MIN_WIDTH_MM)
 	_stitched[slot] = site
+	_revision += 1
 	return site
 
 
@@ -254,6 +265,11 @@ func unstitch_all() -> void:
 			_nodes.erase(node)
 			_at_node.erase(node)
 	_stitched.clear()
+	_revision += 1
+
+
+func revision() -> int:
+	return _revision
 
 
 ## Every node after the first is joined to the nearest already-joined node, so the graph
@@ -381,6 +397,123 @@ func _raise_town(anchor: int, kit: Dictionary, rng: RandomNumberGenerator) -> vo
 		_add_edge_wide(anchor, street, width)
 	var id: StringName = kit["id"]
 	_towns[anchor] = {"kit": id, "turn": turn, "blocks": built}
+
+
+## Roads that cross meet (M7 claim 13, found by the wild ground's walkability property).
+##
+## The graph was never planar: a loop, or a town's street, can cut across another road,
+## and at the crossing the two could be at very different heights — a cliff in the
+## middle of a road once the ground is real voxels. So every proper crossing becomes a
+## crossing node that both roads pass through, and each road is split there. Both
+## roads now share the crossing's height, and a traveller can turn at it, which is also
+## what a crossing is. The split pieces are short, and their grade is still the base
+## field's slope between two points, which is shallow at any length.
+##
+## Integer arithmetic throughout: the crossing point is state.
+func _meet_where_roads_cross() -> void:
+	var ids: Array[int] = edge_ids()
+	var cuts: Dictionary = {}
+	var at_point: Dictionary = {}
+	for i: int in ids.size():
+		for j: int in range(i + 1, ids.size()):
+			var found: Array[int] = _crossing(ids[i], ids[j])
+			if found.is_empty():
+				continue
+			var point: Vector2i = Vector2i(found[0], found[1])
+			var node: int = EntityIds.NONE
+			if at_point.has(point):
+				node = at_point[point]
+			else:
+				node = _add_node(KIND_CROSSING, point.x, point.y, _town_at(point))
+				at_point[point] = node
+			for e: int in [ids[i], ids[j]]:
+				var rec: Dictionary = _edges[e]
+				var a: int = rec["a"]
+				var from: Vector2i = position_of(a)
+				if not cuts.has(e):
+					cuts[e] = []
+				var list: Array = cuts[e]
+				list.append([_length_mm(from.x, from.y, point.x, point.y), node])
+	if cuts.is_empty():
+		return
+	var old: Dictionary = _edges.duplicate(true)
+	_edges.clear()
+	for node: int in node_ids():
+		_at_node[node] = [] as Array[int]
+	for id: int in ids:
+		var rec: Dictionary = old[id]
+		var a: int = rec["a"]
+		var b: int = rec["b"]
+		var width: int = rec["width"]
+		if not cuts.has(id):
+			_add_edge_wide(a, b, width)
+			continue
+		var list: Array = cuts[id]
+		list.sort_custom(func(x: Array, y: Array) -> bool:
+			var xa: int = x[0]
+			var ya: int = y[0]
+			var xn: int = x[1]
+			var yn: int = y[1]
+			return xa < ya or (xa == ya and xn < yn))
+		var previous: int = a
+		for cut: Variant in list:
+			var pair: Array = cut
+			var node: int = pair[1]
+			if node != previous and _edge_between(previous, node) == EntityIds.NONE:
+				_add_edge_wide(previous, node, width)
+			previous = node
+		if previous != b and _edge_between(previous, b) == EntityIds.NONE:
+			_add_edge_wide(previous, b, width)
+
+
+## Where two edges properly cross — not at a place they share, not end to end, not
+## lying along each other — as [x, z]; empty if they do not. The point is rounded to
+## the millimetre with the ratio's low bits dropped first so nothing overflows.
+func _crossing(e1: int, e2: int) -> Array[int]:
+	var r1: Dictionary = _edges[e1]
+	var r2: Dictionary = _edges[e2]
+	var a1: int = r1["a"]
+	var b1: int = r1["b"]
+	var a2: int = r2["a"]
+	var b2: int = r2["b"]
+	if a1 == a2 or a1 == b2 or b1 == a2 or b1 == b2:
+		return [] as Array[int]
+	var p1: Vector2i = position_of(a1)
+	var p2: Vector2i = position_of(b1)
+	var p3: Vector2i = position_of(a2)
+	var p4: Vector2i = position_of(b2)
+	var r: Vector2i = p2 - p1
+	var q: Vector2i = p4 - p3
+	var d: int = r.x * q.y - r.y * q.x
+	if d == 0:
+		return [] as Array[int]
+	var w: Vector2i = p3 - p1
+	var t: int = w.x * q.y - w.y * q.x
+	var u: int = w.x * r.y - w.y * r.x
+	if d < 0:
+		d = -d
+		t = -t
+		u = -u
+	if t <= 0 or t >= d or u <= 0 or u >= d:
+		return [] as Array[int]
+	while d > 2_147_483_647:
+		d = d >> 1
+		t = t >> 1
+	var point: Vector2i = Vector2i(p1.x + r.x * t / d, p1.y + r.y * t / d)
+	if point == p1 or point == p2 or point == p3 or point == p4:
+		return [] as Array[int]
+	return [point.x, point.y] as Array[int]
+
+
+## The town whose levelled ground a crossing stands on: the lowest-numbered town whose
+## reach covers the point, the same test terrain uses to level a town's ground, or NONE.
+## A crossing is not a town's just because one of its roads leads to one.
+func _town_at(point: Vector2i) -> int:
+	for anchor: int in town_ids():
+		var at: Vector2i = position_of(anchor)
+		if _length_mm(at.x, at.y, point.x, point.y) <= SettlementKits.MAX_REACH_MM:
+			return anchor
+	return EntityIds.NONE
 
 
 ## A quarter turn about the node that anchors the town, on integers: a rotation matrix

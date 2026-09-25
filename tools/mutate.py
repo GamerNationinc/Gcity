@@ -108,6 +108,11 @@ EXTRA_TESTS = {
     "sim/core/replay_fixture.gd": ["res://tests/sim/test_replay_fixture.gd"],
     "sim/core/sim_command.gd": ["res://tests/sim/test_sim_root.gd"],
     "sim/assembly.gd": ["res://tests/sim/test_sim_assembly.gd"],
+    # M7 claim 13: the region implementations are exercised through Regions, and walking
+    # and seeing through the ground is where they matter
+    "sim/world/region.gd": ["res://tests/world/test_regions.gd"],
+    "sim/world/authored_region.gd": ["res://tests/world/test_regions.gd", "res://tests/agents/test_movement_system.gd"],
+    "sim/world/wild_region.gd": ["res://tests/world/test_regions.gd", "res://tests/agents/test_movement_system.gd", "res://tests/agents/test_perception_system.gd"],
     "sim/land/land_system.gd": ["res://tests/land/test_land_system.gd", "res://tests/agents/test_actor_system.gd"],
 }
 #: Files with no tests of their own and nothing to mutate worth scoring.
