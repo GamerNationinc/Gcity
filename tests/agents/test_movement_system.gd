@@ -227,3 +227,50 @@ func test_a_step_out_of_the_world_is_refused_and_moves_nothing() -> void:
 	assert_eq(_movement.move_count(), moves, "nor was it counted as a move")
 	assert_true(_movement.move(_player, -150, 0), "back the other way is fine")
 	assert_eq(_movement.move_count(), moves + 1, "and that one counted")
+
+
+## M7 spec claim 13: out in the wilds the ground is real. A step into rising ground
+## climbs it, a level at a time; a step off a rise drops onto the ground below; the
+## city's edge is a wall whichever way you walk into it, gate included, because the
+## gate is taken by region.enter and never walked; and somebody put inside the rock
+## stays there rather than falling through the world.
+func test_in_the_wilds_a_step_climbs_the_ground_and_the_city_edge_is_a_wall() -> void:
+	_setup()
+	var regions: Regions = SimAssembly.regions_of(_sim)
+	# find two neighbouring columns out in the wilds where the ground rises one level
+	var low: Vector2i = Vector2i.ZERO
+	var found: bool = false
+	for i: int in 4000:
+		var cx: int = 300 + i
+		var cz: int = -1500 - (i % 37)
+		if regions.standing_cell_y(cx * M, cz * M) + 1 == regions.standing_cell_y((cx + 1) * M, cz * M):
+			low = Vector2i(cx, cz)
+			found = true
+			break
+	assert_true(found, "the wilds have a slope somewhere along the way")
+	var y: int = regions.standing_cell_y(low.x * M, low.y * M)
+	# the edge of the lower column, one short step from the higher one
+	var edge: Vector3i = Vector3i(low.x * M + 950, y * M, low.y * M + 500)
+	_actors.set_position(_player, edge)
+	_sim.step()
+	assert_eq(_actors.position_of(_player).y, y * M, "standing on the ground, not falling")
+	assert_true(_do(&"actor.move", {"actor": _player, "dx": 100, "dz": 0}), "a step into the rise")
+	assert_eq(_actors.position_of(_player), Vector3i((low.x + 1) * M + 50, (y + 1) * M, low.y * M + 500), "climbs onto it")
+	assert_true(_do(&"actor.move", {"actor": _player, "dx": -100, "dz": 0}), "and a step back off it")
+	_sim.step()
+	assert_eq(_actors.position_of(_player), edge, "drops back to the ground below")
+	assert_true(_actors.is_alive(_player), "unhurt: one level is no fall")
+	# somebody put inside the rock stays where they were put
+	var buried: Vector3i = Vector3i(low.x * M + 500, (y - 3) * M, low.y * M + 500)
+	_actors.set_position(_player, buried)
+	_sim.step_n(5)
+	assert_eq(_actors.position_of(_player), buried, "and does not fall through the world")
+	# the city's edge
+	_actors.set_position(_player, Vector3i(5 * M + 500, 0, 50))
+	assert_false(_do(&"actor.move", {"actor": _player, "dx": 0, "dz": -100}), "walking south out of the city is walking into a wall")
+	_actors.set_position(_player, Vector3i(500, 0, 50))
+	assert_false(_do(&"actor.move", {"actor": _player, "dx": 0, "dz": -100}), "even at the gate: the gate is taken, not walked")
+	_actors.set_position(_player, Vector3i(5 * M + 500, 0, -50))
+	assert_false(_do(&"actor.move", {"actor": _player, "dx": 0, "dz": 100}), "and nobody walks in from outside either")
+	_actors.set_position(_player, Vector3i(5 * M + 500, 0, -30 * M))
+	assert_true(_do(&"actor.move", {"actor": _player, "dx": 100, "dz": -100}), "while walking about outside is walking")

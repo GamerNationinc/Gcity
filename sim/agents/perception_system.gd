@@ -44,6 +44,8 @@ var _heard: Dictionary = {}
 ## walk runs once per pair per tick however many systems ask.
 var _visible: Dictionary = {}
 var _faction_regex: RegEx = RegEx.create_from_string(LandSystem.OWNER_PATTERN)
+## The ground, which blocks sight like a wall (M7 spec claim 13). Wired by the assembly.
+var _regions: Regions = null
 
 
 func _init(content: ContentDb, stats: StatResolver, actors: ActorSystem, build: BuildSystem, events: EventBus) -> void:
@@ -366,6 +368,8 @@ func _walk_clear(a: Vector3i, b: Vector3i) -> bool:
 				return false
 		if _build.cell_piece_at(next) != EntityIds.NONE:
 			return false
+		if _regions != null and _regions.is_solid(next):
+			return false
 		cell = next
 		num[best] += BuildSystem.CELL
 	return true
@@ -444,6 +448,10 @@ func tick(sim: SimRoot) -> void:
 		if _actors.is_alive(actor):
 			var pos: Vector3i = _actors.position_of(actor)
 			_last_pos[actor] = [pos.x, pos.y, pos.z] as Array[int]
+
+
+func set_regions(regions: Regions) -> void:
+	_regions = regions
 
 
 ## Whether two actors are on the same side: the same squad, or agents of the same

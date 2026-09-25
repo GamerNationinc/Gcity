@@ -44,12 +44,14 @@ var _movement: MovementSystem
 var _items: ItemSystem
 var _stances: StanceSystem
 var _events: EventBus
+var _regions: Regions
 ## token id -> {"members": Array[int] (lead first), "leg": int, "progress": int}: who
 ## the squad is and how far along the token's route it has actually walked.
 var _squads: Dictionary = {}
 
 
-func _init(content: ContentDb, routes: RouteGraph, tokens: MacroTokenSystem, actors: ActorSystem, perception: PerceptionSystem, movement: MovementSystem, items: ItemSystem, stances: StanceSystem, events: EventBus) -> void:
+func _init(content: ContentDb, routes: RouteGraph, tokens: MacroTokenSystem, actors: ActorSystem, perception: PerceptionSystem, movement: MovementSystem, items: ItemSystem, stances: StanceSystem, events: EventBus, regions: Regions) -> void:
+	_regions = regions
 	_content = content
 	_routes = routes
 	_tokens = tokens
@@ -152,12 +154,13 @@ func _hydrate(token: int) -> void:
 	var members: Array[int] = []
 	for i: int in count:
 		var at: Vector2i = _tokens.point_at(route, leg, progress, i * SPACING_MM)
-		var cell: Vector3i = BuildSystem.cell_of(Vector3i(at.x, 0, at.y))
+		var level: int = _regions.standing_cell_y(at.x, at.y) * BuildSystem.CELL
+		var cell: Vector3i = BuildSystem.cell_of(Vector3i(at.x, level, at.y))
 		var agent: int = _perception.spawn(StringName(profile_s), cell, facing, SQUAD_BASE + token, "", _tokens.faction_of(token))
 		if agent == EntityIds.NONE:
 			continue
 		# on the road itself rather than the middle of its cell: the walk measures from here
-		_actors.set_position(agent, Vector3i(at.x, 0, at.y))
+		_actors.set_position(agent, Vector3i(at.x, level, at.y))
 		members.append(agent)
 		_equip(agent, i, frames, payload)
 	if members.is_empty():

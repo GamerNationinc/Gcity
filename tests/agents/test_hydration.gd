@@ -81,9 +81,16 @@ static func _wild_pair(routes: RouteGraph, rng: RandomNumberGenerator) -> Array[
 	return [] as Array[int]
 
 
+## Stands the player off to the side of a token, on the ground there: out in the wilds
+## the ground is wherever the terrain puts it, and a player dropped from the wrong
+## height falls, and can die of it.
 func _watch(token: int) -> void:
 	var at: Vector2i = _tokens.position_of(token)
-	_actors.set_position(_player, Vector3i(at.x, 0, at.y + WATCH_MM))
+	_actors.set_position(_player, _on_ground(SimAssembly.regions_of(_sim), at.x, at.y + WATCH_MM))
+
+
+static func _on_ground(regions: Regions, x: int, z: int) -> Vector3i:
+	return Vector3i(x, regions.standing_cell_y(x, z) * BuildSystem.CELL, z)
 
 
 static func _patrol(members: int, armed: bool) -> Dictionary:
@@ -285,7 +292,7 @@ func test_property_a_district_loaded_and_let_go_ends_where_it_would_have_unloade
 			if _someone_else_near(tokens_visited, id, watch):
 				skipped += 1
 				continue
-			actors_visited.set_position(player, Vector3i(watch.x, 0, watch.y))
+			actors_visited.set_position(player, _on_ground(SimAssembly.regions_of(visited), watch.x, watch.y))
 			alone.step_n(stay)
 			visited.step_n(stay)
 			if hydration.is_hydrated(id):

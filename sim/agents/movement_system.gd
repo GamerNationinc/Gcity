@@ -35,6 +35,9 @@ var _blocked: int = 0
 var _falls: int = 0
 ## actor -> levels fallen so far in the current fall; cleared when it lands.
 var _falling: Dictionary = {}
+## The ground (M7 spec claim 13). Wired by the assembly once the world exists; until
+## then, and in a sim built without one, the ground is the flat plane it always was.
+var _regions: Regions = null
 
 
 func _init(content: ContentDb, actors: ActorSystem, land: LandSystem, build: BuildSystem, events: EventBus, items: ItemSystem, stats: StatResolver) -> void:
@@ -59,7 +62,9 @@ func tick(_sim: SimRoot) -> void:
 			_falling.erase(actor)
 			continue
 		var pos: Vector3i = _actors.position_of(actor)
-		if is_standable(BuildSystem.cell_of(pos)):
+		if is_standable(BuildSystem.cell_of(pos)) or _in_ground(BuildSystem.cell_of(pos)):
+			# an actor put inside the ground stays there rather than falling through it;
+			# walking never gets anyone there, only being placed there
 			_land_from_fall(actor)
 			continue
 		var below: Vector3i = pos - Vector3i(0, BuildSystem.CELL, 0)
@@ -114,6 +119,10 @@ func _on_removed(payload: Dictionary) -> void:
 	_falling.erase(actor)
 
 
+func set_regions(regions: Regions) -> void:
+	_regions = regions
+
+
 func move_count() -> int:
 	return _moves
 
@@ -133,9 +142,9 @@ func is_falling(actor: int) -> bool:
 ## Whether an actor may stand in `cell`: a solid horizontal face under it, a solid
 ## piece in the cell below, or the ground level of the parcel it is over.
 func is_standable(cell: Vector3i) -> bool:
-	if _build.cell_piece_at(cell) != EntityIds.NONE:
+	if _build.cell_piece_at(cell) != EntityIds.NONE or _in_ground(cell):
 		return false
-	if cell.y <= BuildSystem.GROUND_CELL_Y:
+	if _on_ground(cell):
 		return true
 	var under: Vector3i = cell - Vector3i(0, 1, 0)
 	if _build.cell_piece_at(under) != EntityIds.NONE:
@@ -247,6 +256,12 @@ func move(actor: int, dx: int, dz: int, dy: int = 0) -> bool:
 			continue
 		var next: Vector3i = to + step
 		if not _can_step(actor, to, next):
+			# walking uphill (M7 spec claim 13): where a step runs into the ground and the
+			# region lets a step climb, it goes up onto it instead
+			var up: Vector3i = next + Vector3i(0, BuildSystem.CELL, 0)
+			if _climbs_onto(actor, to, next, up):
+				to = up
+				continue
 			_blocked += 1
 			return false
 		to = next
@@ -287,6 +302,10 @@ func carried_tags(actor: int) -> Array[String]:
 func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 	var from_cell: Vector3i = BuildSystem.cell_of(from)
 	var to_cell: Vector3i = BuildSystem.cell_of(to)
+	if _regions != null:
+		# a region's edge is a wall; the gate is taken by region.enter, never walked
+		if _regions.crosses_edge(from, to) or _regions.is_solid(to_cell):
+			return false
 	if to_cell != from_cell:
 		if _build.cell_piece_at(to_cell) != EntityIds.NONE:
 			return false
@@ -299,6 +318,31 @@ func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 		if not _land.require(to, actor, &"enter"):
 			return false
 	return true
+
+
+## Whether a step that ran into the ground can climb onto it: the region allows a step
+## to climb, the cell in the way really is ground and not something built, there is
+## headroom above the actor, and the cell above the ground is somewhere to stand.
+func _climbs_onto(actor: int, from: Vector3i, blocked: Vector3i, up: Vector3i) -> bool:
+	if _regions == null:
+		return false
+	var from_cell: Vector3i = BuildSystem.cell_of(from)
+	if _regions.step_levels(from_cell) < 1 or not _regions.is_solid(BuildSystem.cell_of(blocked)):
+		return false
+	var above: Vector3i = from + Vector3i(0, BuildSystem.CELL, 0)
+	if _regions.is_solid(BuildSystem.cell_of(above)) or _build.cell_piece_at(BuildSystem.cell_of(above)) != EntityIds.NONE:
+		return false
+	return _can_step(actor, above, up) and is_standable(BuildSystem.cell_of(up))
+
+
+func _on_ground(cell: Vector3i) -> bool:
+	if _regions == null:
+		return cell.y <= BuildSystem.GROUND_CELL_Y
+	return _regions.stands_on_ground(cell)
+
+
+func _in_ground(cell: Vector3i) -> bool:
+	return _regions != null and _regions.is_solid(cell)
 
 
 ## {"actor": int, "dx": int, "dz": int} or {"actor": int, "dx": int, "dy": int,

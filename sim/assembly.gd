@@ -101,6 +101,8 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var regions: Regions = Regions.new(routes, terrain)
 	if regions.attach(sim) != OK:
 		return null
+	movement.set_regions(regions)
+	perception.set_regions(regions)
 	var binder: SiteBinder = SiteBinder.new(content, routes)
 	if binder.attach(sim) != OK:
 		return null
@@ -108,7 +110,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var tokens: MacroTokenSystem = MacroTokenSystem.new(routes)
 	if tokens.attach(sim) != OK:
 		return null
-	var hydration: HydrationSystem = HydrationSystem.new(content, routes, tokens, actors, perception, movement, items, stances, events)
+	var hydration: HydrationSystem = HydrationSystem.new(content, routes, tokens, actors, perception, movement, items, stances, events, regions)
 	if hydration.attach(sim) != OK:
 		return null
 	stances.set_travel_check(hydration.is_travelling)

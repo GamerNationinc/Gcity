@@ -488,3 +488,33 @@ func test_restore_round_trip_and_rejections() -> void:
 	bad["alerts"] = -1
 	assert_eq(perception.restore(bad), ERR_INVALID_DATA, "a negative counter")
 	assert_eq(perception.snapshot(), state, "rejections leave the state untouched")
+
+
+## M7 spec claim 13: out in the wilds the ground blocks sight like a wall does. A
+## contact on the far side of a rise is not seen; with nothing between, it is.
+func test_the_ground_hides_what_is_behind_it() -> void:
+	_setup()
+	var regions: Regions = SimAssembly.regions_of(_sim)
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	# a rise between two people, higher than both of them by two levels, inside a
+	# guard's sight range
+	var found: bool = false
+	var a: Vector3i = Vector3i.ZERO
+	var b: Vector3i = Vector3i.ZERO
+	for i: int in 3000:
+		var cx: int = 300 + i * 7
+		var cz: int = -2000 - (i % 53) * 11
+		var y0: int = regions.standing_cell_y(cx * 1000, cz * 1000)
+		var ridge: int = regions.standing_cell_y((cx + 15) * 1000, cz * 1000)
+		var y1: int = regions.standing_cell_y((cx + 30) * 1000, cz * 1000)
+		if ridge >= maxi(y0, y1) + 2:
+			a = Vector3i(cx * 1000 + 500, y0 * 1000, cz * 1000 + 500)
+			b = Vector3i((cx + 30) * 1000 + 500, y1 * 1000, cz * 1000 + 500)
+			found = true
+			break
+	assert_true(found, "the wilds have a rise to hide behind")
+	assert_false(perception.line_of_sight(a, b), "a rise between two people hides them from each other")
+	var open_a: Vector3i = Vector3i(500, 0, -40_000)
+	var open_b: Vector3i = Vector3i(10_500, 0, -40_000)
+	assert_true(perception.line_of_sight(open_a, open_b), "on the level apron outside the gate they see each other")
+
