@@ -29,6 +29,14 @@ func _setup() -> void:
 	_player = _actors.spawn(&"arcade", 0)
 
 
+## Submits a command for the next tick and steps once. True when it was applied.
+func _do(kind: StringName, payload: Dictionary) -> bool:
+	var before: int = _sim.dispatched_count()
+	assert_eq(_sim.submit(SimCommand.new(_sim.get_tick() + 1, kind, payload)), OK, "submit %s" % kind)
+	_sim.step()
+	return _sim.dispatched_count() == before + 1
+
+
 func _raise(site: StringName) -> void:
 	# the site's own parcels must be the builder's, exactly as the client transfers
 	# them before raising (unparcelled land lets anyone build, and needs none of this)
@@ -253,3 +261,54 @@ func test_a_site_arms_the_guards_it_raises() -> void:
 	_raise(&"m4_test_building")
 	for guard: int in _sites.agents_of(&"m4_test_building"):
 		assert_eq(_actors.wielded(guard), EntityIds.NONE, "the M4 guards are still empty-handed")
+
+
+## M7 spec claim 10: Cold Storage becomes a bound site. Raised with its contract, the
+## building goes up where the contract's handle is bound, out in the wilds, and its lot,
+## its guards' rounds and its terminals go with it; the ground under and round it is
+## levelled first. Nothing in the site's content changes, only where it goes.
+func test_a_site_raised_with_its_contract_stands_where_the_contract_bound_it() -> void:
+	_setup()
+	var binder: SiteBinder = SimAssembly.binder_of(_sim)
+	var routes: RouteGraph = SimAssembly.routes_of(_sim)
+	var regions: Regions = SimAssembly.regions_of(_sim)
+	var land: LandSystem = SimAssembly.land_of(_sim)
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	var terminals: TerminalSystem = SimAssembly.terminals_of(_sim)
+	var operator: int = _actors.spawn(&"arcade", 0)
+	assert_true(_do(&"land.identify", {"actor": operator, "owner": "corp.coldchain"}), "the operator is the owner")
+	assert_false(_do(&"site.raise", {"actor": operator, "site": "cold_storage", "quest": "cold_storage"}), "no contract taken, nowhere to raise it")
+	assert_true(_do(&"quest.accept", {"actor": _player, "quest": "cold_storage"}), "the contract is taken")
+	var slot: int = binder.slot_of(&"cold_storage")
+	assert_true(_do(&"site.raise", {"actor": operator, "site": "cold_storage", "quest": "cold_storage"}), "and raised where it bound")
+	var at: Vector2i = routes.slot_position(slot)
+	var base: Vector3i = _sites.base_of(&"cold_storage")
+	assert_eq(Vector2i(base.x, base.z), Vector2i(Terrain._floor_div(at.x, M), Terrain._floor_div(at.y, M)), "at the slot")
+	assert_eq(regions.region_at(at.x, at.y).id(), &"wilds", "out in the wilds")
+	assert_eq(_sites.pieces_of(&"cold_storage").size(), 366, "every piece of it")
+	# the lot moved with it
+	var authored: Vector3i = Vector3i(40, 0, 40)
+	var offset: Vector3i = (base - authored) * M
+	assert_eq(land.parcel_at(Vector3i(42 * M, 500, 45 * M) + offset), &"cold_storage_lot", "the lot is under the building")
+	assert_eq(land.parcel_at(Vector3i(42 * M, 500, 45 * M)), &"", "and not where content first put it")
+	# the ground is level round it: standing ground at the base across the street
+	for dx: int in [-6, 0, 12]:
+		var cell: Vector3i = base + Vector3i(dx, 0, -7)
+		assert_true(regions.stands_on_ground(cell), "the street round it is level ground (%s)" % cell)
+	# its guards walk their rounds where the building is, and its terminals are up there
+	for agent: int in _sites.agents_of(&"cold_storage"):
+		assert_eq(perception.route_offset(agent), base - authored, "guard %d's round moved with the building" % agent)
+	for terminal: int in _sites.terminals_of(&"cold_storage"):
+		assert_true(absi(terminals.position_of(terminal).y - (base.y + 1) * M) <= M, "the terminal is on the floor it stands on")
+	# and a save of it loads with the building where it is
+	var snap: Dictionary = _sim.snapshot()
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "a save with the building out there loads")
+	assert_eq(SimAssembly.sites_of(other).base_of(&"cold_storage"), base, "with it where it was")
+	var good: Dictionary = _sites.snapshot()
+	var bad: Dictionary = good.duplicate(true)
+	bad["raised"]["cold_storage"]["base"] = [1, 2]
+	assert_eq(_sites.restore(bad), ERR_INVALID_DATA, "a base that is not a cell is refused")
+	assert_eq(_sites.snapshot(), good, "and nothing changed")

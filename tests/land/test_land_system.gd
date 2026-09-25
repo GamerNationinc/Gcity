@@ -313,3 +313,31 @@ func test_snapshot_restore_round_trip_including_generated_parcels() -> void:
 	var before: String = StateHash.of(fresh.snapshot())
 	assert_eq(fresh.restore(bad), ERR_INVALID_DATA, "bad footprint rejected")
 	assert_eq(StateHash.of(fresh.snapshot()), before, "a rejected restore changes nothing")
+
+
+## M7 spec claim 10: a lot moves with the building raised on it. Footprint and height band
+## move together, the old place is nobody's any more, the new one is the lot's, and a
+## move onto another parcel, off the world or of a lot that is not there changes nothing.
+func test_a_parcel_moves_whole_and_never_onto_another() -> void:
+	_build()
+	var before: Dictionary = _land.parcel(&"cold_storage_lot")
+	var inside: Vector3i = Vector3i(42 * M, 0, 45 * M)
+	assert_eq(_land.parcel_at(inside), &"cold_storage_lot", "the lot is where content put it")
+	var offset: Vector3i = Vector3i(2_000 * M, -13 * M, -3_000 * M)
+	assert_eq(_land.move_parcel(&"cold_storage_lot", offset), OK, "moved")
+	assert_eq(_land.parcel_at(inside), &"", "the old place is nobody's now")
+	assert_eq(_land.parcel_at(inside + offset), &"cold_storage_lot", "and the new one is the lot")
+	var after: Dictionary = _land.parcel(&"cold_storage_lot")
+	assert_eq(after["floor_y"], before["floor_y"] + offset.y, "the floor moved with it")
+	assert_eq(after["ceiling_y"], before["ceiling_y"] + offset.y, "and the ceiling")
+	var snap: Dictionary = _land.snapshot()
+	assert_eq(_land.move_parcel(&"cold_storage_lot", Vector3i(-2_000 * M + 6 * M - 42 * M, 13 * M, 3_000 * M + 30 * M - 45 * M)), ERR_ALREADY_EXISTS,
+		"not onto the fixer's office")
+	assert_eq(_land.move_parcel(&"cold_storage_lot", Vector3i(LandSystem.MAX_COORD, 0, 0)), ERR_INVALID_PARAMETER, "not off the world")
+	assert_eq(_land.move_parcel(&"nowhere", offset), ERR_DOES_NOT_EXIST, "not a lot that is not there")
+	assert_eq(_land.snapshot(), snap, "and none of that moved anything")
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.land_of(other).restore(snap), OK, "a save with the lot moved loads")
+	assert_eq(SimAssembly.land_of(other).parcel_at(inside + offset), &"cold_storage_lot", "with the lot where it was moved to")

@@ -52,7 +52,7 @@ func test_the_city_keeps_the_ground_it_always_had() -> void:
 	_setup()
 	for cell: Vector3i in [Vector3i(3, 0, 8), Vector3i(40, -1, 40), Vector3i(500, 0, 500), Vector3i(-7, 3, 2)]:
 		assert_eq(_regions.stands_on_ground(cell), cell.y <= BuildSystem.GROUND_CELL_Y, "cell %s" % cell)
-		assert_false(_regions.is_solid(cell), "nothing under the city is rock: %s" % cell)
+		assert_eq(_regions.is_solid(cell), cell.y < BuildSystem.GROUND_CELL_Y, "under the ground level is ground, above it is not: %s" % cell)
 	assert_eq(_regions.step_levels(Vector3i(3, 0, 8)), 0, "and nobody walks up a slope in a city of flat streets")
 	assert_eq(_regions.standing_cell_y(3 * M, 8 * M), BuildSystem.GROUND_CELL_Y, "everyone stands on the ground level")
 

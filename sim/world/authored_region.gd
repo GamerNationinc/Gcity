@@ -19,10 +19,12 @@ func contains(x: int, z: int) -> bool:
 	return x >= _bounds[0] and z >= _bounds[1] and x < _bounds[2] and z < _bounds[3]
 
 
-## The city's ground is the ground level and nothing under it is ever entered: what is
-## solid in the city is what was built, and that is the build system's to say.
-func is_solid(_cell: Vector3i) -> bool:
-	return false
+## Below the city's ground level is ground. Nothing was ever built or walked there; saying
+## so is what lets the rules that ask the ground — a foundation needs ground under it, a
+## room ends at the ground — be one rule in the city and the wilds, and the same rule the
+## city always had.
+func is_solid(cell: Vector3i) -> bool:
+	return cell.y < BuildSystem.GROUND_CELL_Y
 
 
 ## At or below the ground level a cell is carried, as it always was in the city.

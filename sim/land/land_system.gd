@@ -202,6 +202,46 @@ func add_parcel(id: StringName, district: StringName, owner: StringName, footpri
 	return OK
 
 
+## Moves a parcel by an offset in millimetres, footprint and height band together (M7
+## spec claim 10): a site raised at a bound slot takes its lot with it, so the lot's
+## rights hold wherever the contract put the building. Refused, with nothing changed,
+## if the parcel is unknown, would leave the world, or would overlap another.
+func move_parcel(id: StringName, offset: Vector3i) -> Error:
+	if not _parcels.has(id):
+		return ERR_DOES_NOT_EXIST
+	var rec: Dictionary = _parcels[id]
+	var poly: Array[Vector2i] = rec["footprint"]
+	var moved: Array[Vector2i] = []
+	for p: Vector2i in poly:
+		var q: Vector2i = p + Vector2i(offset.x, offset.z)
+		if absi(q.x) > MAX_COORD or absi(q.y) > MAX_COORD:
+			return ERR_INVALID_PARAMETER
+		moved.append(q)
+	var floor_y: int = rec["floor_y"]
+	var ceiling_y: int = rec["ceiling_y"]
+	floor_y += offset.y
+	ceiling_y += offset.y
+	if floor_y < -MAX_COORD or ceiling_y > MAX_COORD:
+		return ERR_INVALID_PARAMETER
+	for other_id: StringName in _candidates_for_polygon(moved):
+		if other_id == id:
+			continue
+		var other: Dictionary = _parcels[other_id]
+		var other_poly: Array[Vector2i] = other["footprint"]
+		var other_floor: int = other["floor_y"]
+		var other_ceiling: int = other["ceiling_y"]
+		if _volumes_overlap(moved, floor_y, ceiling_y, other_poly, other_floor, other_ceiling):
+			return ERR_ALREADY_EXISTS
+	for key: Variant in _buckets:
+		var list: Array[StringName] = _buckets[key]
+		list.erase(id)
+	rec["footprint"] = moved
+	rec["floor_y"] = floor_y
+	rec["ceiling_y"] = ceiling_y
+	_index(id, moved)
+	return OK
+
+
 func has_parcel(id: StringName) -> bool:
 	return _parcels.has(id)
 

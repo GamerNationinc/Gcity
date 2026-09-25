@@ -42,6 +42,21 @@ var _events: EventBus
 var _pieces: Dictionary = {}
 ## derived: "x,y,z" -> piece id (cell pieces); "x,y,z|axis" -> piece id (face pieces)
 var _occupied: Dictionary = {}
+## The ground (M7 claim 10). A foundation stands on ground: in the city that is the
+## ground level, as it always was; in the wilds, wherever the ground is. Unset, the
+## ground level is the only ground there is.
+var _regions: Regions = null
+
+
+func set_regions(regions: Regions) -> void:
+	_regions = regions
+
+
+## Whether a foundation can go in this cell: ground directly under it and none in it.
+func _on_ground(cell: Vector3i) -> bool:
+	if _regions == null:
+		return cell.y == GROUND_CELL_Y
+	return not _regions.is_solid(cell) and _regions.is_solid(cell - Vector3i(0, 1, 0))
 
 
 func _init(content: ContentDb, stats: StatResolver, ids: EntityIds, land: LandSystem, actors: ActorSystem, events: EventBus) -> void:
@@ -270,7 +285,7 @@ func supported_set() -> Dictionary:
 	var depth: Dictionary = {}
 	var frontier: Array[int] = []
 	for id: int in piece_ids():
-		if kind_of(id) == &"foundation" and cell_of_piece(id).y == GROUND_CELL_Y:
+		if kind_of(id) == &"foundation" and _on_ground(cell_of_piece(id)):
 			depth[id] = 0
 			frontier.append(id)
 	var head: int = 0
@@ -340,7 +355,7 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 			return EntityIds.NONE
 		if _occupied.has(cell_key(cell)):
 			return EntityIds.NONE
-		if kind == &"foundation" and cell.y != GROUND_CELL_Y:
+		if kind == &"foundation" and not _on_ground(cell):
 			return EntityIds.NONE
 	if not _land.require(cell_centre(cell), actor, &"build"):
 		return EntityIds.NONE

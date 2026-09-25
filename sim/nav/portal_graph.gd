@@ -29,6 +29,10 @@ var _edges: Array[Dictionary] = []
 ## piece id (target) -> node id it opens into
 var _targets: Dictionary = {}
 var _rebuilds: int = 0
+## The ground (M7 claim 10): solid ground is a wall like a solid piece, so a building
+## raised on the wilds' uneven ground has its rooms found just as one in the city does.
+## Unset, the ground is the flat plane below the ground level it always was.
+var _regions: Regions = null
 
 
 func _init(content: ContentDb, stats: StatResolver, build: BuildSystem) -> void:
@@ -93,7 +97,8 @@ func rebuild() -> void:
 			faces[face] = id
 	lo -= Vector3i.ONE
 	hi += Vector3i.ONE
-	lo.y = maxi(lo.y, BuildSystem.GROUND_CELL_Y)
+	if _regions == null:
+		lo.y = maxi(lo.y, BuildSystem.GROUND_CELL_Y)
 	var size: Vector3i = hi - lo + Vector3i.ONE
 	assert(size.x * size.y * size.z <= MAX_REGION_CELLS, "portal region too large")
 	# exterior first: everything reachable from the border
@@ -104,7 +109,7 @@ func rebuild() -> void:
 			for z: int in range(lo.z, hi.z + 1):
 				var c: Vector3i = Vector3i(x, y, z)
 				var on_border: bool = x == lo.x or x == hi.x or y == hi.y or z == lo.z or z == hi.z
-				if on_border and not solid.has(BuildSystem.cell_key(c)):
+				if on_border and not solid.has(BuildSystem.cell_key(c)) and not _ground(c):
 					border.append(c)
 	_fill(border, EXTERIOR, lo, hi, solid, faces, visited)
 	# then every enclosed volume, seeded in cell order
@@ -114,7 +119,7 @@ func rebuild() -> void:
 			for z: int in range(lo.z, hi.z + 1):
 				var c: Vector3i = Vector3i(x, y, z)
 				var key: String = BuildSystem.cell_key(c)
-				if visited.has(key) or solid.has(key):
+				if visited.has(key) or solid.has(key) or _ground(c):
 					continue
 				var seeds: Array[Vector3i] = [c]
 				var count: int = _fill(seeds, next_node, lo, hi, solid, faces, visited)
@@ -178,7 +183,7 @@ func _fill(seeds: Array[Vector3i], node: int, lo: Vector3i, hi: Vector3i, solid:
 	var queue: Array[Vector3i] = []
 	for s: Vector3i in seeds:
 		var key: String = BuildSystem.cell_key(s)
-		if visited.has(key) or solid.has(key):
+		if visited.has(key) or solid.has(key) or _ground(s):
 			continue
 		visited[key] = true
 		_node_of_cell[key] = node
@@ -192,7 +197,7 @@ func _fill(seeds: Array[Vector3i], node: int, lo: Vector3i, hi: Vector3i, solid:
 			if n.x < lo.x or n.x > hi.x or n.y < lo.y or n.y > hi.y or n.z < lo.z or n.z > hi.z:
 				continue
 			var key: String = BuildSystem.cell_key(n)
-			if visited.has(key) or solid.has(key):
+			if visited.has(key) or solid.has(key) or _ground(n):
 				continue
 			var facing: String = _facing_of(d)
 			if faces.has(BuildSystem.face_key(c, facing)):
@@ -201,6 +206,14 @@ func _fill(seeds: Array[Vector3i], node: int, lo: Vector3i, hi: Vector3i, solid:
 			_node_of_cell[key] = node
 			queue.append(n)
 	return queue.size()
+
+
+func set_regions(regions: Regions) -> void:
+	_regions = regions
+
+
+func _ground(cell: Vector3i) -> bool:
+	return _regions != null and _regions.is_solid(cell)
 
 
 static func _facing_of(d: Vector3i) -> String:
@@ -216,7 +229,9 @@ static func _facing_of(d: Vector3i) -> String:
 ## The node an air cell belongs to: EXTERIOR outside or on the border of the region,
 ## a volume id inside, SOLID for a cell a solid piece occupies or below ground.
 func node_at(cell: Vector3i) -> int:
-	if cell.y < BuildSystem.GROUND_CELL_Y:
+	if _regions == null and cell.y < BuildSystem.GROUND_CELL_Y:
+		return SOLID
+	if _ground(cell):
 		return SOLID
 	if _build.cell_piece_at(cell) != EntityIds.NONE:
 		return SOLID

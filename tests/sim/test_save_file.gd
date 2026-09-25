@@ -318,7 +318,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 			19:
 				out.append([at, &"item.detach", {"actor": rng.randi_range(1, 3), "weapon": rng.randi_range(1, 14), "socket": ["radio", "coprocessor", "barrel", "nothing"][rng.randi_range(0, 3)]}])
 			20:
-				out.append([at, &"quest.accept" if rng.randi_range(0, 1) == 0 else &"quest.abandon", {"actor": rng.randi_range(1, 3), "quest": ["first_blood", "break_ground", "nothing"][rng.randi_range(0, 2)]}])
+				out.append([at, &"quest.accept" if rng.randi_range(0, 1) == 0 else &"quest.abandon", {"actor": rng.randi_range(1, 3), "quest": ["first_blood", "break_ground", "cold_storage", "nothing"][rng.randi_range(0, 3)]}])
 			21:
 				out.append([at, &"sim.pause" if rng.randi_range(0, 1) == 0 else &"sim.resume", {"actor": rng.randi_range(1, 3)}])
 			22:
@@ -335,7 +335,11 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 				out.append([at, &"token.spawn", {"faction": ["faction.scrapline", "Not A Tag"][rng.randi_range(0, 1)], "from": rng.randi_range(1, 20), "to": rng.randi_range(1, 20),
 					"speed": rng.randi_range(0, 80), "payload": {"profile": ["foot_patrol", "guard_sim"][rng.randi_range(0, 1)], "members": rng.randi_range(1, 6)}}])
 			23:
-				out.append([at, &"site.raise", {"actor": rng.randi_range(1, 3), "site": ["m4_test_building", "cold_storage", "nowhere"][rng.randi_range(0, 2)]}])
+				var raise: Dictionary = {"actor": rng.randi_range(1, 3), "site": ["m4_test_building", "cold_storage", "nowhere"][rng.randi_range(0, 2)]}
+				# M7 claim 10: raised where a contract bound it, out in the wilds
+				if rng.randi_range(0, 1) == 0:
+					raise["quest"] = "cold_storage"
+				out.append([at, &"site.raise", raise])
 			24:
 				var terminal_kind: StringName = [&"terminal.hack_start", &"terminal.hack_cancel", &"terminal.wipe"][rng.randi_range(0, 2)]
 				out.append([at, terminal_kind, {"actor": rng.randi_range(1, 3), "terminal": rng.randi_range(1, 20)}])

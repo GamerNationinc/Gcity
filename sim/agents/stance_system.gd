@@ -513,7 +513,15 @@ func _route_of(agent: int) -> Array:
 	if route_s.is_empty() or not _content.has(KIND_ROUTE, StringName(route_s)):
 		return []
 	var t: Dictionary = _content.get_entry(KIND_ROUTE, StringName(route_s))
-	return t["cells"]
+	var cells: Array = t["cells"]
+	var offset: Vector3i = _perception.route_offset(agent)
+	if offset == Vector3i.ZERO:
+		return cells
+	# a site raised away from its authored base takes its guards' rounds with it (claim 10)
+	var out: Array = []
+	for v: Variant in cells:
+		out.append(PathingSystem._arr(PathingSystem._vec(v) + offset))
+	return out
 
 
 ## The whole degree whose direction best matches `v` (integer trig: the table's dot

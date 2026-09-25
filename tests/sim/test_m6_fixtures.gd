@@ -38,11 +38,13 @@ func _replay(name: String) -> void:
 	_actors = SimAssembly.actors_of(_sim)
 	_corpses = SimAssembly.corpses_of(_sim)
 	_standing = SimAssembly.standing_of(_sim)
-	# the operator is spawned first, then the site's guards when it is raised, then the
-	# player: entity ids only ever rise, so the player is the last actor in the world
+	# the operator is spawned first and the player next; the site's guards are agents.
+	# Since M7 claim 10 the player takes the contract before the building is raised, so
+	# the guards come last: the player is the last actor that is not an agent
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
 	_player = 0
 	for id: int in _actors.actor_ids():
-		if id > _player:
+		if id > _player and not perception.is_agent(id):
 			_player = id
 	assert_true(_player != 0, "%s: found the player" % name)
 
@@ -80,7 +82,9 @@ func test_the_death_run_leaves_a_body_and_the_recovery_run_gets_the_kit_back() -
 	assert_true(_corpses.is_stripped(corpse), "the body was emptied by the recovery run")
 	assert_true(_items.items_in(ItemSystem.inventory_of(_player)).size() >= 4, "with the kit in the pocket again (%d items)" % _items.items_in(ItemSystem.inventory_of(_player)).size())
 	assert_true(_corpses.has_corpse(corpse), "the body is still lying where it fell")
-	assert_eq(_quests.status_of(_player, QUEST), "", "and the contract was never taken on")
+	# M7 claim 10: the building only stands somewhere because the contract was taken and
+	# its handle bound, so the contract is on the books; it was never finished
+	assert_eq(_quests.status_of(_player, QUEST), QuestSystem.STATUS_ACTIVE, "and the contract was taken but never finished")
 
 
 func test_the_side_route_proves_vertical_movement_in_a_replay() -> void:
@@ -90,5 +94,6 @@ func test_the_side_route_proves_vertical_movement_in_a_replay() -> void:
 	assert_eq(_score.counters(_player), [0, 0, 0, 0] as Array[int], "nobody saw it")
 	var movement: MovementSystem = SimAssembly.movement_of(_sim)
 	assert_eq(movement.fall_count(), 0, "and nothing fell: every level change was climbed")
-	assert_eq(_actors.position_of(_player).y, 1000, "ending on the ground floor, inside")
+	var ground_floor: int = SimAssembly.sites_of(_sim).cell_of(&"cold_storage", Vector3i(0, 1, 0)).y * BuildSystem.CELL
+	assert_eq(_actors.position_of(_player).y, ground_floor, "ending on the ground floor, inside")
 	assert_true(_actors.is_alive(_player), "unharmed")

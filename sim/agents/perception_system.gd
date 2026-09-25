@@ -28,8 +28,10 @@ var _actors: ActorSystem
 var _build: BuildSystem
 var _events: EventBus
 ## actor id -> {"profile": StringName, "facing": int (degrees), "squad": int, "route": String,
-## "faction": String}. Faction is an owner tag, or empty for an agent that answers to no
-## faction but its squad (M7 spec claim 12).
+## "faction": String, "offset": [x, y, z]}. Faction is an owner tag, or empty for an agent
+## that answers to no faction but its squad (M7 spec claim 12). Offset is how far, in
+## cells, the agent's patrol route is shifted from where content wrote it: a site raised
+## somewhere other than its authored base takes its guards' rounds with it (claim 10).
 var _agents: Dictionary = {}
 ## observer -> contact -> {"aw": int, "last": [x, y, z] or [], "memory": int, "alerted": bool}
 var _contacts: Dictionary = {}
@@ -468,6 +470,14 @@ func same_side(a: int, b: int) -> bool:
 	return not faction.is_empty() and faction == faction_of(b)
 
 
+## How far the agent's patrol route is shifted from where content wrote it, in cells.
+func route_offset(agent: int) -> Vector3i:
+	if not _agents.has(agent):
+		return Vector3i.ZERO
+	var rec: Dictionary = _agents[agent]
+	return PathingSystem._vec(rec["offset"])
+
+
 func faction_of(agent: int) -> String:
 	if not _agents.has(agent):
 		return ""
@@ -548,7 +558,7 @@ func receive_report(agent: int, contact: int, position: Vector3i, tick_now: int)
 
 ## Spawns an actor of the profile's combat profile at the centre of `cell` on the
 ## ground and registers it as an agent. Returns its id, or 0 with an error.
-func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: String, faction: String = "") -> int:
+func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: String, faction: String = "", offset: Vector3i = Vector3i.ZERO) -> int:
 	if not _content.has(KIND_AGENT, profile):
 		push_error("PerceptionSystem: no agent_profile/%s" % profile)
 		return EntityIds.NONE
@@ -569,7 +579,8 @@ func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: 
 	var c: int = BuildSystem.CELL
 	var err: Error = _actors.set_position(actor, Vector3i(cell.x * c + c / 2, cell.y * c, cell.z * c + c / 2))
 	assert(err == OK, "a cell within MAX_CELL is within MAX_COORD")
-	_agents[actor] = {"profile": profile, "facing": facing, "squad": squad, "route": route, "faction": faction}
+	_agents[actor] = {"profile": profile, "facing": facing, "squad": squad, "route": route, "faction": faction,
+		"offset": [offset.x, offset.y, offset.z] as Array[int]}
 	return actor
 
 
@@ -647,9 +658,9 @@ func restore(state: Dictionary) -> Error:
 		var rec: Dictionary = agents_in[key]
 		if not _actors.has_actor(id):
 			return _restore_fail("agent %d is not an actor" % id)
-		if rec.size() != 5 or typeof(rec.get("profile")) != TYPE_STRING_NAME and typeof(rec.get("profile")) != TYPE_STRING \
+		if rec.size() != 6 or typeof(rec.get("profile")) != TYPE_STRING_NAME and typeof(rec.get("profile")) != TYPE_STRING \
 				or typeof(rec.get("facing")) != TYPE_INT or typeof(rec.get("squad")) != TYPE_INT or typeof(rec.get("route")) != TYPE_STRING \
-				or typeof(rec.get("faction")) != TYPE_STRING:
+				or typeof(rec.get("faction")) != TYPE_STRING or typeof(rec.get("offset")) != TYPE_ARRAY:
 			return _restore_fail("agent %d record" % id)
 		var profile_s: String = rec["profile"]
 		var facing: int = rec["facing"]
@@ -662,7 +673,17 @@ func restore(state: Dictionary) -> Error:
 		var faction: String = rec["faction"]
 		if not faction.is_empty() and not _faction_regex.search(faction):
 			return _restore_fail("agent %d faction" % id)
-		agents[id] = {"profile": StringName(profile_s), "facing": facing, "squad": squad, "route": route, "faction": faction}
+		var offset_in: Array = rec["offset"]
+		if offset_in.size() != 3:
+			return _restore_fail("agent %d route offset" % id)
+		for v: Variant in offset_in:
+			if typeof(v) != TYPE_INT:
+				return _restore_fail("agent %d route offset" % id)
+			var n: int = v
+			if absi(n) > BuildSystem.MAX_CELL:
+				return _restore_fail("agent %d route offset" % id)
+		agents[id] = {"profile": StringName(profile_s), "facing": facing, "squad": squad, "route": route, "faction": faction,
+			"offset": offset_in.duplicate()}
 	var contacts_in: Dictionary = state["contacts"]
 	var contacts: Dictionary = {}
 	for key: Variant in contacts_in:

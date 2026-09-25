@@ -33,5 +33,14 @@
 			"template": "radio_module",
 			"count": 1
 		}
-	]
+	],
+	"site": {
+		"tags_any": [
+			"industrial",
+			"corp"
+		],
+		"min_km": 0,
+		"max_km": 3,
+		"undiscovered": false
+	}
 }

@@ -121,8 +121,12 @@ func test_a_quest_reads_its_own_constraint() -> void:
 	_setup()
 	var sim: SimRoot = SimAssembly.build(SEED, _db)
 	var quests: QuestSystem = SimAssembly.quests_of(sim)
+	# claim 10: Cold Storage names a handle; every other contract still says where it is
 	for quest: StringName in quests.quest_ids():
-		assert_eq(quests.site_of(quest), {}, "quest/%s still says where it happens" % quest)
+		if quest == &"cold_storage":
+			assert_eq(quests.site_of(quest)["max_km"], 3, "Cold Storage asks for somewhere close")
+		else:
+			assert_eq(quests.site_of(quest), {}, "quest/%s still says where it happens" % quest)
 	var db := ContentDb.new()
 	assert_eq(db.add(QuestSystem.KIND_QUEST, &"a_job", {
 		"schema_version": 1, "title": "A job", "description": "x", "text": "x",
@@ -155,3 +159,37 @@ func test_a_contract_that_could_never_bind_fails_assembly() -> void:
 		"site": {"tags_any": [], "min_km": 0, "max_km": 20, "undiscovered": false},
 	}), OK, "the entry is well formed")
 	assert_eq(SiteConstraint.validate(nothing), ERR_INVALID_DATA, "and this one asks for nothing in particular")
+
+
+## The outskirts (CEOGG, 2026-09-24): Cold Storage, the first contract, asks for an
+## industrial or corporate place within three kilometres, and every world has one — the
+## outskirts point of interest a kilometre or two south of the gate, on scrub. Over ten
+## thousand worlds the first job always has somewhere to happen, and it is always a
+## short walk out.
+func test_property_the_first_contract_can_happen_in_every_world() -> void:
+	_setup()
+	var constraint: Dictionary = SiteConstraint.of_quest(_db, &"cold_storage")
+	assert_eq(constraint["max_km"], 3, "Cold Storage asks for somewhere close")
+	var nowhere: int = 0
+	var far: int = 0
+	for i: int in 10_000:
+		_routes.generate(SEED + 1000 + i)
+		var slots: Array[int] = SiteConstraint.slots_matching(constraint, _db, _routes, {})
+		if slots.is_empty():
+			nowhere += 1
+			if nowhere <= 3:
+				fail("seed %d has nowhere for the first contract" % (SEED + 1000 + i))
+			continue
+		for slot: int in slots:
+			if _routes.slot_metres_from_gate(slot) > 3000:
+				far += 1
+		var outskirts: int = EntityIds.NONE
+		for slot: int in _routes.slot_ids():
+			if _routes.slot_node(slot) == RouteGraph.OUTSKIRTS:
+				outskirts = slot
+		if not slots.has(outskirts):
+			nowhere += 1
+			if nowhere <= 3:
+				fail("seed %d: the outskirts is not somewhere the first contract fits" % (SEED + 1000 + i))
+	assert_eq(nowhere, 0, "every one of 10 000 worlds has somewhere for the first contract")
+	assert_eq(far, 0, "and all of it within three kilometres")

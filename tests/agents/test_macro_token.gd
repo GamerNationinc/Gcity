@@ -226,6 +226,7 @@ func test_property_a_token_keeps_to_its_edge_and_takes_one_road_at_a_time() -> v
 				var was_toward: int = tokens.toward_of(id)
 				var was_progress: int = tokens.progress_of(id)
 				var was_stopped: bool = tokens.is_stopped(id)
+				var was_leg: int = tokens.leg_of(id)
 				# ticks to the next place, and often exactly that many, so the stream lands
 				# on places as well as between them
 				var was_rec: Dictionary = routes.edge(edge)
@@ -263,10 +264,16 @@ func test_property_a_token_keeps_to_its_edge_and_takes_one_road_at_a_time() -> v
 					if tokens.is_stopped(id):
 						arrivals += 1
 					continue
-				# it reached a place: it must carry on from that place, down one road that
-				# is not the one it arrived by
+				# it reached a place: it carries on from there down the next road of its
+				# route. A road can be shorter than a tick of a fast token — roads that
+				# cross are split where they meet — so one step can pass more than one
+				# place; each is still the next on the route, and the token is on the
+				# road between the two places its route says it is between
 				crossings += 1
-				if from_now != was_toward or now == edge or routes.edge_between(was_toward, tokens.toward_of(id)) != now:
+				var route: Array[int] = tokens.route_of(id)
+				var leg: int = tokens.leg_of(id)
+				var on_route: bool = leg > was_leg and route[leg] == from_now and routes.edge_between(route[leg], route[leg + 1]) == now
+				if not on_route or now == edge or route[was_leg + 1] != was_toward:
 					bad_turn += 1
 					if bad_turn <= 3:
 						fail("at node %d the token turned onto edge %d from edge %d" % [was_toward, now, edge])

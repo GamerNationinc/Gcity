@@ -478,8 +478,8 @@ func test_every_place_worth_building_at_offers_a_slot() -> void:
 		assert_true(RouteGraph.BIOMES.has(_routes.slot_biome(slot)), "and it stands on ground the world has")
 		var at: Vector2i = _routes.slot_position(slot)
 		var from: Vector2i = _routes.position_of(node)
-		var step: Vector2i = Vector2i((at.x - from.x) / RouteGraph.SLOT_OFFSET_MM, (at.y - from.y) / RouteGraph.SLOT_OFFSET_MM)
-		assert_true(RouteGraph.SLOT_STEPS.has(step), "and it lies one step off the road (%s)" % step)
+		assert_true(_one_way_off(at - from), "and it lies one of the eight ways off its place, at one of the reaches (%s)" % (at - from))
+		assert_true(_routes.road_clearance(at) >= RouteGraph.SLOT_CLEARANCE_MM, "clear of every road (%d mm)" % _routes.road_clearance(at))
 	assert_false(_routes.has_slot(99999), "and something that is not a slot is not one")
 	assert_eq(_routes.slot_node(99999), EntityIds.NONE, "which hangs off nowhere")
 	assert_eq(_routes.slot_biome(99999), &"", "and stands on nothing")
@@ -513,8 +513,8 @@ func test_slots_are_part_of_the_world_and_not_an_afterthought() -> void:
 ## the place, then the last stretch off the road. Asked of the graph with nothing loaded.
 func test_how_far_a_slot_is_from_the_city() -> void:
 	_setup()
-	# a diagonal step is the long one: sixty metres each way is about eighty-five
-	var furthest_off_road: int = RouteGraph.SLOT_OFFSET_MM * 1415 / 1000
+	# a diagonal at the furthest reach is the longest a slot can lie off its place
+	var furthest_off_road: int = RouteGraph.SLOT_REACHES[RouteGraph.SLOT_REACHES.size() - 1] * 1415 / 1000
 	var all_at_once: Dictionary = _routes.slots_metres_from_gate()
 	assert_eq(all_at_once.size(), _routes.slot_count(), "asked all at once, every slot answers")
 	for slot: int in _routes.slot_ids():
@@ -619,12 +619,13 @@ func test_property_every_world_offers_the_same_slots_every_time() -> void:
 			var kind: StringName = first.kind_of(node)
 			var at: Vector2i = first.slot_position(slot)
 			var from: Vector2i = first.position_of(node)
-			var step: Vector2i = Vector2i((at.x - from.x) / RouteGraph.SLOT_OFFSET_MM, (at.y - from.y) / RouteGraph.SLOT_OFFSET_MM)
+
 			biomes[first.slot_biome(slot)] = true
 			var wrong: bool = (
 				not first.has_node(node)
 				or (kind != RouteGraph.KIND_POI and kind != RouteGraph.KIND_SETTLEMENT)
-				or not RouteGraph.SLOT_STEPS.has(step)
+				or not _one_way_off(at - from)
+				or first.road_clearance(at) < RouteGraph.SLOT_CLEARANCE_MM
 				or not RouteGraph.BIOMES.has(first.slot_biome(slot))
 				or second.slot_position(slot) != at
 				or second.slot_biome(slot) != first.slot_biome(slot))
@@ -635,6 +636,31 @@ func test_property_every_world_offers_the_same_slots_every_time() -> void:
 				break
 	assert_eq(empty, 0, "every world has somewhere to build (%d worlds)" % PROPERTY_CASES)
 	assert_eq(disagreed, 0, "and offers the same slots twice running")
-	assert_eq(misplaced, 0, "each one at a real place, one step off the road")
+	assert_eq(misplaced, 0, "each one at a real place, off its road and clear of every road")
 	assert_true(counts.size() >= 8, "worlds differ in how much they offer (%d counts)" % counts.size())
 	assert_eq(biomes.size(), RouteGraph.BIOMES.size(), "and every kind of ground is used somewhere")
+
+
+## One of the eight ways, at one of the reaches a slot may sit at.
+static func _one_way_off(offset: Vector2i) -> bool:
+	for reach: int in RouteGraph.SLOT_REACHES:
+		for step: Vector2i in RouteGraph.SLOT_STEPS:
+			if step * reach == offset:
+				return true
+	return false
+
+
+## Regression cases (standards: a failing seed is kept, not retried). In each of these
+## worlds one slot sits among a town's streets or a crowded junction, and no way off its
+## place within twice the slot offset was 40 m clear of every road; the slot fell back
+## to the clearest it could find and the property caught it 35-39 m from a road. Slots
+## now look further out before giving up.
+func test_regression_crowded_slots_still_find_their_clearance() -> void:
+	var graph: RouteGraph = RouteGraph.new()
+	graph.set_kits(_kits())
+	for pair: Array in [[20264192, 26], [20270837, 3], [20271049, 30]]:
+		var world: int = pair[0]
+		var slot: int = pair[1]
+		graph.generate(world)
+		assert_true(graph.road_clearance(graph.slot_position(slot)) >= RouteGraph.SLOT_CLEARANCE_MM,
+			"seed %d slot %d is clear of every road (%d mm)" % [world, slot, graph.road_clearance(graph.slot_position(slot))])

@@ -54,6 +54,14 @@ const WORLD_RADIUS_MM: int = 30_000_000
 const SOUTH_OF_GATE_MM: int = MIN_SPACING_MM
 ## Nodes never sit closer together than this, so an edge is always a journey.
 const MIN_SPACING_MM: int = 400_000
+## The outskirts (CEOGG, 2026-09-24): every world has one point of interest this close to
+## the gate, placed before anything else, so the first contracts — Cold Storage — are a
+## short walk out of the city rather than a day's march. It stands on scrub: the cleared,
+## dry ground outside a city is a fact about land, not about any content that reads it.
+const OUTSKIRTS_MIN_MM: int = 1_000_000
+const OUTSKIRTS_MAX_MM: int = 2_000_000
+## The outskirts is always node 2: the gate is 1 and the outskirts is placed next.
+const OUTSKIRTS: int = 2
 ## How many nodes a world has, besides the single gate.
 const NODES_MIN: int = 18
 const NODES_MAX: int = 34
@@ -66,6 +74,12 @@ const PLACEMENT_TRIES: int = 24
 ## How far a site slot sits off the node that offers it, in millimetres: near enough to
 ## be that place, far enough that a building is beside the road rather than on it.
 const SLOT_OFFSET_MM: int = 60_000
+## How far a slot keeps from every road, if any of its eight ways allows: a site's lot and
+## the street round it are levelled when a contract raises it (claim 10), and a lot that
+## took a bite out of a road would leave the road a step it cannot climb.
+const SLOT_CLEARANCE_MM: int = 40_000
+## How far off its node a slot may go looking for that clearance, nearest first.
+const SLOT_REACHES: Array[int] = [SLOT_OFFSET_MM, SLOT_OFFSET_MM * 3 / 2, SLOT_OFFSET_MM * 2, SLOT_OFFSET_MM * 5 / 2, SLOT_OFFSET_MM * 3]
 ## The eight ways a slot can lie from its node. A table rather than an angle, because an
 ## angle means a sine and a sine means a float, and the graph is state.
 const SLOT_STEPS: Array[Vector2i] = [
@@ -179,6 +193,10 @@ func generate(world_seed: int) -> void:
 	rng.seed = world_seed
 	# the city gate is node 1 and sits at the origin: the world is measured from it
 	_add_node(KIND_GATE, 0, 0)
+	# the outskirts, node 2: south of the gate, between a kilometre and two out
+	var out_z: int = -rng.randi_range(OUTSKIRTS_MIN_MM, OUTSKIRTS_MAX_MM * 7 / 10)
+	var out_x: int = rng.randi_range(-OUTSKIRTS_MAX_MM * 7 / 10, OUTSKIRTS_MAX_MM * 7 / 10)
+	_add_node(KIND_POI, out_x, out_z)
 	var wanted: int = rng.randi_range(NODES_MIN, NODES_MAX)
 	for i: int in wanted:
 		var placed: bool = false
@@ -311,20 +329,100 @@ func _add_loops(rng: RandomNumberGenerator) -> void:
 ## content afterwards (see [SiteTags]), and how far it is from the city is asked of the
 ## graph. Nothing is stored that could later disagree with the graph that made it.
 func _offer_slots(rng: RandomNumberGenerator) -> void:
+	# the roads, read once: every slot is checked against all of them
+	var roads: Array[PackedInt64Array] = _road_segments()
 	for node: int in node_ids():
 		var kind: StringName = kind_of(node)
 		if kind != KIND_POI and kind != KIND_SETTLEMENT:
 			continue
-		var step: Vector2i = SLOT_STEPS[rng.randi_range(0, SLOT_STEPS.size() - 1)]
+		var offset: Vector2i = _clear_slot_offset(node, rng, roads)
 		var biome: StringName = BIOMES[rng.randi_range(0, BIOMES.size() - 1)]
+		if node == OUTSKIRTS:
+			biome = BIOME_SCRUB
 		var at: Vector2i = position_of(node)
 		var id: int = _slots.size() + 1
 		_slots[id] = {
 			"node": node,
-			"x": at.x + step.x * SLOT_OFFSET_MM,
-			"z": at.y + step.y * SLOT_OFFSET_MM,
+			"x": at.x + offset.x,
+			"z": at.y + offset.y,
 			"biome": biome,
 		}
+
+
+## Where a node's slot lies: the first of the eight ways, in a seeded order and at the
+## nearest of SLOT_REACHES that allows it, that keeps the slot SLOT_CLEARANCE_MM from
+## every road; or, if none does, the one that keeps it furthest.
+##
+## Most candidates are refused by the first road near them, so the roads are read once
+## per world and each candidate stops at the first road too close; exact distances are
+## only worked out for the rare slot that has to settle for the clearest it can find.
+func _clear_slot_offset(node: int, rng: RandomNumberGenerator, roads: Array[PackedInt64Array]) -> Vector2i:
+	var start: int = rng.randi_range(0, SLOT_STEPS.size() - 1)
+	var at: Vector2i = position_of(node)
+	for reach: int in SLOT_REACHES:
+		for k: int in SLOT_STEPS.size():
+			var offset: Vector2i = SLOT_STEPS[(start + k) % SLOT_STEPS.size()] * reach
+			if _clear_of(roads, at + offset, SLOT_CLEARANCE_MM):
+				return offset
+	var best: Vector2i = SLOT_STEPS[start] * SLOT_OFFSET_MM
+	var best_clearance: int = -1
+	for reach: int in SLOT_REACHES:
+		for k: int in SLOT_STEPS.size():
+			var offset: Vector2i = SLOT_STEPS[(start + k) % SLOT_STEPS.size()] * reach
+			var clearance: int = road_clearance(at + offset)
+			if clearance > best_clearance:
+				best = offset
+				best_clearance = clearance
+	return best
+
+
+## Every road as [ax, az, bx, bz, half width, min x, max x, min z, max z].
+func _road_segments() -> Array[PackedInt64Array]:
+	var out: Array[PackedInt64Array] = []
+	for id: int in edge_ids():
+		var rec: Dictionary = _edges[id]
+		var a: int = rec["a"]
+		var b: int = rec["b"]
+		var width: int = rec["width"]
+		var pa: Vector2i = position_of(a)
+		var pb: Vector2i = position_of(b)
+		out.append(PackedInt64Array([pa.x, pa.y, pb.x, pb.y, width / 2,
+			mini(pa.x, pb.x), maxi(pa.x, pb.x), mini(pa.y, pb.y), maxi(pa.y, pb.y)]))
+	return out
+
+
+## Whether a point is at least `clearance` from every road's edge. A road whose box,
+## grown by the clearance and its half width, does not reach the point cannot be too
+## close, and is passed over without the arithmetic.
+static func _clear_of(roads: Array[PackedInt64Array], point: Vector2i, clearance: int) -> bool:
+	for r: PackedInt64Array in roads:
+		var reach: int = clearance + r[4]
+		if point.x < r[5] - reach or point.x > r[6] + reach or point.y < r[7] - reach or point.y > r[8] + reach:
+			continue
+		var d: int = _distance_to_segment(Vector2i(r[0], r[1]), Vector2i(r[2], r[3]), point) - r[4]
+		if d < clearance:
+			return false
+	return true
+
+
+## How far a point is from the nearest road, in millimetres.
+func road_clearance(point: Vector2i) -> int:
+	var nearest: int = 1 << 62
+	for id: int in edge_ids():
+		var rec: Dictionary = _edges[id]
+		var a: int = rec["a"]
+		var b: int = rec["b"]
+		var width: int = rec["width"]
+		nearest = mini(nearest, _distance_to_segment(position_of(a), position_of(b), point) - width / 2)
+	return nearest
+
+
+static func _distance_to_segment(pa: Vector2i, pb: Vector2i, p: Vector2i) -> int:
+	var length: int = _length_mm(pa.x, pa.y, pb.x, pb.y)
+	if length <= 0:
+		return _length_mm(pa.x, pa.y, p.x, p.y)
+	var along: int = clampi(((p.x - pa.x) * (pb.x - pa.x) + (p.y - pa.y) * (pb.y - pa.y)) / length, 0, length)
+	return _length_mm(pa.x + (pb.x - pa.x) * along / length, pa.y + (pb.y - pa.y) * along / length, p.x, p.y)
 
 
 ## Towns (M7 spec claim 6). Every settlement node gets a kit spliced onto it: the kit's

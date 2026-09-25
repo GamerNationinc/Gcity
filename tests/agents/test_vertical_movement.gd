@@ -68,7 +68,9 @@ func _two_storey() -> void:
 func test_a_cell_is_standable_on_a_floor_a_solid_below_or_the_ground() -> void:
 	_setup()
 	assert_true(_movement.is_standable(_cell(0, 0, 0)), "the ground is standable")
-	assert_true(_movement.is_standable(_cell(50, -3, 50)), "and so is anything at or below it")
+	# M7 claim 10: below the ground level is the ground itself, as it is in the wilds, so
+	# a foundation and a room both end at it by one rule; nothing ever stood down there
+	assert_false(_movement.is_standable(_cell(50, -3, 50)), "below it is the ground, not somewhere to stand")
 	assert_false(_movement.is_standable(_cell(0, 1, 0)), "the air above it is not")
 	_two_storey()
 	assert_true(_movement.is_standable(_cell(0, 1, 0)), "on top of a foundation: standable")
