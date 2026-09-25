@@ -69,3 +69,30 @@ func test_assembly_refuses_content_the_item_system_cannot_use() -> void:
 	assert_eq(db.add(&"weapon_part", &"zz_bad", {"schema_version": 1, "description": "x", "socket": "barrel", "fits": ["g19"],
 		"modifiers": [{"stat": "recoil", "class": "pow", "value": 1}]}), OK, "db accepts shape")
 	assert_true(SimAssembly.build(SEED, db) == null, "an unregistered modifier class stops assembly")
+
+
+## A sim nobody holds any more is freed, every system with it. GDScript frees RefCounted
+## objects by count, so two systems holding each other are never freed, and the test suite
+## builds tens of thousands of sims in one process: a cycle here once cost a quarter of a
+## megabyte a sim and ran the Deck out of memory halfway through the suite (M7). Systems
+## that must reach each other both ways hold a callable one way, which is not a reference.
+func test_a_sim_nobody_holds_is_freed_with_every_system() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var refs: Dictionary = {}
+	var sim: SimRoot = SimAssembly.build(1, db)
+	var actor: int = SimAssembly.actors_of(sim).spawn(&"arcade", 0)
+	assert_true(actor != EntityIds.NONE, "something in it")
+	sim.step_n(10)
+	refs["sim"] = weakref(sim)
+	for id: StringName in sim.system_ids():
+		if id != &"content":
+			refs[String(id)] = weakref(sim.get_system(id))
+	sim = null
+	var alive: Array[String] = []
+	for key: Variant in refs:
+		var w: WeakRef = refs[key]
+		if w.get_ref() != null:
+			var name: String = key
+			alive.append(name)
+	assert_eq(alive, [] as Array[String], "nothing of it outlives it")

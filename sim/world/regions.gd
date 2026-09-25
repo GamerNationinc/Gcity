@@ -32,7 +32,10 @@ var _terrain: Terrain
 var _actors: ActorSystem
 var _events: EventBus
 var _land: LandSystem
-var _build: BuildSystem
+## (cell) -> the piece in it or NONE: the build system's, held as a callable rather than
+## the system itself, because the build system holds the regions (foundations ask the
+## ground) and two RefCounted objects holding each other are never freed
+var _piece_at: Callable = Callable()
 ## actor -> {"region": String (where they are going), "gate": int (graph node), "due": int (tick)}
 var _transits: Dictionary = {}
 var _authored: Array[Region] = []
@@ -45,7 +48,8 @@ func _init(routes: RouteGraph, terrain: Terrain, actors: ActorSystem = null, eve
 	_actors = actors
 	_events = events
 	_land = land
-	_build = build_system
+	if build_system != null:
+		_piece_at = build_system.cell_piece_at
 
 
 func system_id() -> StringName:
@@ -348,7 +352,8 @@ func _edit_cell(payload: Dictionary) -> Vector3i:
 	var centre: Vector3i = Vector3i(x * c + c / 2, y * c + c / 2, z * c + c / 2)
 	if PerceptionSystem.distance_mm(_actors.position_of(actor), centre) > REACH_MM:
 		return INVALID_CELL
-	if _build.cell_piece_at(cell) != EntityIds.NONE:
+	var piece: int = _piece_at.call(cell)
+	if piece != EntityIds.NONE:
 		return INVALID_CELL
 	if not _land.require(centre, actor, &"dig"):
 		return INVALID_CELL
