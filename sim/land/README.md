@@ -5,6 +5,12 @@ the whole game asks (design doc §7.1). Positions are integer millimetres; footp
 are simple polygons with a half-open vertical extent; owners are tags (player, NPC,
 faction), and actors act as the owner they are identified with.
 
+Two kinds of act ask it (ADR-011 C): construction, digging and entering ask
+`require()`, which refuses a denied right; a crime against someone else's property
+asks `offend()`, which never refuses and records the denied right as one
+`land.violation`. `breach_system.gd` is the first `offend()` caller: `build.breach`
+cuts a piece out with a carried tool, heard while it works (M6 spec claim 9).
+
 **Allowed imports:** `sim/` only.
 
 **Introduced at:** M2 (land authority + starter plot).

@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "Grate steel: a service grate's bars. 200 HP, cut with a cutter in five seconds, quieter than a wall panel (M6 spec claim 9).",
+	"hp": 200,
+	"breach_tool": "cutter",
+	"breach_noise": 500,
+	"breach_ticks": 200,
+	"max_span": 4
+}

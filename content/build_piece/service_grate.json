@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Service grate over a tunnel: a hatch in grate steel, opened by cutting it out (M6 spec claim 9). Passing costs 60.",
+	"kind": "hatch",
+	"material": "grate_steel",
+	"open_cost": 60,
+	"value": 0
+}

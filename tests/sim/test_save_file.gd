@@ -304,7 +304,11 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 				out.append([at, &"build.place", {"actor": rng.randi_range(1, 3), "piece": ["foundation_block", "wall_panel", "door_frame", "storage_crate", "ladder"][rng.randi_range(0, 4)],
 					"x": rng.randi_range(0, 12) * M + 500, "y": 500, "z": rng.randi_range(0, 12) * M + 500, "facing": ["", "px", "nz", "py"][rng.randi_range(0, 3)]}])
 			13:
-				out.append([at, &"build.remove", {"actor": rng.randi_range(1, 3), "piece_id": rng.randi_range(1, 20)}])
+				if rng.randi_range(0, 2) == 0:
+					# M6 claim 9: a breach by hand, mostly refused without a tool beside a piece
+					out.append([at, &"build.breach", {"actor": rng.randi_range(1, 3), "piece": rng.randi_range(1, 20), "tool": rng.randi_range(1, 20)}])
+				else:
+					out.append([at, &"build.remove", {"actor": rng.randi_range(1, 3), "piece_id": rng.randi_range(1, 20)}])
 			14:
 				out.append([at, &"raid.spawn", {"tool": ["cutter", "nothing"][rng.randi_range(0, 1)]}])
 			15:

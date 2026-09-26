@@ -285,13 +285,32 @@ func rights_at(position: Vector3i, actor: int) -> Dictionary:
 
 
 ## True if the actor holds the right there. Otherwise emits `land.violation` and returns
-## false; the caller rejects its command. This is the one path every violation takes.
+## false; the caller rejects its command. Construction, digging and entering ask this.
 func require(position: Vector3i, actor: int, right: StringName) -> bool:
 	assert(RIGHTS.has(right), "unknown right '%s'" % right)
 	var rights: Dictionary = rights_at(position, actor)
 	var held: bool = rights[right]
 	if held:
 		return true
+	_violate(position, actor, right)
+	return false
+
+
+## An act that is a crime against someone else's property (ADR-011 C): it never
+## refuses. A denied right is recorded as one `land.violation`, exactly as a refusal
+## by [method require] is, and heat follows from that event, not from here. Returns
+## whether the right was held, for callers that report it.
+func offend(position: Vector3i, actor: int, right: StringName) -> bool:
+	assert(RIGHTS.has(right), "unknown right '%s'" % right)
+	var rights: Dictionary = rights_at(position, actor)
+	var held: bool = rights[right]
+	if not held:
+		_violate(position, actor, right)
+	return held
+
+
+## The one path every violation takes.
+func _violate(position: Vector3i, actor: int, right: StringName) -> void:
 	_violations += 1
 	_events.emit(EVENT_VIOLATION, {
 		"actor": actor,
@@ -299,7 +318,6 @@ func require(position: Vector3i, actor: int, right: StringName) -> bool:
 		"right": right,
 		"x": position.x, "y": position.y, "z": position.z,
 	})
-	return false
 
 
 func violation_count() -> int:
