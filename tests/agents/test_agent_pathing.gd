@@ -20,9 +20,10 @@ var _movement: MovementSystem
 var _player: int = 0
 
 
-func _setup() -> void:
-	var db := ContentDb.new()
-	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+func _setup(db: ContentDb = null) -> void:
+	if db == null:
+		db = ContentDb.new()
+		assert_eq(ContentLoader.load_all(db), OK, "content loads")
 	_sim = SimAssembly.build(SEED, db)
 	assert_true(_sim != null, "assembly")
 	_actors = SimAssembly.actors_of(_sim)
@@ -117,7 +118,7 @@ func test_requests_are_validated_and_budget_is_shared_in_agent_order() -> void:
 	var b: int = _perception.spawn(&"guard_sim", _cell(0, 1), 0, 1, "")
 	assert_false(_pathing.request(_player, _cell(1, 1)), "not an agent")
 	assert_false(_pathing.request(a, _cell(50, 0)), "beyond the search radius")
-	assert_false(_pathing.request(a, _cell(1, 0) + Vector3i(0, 1, 0)), "another level")
+	assert_true(_pathing.request(a, _cell(1, 0) + Vector3i(0, 1, 0)), "another level is a goal since M6 claim 6")
 	assert_true(_pathing.request(a, _cell(10, 10)), "a goal walled in by blocks")
 	assert_true(_pathing.request(b, _cell(0, 3)), "a short open route")
 	var before: int = _pathing.expanded_count()
@@ -137,10 +138,32 @@ func test_requests_are_validated_and_budget_is_shared_in_agent_order() -> void:
 	assert_eq(_pathing.state_of(b), "", "cancelled")
 
 
+## The M4 property as it was: over content whose crates are not climbable, every
+## guard stays on the ground and enclosures stay closed, so both outcomes are common.
 func test_property_paths_are_legal_and_exist_exactly_when_the_cells_are_joined() -> void:
+	var shipped := ContentDb.new()
+	assert_eq(ContentLoader.load_all(shipped), OK, "content loads")
+	var flat := ContentDb.new()
+	for kind: StringName in shipped.kinds():
+		for id: StringName in shipped.ids(kind):
+			var data: Dictionary = shipped.get_entry(kind, id).duplicate(true)
+			if kind == &"piece_kind" and id == &"crate":
+				data["climb"] = false
+			assert_eq(flat.add(kind, id, data), OK, "copy %s/%s" % [kind, id])
+	_property_run(flat, 200)
+
+
+## The same property over the shipped content, where crates are climbable (M6 claim
+## 6): the oracle adds the way up onto a crate and across the tops, and almost every
+## enclosure now has a crate beside it, so unreachable goals are rare.
+func test_property_paths_are_legal_and_exist_exactly_when_joined_with_climbable_crates() -> void:
+	_property_run(null, 1)
+
+
+func _property_run(db: ContentDb, min_unreachable: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = SEED_PROPERTY
-	_setup()
+	_setup(db)
 	var lattice: Dictionary = {}
 	for x: int in [0, 2, 4, 6]:
 		for z: int in [0, 2, 4, 6]:
@@ -182,7 +205,7 @@ func test_property_paths_are_legal_and_exist_exactly_when_the_cells_are_joined()
 				problem = "a path where the oracle finds none"
 			var previous: Vector3i = from
 			for c: Vector3i in _pathing.path_of(guard):
-				if not _pathing.can_step(previous, c):
+				if not _legal(previous, c):
 					problem = "an illegal step %s -> %s" % [previous, c]
 				previous = c
 			if previous != to:
@@ -199,11 +222,27 @@ func test_property_paths_are_legal_and_exist_exactly_when_the_cells_are_joined()
 			if failures <= 3:
 				fail("case %d: %s (%s -> %s)" % [case, problem, from, to])
 	assert_eq(failures, 0, "pathing invariants held (%d found, %d unreachable)" % [found, unreachable])
-	assert_true(found > 500 and unreachable > 200, "both outcomes were exercised (%d found, %d unreachable)" % [found, unreachable])
+	assert_true(found > 500 and unreachable >= min_unreachable, "both outcomes were exercised (%d found, %d unreachable)" % [found, unreachable])
+
+
+## One transition of a path under the movement rules: a step (landing where a fall
+## ends) or a climb (M6 claim 6).
+func _legal(from: Vector3i, to: Vector3i) -> bool:
+	for step: Vector3i in PathingSystem.STEPS:
+		if _pathing.can_step(from, from + step) and _movement.landing_cell(from + step) == to:
+			return true
+	for side: String in MovementSystem.SIDES:
+		for dir: String in [MovementSystem.DIR_UP, MovementSystem.DIR_DOWN]:
+			if _movement.climb_target(from, side, dir).has(to):
+				return true
+	return false
 
 
 ## Breadth-first reachability over the same cells within the search radius, using
-## only the piece data: an independent answer to "are these cells joined?".
+## only the piece data: an independent answer to "are these cells joined?". This
+## layout puts every piece on the ground level, so since M6 claim 6 the only way up is
+## onto a crate beside you when crates are climbable, and on top the faces are all open: you walk across the
+## tops of crates and foundations and drop wherever neither is below.
 func _joined(from: Vector3i, to: Vector3i) -> bool:
 	var seen: Dictionary = {BuildSystem.cell_key(from): true}
 	var queue: Array[Vector3i] = [from]
@@ -211,6 +250,25 @@ func _joined(from: Vector3i, to: Vector3i) -> bool:
 		var c: Vector3i = queue.pop_front()
 		if c == to:
 			return true
+		var onward: Array[Vector3i] = []
+		for step: Vector3i in PathingSystem.STEPS:
+			var n: Vector3i = c + step
+			if c.y == 0:
+				var crate: int = _build.cell_piece_at(n)
+				if crate != EntityIds.NONE and _build.template_of(crate) == &"storage_crate":
+					var kind: Dictionary = _build.kind_data(crate)
+					var climbable: bool = kind["climb"]
+					if climbable:
+						onward.append(n + Vector3i(0, 1, 0))
+			else:
+				onward.append(n if _build.cell_piece_at(n - Vector3i(0, 1, 0)) != EntityIds.NONE else n - Vector3i(0, 1, 0))
+		for n: Vector3i in onward:
+			var key: String = BuildSystem.cell_key(n)
+			if not seen.has(key) and PathingSystem._manhattan(from, n) <= PathingSystem.SEARCH_RADIUS:
+				seen[key] = true
+				queue.append(n)
+		if c.y != 0:
+			continue
 		for step: Vector3i in PathingSystem.STEPS:
 			var n: Vector3i = c + step
 			var key: String = BuildSystem.cell_key(n)

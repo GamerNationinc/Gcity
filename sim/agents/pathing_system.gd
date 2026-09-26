@@ -4,7 +4,9 @@
 ## do. Planning spends at most PATH_NODES_PER_TICK expansions per tick across every
 ## agent, in agent-id order, and picks up next tick where it stopped; an agent whose
 ## path is ready walks it with `actor.move`-sized steps through MovementSystem,
-## facing the way it walks. Any build change re-plans every route from where each
+## facing the way it walks. Paths cross levels by the movement rules (M6 spec claim
+## 6): a step off an edge lands where the fall ends and a climb is one transition; the
+## heuristic is the horizontal distance, which neither ever overestimates. Any build change re-plans every route from where each
 ## agent stands. Search is bounded to SEARCH_RADIUS cells around the start, which is
 ## the reach of an M4 building; the portal-graph handoff for larger sites is a
 ## debt item, not a hidden assumption.
@@ -19,6 +21,8 @@ const STATE_ARRIVED: String = "arrived"
 const STATE_FAILED: String = "failed"
 const STEPS: Array[Vector3i] = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
 const FACING_OF_STEP: Array[int] = [0, 180, 90, 270]
+## Facing degrees of MovementSystem.SIDES (px, nx, pz, nz).
+const FACING_OF_SIDE: Array[int] = [0, 180, 90, 270]
 
 var _actors: ActorSystem
 var _build: BuildSystem
@@ -125,7 +129,7 @@ func request(agent: int, goal: Vector3i) -> bool:
 	if not _perception.is_agent(agent) or not _actors.is_alive(agent):
 		return false
 	var start: Vector3i = BuildSystem.cell_of(_actors.position_of(agent))
-	if _manhattan(start, goal) > SEARCH_RADIUS or goal.y != start.y:
+	if _manhattan(start, goal) > SEARCH_RADIUS:
 		return false
 	_routes[agent] = _fresh(goal, start)
 	return true
@@ -138,7 +142,7 @@ func cancel(agent: int) -> void:
 func _fresh(goal: Vector3i, start: Vector3i) -> Dictionary:
 	var key: String = BuildSystem.cell_key(start)
 	return {"goal": _arr(goal), "state": STATE_PLANNING, "path": [] as Array, "index": 0,
-		"search": {"start": _arr(start), "open": {key: [_manhattan(start, goal), 0] as Array[int]}, "came": {}, "closed": {}}}
+		"search": {"start": _arr(start), "open": {key: [_heuristic(start, goal), 0] as Array[int]}, "came": {}, "closed": {}}}
 
 
 # ---------------------------------------------------------------- the tick
@@ -196,10 +200,9 @@ func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
 		closed[current_key] = true
 		var current: Vector3i = _parse(current_key)
 		var g_here: int = _g_of(came, start, current_key, open, closed)
-		for step: Vector3i in STEPS:
-			var next: Vector3i = current + step
+		for next: Vector3i in _neighbours(current):
 			var next_key: String = BuildSystem.cell_key(next)
-			if closed.has(next_key) or _manhattan(start, next) > SEARCH_RADIUS or not can_step(current, next):
+			if closed.has(next_key) or _manhattan(start, next) > SEARCH_RADIUS:
 				continue
 			var g: int = g_here + 1
 			var known: Variant = open.get(next_key)
@@ -208,9 +211,21 @@ func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
 				var known_g: int = entry[1]
 				if known_g <= g:
 					continue
-			open[next_key] = [g + _manhattan(next, goal), g] as Array[int]
+			open[next_key] = [g + _heuristic(next, goal), g] as Array[int]
 			came[next_key] = current_key
 	return 0
+
+
+## The cells one transition from `cell`: the four steps (each landing where a fall
+## ends), then the climbs, in a fixed order.
+func _neighbours(cell: Vector3i) -> Array[Vector3i]:
+	var out: Array[Vector3i] = []
+	for step: Vector3i in STEPS:
+		var next: Vector3i = cell + step
+		if can_step(cell, next):
+			out.append(_movement.landing_cell(next))
+	out.append_array(_movement.climb_targets(cell))
+	return out
 
 
 ## Removes and returns the open cell with the lowest f, then lowest g, then lowest key.
@@ -276,13 +291,16 @@ func _follow(agent: int, rec: Dictionary, goal: Vector3i) -> void:
 			rec["search"] = fresh["search"]
 		return
 	var next: Vector3i = _vec(path[index])
+	if next.y > here.y or (next.y < here.y and next.x == here.x and next.z == here.z):
+		_climb_toward(agent, rec, goal, here, next)
+		return
 	var target: Vector3i = BuildSystem.cell_centre(next)
 	target.y = _actors.position_of(agent).y
 	var pos: Vector3i = _actors.position_of(agent)
 	var speed: int = _movement.speed_of(agent)
 	var dx: int = clampi(target.x - pos.x, -speed, speed)
 	var dz: int = clampi(target.z - pos.z, -speed, speed)
-	var step: Vector3i = next - here
+	var step: Vector3i = Vector3i(next.x - here.x, 0, next.z - here.z)
 	for i: int in STEPS.size():
 		if STEPS[i] == step:
 			_perception.set_facing(agent, FACING_OF_STEP[i])
@@ -294,7 +312,31 @@ func _follow(agent: int, rec: Dictionary, goal: Vector3i) -> void:
 		rec["index"] = 0
 
 
+## A climb transition of the path: the side whose climb lands on `next`, then the
+## climb itself. A refused climb means the world changed: re-plan from here.
+func _climb_toward(agent: int, rec: Dictionary, goal: Vector3i, here: Vector3i, next: Vector3i) -> void:
+	var dir: String = MovementSystem.DIR_UP if next.y > here.y else MovementSystem.DIR_DOWN
+	for i: int in MovementSystem.SIDES.size():
+		var side: String = MovementSystem.SIDES[i]
+		if _movement.climb_target(here, side, dir).has(next):
+			_perception.set_facing(agent, FACING_OF_SIDE[i])
+			if _movement.climb_onto(agent, next):
+				return
+			break
+	var fresh: Dictionary = _fresh(goal, here)
+	rec["state"] = STATE_PLANNING
+	rec["search"] = fresh["search"]
+	rec["path"] = [] as Array
+	rec["index"] = 0
+
+
 # ---------------------------------------------------------------- helpers
+
+## Horizontal distance: a lower bound on the transitions left, since a climb changes
+## the level alone and a fall comes free with a step.
+static func _heuristic(a: Vector3i, b: Vector3i) -> int:
+	return absi(a.x - b.x) + absi(a.z - b.z)
+
 
 static func _manhattan(a: Vector3i, b: Vector3i) -> int:
 	return absi(a.x - b.x) + absi(a.y - b.y) + absi(a.z - b.z)

@@ -4,5 +4,6 @@
 	"occupies": "face",
 	"orientation": "horizontal",
 	"passable": true,
+	"climb": false,
 	"target": false
 }

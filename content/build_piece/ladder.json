@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Scrap steel ladder: climbed, not walked through; passing its face costs 20.",
+	"kind": "ladder",
+	"material": "scrap_steel",
+	"open_cost": 20,
+	"value": 0
+}

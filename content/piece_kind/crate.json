@@ -4,5 +4,6 @@
 	"occupies": "cell",
 	"orientation": "any",
 	"passable": false,
+	"climb": true,
 	"target": true
 }

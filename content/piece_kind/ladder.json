@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "A ladder on a vertical face: passable, so it blocks nobody's way, and climbable up and down (M6 spec claim 6).",
+	"occupies": "face",
+	"orientation": "vertical",
+	"passable": true,
+	"climb": true,
+	"target": false
+}

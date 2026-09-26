@@ -301,14 +301,18 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 				out.append([at, &"agent.set_profile", {"agent": rng.randi_range(1, 6), "profile": ["guard_sim", "guard_arcade", "nobody"][rng.randi_range(0, 2)]}])
 			12:
 				# M3 claim 11: build and raid commands
-				out.append([at, &"build.place", {"actor": rng.randi_range(1, 3), "piece": ["foundation_block", "wall_panel", "door_frame", "storage_crate"][rng.randi_range(0, 3)],
+				out.append([at, &"build.place", {"actor": rng.randi_range(1, 3), "piece": ["foundation_block", "wall_panel", "door_frame", "storage_crate", "ladder"][rng.randi_range(0, 4)],
 					"x": rng.randi_range(0, 12) * M + 500, "y": 500, "z": rng.randi_range(0, 12) * M + 500, "facing": ["", "px", "nz", "py"][rng.randi_range(0, 3)]}])
 			13:
 				out.append([at, &"build.remove", {"actor": rng.randi_range(1, 3), "piece_id": rng.randi_range(1, 20)}])
 			14:
 				out.append([at, &"raid.spawn", {"tool": ["cutter", "nothing"][rng.randi_range(0, 1)]}])
 			15:
-				out.append([at, &"actor.move", {"actor": rng.randi_range(1, 6), "dx": rng.randi_range(-150, 150), "dz": rng.randi_range(-150, 150)}])
+				if rng.randi_range(0, 3) == 0:
+					# M6 claim 6: climbs, mostly refused on flat ground
+					out.append([at, &"actor.climb", {"actor": rng.randi_range(1, 6), "dir": ["up", "down"][rng.randi_range(0, 1)], "facing": ["px", "nx", "pz", "nz"][rng.randi_range(0, 3)]}])
+				else:
+					out.append([at, &"actor.move", {"actor": rng.randi_range(1, 6), "dx": rng.randi_range(-150, 150), "dz": rng.randi_range(-150, 150)}])
 			16:
 				# M5 claim 16: the device, its bays, quests and the pause
 				out.append([at, &"item.spawn", {"kind": ["device_frame", "device_module"][rng.randi_range(0, 1)], "template": ["handset", "radio_module", "nothing"][rng.randi_range(0, 2)], "container": "inv.%d" % rng.randi_range(1, 3), "seed": rng.randi(), "count": 1}])

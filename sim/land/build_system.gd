@@ -78,7 +78,7 @@ func attach(sim: SimRoot) -> Error:
 # ---------------------------------------------------------------- content validation
 
 ## The two stats exist; at least one foundation kind exists; passable pieces are faces;
-## targets are cells. Shape and references were checked at build time.
+## targets are cells; climbable faces are vertical and passable (M6 spec claim 6). Shape and references were checked at build time.
 func validate_content() -> Error:
 	for stat: StringName in [STAT_HP, STAT_NOISE]:
 		if not _stats.has_stat(stat):
@@ -93,6 +93,10 @@ func validate_content() -> Error:
 			return _content_fail("piece_kind/%s is passable but not a face" % kind)
 		if target and occupies != "cell":
 			return _content_fail("piece_kind/%s is a target but not a cell" % kind)
+		var climb: bool = k["climb"]
+		var orientation: String = k["orientation"]
+		if climb and occupies == "face" and (orientation != "vertical" or not passable):
+			return _content_fail("piece_kind/%s: a climbable face must be vertical and passable (a ladder)" % kind)
 		if kind == &"foundation":
 			has_root = true
 	if not has_root:

@@ -46,7 +46,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	if portals.attach(sim, events) != OK:
 		return null
 	var movement: MovementSystem = MovementSystem.new(content, actors, land, build)
-	if movement.attach(sim) != OK:
+	if movement.attach(sim, events) != OK:
 		return null
 	var raids: RaidTokenSystem = RaidTokenSystem.new(content, build, portals, events)
 	if raids.attach(sim) != OK:
