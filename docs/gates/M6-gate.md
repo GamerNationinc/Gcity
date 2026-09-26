@@ -17,7 +17,7 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
 | B. Levels | 5–7 | code and tests in; the search bound waits for the site (group H) | `9492918` |
 | C. Doors, locks, breaching | 8–9 | code and tests in; the lock's heat side waits for standing (group D) | `db8945c`, `df96f74`, `d19ff20` |
 | D. Sensors and standing | 10–11 | code and tests in, with claim 8's heat side | `019f28b`, `4018071`, `223881d` |
-| E. Hacking | 12–13 | code and tests in | `2108d55`, `f4b6454`, the group E client commit |
+| E. Hacking | 12–13 | code and tests in | `2108d55`, `f4b6454`, `5e3d384` |
 | F. Death, corpses, recovery | 14–16 | not started | |
 | G. Contracts | 17–19 | not started | |
 | H. The mission as content | 20–21 | not started | |
