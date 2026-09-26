@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "A site (M6 spec claims 1-4; design doc §5.3): an authored place raised in one command. Pieces, points and agents are cells relative to the origin; parcels are content parcels handed to an owner tag when the site is raised. Quests name sites by id, never by coordinates. Optional sensors (M6 spec claim 10): an edge or credential sensor watches the face of `cell` on the side `facing`; a volume sensor watches `cells`; a radio sensor reports to `squad`.",
+	"description": "A site (M6 spec claims 1-4; design doc §5.3): an authored place raised in one command. Pieces, points and agents are cells relative to the origin; parcels are content parcels handed to an owner tag when the site is raised. Quests name sites by id, never by coordinates. Optional sensors (M6 spec claim 10): an edge or credential sensor watches the face of `cell` on the side `facing`; a volume sensor watches `cells`; a radio sensor reports to `squad`. Optional terminals (M6 spec claim 12): a named cell to hack, the work it takes, the device tag it requires, the noise it makes, the item it yields, and the ticks a logout takes.",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -200,6 +200,76 @@
 					"cell",
 					"facing",
 					"cells"
+				],
+				"additional_properties": false
+			}
+		},
+		"terminals": {
+			"type": "array",
+			"max_length": 16,
+			"items": {
+				"type": "object",
+				"properties": {
+					"name": {
+						"type": "string",
+						"pattern": "[a-z0-9][a-z0-9_]*"
+					},
+					"cell": {
+						"type": "array",
+						"min_length": 3,
+						"max_length": 3,
+						"items": {
+							"type": "int",
+							"min": -100000,
+							"max": 100000
+						}
+					},
+					"hack_work": {
+						"type": "int",
+						"min": 1,
+						"max": 1000000000
+					},
+					"requires": {
+						"type": "string",
+						"pattern": "[a-z0-9][a-z0-9_.]*"
+					},
+					"noise_mm": {
+						"type": "int",
+						"min": 0,
+						"max": 1000000
+					},
+					"yields": {
+						"type": "object",
+						"properties": {
+							"kind": {
+								"type": "string",
+								"pattern": "[a-z0-9][a-z0-9_]*"
+							},
+							"template": {
+								"type": "string",
+								"pattern": "[a-z0-9][a-z0-9_]*"
+							}
+						},
+						"required": [
+							"kind",
+							"template"
+						],
+						"additional_properties": false
+					},
+					"logout_ticks": {
+						"type": "int",
+						"min": 1,
+						"max": 100000
+					}
+				},
+				"required": [
+					"name",
+					"cell",
+					"hack_work",
+					"requires",
+					"noise_mm",
+					"yields",
+					"logout_ticks"
 				],
 				"additional_properties": false
 			}

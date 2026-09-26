@@ -1,12 +1,15 @@
 {
 	"schema_version": 1,
-	"description": "A sensor profile (design doc §9.1; M6 spec claim 10): what it watches (an edge: a face crossed; a volume: cells entered; a credential: a locked door's flagged check), whether a trip goes out on the site squad's radio, and whether it can be spoofed.",
+	"description": "A sensor profile (design doc §9.1; M6 spec claim 10): what it watches (an edge: a face crossed; a volume: cells entered; a credential: a locked door's flagged check), whether a trip goes out on the site squad's radio, and whether it can be spoofed; a spoofable sensor says how much hacking work a spoof takes (milli-units of device memory a tick, as a terminal's hack_work) the device tag it requires, and how many ticks it then stays quiet (M6 spec claim 12).",
 	"properties": {
 		"schema_version": {"type": "int", "min": 1, "max": 1},
 		"description": {"type": "string", "min_length": 1, "max_length": 240},
 		"watches": {"type": "string", "pattern": "edge|volume|credential"},
 		"radio": {"type": "bool"},
-		"spoofable": {"type": "bool"}
+		"spoofable": {"type": "bool"},
+		"spoof_work": {"type": "int", "min": 1, "max": 1000000},
+		"spoof_ticks": {"type": "int", "min": 1, "max": 1000000},
+		"spoof_requires": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}
 	},
 	"required": ["schema_version", "description", "watches", "radio", "spoofable"],
 	"additional_properties": false

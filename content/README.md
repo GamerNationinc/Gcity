@@ -25,6 +25,7 @@ Kinds so far:
 | `quest` | M5 | `QuestSystem` (`sim/quests/README.md`) |
 | `goods` | M6 | `ItemSystem` (an item kind: carried, handed over, read by tags) |
 | `tool` | M6 | `ItemSystem` (an item kind: the tool class it breaches as), `BreachSystem` |
+| (site `terminals`) | M6 | `HackSystem` (`sim/items/README.md`), placed by a site |
 | `sensor` | M6 | `SensorSystem` (`sim/threat/README.md`), placed by a site's `sensors` |
 | `standing_scalar`, `standing_rule` | M6 | `StandingSystem` (`sim/threat/README.md`) |
 | `site` | M6 | `SiteSystem` (`sim/quests/README.md`), `ActorSystem` (spawn points) |

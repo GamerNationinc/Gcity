@@ -286,7 +286,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 	var out: Array = []
 	for _i: int in count:
 		var at: int = rng.randi_range(1, 3)
-		match rng.randi_range(0, 22):
+		match rng.randi_range(0, 23):
 			0:
 				if rng.randi_range(0, 3) == 0:
 					# M6 claim 3: at a site's named point
@@ -330,6 +330,9 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 				out.append([at, &"quest.accept" if rng.randi_range(0, 1) == 0 else &"quest.abandon", {"actor": rng.randi_range(1, 3), "quest": ["first_blood", "break_ground", "nothing"][rng.randi_range(0, 2)]}])
 			21:
 				out.append([at, &"sim.pause" if rng.randi_range(0, 1) == 0 else &"sim.resume", {"actor": rng.randi_range(1, 3)}])
+			23:
+				# M6 claim 12: hacks, logouts and spoofs, mostly refused away from a terminal
+				out.append([at, [&"hack.start", &"hack.logout", &"hack.spoof"][rng.randi_range(0, 2)], {"actor": rng.randi_range(1, 3), "terminal" if rng.randi_range(0, 1) == 0 else "sensor": rng.randi_range(1, 30)}])
 			22:
 				# M6 claim 2: a whole site at once, and the refusals of a second raise
 				out.append([at, &"site.raise", {"site": ["home", "m4_building", "nowhere"][rng.randi_range(0, 2)]}])

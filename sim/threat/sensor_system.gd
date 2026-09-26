@@ -78,6 +78,10 @@ func entry_is_valid(entry: Dictionary) -> bool:
 	var cells: Array = entry["cells"]
 	if squad < 0:
 		return false
+	var t: Dictionary = _content.get_entry(KIND_SENSOR, StringName(sensor_s))
+	var spoofable: bool = t["spoofable"]
+	if spoofable and (typeof(t.get("spoof_work")) != TYPE_INT or typeof(t.get("spoof_ticks")) != TYPE_INT or typeof(t.get("spoof_requires")) != TYPE_STRING):
+		return false
 	var watches: String = _watches(StringName(sensor_s))
 	if watches == WATCH_VOLUME:
 		return not cells.is_empty()
@@ -145,6 +149,22 @@ func spoof(sensor: int, until_tick: int) -> bool:
 	var rec: Dictionary = _sensors[sensor]
 	rec["spoofed_until"] = until_tick
 	return true
+
+
+## The cells a sensor watches from: both cells of its face, or its volume's cells.
+func cells_of(sensor: int) -> Array[Vector3i]:
+	var out: Array[Vector3i] = []
+	if not _sensors.has(sensor):
+		return out
+	var rec: Dictionary = _sensors[sensor]
+	var face: String = rec["face"]
+	if not face.is_empty():
+		return BuildSystem.face_cells(face)
+	var cells: Array = rec["cells"]
+	for key: Variant in cells:
+		var k: String = key
+		out.append(PathingSystem._parse(k))
+	return out
 
 
 func tripped_count() -> int:

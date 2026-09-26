@@ -2,7 +2,8 @@
 ## `content/site/<id>.json`. Pieces, named points and agents are cells relative to the
 ## site's `origin`; parcels are content parcels handed to an owner tag. `site.raise
 ## {site}` places every piece as one batch (one `build.changed`, one portal rebuild),
-## hands over every parcel, posts every agent and places every sensor (claim 10), on
+## hands over every parcel, posts every agent, places every sensor (claim 10) and
+## terminal (claim 12), on
 ## one tick, once per site. It is
 ## debug-class like `item.spawn`: fixtures and the client's new-game path issue it.
 ##
@@ -19,12 +20,14 @@ var _land: LandSystem
 var _build: BuildSystem
 var _perception: PerceptionSystem
 var _sensors: SensorSystem
+var _hacks: HackSystem
 ## Sites raised so far, sorted by id.
 var _raised: Array[StringName] = []
 
 
-func _init(content: ContentDb, land: LandSystem, build: BuildSystem, perception: PerceptionSystem, sensors: SensorSystem) -> void:
+func _init(content: ContentDb, land: LandSystem, build: BuildSystem, perception: PerceptionSystem, sensors: SensorSystem, hacks: HackSystem) -> void:
 	_sensors = sensors
+	_hacks = hacks
 	_content = content
 	_land = land
 	_build = build
@@ -118,6 +121,14 @@ func validate_content() -> Error:
 			for c: Variant in cells:
 				if not _on_grid(origin + _cell(c)):
 					return _content_fail("site/%s: a sensor cell is off the grid" % site)
+		var terminals: Array = t.get("terminals", [])
+		var names: Dictionary = {}
+		for e: Variant in terminals:
+			var ed: Dictionary = e
+			var name_s: String = ed["name"]
+			if names.has(name_s) or not _hacks.entry_is_valid(ed) or not _on_grid(origin + _cell(ed["cell"])):
+				return _content_fail("site/%s: terminal '%s' cannot be honoured" % [site, name_s])
+			names[name_s] = true
 	return OK
 
 
@@ -232,6 +243,11 @@ func raise(site: StringName) -> bool:
 	for e: Variant in sensors:
 		var ed: Dictionary = e
 		_sensors.install(ed, origin)
+	var terminals: Array = t.get("terminals", [])
+	for e: Variant in terminals:
+		var ed: Dictionary = e
+		var name_s: String = ed["name"]
+		_hacks.install(site, StringName(name_s))
 	_raised.append(site)
 	_raised.sort_custom(func(x: StringName, y: StringName) -> bool: return String(x) < String(y))
 	return true
