@@ -299,48 +299,114 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 		return EntityIds.NONE
 	if absi(position.x) > MAX_CELL * CELL or absi(position.y) > MAX_CELL * CELL or absi(position.z) > MAX_CELL * CELL:
 		return EntityIds.NONE
+	var cell: Vector3i = cell_of(position)
+	var key: String = _slot_for(template, cell, facing)
+	if key.is_empty() or _occupied.has(key):
+		return EntityIds.NONE
+	if not _land.require(cell_centre(cell), actor, &"build"):
+		return EntityIds.NONE
+	var id: int = _ids.allocate()
+	_pieces[id] = _record_for(template, cell, key)
+	_occupied[key] = id
+	if not supported_set().has(id):
+		_occupied.erase(key)
+		_pieces.erase(id)
+		return EntityIds.NONE
+	_set_piece_stats(id)
+	_events.emit(EVENT_CHANGED, {"added": [id] as Array[int], "removed": [] as Array[int], "actor": actor})
+	return id
+
+
+## Places a list of `[template, cell, facing]` entries as one change (M6 spec claim 2):
+## the authored pieces of a site, so no rights are asked and the change is credited to
+## nobody. The batch is supported as a whole, not in list order. Any bad entry (unknown
+## template, wrong facing, a slot taken or listed twice, anything left unsupported)
+## refuses the whole batch and changes nothing, not even the id counter. Ids are
+## allocated in list order; one `build.changed` carries them all, so the portal graph
+## rebuilds once. Returns the ids, or an empty array.
+func place_batch(entries: Array[Array]) -> Array[int]:
+	var none: Array[int] = []
+	var keys: Array[String] = []
+	var records: Array[Dictionary] = []
+	for entry: Array in entries:
+		if entry.size() != 3 or (typeof(entry[0]) != TYPE_STRING_NAME and typeof(entry[0]) != TYPE_STRING) \
+				or typeof(entry[1]) != TYPE_VECTOR3I or typeof(entry[2]) != TYPE_STRING:
+			return none
+		var template_v: Variant = entry[0]
+		var template: StringName = StringName(str(template_v))
+		var cell: Vector3i = entry[1]
+		var facing: String = entry[2]
+		if absi(cell.x) > MAX_CELL or absi(cell.y) > MAX_CELL or absi(cell.z) > MAX_CELL or not _content.has(KIND_PIECE, template):
+			return none
+		var key: String = _slot_for(template, cell, facing)
+		if key.is_empty() or _occupied.has(key) or keys.has(key):
+			return none
+		keys.append(key)
+		records.append(_record_for(template, cell, key))
+	if records.is_empty():
+		return none
+	# tentatively in, under negative ids no allocation produces, to ask for support
+	for i: int in records.size():
+		_pieces[-1 - i] = records[i]
+		_occupied[keys[i]] = -1 - i
+	var supported: Dictionary = supported_set()
+	var all_supported: bool = true
+	for i: int in records.size():
+		if not supported.has(-1 - i):
+			all_supported = false
+		_pieces.erase(-1 - i)
+		_occupied.erase(keys[i])
+	if not all_supported:
+		return none
+	var ids: Array[int] = []
+	for i: int in records.size():
+		var id: int = _ids.allocate()
+		_pieces[id] = records[i]
+		_occupied[keys[i]] = id
+		_set_piece_stats(id)
+		ids.append(id)
+	_events.emit(EVENT_CHANGED, {"added": ids.duplicate(), "removed": [] as Array[int], "actor": EntityIds.NONE})
+	return ids
+
+
+## The occupancy key a piece of `template` would take at `cell` facing `facing` (a face
+## key for face pieces, a cell key for cell pieces), or "" if the kind, orientation or
+## facing forbid it there. Does not look at what is already placed.
+func _slot_for(template: StringName, cell: Vector3i, facing: String) -> String:
 	var t: Dictionary = _content.get_entry(KIND_PIECE, template)
 	var kind: StringName = LandSystem._as_name(t["kind"])
 	var k: Dictionary = _content.get_entry(KIND_PIECE_KIND, kind)
 	var occupies: String = k["occupies"]
-	var cell: Vector3i = cell_of(position)
-	var face: String = ""
 	if occupies == "face":
-		face = face_key(cell, facing)
+		var face: String = face_key(cell, facing)
 		if face.is_empty():
-			return EntityIds.NONE
+			return ""
 		var orientation: String = k["orientation"]
 		var axis: String = facing.substr(1, 1)
 		if orientation == "vertical" and axis == "y":
-			return EntityIds.NONE
+			return ""
 		if orientation == "horizontal" and axis != "y":
-			return EntityIds.NONE
-		if _occupied.has(face):
-			return EntityIds.NONE
-	else:
-		if not facing.is_empty():
-			return EntityIds.NONE
-		if _occupied.has(cell_key(cell)):
-			return EntityIds.NONE
-		if kind == &"foundation" and cell.y != GROUND_CELL_Y:
-			return EntityIds.NONE
-	if not _land.require(cell_centre(cell), actor, &"build"):
-		return EntityIds.NONE
-	var id: int = _ids.allocate()
+			return ""
+		return face
+	if not facing.is_empty():
+		return ""
+	if kind == &"foundation" and cell.y != GROUND_CELL_Y:
+		return ""
+	return cell_key(cell)
+
+
+func _record_for(template: StringName, cell: Vector3i, key: String) -> Dictionary:
+	var face: String = key if key.contains("|") else ""
 	var lower: Vector3i = cell if face.is_empty() else face_cells(face)[0]
-	_pieces[id] = {"template": template, "cell": [lower.x, lower.y, lower.z] as Array[int], "face": face}
-	_occupied[face if not face.is_empty() else cell_key(cell)] = id
-	if not supported_set().has(id):
-		_occupied.erase(face if not face.is_empty() else cell_key(cell))
-		_pieces.erase(id)
-		return EntityIds.NONE
+	return {"template": template, "cell": [lower.x, lower.y, lower.z] as Array[int], "face": face}
+
+
+func _set_piece_stats(id: int) -> void:
 	var m: Dictionary = _content.get_entry(KIND_MATERIAL, material_of(id))
 	var hp: int = m["hp"]
 	var noise: int = m["breach_noise"]
 	_stats.set_base(id, STAT_HP, hp)
 	_stats.set_base(id, STAT_NOISE, noise)
-	_events.emit(EVENT_CHANGED, {"added": [id] as Array[int], "removed": [] as Array[int], "actor": actor})
-	return id
 
 
 ## Removes a piece and collapses whatever it left unsupported. Returns the removed

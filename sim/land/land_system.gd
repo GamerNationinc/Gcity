@@ -314,8 +314,14 @@ func _on_transfer(_sim: SimRoot, payload: Dictionary) -> bool:
 	if payload.size() != 2 or typeof(payload.get("parcel")) != TYPE_STRING or typeof(payload.get("owner")) != TYPE_STRING:
 		return false
 	var parcel_s: String = payload["parcel"]
-	var parcel_id: StringName = StringName(parcel_s)
 	var owner: String = payload["owner"]
+	return transfer(StringName(parcel_s), owner)
+
+
+## Sets a parcel's owner tag ('' = unowned): the transfer command's effect, and a
+## site's parcels when it is raised (M6 spec claim 2). False, changing nothing, for an
+## unknown parcel or a malformed tag.
+func transfer(parcel_id: StringName, owner: String) -> bool:
 	if not _parcels.has(parcel_id):
 		return false
 	if not owner.is_empty() and not _owner_regex.search(owner):
