@@ -63,6 +63,10 @@ const CARVE_TUNNEL: StringName = &"tunnel"
 
 var _routes: RouteGraph
 var _seed: int = 0
+## The towns as (x, z, anchor), lowest anchor first, and the graph revision they were read
+## at: derived, not state.
+var _towns: Array[Vector3i] = []
+var _towns_for: int = -1
 
 
 func _init(routes: RouteGraph) -> void:
@@ -135,11 +139,24 @@ func ground_mm(x: int, z: int) -> int:
 
 
 ## The town whose levelled ground covers a position, or NONE.
+##
+## Asked for every column of ground there is, so the towns are read from the graph once
+## per graph (not on every call) and compared by squared distance: the integer square root
+## is at most the reach exactly when the squared distance is below the reach plus one,
+## squared, so the answer is the one the square root gave.
 func town_under(x: int, z: int) -> int:
-	for anchor: int in _routes.town_ids():
-		var at: Vector2i = _routes.position_of(anchor)
-		if RouteGraph._length_mm(at.x, at.y, x, z) <= SettlementKits.MAX_REACH_MM:
-			return anchor
+	if _towns_for != _routes.revision():
+		_towns_for = _routes.revision()
+		_towns = []
+		for anchor: int in _routes.town_ids():
+			var at: Vector2i = _routes.position_of(anchor)
+			_towns.append(Vector3i(at.x, at.y, anchor))
+	var limit: int = (SettlementKits.MAX_REACH_MM + 1) * (SettlementKits.MAX_REACH_MM + 1)
+	for t: Vector3i in _towns:
+		var dx: int = t.x - x
+		var dz: int = t.y - z
+		if dx * dx + dz * dz < limit:
+			return t.z
 	return EntityIds.NONE
 
 

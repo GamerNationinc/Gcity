@@ -41,6 +41,18 @@ func standing_cell_y(_x: int, _z: int) -> int:
 	return BuildSystem.GROUND_CELL_Y
 
 
+## Whether each cell of a block is ground, 1 or 0, x fastest then y then z: what a
+## mesher draws (M7 spec claim 16). The same answers as [is_solid], cell by cell; a
+## region may answer faster than asking one cell at a time, never differently.
+func fill_solids(origin: Vector3i, size: Vector3i, out: PackedByteArray) -> void:
+	var i: int = 0
+	for z: int in size.z:
+		for y: int in size.y:
+			for x: int in size.x:
+				out[i] = 1 if is_solid(origin + Vector3i(x, y, z)) else 0
+				i += 1
+
+
 ## Changes the ground in a cell, solid or not (M7 spec claim 15). False where the ground
 ## is not the region's to change: the city's is built on, not dug.
 func set_ground(_cell: Vector3i, _solid: bool) -> bool:

@@ -189,6 +189,31 @@ func is_solid(cell: Vector3i) -> bool:
 	return region_of_cell(cell).is_solid(cell)
 
 
+## Whether each cell of a box is ground, 1 or 0, x fastest then y then z: what the client
+## meshes (M7 spec claim 16). The same answers as [is_solid]. A box wholly inside one
+## region asks that region for the lot; one across a region's edge is asked cell by cell.
+## The client builds a mesher's block from several thin boxes over several frames, so no
+## frame pays for a whole block of new ground.
+func solids(origin: Vector3i, size: Vector3i) -> PackedByteArray:
+	var out := PackedByteArray()
+	out.resize(size.x * size.y * size.z)
+	var first: Region = region_of_cell(origin)
+	var corners: Array[Vector3i] = [origin + Vector3i(size.x - 1, 0, 0), origin + Vector3i(0, 0, size.z - 1), origin + Vector3i(size.x - 1, 0, size.z - 1)]
+	var one_region: bool = true
+	for corner: Vector3i in corners:
+		one_region = one_region and region_of_cell(corner) == first
+	if one_region:
+		first.fill_solids(origin, size, out)
+		return out
+	var i: int = 0
+	for z: int in size.z:
+		for y: int in size.y:
+			for x: int in size.x:
+				out[i] = 1 if is_solid(origin + Vector3i(x, y, z)) else 0
+				i += 1
+	return out
+
+
 ## Whether the ground carries an actor standing in a cell.
 func stands_on_ground(cell: Vector3i) -> bool:
 	return region_of_cell(cell).stands_on_ground(cell)

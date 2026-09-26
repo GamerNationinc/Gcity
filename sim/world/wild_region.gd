@@ -90,6 +90,46 @@ func standing_cell_y(x: int, z: int) -> int:
 	return column.y if column.y != NO_ROAD else column.x
 
 
+## The block a column at a time: each column's ground and road read once, the cells up
+## it decided by the same rule [is_solid] uses, then the edits laid over the top.
+func fill_solids(origin: Vector3i, size: Vector3i, out: PackedByteArray) -> void:
+	var plane: int = size.x * size.y
+	for z: int in size.z:
+		for x: int in size.x:
+			var column: Vector2i = _column(origin.x + x, origin.z + z)
+			var ground: int = column.x
+			var road: int = column.y
+			var i: int = z * plane + x
+			for y: int in size.y:
+				var cy: int = origin.y + y
+				var solid: bool = cy < ground
+				if road != NO_ROAD:
+					if cy >= road and cy < road + ROAD_CLEARANCE:
+						solid = false
+					elif cy == road - 1:
+						solid = true
+				out[i + y * size.x] = 1 if solid else 0
+	if _edits.is_empty():
+		return
+	var lo: Vector3i = Vector3i(Terrain._floor_div(origin.x, CHUNK), Terrain._floor_div(origin.y, CHUNK), Terrain._floor_div(origin.z, CHUNK))
+	var hi: Vector3i = Vector3i(Terrain._floor_div(origin.x + size.x - 1, CHUNK), Terrain._floor_div(origin.y + size.y - 1, CHUNK), Terrain._floor_div(origin.z + size.z - 1, CHUNK))
+	for cz: int in range(lo.z, hi.z + 1):
+		for cy: int in range(lo.y, hi.y + 1):
+			for cx: int in range(lo.x, hi.x + 1):
+				var key: String = "%d,%d,%d" % [cx, cy, cz]
+				if not _edits.has(key):
+					continue
+				var chunk: Dictionary = _edits[key]
+				for k: Variant in chunk:
+					var index: int = k
+					var solid_edit: int = chunk[k]
+					var cell: Vector3i = Vector3i(cx * CHUNK + index % CHUNK, cy * CHUNK + index / (CHUNK * CHUNK), cz * CHUNK + (index / CHUNK) % CHUNK)
+					var rel: Vector3i = cell - origin
+					if rel.x < 0 or rel.y < 0 or rel.z < 0 or rel.x >= size.x or rel.y >= size.y or rel.z >= size.z:
+						continue
+					out[rel.z * plane + rel.y * size.x + rel.x] = solid_edit
+
+
 ## Digs a cell out or fills it in. An edit that puts a cell back the way the seed made
 ## it is dropped rather than kept, so the overlay only ever holds real changes.
 func set_ground(cell: Vector3i, solid: bool) -> bool:

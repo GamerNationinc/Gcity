@@ -358,3 +358,46 @@ func test_the_ground_is_only_edited_by_someone_there_where_it_can_be() -> void:
 	actors.set_position(player, Vector3i(5_500, 0, 5_500))
 	assert_false(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [5, -1, 6]}), "not in the city")
 	assert_eq(_regions.snapshot()["edits"], {}, "and none of that changed the ground")
+
+
+## M7 spec claim 16: the client draws the ground from a block of cells at a time, and the
+## block must be the ground the sim walks on, cell for cell — roads cut in, edits laid
+## over, and across the city's edge.
+func test_a_block_of_cells_is_the_ground_cell_for_cell() -> void:
+	_setup()
+	var actors: ActorSystem = SimAssembly.actors_of(_sim)
+	var player: int = actors.spawn(&"arcade", 0)
+	actors.set_position(player, Vector3i(500, 0, -40_500))
+	assert_true(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [1, -1, -41]}), "a hole dug")
+	assert_true(_do(Regions.COMMAND_FILL, {"actor": player, "cell": [0, 0, -42]}), "and a cell filled in")
+	# a road: the first stretch of whatever leaves the gate
+	var edge: int = _routes.edges_at(1)[0]
+	var on_road: Vector2i = _terrain.road_at(edge, 400 * M)
+	var road_cell: Vector3i = Vector3i(Terrain._floor_div(on_road.x, M), _regions.standing_cell_y(on_road.x, on_road.y), Terrain._floor_div(on_road.y, M))
+	var origins: Array[Vector3i] = [
+		Vector3i(-8, -12, -52),                       # the apron, the hole and the fill
+		road_cell - Vector3i(8, 7, 5),                # a road cut in
+		Vector3i(-4, -6, -5),                         # across the city's edge
+		Vector3i(3000, _regions.standing_cell_y(3_000 * M, -5_000 * M) - 7, -5000),  # plain wild ground
+	]
+	# a box that is not a cube, so a mix-up of the axes cannot pass
+	var size: Vector3i = Vector3i(18, 14, 11)
+	var cells: int = size.x * size.y * size.z
+	for origin: Vector3i in origins:
+		var block: PackedByteArray = _regions.solids(origin, size)
+		assert_eq(block.size(), cells, "a whole box")
+		var wrong: int = 0
+		var solid: int = 0
+		for z: int in size.z:
+			for y: int in size.y:
+				for x: int in size.x:
+					var cell: Vector3i = origin + Vector3i(x, y, z)
+					var want: int = 1 if _regions.is_solid(cell) else 0
+					var got: int = block[(z * size.y + y) * size.x + x]
+					solid += got
+					if got != want:
+						wrong += 1
+						if wrong <= 3:
+							fail("block at %s: cell %s is %d, the ground says %d" % [origin, cell, got, want])
+		assert_eq(wrong, 0, "the box at %s is the ground (%d solid of %d)" % [origin, solid, cells])
+		assert_true(solid > 0 and solid < cells, "and has both ground and air in it")
