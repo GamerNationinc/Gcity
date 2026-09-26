@@ -21,8 +21,9 @@ over finished systems**: the site, the fixer, the contract, the guards, the sens
 the terminal and the stealth counters are data files, and a second contract is a
 second set of files with an empty `sim/` diff. Death is survivable and costs what
 ADR-007 C says. G6's proof (standards §11): the full mission playable on the Deck
-from the exported build (a Steam install is deferred to the Steamworks phase); all
-three routes completable; stealth scoring correct on a full-stealth replay fixture; mutation score ≥ 70 % on `sim/`.
+from the exported build (installing through Steam waits for the store phase); all
+three routes completable; stealth scoring correct on a full-stealth replay fixture;
+mutation score ≥ 70 % on `sim/`.
 
 ## Claims
 
@@ -299,7 +300,7 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
 - Lighting in perception (G4 debt 9).
 - Non-lethal takedowns: at M6, avoidance is the only non-lethal answer.
 - Branching dialogue, voice, and a shop or economy beyond the ledger.
-- Achievements, SteamPipe uploads (the Steamworks phase), and localisation.
+- Achievements, SteamPipe uploads (the store phase), and localisation.
 
 ## Decisions at approval (CEOGG, 2026-09-26)
 
@@ -320,11 +321,13 @@ The draft's open points, closed by taking each recommendation:
 
 Deferred (CEOGG, 2026-09-26):
 
-- **The Steamworks phase.** Registering the app, installs through Steam on a `gate`
-  branch, binding the Steam Input layout, Steam's glyph API and Cloud sync (G5 debt
-  2, 4, 6) wait until the full game is ready (standards §11). M6 neither builds nor
-  gates on them; the G6 debt log carries them to that phase. GodotSteam stays in the
-  build as it is.
+- **The store phase.** Getting onto the Steam store to sell the game waits until the
+  full game is ready (standards §11): registering the app, and what needs its id —
+  installs through Steam on a `gate` branch, binding the Steam Input layout, Steam's
+  glyph API and Cloud sync (G5 debt 2, 4, 6). M6 neither builds nor gates on them;
+  the G6 debt log carries them to that phase. **Deck testing is not deferred:** M6 is
+  developed against the Deck and G6 is measured on it (claim 32). GodotSteam stays in
+  the build as it is.
 
 ## Assumptions to record in the gate
 

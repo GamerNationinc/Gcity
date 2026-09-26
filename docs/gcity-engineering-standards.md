@@ -505,19 +505,23 @@ Mapping to the design doc's build order, with the specific proof each gate deman
 | **G3** | Portal graph + build system | Flood-fill partition invariants hold under 10k random build/destroy sequences. Agent A* reaches the vault by the cheapest path; raising a wall's HP never lowers that path's cost. |
 | **G4** | Perception AI | Frame budgets in §4.1 re-derived from real Deck measurements. `time_to_first_shot` tuned and recorded. Metamorphic AI relations pass. Thermal soak test clean. |
 | **G5** | The device | Steam Input configuration shipped; Deck Verified input and display axes self-assessed as passing; UI legible at 1280×800 handheld; GodotSteam integrated and pinned. |
-| **G6** | "Cold Storage" | The full mission playable on Deck from the exported build (`tools/export.sh`); a Steam install waits for the Steamworks phase below. All three routes completable. Stealth scoring correct on a full-stealth replay fixture. Mutation score ≥70% on `sim/`. |
+| **G6** | "Cold Storage" | The full mission playable on Deck from the exported build (`tools/export.sh`); installing through Steam waits for the store phase below. All three routes completable. Stealth scoring correct on a full-stealth replay fixture. Mutation score ≥70% on `sim/`. |
 | **G7** | Route graph + procgen | Connectivity property holds across 10k seeds. Same seed always produces the same world hash. Site binding is deterministic. |
 | **G8** | Threat director + raids | Base state machine model-checked: safety, liveness, deadlock freedom. Absent-resolution and live-defence produce consistent outcomes from identical inputs. |
 
 Each gate's evidence package lands in `docs/gates/` before review, and nothing proceeds
 without a recorded sign-off.
 
-**Steamworks phase, deferred** (CEOGG, 2026-09-26): registering the Steamworks app,
-the `dev` and `gate` branches, installs through Steam, binding the Steam Input layout,
-Steam's glyph API, Steam Cloud sync and SteamPipe uploads all wait until the full game
-is ready, and are then one phase with its own gate. Until then gates run on the Deck
-from the repo checkout and the export, as G5 did. GodotSteam stays integrated and
-pinned: the game already runs with Steam absent and under Valve's test app id.
+**Deck testing continues at every gate; the store phase is deferred** (CEOGG,
+2026-09-26, clarified the same day). Every gate is still run and measured on the Steam
+Deck, as G0–G5 were: the exported build (`tools/export.sh`) and the repo checkout,
+launched on the Deck, with the Steam client reached through GodotSteam under Valve's
+test app id. What waits until the full game is ready is **getting onto the Steam store
+to sell the game**: registering the Steamworks app, and everything that needs the
+registered app id — the `dev` and `gate` branches and installs through Steam, binding
+the shipped Steam Input layout, Steam's glyph API, Steam Cloud sync, SteamPipe uploads,
+the store page and Valve's Deck Verified review. That is one phase at the end, with its
+own gate. GodotSteam stays integrated and pinned.
 
 ---
 
@@ -529,5 +533,5 @@ pinned: the game already runs with Steam absent and under Valve's test app id.
 3. Stand up the repository skeleton, CI, the dependency fitness function, and the headless
    harness — with no gameplay code in it at all.
 4. Register the Steamworks app and create the `dev` and `gate` branches, so G1 can be
-   installed through Steam rather than sideloaded. *Deferred to the Steamworks phase
-   (§11, CEOGG 2026-09-26).*
+   installed through Steam rather than sideloaded. *Deferred to the store phase
+   (§11, CEOGG 2026-09-26); Deck testing continues at every gate.*

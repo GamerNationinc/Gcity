@@ -43,5 +43,6 @@ The axes Valve scores against a **Steam install** need the app id CEOGG register
 (standards §12 item 4): the shipped layout cannot be bound to an app under Valve's
 test id, so `getActionSetHandle` resolves to nothing today and the input map is the
 fallback. Everything above holds either way; binding the layout and re-running
-`tools/steam_probe.gd` is the first item of the Steamworks phase, deferred until the
-full game is ready (standards §11, CEOGG 2026-09-26).
+`tools/steam_probe.gd` is the first item of the store phase, deferred until the full
+game is ready (standards §11, CEOGG 2026-09-26). Testing on the Deck itself continues
+at every gate.
