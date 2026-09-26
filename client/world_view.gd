@@ -14,6 +14,8 @@ class_name WorldView extends Node3D
 
 const M: float = 1000.0
 const PROFILE: StringName = &"arcade"
+## The site the world view raises; its guards are posted as `guard_sim` (GUARD_PROFILES[0]).
+const SITE: String = "m4_building"
 const GUARD_PROFILES: Array[String] = ["guard_sim", "guard_arcade"]
 const CUTTER: String = "cutter"
 const READY: int = 6
@@ -566,29 +568,23 @@ func _unhandled_input(event: InputEvent) -> void:
 
 # ---------------------------------------------------------------- setup and actions
 
-## The player on the street with the pistol kit and both parcels owned; the M4
-## building raised from `M4Building.commands`; four guards spawned and armed the same
-## way the player is, through commands. Stages wait for the sim to catch up.
+## The player spawned at the site's start with the pistol kit; the M4 building, both
+## parcels and the four guards raised as one site (M6 spec claims 2, 3); the guards
+## armed the same way the player is, through commands. Stages wait for the sim.
 func _advance_setup(sim: SimRoot) -> void:
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
 	var items: ItemSystem = SimAssembly.items_of(sim)
 	match _setup_stage:
 		0:
-			_submit(sim, &"actor.spawn", {"profile": String(PROFILE), "range_m": 0})
+			_submit(sim, &"actor.spawn", {"profile": String(PROFILE), "site": SITE, "point": "player_start"})
 			_setup_stage = 1
 		1:
 			var ids: Array[int] = actors.actor_ids()
 			if ids.is_empty():
 				return
 			_player = ids[0]
-			actors.set_position(_player, M4Building.PLAYER_START)
 			_submit(sim, &"land.identify", {"actor": _player, "owner": "player"})
-			_submit(sim, &"land.transfer", {"parcel": "starter_plot", "owner": "player"})
-			_submit(sim, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"})
-			for command: Dictionary in M4Building.commands(_player):
-				_submit(sim, &"build.place", command)
-			for guard: Dictionary in M4Building.guards(GUARD_PROFILES[_guard_profile]):
-				_submit(sim, &"agent.spawn", guard)
+			_submit(sim, &"site.raise", {"site": SITE})
 			_submit_kit(sim, _player, 1, 2, 30)
 			var inv: String = String(ItemSystem.inventory_of(_player))
 			_submit(sim, &"item.spawn", {"kind": "device_frame", "template": "handset", "container": inv, "seed": 7, "count": 1})
@@ -605,6 +601,8 @@ func _advance_setup(sim: SimRoot) -> void:
 					_guards.append(id)
 			for i: int in _guards.size():
 				_submit_kit(sim, _guards[i], 10 + i * 100, 11 + i * 100, 15)
+				if _guard_profile != 0:
+					_submit(sim, &"agent.set_profile", {"agent": _guards[i], "profile": GUARD_PROFILES[_guard_profile]})
 			_setup_stage = 3
 		3:
 			if items.items_in(ItemSystem.inventory_of(_player)).size() < 3 + 30 + 3:

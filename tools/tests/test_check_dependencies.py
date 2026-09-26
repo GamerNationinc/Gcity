@@ -44,6 +44,18 @@ class CheckDependenciesTest(unittest.TestCase):
         self.repo.write("client/hud/anything.gd", "extends Control\nvar _items: Array[int] = []\n")
         self.assertEqual(len(cd.run(self.repo.root)), 4, "the rule covers client/device only")
 
+    def test_client_calls_no_sim_setter(self) -> None:
+        # M6 spec claim 3: every public set_* method declared under sim/ is a sim setter
+        self.repo.write("sim/agents/actors.gd", "class_name Actors extends RefCounted\nfunc set_position(a: int, p: Vector3i) -> Error:\n\treturn OK\nfunc _set_hidden() -> void:\n\tpass\n")
+        self.repo.write("client/view.gd", "extends Node3D\nfunc f(actors: Actors, glyphs: Object) -> void:\n\tglyphs.set_deck(true)\n\tactors.set_position(1, Vector3i.ZERO)\n")
+        problems = cd.run(self.repo.root)
+        self.assertEqual(len(problems), 1, problems)
+        self.assertIn("client/view.gd:4", problems[0])
+        self.assertIn("set_position", problems[0])
+        # a client method of the same shape that the sim does not declare is fine
+        self.repo.write("client/view.gd", "extends Node3D\nfunc f(glyphs: Object) -> void:\n\tglyphs.set_deck(true)\n\tglyphs.set_hidden(true)\n")
+        self.assertEqual(cd.run(self.repo.root), [])
+
     def test_sim_path_reference_to_client_is_a_violation(self) -> None:
         self.repo.write("sim/x.gd", 'extends RefCounted\nvar s: Variant = load("res://client/main.tscn")\n')
         problems = cd.run(self.repo.root)

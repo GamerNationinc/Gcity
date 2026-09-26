@@ -15,6 +15,9 @@ Rules, checked over every .gd, .tscn and .tres file:
    (`_cursor`, `_scroll`, `_page`, `_open_app`, and the map's own draw cache). An int,
    Array or Dictionary member that could hold an entity id, a count or a copy of the
    sim's tables is refused; panes rebuild from the sim every refresh.
+5. The client calls no sim setter (M6 spec claim 3): every public `set_*` method
+   declared under sim/ is a mutation, so a client file calling one by name writes sim
+   state behind SimRoot.submit(). Actors spawn at site points instead of being placed.
 
 Exit status 0 when clean; 1 with one line per violation otherwise. Standard library only.
 """
@@ -82,6 +85,7 @@ CLIENT_DENYLIST: list[tuple[str, str]] = [
      r"|register_stage|register|subscribe|emit|add)\s*\(", "the client mutates sim state only through SimRoot.submit()"),
 ]
 
+SIM_SETTER_RE = re.compile(r"^func\s+(set_[A-Za-z0-9_]*)\s*\(", re.MULTILINE)
 RES_PATH_RE = re.compile(r'"(res://[^"]*)"')
 CLASS_NAME_RE = re.compile(r"^\s*class_name\s+([A-Za-z_][A-Za-z0-9_]*)", re.MULTILINE)
 COMMENT_RE = re.compile(r"#.*$", re.MULTILINE)
@@ -134,16 +138,30 @@ def check_sim_file(path: Path, rel: str, client_classes: dict[str, Path]) -> lis
     return problems
 
 
-def check_client_file(path: Path, rel: str) -> list[str]:
+def sim_setter_names(root: Path) -> set[str]:
+    """Rule 5: every public set_* method declared by a script under sim/."""
+    names: set[str] = set()
+    for path in collect_files(root, "sim"):
+        if path.suffix == ".gd":
+            names.update(SIM_SETTER_RE.findall(strip_comments(path.read_text(encoding="utf-8"))))
+    return names
+
+
+def check_client_file(path: Path, rel: str, sim_setters: set[str] = frozenset()) -> list[str]:
     if path.suffix != ".gd" or rel in CLIENT_HOST_FILES:
         return []
     code = strip_comments(path.read_text(encoding="utf-8"))
+    setter_re = re.compile(r"\.(" + "|".join(sorted(sim_setters)) + r")\s*\(") if sim_setters else None
     problems: list[str] = []
     for line_no, line in enumerate(code.splitlines(), start=1):
         for pattern, reason in CLIENT_DENYLIST:
             match = re.search(pattern, line)
             if match:
                 problems.append(f"{rel}:{line_no}: client view calls {match.group(0).strip()}: {reason}")
+        if setter_re is not None:
+            match = setter_re.search(line)
+            if match:
+                problems.append(f"{rel}:{line_no}: client calls the sim setter {match.group(1)}(): the client requests, the sim decides (rule 5)")
     return problems
 
 
@@ -180,9 +198,10 @@ def check_content(root: Path) -> list[str]:
 
 def run(root: Path) -> list[str]:
     client_classes = client_class_names(root)
+    sim_setters = sim_setter_names(root)
     problems: list[str] = []
     for path in collect_files(root, "client"):
-        problems.extend(check_client_file(path, path.relative_to(root).as_posix()))
+        problems.extend(check_client_file(path, path.relative_to(root).as_posix(), sim_setters))
     for path in collect_files(root, "sim"):
         problems.extend(check_sim_file(path, path.relative_to(root).as_posix(), client_classes))
     problems.extend(check_content(root))
