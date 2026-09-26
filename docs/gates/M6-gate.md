@@ -14,7 +14,7 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
 | Group | Claims | State | Commits |
 |---|---|---|---|
 | A. The site is content | 1–4 | code and tests in; Deck raise cost not yet measured | `eefdaa5`, `dfe0208`, `4064bc9`, `8c73f70` |
-| B. Levels | 5–7 | code and tests in; the search bound waits for the site (group H) | the group B commit |
+| B. Levels | 5–7 | code and tests in; the search bound waits for the site (group H) | `9492918` |
 | C. Doors, locks, breaching | 8–9 | not started | |
 | D. Sensors and standing | 10–11 | not started | |
 | E. Hacking | 12–13 | not started | |
