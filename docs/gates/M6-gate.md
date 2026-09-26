@@ -151,3 +151,4 @@ pieces, four guards, 0 rejected, player on the site's start point) and
 | 34 | The spoof's hardware tag is named by the sensor profile (`spoof_requires`) rather than fixed to the daemon coprocessor in code. | addition | none |
 | 35 | A terminal is hacked once: a second hack of a hacked terminal is refused. | assumption | none |
 | 36 | The pane lists targets within 12 m; acting on one still needs the player beside it, and a refused command shows nothing in the pane beyond the sim not changing. The contextual prompt (claim 23) says what is in reach. | scope | group I |
+| 37 | Commits `223881d` to `cfd0bd2` each fail the unit stage's log check on "resources still in use at exit": `SensorSystem` (and then `HackSystem`) held the sim strongly, a reference cycle. Every test passed in them; `2d343ea` fixes it with a weak reference, and the full `tools/test.sh` passes from there. Earlier commits in this milestone passed the full suite one by one. | note | none |
