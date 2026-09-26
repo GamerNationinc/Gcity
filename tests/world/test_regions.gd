@@ -401,3 +401,33 @@ func test_a_block_of_cells_is_the_ground_cell_for_cell() -> void:
 							fail("block at %s: cell %s is %d, the ground says %d" % [origin, cell, got, want])
 		assert_eq(wrong, 0, "the box at %s is the ground (%d solid of %d)" % [origin, solid, cells])
 		assert_true(solid > 0 and solid < cells, "and has both ground and air in it")
+
+
+## M7 spec claim 16: the client meshes a chunk again when its ground changes, so every
+## change to the ground is logged — edits and a site's levelling alike — and a restore,
+## which changes it wholesale, says the log no longer reaches.
+func test_every_change_to_the_ground_is_logged_for_the_client() -> void:
+	_setup()
+	var actors: ActorSystem = SimAssembly.actors_of(_sim)
+	var player: int = actors.spawn(&"arcade", 0)
+	actors.set_position(player, Vector3i(500, 0, -40_500))
+	var seen: int = _regions.ground_revision()
+	assert_true(_regions.ground_log_reaches(seen), "nothing has changed since now")
+	assert_eq(_regions.ground_edits_since(seen), [] as Array[Vector3i], "so nothing is listed")
+	assert_false(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [1, 3, -41]}), "a refused edit")
+	assert_eq(_regions.ground_revision(), seen, "changes nothing and logs nothing")
+	assert_true(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [1, -1, -41]}), "dig")
+	assert_true(_do(Regions.COMMAND_FILL, {"actor": player, "cell": [1, -1, -41]}), "fill")
+	assert_true(_do(Regions.COMMAND_DIG, {"actor": player, "cell": [2, -1, -41]}), "dig beside it")
+	assert_eq(_regions.ground_revision(), seen + 3, "three changes")
+	assert_true(_regions.ground_log_reaches(seen), "all in the log")
+	assert_eq(_regions.ground_edits_since(seen), [Vector3i(1, -1, -41), Vector3i(1, -1, -41), Vector3i(2, -1, -41)] as Array[Vector3i], "in order")
+	assert_eq(_regions.ground_edits_since(seen + 2), [Vector3i(2, -1, -41)] as Array[Vector3i], "or from part way")
+	assert_false(_regions.ground_log_reaches(seen + 4), "a revision from the future is not reached")
+	for i: int in Regions.EDIT_LOG:
+		_regions.set_ground(Vector3i(3, -1 - (i % 8), -41 - i / 8), i % 2 == 1)
+	assert_false(_regions.ground_log_reaches(seen), "more changes than the log holds: the old revision is out of reach")
+	assert_true(_regions.ground_log_reaches(_regions.ground_revision() - Regions.EDIT_LOG), "the last EDIT_LOG are in it")
+	var now: int = _regions.ground_revision()
+	assert_eq(_regions.restore(_regions.snapshot()), OK, "restore")
+	assert_false(_regions.ground_log_reaches(now), "after a restore the log reaches nothing from before it")

@@ -40,6 +40,13 @@ var _piece_at: Callable = Callable()
 var _transits: Dictionary = {}
 var _authored: Array[Region] = []
 var _wild: Region = null
+## What the client asks to know which chunks to mesh again (claim 16): a count that rises
+## with every change to the ground, and the last EDIT_LOG cells changed, oldest first.
+## Neither is state: they describe changes, not the ground, and a restore — which changes
+## the ground wholesale — moves the count past anything the log can answer for.
+const EDIT_LOG: int = 256
+var _ground_revision: int = 0
+var _edit_log: Array[Vector3i] = []
 
 
 func _init(routes: RouteGraph, terrain: Terrain, actors: ActorSystem = null, events: EventBus = null, land: LandSystem = null, build_system: BuildSystem = null) -> void:
@@ -335,7 +342,7 @@ func _on_dig(_sim: SimRoot, payload: Dictionary) -> bool:
 	var cell: Vector3i = _edit_cell(payload)
 	if cell == INVALID_CELL or not is_solid(cell):
 		return false
-	return region_of_cell(cell).set_ground(cell, false)
+	return set_ground(cell, false)
 
 
 ## {"actor": int, "cell": [x, y, z]}: fill a cell in. Never where somebody is standing.
@@ -346,7 +353,36 @@ func _on_fill(_sim: SimRoot, payload: Dictionary) -> bool:
 	for actor: int in _actors.actor_ids():
 		if _actors.is_alive(actor) and BuildSystem.cell_of(_actors.position_of(actor)) == cell:
 			return false
-	return region_of_cell(cell).set_ground(cell, true)
+	return set_ground(cell, true)
+
+
+## Makes a cell ground or air, in whichever region it is, and logs the change. The one way
+## anything changes the ground after generation: the edit commands and a site's levelling.
+func set_ground(cell: Vector3i, solid: bool) -> bool:
+	if not region_of_cell(cell).set_ground(cell, solid):
+		return false
+	_ground_revision += 1
+	_edit_log.append(cell)
+	if _edit_log.size() > EDIT_LOG:
+		_edit_log.pop_front()
+	return true
+
+
+func ground_revision() -> int:
+	return _ground_revision
+
+
+## Whether [ground_edits_since] can say everything that changed after `revision`. When it
+## cannot — too long ago, or a restore since — the caller takes all its ground as changed.
+func ground_log_reaches(revision: int) -> bool:
+	return revision <= _ground_revision and _ground_revision - revision <= _edit_log.size()
+
+
+## The cells changed after `revision`, oldest first; only meaningful where
+## [ground_log_reaches] says so.
+func ground_edits_since(revision: int) -> Array[Vector3i]:
+	var n: int = mini(_ground_revision - revision, _edit_log.size())
+	return _edit_log.slice(_edit_log.size() - n)
 
 
 const INVALID_CELL: Vector3i = Vector3i(-2147483648, -2147483648, -2147483648)
@@ -434,4 +470,6 @@ func restore(state: Dictionary) -> Error:
 	_transits = out
 	var wild: WildRegion = _wild
 	wild.set_edits(edits_in)
+	_ground_revision += EDIT_LOG + 1
+	_edit_log.clear()
 	return OK

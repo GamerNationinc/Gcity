@@ -21,3 +21,6 @@ build/
 addons/godotsteam/linux64/
 addons/godotsteam/win64/
 addons/godotsteam/.installed-*
+# Native terrain mesher: built by tools/build_native.sh from native/terrain_mesher
+native/terrain_mesher/target/
+addons/terrain_mesher/

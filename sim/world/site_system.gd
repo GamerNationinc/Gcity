@@ -284,12 +284,12 @@ func _level(base: Vector3i, t: Dictionary) -> void:
 			for y: int in range(base.y, base.y + hi.y + 3):
 				var cell: Vector3i = Vector3i(x, y, z)
 				if _regions.is_solid(cell):
-					_regions.region_of_cell(cell).set_ground(cell, false)
+					_regions.set_ground(cell, false)
 			for d: int in range(1, FILL_DEPTH + 1):
 				var cell: Vector3i = Vector3i(x, base.y - d, z)
 				if _regions.is_solid(cell):
 					break
-				_regions.region_of_cell(cell).set_ground(cell, true)
+				_regions.set_ground(cell, true)
 
 
 ## {"actor": int, "site": string} or {"actor": int, "site": string, "quest": string}: the

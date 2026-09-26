@@ -10,6 +10,10 @@
 ## `--demo` after `--` plays a scripted sequence through the same action path;
 ## `--demo-quit=<s>`, `--screenshot=<path>`, `--screenshot-at=<s>` as in the other views;
 ## `--demo-loop` repeats the demo until quit and `--capture=<path>` writes frame times.
+## `--wilds` (M7 spec claim 16) walks out of the gate instead: the seam's load window,
+## then down the road south with the wild ground streamed in around you
+## ([TerrainStreamer]). Walking into the gate's opening towards the other side takes it,
+## in any mode.
 ## `--mission` raises Cold Storage as its operator and plays the under route end to end
 ## (M6 spec claim 13): the player owns nothing, so what you watch is a break-in. The
 ## route is `MissionDemo`, written there rather than read from the m6-stealth fixture
@@ -103,6 +107,12 @@ var _demo_loops: int = 0
 ## `--mission`: raise Cold Storage instead of the M4 building and play the under route
 ## end to end (M6 spec claim 13). The route lives in `MissionDemo`.
 var _mission: bool = false
+## `--wilds`: the demo walks out through the gate.
+var _wilds: bool = false
+## The ground drawn around the player, and each gate's frame and the curtain drawn across
+## it while someone is in it (the seam).
+var _ground: TerrainStreamer
+var _curtains: Dictionary = {}
 var _mission_steps: Array[Dictionary] = []
 var _mission_index: int = 0
 var _mission_wait: int = 0
@@ -126,6 +136,8 @@ func _ready() -> void:
 			_demo_loop = true
 		elif arg == "--mission":
 			_mission = true
+		elif arg == "--wilds":
+			_wilds = true
 	_piece_templates = _host.content().ids(&"build_piece")
 	_glyphs.set_deck(_steam.is_deck())
 	_glyphs.set_controller_active(_steam.is_deck() or not Input.get_connected_joypads().is_empty())
@@ -137,6 +149,16 @@ func _ready() -> void:
 
 func _build_demo_script() -> Array:
 	# [gap before the action in seconds of sim time, action]
+	if _wilds:
+		return _timed([
+			[1.0, "look:180"],   # face south, the gate a metre and a half ahead
+			[0.5, "walk:30"],    # into the opening and on: the gate is taken
+			[3.0, "walk:400"],   # out of the load window and down the road
+			[12.0, "look:-35"],
+			[0.5, "walk:300"],
+			[9.0, "look:70"],
+			[0.5, "walk:300"],
+		])
 	var steps: Array = [
 		[1.0, "wield"],
 		[0.5, "device"],          # on the owned plot: the device pauses the world
@@ -153,6 +175,11 @@ func _build_demo_script() -> Array:
 		[0.4, "reload"],
 		[6.8, "restart"],   # the Deck's own way back after a death
 	]
+	return _timed(steps)
+
+
+## [gap, action] steps to [time, action].
+static func _timed(steps: Array) -> Array:
 	var script: Array = []
 	var t: float = 0.0
 	for step: Array in steps:
@@ -227,18 +254,66 @@ func _build_static_scene() -> void:
 	e.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
 	e.ambient_light_color = Color(0.6, 0.6, 0.65)
 	e.ambient_light_energy = 0.8
+	# the streamed ground ends a couple of hundred metres out: fog it away
+	e.fog_enabled = true
+	e.fog_light_color = e.background_color
+	e.fog_density = 0.012
 	env.environment = e
 	add_child(env)
+	# the city's ground past the streamed chunks: a backdrop a hand's width under the
+	# drawn ground, north of the city's edge only (the wilds are all streamed)
 	var ground := MeshInstance3D.new()
 	var plane := PlaneMesh.new()
-	plane.size = Vector2(400.0, 400.0)
+	plane.size = Vector2(400.0, 200.0)
 	ground.mesh = plane
 	ground.material_override = _material(Color(0.32, 0.3, 0.28))
-	ground.position = Vector3(0.0, -0.02, 0.0)
+	ground.position = Vector3(0.0, -0.1, 100.0)
 	add_child(ground)
+	_ground = TerrainStreamer.new()
+	add_child(_ground)
+	_build_gates()
 	var land: LandSystem = SimAssembly.land_of(_host.sim())
 	for id: StringName in land.parcel_ids():
 		add_child(_parcel_node(land, id))
+
+
+## Every authored region's gates: two posts and a lintel, and a curtain across the
+## opening shown while the player is in it or in its load window.
+func _build_gates() -> void:
+	var regions: Regions = SimAssembly.regions_of(_host.sim())
+	for region: StringName in regions.region_ids():
+		for gate: Dictionary in regions.gates_of(region):
+			var gx: int = gate["x"]
+			var gz: int = gate["z"]
+			var half: int = gate["half_width_mm"]
+			var node: int = gate["node"]
+			# the opening runs along x if a point at its end, just inside, is in it
+			var along_x: bool = regions.gate_at(Vector3i(gx + half, 0, gz + BuildSystem.CELL - 1)) == node
+			var side: Vector3 = Vector3(float(half) / M, 0.0, 0.0) if along_x else Vector3(0.0, 0.0, float(half) / M)
+			var centre: Vector3 = Vector3(float(gx) / M, 0.0, float(gz) / M)
+			for sign: float in [-1.0, 1.0]:
+				var post: MeshInstance3D = _box(Vector3(0.4, 4.5, 0.4), Color(0.25, 0.22, 0.2))
+				post.position = centre + side * sign + Vector3(0.0, 2.25, 0.0)
+				add_child(post)
+			var lintel: MeshInstance3D = _box(Vector3(2.0 * side.length() + 0.4, 0.4, 0.4), Color(0.25, 0.22, 0.2))
+			lintel.position = centre + Vector3(0.0, 4.5, 0.0)
+			lintel.rotation.y = 0.0 if along_x else PI / 2.0
+			add_child(lintel)
+			var curtain := MeshInstance3D.new()
+			var quad := QuadMesh.new()
+			quad.size = Vector2(2.0 * side.length(), 4.3)
+			curtain.mesh = quad
+			var glow := StandardMaterial3D.new()
+			glow.albedo_color = Color(0.6, 0.8, 1.0, 0.35)
+			glow.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+			glow.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+			glow.cull_mode = BaseMaterial3D.CULL_DISABLED
+			curtain.material_override = glow
+			curtain.position = centre + Vector3(0.0, 2.15, 0.0)
+			curtain.rotation.y = 0.0 if along_x else PI / 2.0
+			curtain.visible = false
+			add_child(curtain)
+			_curtains[node] = curtain
 
 
 func _parcel_node(land: LandSystem, id: StringName) -> MeshInstance3D:
@@ -305,6 +380,7 @@ func _capsule(colour: Color) -> MeshInstance3D:
 func _sync_scene(sim: SimRoot) -> void:
 	_sync_pieces(SimAssembly.build_of(sim))
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	_sync_ground(sim, actors)
 	var perception: PerceptionSystem = SimAssembly.perception_of(sim)
 	var stances: StanceSystem = SimAssembly.stances_of(sim)
 	for actor: int in actors.actor_ids():
@@ -314,12 +390,12 @@ func _sync_scene(sim: SimRoot) -> void:
 			add_child(node)
 		var capsule: MeshInstance3D = _actor_nodes[actor]
 		var p: Vector3i = actors.position_of(actor)
-		capsule.position = Vector3(float(p.x) / M, 0.9, float(p.z) / M)
+		capsule.position = Vector3(float(p.x) / M, float(p.y) / M + 0.9, float(p.z) / M)
 		var alive: bool = actors.is_alive(actor)
 		capsule.visible = not (_first_person and actor == _player)
 		if not alive:
 			# down: a dark slab where the body fell
-			capsule.position.y = 0.15
+			capsule.position.y = float(p.y) / M + 0.15
 			capsule.scale = Vector3(1.0, 0.15, 1.0)
 			capsule.material_override = _material(Color(0.15, 0.13, 0.13))
 		if actor == _player:
@@ -344,6 +420,21 @@ func _sync_scene(sim: SimRoot) -> void:
 		cube.position = Vector3(float(c.x) + 0.5, float(c.y) + 0.5, float(c.z) + 0.5)
 		var state: String = raids.state_of(token)
 		cube.material_override = _material(Color(1.0, 0.85, 0.2) if state == "moving" else (Color(0.9, 0.2, 0.2) if state == "arrived" else Color(0.5, 0.5, 0.5)))
+
+
+## The ground streamed around the player, and the curtain across a gate they are in.
+func _sync_ground(sim: SimRoot, actors: ActorSystem) -> void:
+	var regions: Regions = SimAssembly.regions_of(sim)
+	_ground.watch(regions, SimAssembly.routes_of(sim))
+	if _player == 0:
+		return
+	var p: Vector3i = actors.position_of(_player)
+	_ground.update(p)
+	var in_gate: int = regions.gate_at(p)
+	for key: Variant in _curtains:
+		var node: int = key
+		var curtain: MeshInstance3D = _curtains[key]
+		curtain.visible = in_gate == node
 
 
 ## The awareness bar over a guard, its sight line to the player, and where it last
@@ -552,14 +643,33 @@ func _physics_process(_delta: float) -> void:
 	var dz: int = roundi(world.y)
 	if dx == 0 and dz == 0:
 		return
+	if _take_gate(sim, dx, dz):
+		return
 	_submit(sim, &"actor.move", {"actor": _player, "dx": dx, "dz": dz})
+
+
+## Walking from a gate's opening towards the other side of the edge takes the gate
+## (`region.enter`): the seam, with its load window. True if it was asked for.
+func _take_gate(sim: SimRoot, dx: int, dz: int) -> bool:
+	var regions: Regions = SimAssembly.regions_of(sim)
+	if regions.in_transit(_player):
+		return true
+	var p: Vector3i = SimAssembly.actors_of(sim).position_of(_player)
+	if regions.gate_at(p) == EntityIds.NONE:
+		return false
+	var ahead: Vector3i = p + Vector3i(signi(dx), 0, signi(dz)) * BuildSystem.CELL
+	if not regions.crosses_edge(p, ahead):
+		return false
+	_submit(sim, Regions.COMMAND_ENTER, {"actor": _player, "region": String(regions.region_at(ahead.x, ahead.z).id())})
+	_note("t%d through the gate to %s" % [sim.get_tick(), regions.region_at(ahead.x, ahead.z).id()])
+	return true
 
 
 func _place_camera(sim: SimRoot) -> void:
 	if _player == 0:
 		return
 	var p: Vector3i = SimAssembly.actors_of(sim).position_of(_player)
-	var feet: Vector3 = Vector3(float(p.x) / M, 0.0, float(p.z) / M)
+	var feet: Vector3 = Vector3(float(p.x) / M, float(p.y) / M, float(p.z) / M)
 	var forward: Vector3 = Vector3(-sin(_yaw), 0.0, -cos(_yaw))
 	if _first_person:
 		_camera.position = feet + Vector3(0.0, EYE_HEIGHT, 0.0)
@@ -819,8 +929,10 @@ func _advance_setup(sim: SimRoot) -> void:
 			_submit(sim, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"})
 			for command: Dictionary in M4Building.commands(_player, _host.content()):
 				_submit(sim, &"build.place", command)
-			for guard: Dictionary in M4Building.guards(GUARD_PROFILES[_guard_profile], _host.content()):
-				_submit(sim, &"agent.spawn", guard)
+			# `--wilds` is a walk out of town, not a fight: no guards
+			if not _wilds:
+				for guard: Dictionary in M4Building.guards(GUARD_PROFILES[_guard_profile], _host.content()):
+					_submit(sim, &"agent.spawn", guard)
 			_submit_kit(sim, _player, 1, 2, 30)
 			var inv: String = String(ItemSystem.inventory_of(_player))
 			_submit(sim, &"item.spawn", {"kind": "device_frame", "template": "handset", "container": inv, "seed": 7, "count": 1})
@@ -829,7 +941,7 @@ func _advance_setup(sim: SimRoot) -> void:
 			_setup_stage = 2
 		2:
 			var ids: Array[int] = actors.actor_ids()
-			if ids.size() < 5:
+			if ids.size() < (1 if _wilds else 5):
 				return
 			_guards = []
 			for id: int in ids:
@@ -1189,6 +1301,9 @@ func _render(sim: SimRoot) -> void:
 	var p: Vector3i = actors.position_of(_player)
 	if not actors.is_alive(_player):
 		lines.append("YOU ARE DOWN   [Esc / Back] restart   [F9] load")
+	var regions: Regions = SimAssembly.regions_of(sim)
+	lines.append("region %s%s   ground: %d chunks drawn%s" % [regions.region_at(p.x, p.z).id(), "   IN THE GATE (load window)" if regions.in_transit(_player) else "",
+		_ground.shown_chunks().size(), "" if _ground.is_settled() else ", streaming"])
 	lines.append("player at (%d, %d) mm   yaw %d°   hp %d   %s" % [p.x, p.z, roundi(rad_to_deg(_yaw)), actors.health_of(_player)["body"] / 1000, "first person" if _first_person else "third person"])
 	var target: int = _aimed_target(sim)
 	var range_m: int = ActorSystem.metres_between(p, actors.position_of(target)) if target != 0 else -1

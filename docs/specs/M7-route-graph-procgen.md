@@ -158,6 +158,20 @@ debt log. What follows is the design those decisions need.
    (claim 10: raised at a slot) and saving (claim 15). None of them names
    `AuthoredRegion` or `WildRegion`; `tools/check_dependencies.py` enforces it.
 
+## Note: claim 16's native mesher — proposed, for CEOGG at G7
+
+ADR-003 (accepted as option B) chose surface nets in a Rust GDExtension for chunk meshing;
+claim 16 promotes the spike's mesher to `native/terrain_mesher` — surface nets only, one
+stateless call from a block of solid bytes (`Regions.solids`) to a mesh. That adds a
+pinned dependency, the `godot` crate 0.5.5 with Rust 1.98.0, recorded in
+`docs/dependencies.md` as **proposed**: a dependency is a spec claim, and this one waits
+for CEOGG's approval in the G7 batch. Until then nothing depends on it: the library and
+its `.gdextension` are built by `tools/build_native.sh` and not committed, and without
+them `client/terrain/surface_nets.gd` meshes the same blocks in GDScript, held to the same
+output by `tests/client/test_surface_nets.gd` (the native one measured 130× faster, over
+ADR-003's 5× bar). The streamer (`client/terrain/terrain_streamer.gd`) pools its mesh
+nodes, ADR-003 condition 2's other half.
+
 ## Out of scope (goes to the debt log if touched)
 
 Terrain art and materials beyond what proves claim 7; weather; vegetation; interiors

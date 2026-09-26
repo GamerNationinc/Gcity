@@ -15,6 +15,21 @@ stage_fitness() {
 	python3 -m unittest discover -s tools/tests -t . -q
 	python3 tools/check_dependencies.py
 	python3 tools/validate_content.py
+	stage_native
+}
+
+# The native terrain mesher (native/terrain_mesher): Clippy pedantic, its own tests, and a
+# fresh build installed for the engine stages. Optional: without Rust the client uses the
+# GDScript port and the tests check that alone.
+stage_native() {
+	if ! command -v cargo >/dev/null; then
+		echo "== native mesher: no cargo, skipped (the GDScript port is tested alone)"
+		return 0
+	fi
+	echo "== native mesher"
+	(cd native/terrain_mesher && cargo clippy --release --locked --quiet --all-targets -- -W clippy::pedantic -D warnings \
+		&& cargo test --release --locked --quiet 2>&1 | grep -E "^test result|FAILED|panicked")
+	tools/build_native.sh
 }
 
 engine() {
