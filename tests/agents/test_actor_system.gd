@@ -49,6 +49,33 @@ func test_spawn_from_profile_and_health_graph() -> void:
 	assert_eq(_actors.actor_ids().size(), 1, "nothing else spawned")
 
 
+## M6 spec claim 3: an actor spawns at a site's named point, so the client never
+## places anyone. The point is the centre of its cell, on the cell's floor.
+func test_spawn_at_a_site_point() -> void:
+	_build()
+	var db: ContentDb = _sim.get_system(&"content")
+	assert_true(_do(&"actor.spawn", {"profile": "arcade", "site": "m4_building", "point": "player_start"}), "spawn at a point")
+	var a: int = _actors.actor_ids()[0]
+	assert_eq(_actors.position_of(a), SiteSystem.point_position(db, &"m4_building", &"player_start"), "stands on the point")
+	assert_eq(_actors.position_of(a), M4Building.PLAYER_START, "which is the M4 start")
+	assert_eq(_actors.profile_of(a), &"arcade", "with its profile")
+	assert_true(_do(&"actor.spawn", {"profile": "arcade", "site": "home", "point": "respawn"}), "a second site's point")
+	assert_eq(_actors.position_of(_actors.actor_ids()[1]), SiteSystem.point_position(db, &"home", &"respawn"), "at home")
+	var count: int = _actors.actor_ids().size()
+	for payload: Dictionary in [
+		{"profile": "arcade", "site": "m4_building"},
+		{"profile": "arcade", "site": "m4_building", "point": "nowhere"},
+		{"profile": "arcade", "site": "nowhere", "point": "player_start"},
+		{"profile": "nobody", "site": "m4_building", "point": "player_start"},
+		{"profile": "arcade", "site": 1, "point": "player_start"},
+		{"profile": "arcade", "site": "m4_building", "point": ["player_start"]},
+		{"profile": "arcade", "site": "m4_building", "point": "player_start", "range_m": 0},
+		{"profile": "arcade", "range_m": 0, "point": "player_start"},
+	]:
+		assert_false(_do(&"actor.spawn", payload), "refused: %s" % [payload])
+	assert_eq(_actors.actor_ids().size(), count, "nobody spawned by a refusal")
+
+
 func test_wield_requires_a_held_frame_and_links_inheritance() -> void:
 	_build()
 	_do(&"actor.spawn", {"profile": "arcade", "range_m": 0})

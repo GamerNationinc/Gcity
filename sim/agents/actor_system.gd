@@ -20,7 +20,8 @@ var _ids: EntityIds
 var _items: ItemSystem
 ## actor id -> {"profile": StringName, "health": {node: int}, "wielded": int, "device": int, "pos": [x, y, z] mm, "alive": bool}
 ## Positions are integer millimetres (M3 claim set P1). `actor.spawn`'s range_m places
-## the actor at (range_m × 1000, 0, 0) so the M1 range keeps its meaning.
+## the actor at (range_m × 1000, 0, 0) so the M1 range keeps its meaning; its site and
+## point place it at a site's named point (M6 spec claim 3), so no client places anyone.
 var _actors: Dictionary = {}
 
 
@@ -225,6 +226,22 @@ func spawn(profile: StringName, range_m: int) -> int:
 	if range_m < 0 or range_m > MAX_RANGE_M:
 		push_error("ActorSystem: range_m out of range: %d" % range_m)
 		return EntityIds.NONE
+	return _spawn_at(profile, Vector3i(range_m * 1000, 0, 0))
+
+
+## Spawns an actor of a profile at a site's named point. Returns its id, or 0 with an
+## error when the profile, site or point does not exist.
+func spawn_at_point(profile: StringName, site: StringName, point: StringName) -> int:
+	if not _content.has(KIND_PROFILE, profile):
+		push_error("ActorSystem: no combat_profile/%s" % profile)
+		return EntityIds.NONE
+	if not SiteSystem.has_point(_content, site, point):
+		push_error("ActorSystem: no point '%s' at site/%s" % [point, site])
+		return EntityIds.NONE
+	return _spawn_at(profile, SiteSystem.point_position(_content, site, point))
+
+
+func _spawn_at(profile: StringName, pos: Vector3i) -> int:
 	var t: Dictionary = _content.get_entry(KIND_PROFILE, profile)
 	var health_t: Dictionary = t["health"]
 	var nodes: Array = health_t["nodes"]
@@ -234,7 +251,7 @@ func spawn(profile: StringName, range_m: int) -> int:
 		var id_s: String = nd["id"]
 		health[StringName(id_s)] = nd["max"]
 	var id: int = _ids.allocate()
-	_actors[id] = {"profile": profile, "health": health, "wielded": EntityIds.NONE, "device": EntityIds.NONE, "pos": [range_m * 1000, 0, 0] as Array[int], "alive": true}
+	_actors[id] = {"profile": profile, "health": health, "wielded": EntityIds.NONE, "device": EntityIds.NONE, "pos": [pos.x, pos.y, pos.z] as Array[int], "alive": true}
 	return id
 
 
@@ -271,8 +288,17 @@ func _is_fatal(profile: StringName, node: StringName) -> bool:
 
 # ---------------------------------------------------------------- commands
 
-## {"profile": name, "range_m": int}. Debug-class (spec claim 12): gated before co-op.
+## {"profile": name, "range_m": int} or {"profile": name, "site": name, "point": name}.
+## Debug-class (spec claim 12): gated before co-op.
 func _on_spawn(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() == 3 and typeof(payload.get("profile")) == TYPE_STRING and typeof(payload.get("site")) == TYPE_STRING \
+			and typeof(payload.get("point")) == TYPE_STRING:
+		var profile_s: String = payload["profile"]
+		var site_s: String = payload["site"]
+		var point_s: String = payload["point"]
+		if not _content.has(KIND_PROFILE, StringName(profile_s)) or not SiteSystem.has_point(_content, StringName(site_s), StringName(point_s)):
+			return false
+		return spawn_at_point(StringName(profile_s), StringName(site_s), StringName(point_s)) != EntityIds.NONE
 	if payload.size() != 2 or not payload.has("profile") or not payload.has("range_m"):
 		return false
 	var profile: StringName = _as_name(payload["profile"])

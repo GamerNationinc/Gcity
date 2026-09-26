@@ -288,7 +288,11 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 		var at: int = rng.randi_range(1, 3)
 		match rng.randi_range(0, 22):
 			0:
-				out.append([at, &"actor.spawn", {"profile": "arcade", "range_m": rng.randi_range(0, 20)}])
+				if rng.randi_range(0, 3) == 0:
+					# M6 claim 3: at a site's named point
+					out.append([at, &"actor.spawn", {"profile": "arcade", "site": ["home", "m4_building", "nowhere"][rng.randi_range(0, 2)], "point": ["player_start", "respawn", "nowhere"][rng.randi_range(0, 2)]}])
+				else:
+					out.append([at, &"actor.spawn", {"profile": "arcade", "range_m": rng.randi_range(0, 20)}])
 			10:
 				# M4 claim 15: agents, with their perception, aim, stress, paths, stances and squads
 				out.append([at, &"agent.spawn", {"profile": ["guard_sim", "guard_arcade", "guard_mute", "nobody"][rng.randi_range(0, 3)], "cell": [rng.randi_range(0, 12), 0, rng.randi_range(0, 12)],
