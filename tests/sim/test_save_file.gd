@@ -286,7 +286,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 	var out: Array = []
 	for _i: int in count:
 		var at: int = rng.randi_range(1, 3)
-		match rng.randi_range(0, 21):
+		match rng.randi_range(0, 22):
 			0:
 				out.append([at, &"actor.spawn", {"profile": "arcade", "range_m": rng.randi_range(0, 20)}])
 			10:
@@ -318,6 +318,9 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 				out.append([at, &"quest.accept" if rng.randi_range(0, 1) == 0 else &"quest.abandon", {"actor": rng.randi_range(1, 3), "quest": ["first_blood", "break_ground", "nothing"][rng.randi_range(0, 2)]}])
 			21:
 				out.append([at, &"sim.pause" if rng.randi_range(0, 1) == 0 else &"sim.resume", {"actor": rng.randi_range(1, 3)}])
+			22:
+				# M6 claim 2: a whole site at once, and the refusals of a second raise
+				out.append([at, &"site.raise", {"site": ["home", "m4_building", "nowhere"][rng.randi_range(0, 2)]}])
 			1:
 				out.append([at, &"item.spawn", {"kind": "weapon_frame", "template": "g19", "container": "inv.%d" % rng.randi_range(1, 3), "seed": rng.randi(), "count": 1}])
 			2:

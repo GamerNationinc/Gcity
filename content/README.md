@@ -23,6 +23,7 @@ Kinds so far:
 | `skill`, `perk` | M1 | `ProgressionSystem`; see `docs/extending-progression.md` |
 | `device_app` | M5 | `DeviceShell` (`client/device/README.md`) |
 | `quest` | M5 | `QuestSystem` (`sim/quests/README.md`) |
+| `site` | M6 | `SiteSystem` (`sim/quests/README.md`), `ActorSystem` (spawn points) |
 | `device_frame`, `device_socket`, `device_module` | M5 | `ItemSystem` (a second socketed frame family), `ActorSystem` (`actor.equip_device`) |
 | `perception_profile`, `aim_profile`, `stress_profile`, `stance`, `patrol_route`, `agent_profile` | M4 | `PerceptionSystem`, `AimSystem`, `StressSystem`, `StanceSystem`, `SquadSystem`; see `docs/extending-agents.md` |
 

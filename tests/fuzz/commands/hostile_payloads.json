@@ -149,6 +149,13 @@
 		{"kind": "quest.abandon", "payload": {}},
 		{"kind": "quest.abandon", "payload": {"actor": 1, "quest": "first_blood"}},
 		{"kind": "quest.abandon", "payload": {"actor": 1, "quest": "nothing"}},
-		{"kind": "quest.abandon", "payload": {"actor": "1", "quest": "first_blood"}}
+		{"kind": "quest.abandon", "payload": {"actor": "1", "quest": "first_blood"}},
+		{"kind": "site.raise", "payload": {}},
+		{"kind": "site.raise", "payload": {"site": 1}},
+		{"kind": "site.raise", "payload": {"site": ""}},
+		{"kind": "site.raise", "payload": {"site": "nowhere"}},
+		{"kind": "site.raise", "payload": {"site": ["home"]}},
+		{"kind": "site.raise", "payload": {"site": "home", "extra": 1}},
+		{"kind": "site.raise", "payload": {"site": "../home"}}
 	]
 }

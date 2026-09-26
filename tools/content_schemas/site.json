@@ -1,0 +1,164 @@
+{
+	"schema_version": 1,
+	"description": "A site (M6 spec claims 1-4; design doc §5.3): an authored place raised in one command. Pieces, points and agents are cells relative to the origin; parcels are content parcels handed to an owner tag when the site is raised. Quests name sites by id, never by coordinates.",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 240
+		},
+		"origin": {
+			"type": "array",
+			"min_length": 3,
+			"max_length": 3,
+			"items": {
+				"type": "int",
+				"min": -100000,
+				"max": 100000
+			}
+		},
+		"parcels": {
+			"type": "array",
+			"max_length": 32,
+			"items": {
+				"type": "object",
+				"properties": {
+					"parcel": {
+						"type": "string",
+						"ref": "parcel"
+					},
+					"owner": {
+						"type": "string",
+						"pattern": "([a-z0-9][a-z0-9_.]*)?"
+					}
+				},
+				"required": [
+					"parcel",
+					"owner"
+				],
+				"additional_properties": false
+			}
+		},
+		"pieces": {
+			"type": "array",
+			"max_length": 2000,
+			"items": {
+				"type": "object",
+				"properties": {
+					"piece": {
+						"type": "string",
+						"ref": "build_piece"
+					},
+					"cell": {
+						"type": "array",
+						"min_length": 3,
+						"max_length": 3,
+						"items": {
+							"type": "int",
+							"min": -100000,
+							"max": 100000
+						}
+					},
+					"facing": {
+						"type": "string",
+						"pattern": "(|px|nx|py|ny|pz|nz)"
+					}
+				},
+				"required": [
+					"piece",
+					"cell",
+					"facing"
+				],
+				"additional_properties": false
+			}
+		},
+		"points": {
+			"type": "array",
+			"max_length": 64,
+			"items": {
+				"type": "object",
+				"properties": {
+					"id": {
+						"type": "string",
+						"pattern": "[a-z0-9][a-z0-9_]*"
+					},
+					"cell": {
+						"type": "array",
+						"min_length": 3,
+						"max_length": 3,
+						"items": {
+							"type": "int",
+							"min": -100000,
+							"max": 100000
+						}
+					}
+				},
+				"required": [
+					"id",
+					"cell"
+				],
+				"additional_properties": false
+			}
+		},
+		"agents": {
+			"type": "array",
+			"max_length": 32,
+			"items": {
+				"type": "object",
+				"properties": {
+					"profile": {
+						"type": "string",
+						"ref": "agent_profile"
+					},
+					"cell": {
+						"type": "array",
+						"min_length": 3,
+						"max_length": 3,
+						"items": {
+							"type": "int",
+							"min": -100000,
+							"max": 100000
+						}
+					},
+					"facing": {
+						"type": "int",
+						"min": 0,
+						"max": 359
+					},
+					"squad": {
+						"type": "int",
+						"min": 0,
+						"max": 1000
+					},
+					"route": {
+						"type": "string",
+						"pattern": "([a-z0-9][a-z0-9_]*)?"
+					}
+				},
+				"required": [
+					"profile",
+					"cell",
+					"facing",
+					"squad",
+					"route"
+				],
+				"additional_properties": false
+			}
+		}
+	},
+	"required": [
+		"schema_version",
+		"description",
+		"origin",
+		"parcels",
+		"pieces",
+		"points",
+		"agents"
+	],
+	"additional_properties": false
+}

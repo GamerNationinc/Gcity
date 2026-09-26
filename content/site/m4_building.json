@@ -1,0 +1,922 @@
+{
+	"schema_version": 1,
+	"description": "The M4 test building as a site: the same 93 pieces and four guards as client/m4_building.gd, raised in one command (M6 spec claim 2). The world view raises it; the M4 fixtures keep the command list.",
+	"origin": [
+		3,
+		0,
+		8
+	],
+	"parcels": [
+		{
+			"parcel": "starter_plot",
+			"owner": "player"
+		},
+		{
+			"parcel": "neighbour_north",
+			"owner": "player"
+		}
+	],
+	"pieces": [
+		{
+			"cell": [
+				-1,
+				0,
+				-1
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				5,
+				0,
+				-1
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				-1,
+				0,
+				4
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				5,
+				0,
+				4
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				3,
+				0,
+				4
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				3,
+				0,
+				10
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				5,
+				0,
+				10
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				-1,
+				0,
+				6
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				-1,
+				0,
+				10
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				9,
+				0,
+				6
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				9,
+				0,
+				10
+			],
+			"facing": "",
+			"piece": "foundation_block"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				0
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				1,
+				0,
+				0
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				2,
+				0,
+				0
+			],
+			"facing": "nz",
+			"piece": "door_frame"
+		},
+		{
+			"cell": [
+				3,
+				0,
+				0
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				0
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				0
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				0
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				1
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				1
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				2
+			],
+			"facing": "nx",
+			"piece": "window_frame"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				2
+			],
+			"facing": "px",
+			"piece": "window_frame"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				3
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				3
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				3
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				1,
+				0,
+				3
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				2,
+				0,
+				3
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				3,
+				0,
+				3
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				4
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				4
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				5
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				5
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				6
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				6
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				7
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				7
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				8
+			],
+			"facing": "nx",
+			"piece": "door_frame"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				8
+			],
+			"facing": "px",
+			"piece": "door_frame"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				9
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				9
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				9
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				7
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				9
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				1,
+				0,
+				7
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				1,
+				0,
+				9
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				2,
+				0,
+				7
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				2,
+				0,
+				9
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				3,
+				0,
+				7
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				3,
+				0,
+				9
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				7
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				8
+			],
+			"facing": "nx",
+			"piece": "window_frame"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				9
+			],
+			"facing": "nx",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				5,
+				0,
+				7
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				5,
+				0,
+				9
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				6,
+				0,
+				7
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				6,
+				0,
+				9
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				7,
+				0,
+				7
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				7,
+				0,
+				9
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				8,
+				0,
+				7
+			],
+			"facing": "nz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				8,
+				0,
+				9
+			],
+			"facing": "pz",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				8,
+				0,
+				7
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				8,
+				0,
+				8
+			],
+			"facing": "px",
+			"piece": "window_frame"
+		},
+		{
+			"cell": [
+				8,
+				0,
+				9
+			],
+			"facing": "px",
+			"piece": "wall_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				4
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				5
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				6
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				7
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				8
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				4,
+				0,
+				9
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				7
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				1,
+				0,
+				7
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				2,
+				0,
+				7
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				3,
+				0,
+				7
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				5,
+				0,
+				7
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				6,
+				0,
+				7
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				7,
+				0,
+				7
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				8,
+				0,
+				7
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				8
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				1,
+				0,
+				8
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				2,
+				0,
+				8
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				3,
+				0,
+				8
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				5,
+				0,
+				8
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				6,
+				0,
+				8
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				7,
+				0,
+				8
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				8,
+				0,
+				8
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				0,
+				0,
+				9
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				1,
+				0,
+				9
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				2,
+				0,
+				9
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				3,
+				0,
+				9
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				5,
+				0,
+				9
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				6,
+				0,
+				9
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				7,
+				0,
+				9
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		},
+		{
+			"cell": [
+				8,
+				0,
+				9
+			],
+			"facing": "py",
+			"piece": "floor_panel"
+		}
+	],
+	"points": [
+		{
+			"id": "player_start",
+			"cell": [
+				-1,
+				0,
+				-7
+			]
+		},
+		{
+			"id": "respawn",
+			"cell": [
+				-1,
+				0,
+				-7
+			]
+		}
+	],
+	"agents": [
+		{
+			"profile": "guard_sim",
+			"cell": [
+				2,
+				0,
+				3
+			],
+			"facing": 270,
+			"squad": 1,
+			"route": ""
+		},
+		{
+			"profile": "guard_sim",
+			"cell": [
+				0,
+				0,
+				1
+			],
+			"facing": 0,
+			"squad": 1,
+			"route": "lobby_round"
+		},
+		{
+			"profile": "guard_sim",
+			"cell": [
+				4,
+				0,
+				4
+			],
+			"facing": 90,
+			"squad": 1,
+			"route": "wing_patrol"
+		},
+		{
+			"profile": "guard_sim",
+			"cell": [
+				7,
+				0,
+				8
+			],
+			"facing": 180,
+			"squad": 1,
+			"route": "wing_patrol_reverse"
+		}
+	]
+}

@@ -2,8 +2,13 @@
 ## objectives are events on the bus credited to an actor named in the payload,
 ## optionally filtered by tags, counted to a target; the reward is item templates
 ## spawned into the actor's inventory once on completion. `quest.accept` and
-## `quest.abandon` are the actor's, and pause-safe. The director, offers, dialogue
-## and site binding are M6/M7: nothing here decides who is offered what.
+## `quest.abandon` are the actor's, and pause-safe. The director, offers and dialogue
+## are later: nothing here decides who is offered what.
+##
+## A quest may name a `site` (M6 spec claim 4; design doc §5.3): accepting it writes
+## the binding into the actor's record, and that is where the quest looks for its
+## place from then on. At M6 a site id binds to itself; M7's generator replaces the
+## lookup, never the quest file. A quest without a site keeps its M5 record.
 class_name QuestSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"quests"
@@ -20,7 +25,8 @@ var _items: ItemSystem
 var _events: EventBus
 ## event -> [[quest id, objective index], ...]
 var _rules: Dictionary = {}
-## actor -> quest id -> {"status": String, "progress": Array[int]}
+## actor -> quest id -> {"status": String, "progress": Array[int]} plus "site": String
+## when the quest names one
 var _quests: Dictionary = {}
 var _completed: int = 0
 
@@ -75,10 +81,14 @@ func attach(sim: SimRoot) -> Error:
 	return OK
 
 
-## Rewards name spawnable kinds and real templates.
+## Rewards name spawnable kinds and real templates; a named site exists.
 func validate_content() -> Error:
 	for quest: StringName in _content.ids(KIND_QUEST):
 		var t: Dictionary = _content.get_entry(KIND_QUEST, quest)
+		var site: StringName = _site_named(t)
+		if t.has("site") and (site.is_empty() or not _content.has(SiteSystem.KIND_SITE, site)):
+			push_error("QuestSystem: quest/%s names a site that does not exist: %s" % [quest, t.get("site")])
+			return ERR_INVALID_DATA
 		var reward: Array = t["reward"]
 		for r: Variant in reward:
 			var rd: Dictionary = r
@@ -132,6 +142,24 @@ func completed_count() -> int:
 	return _completed
 
 
+## The site an accepted quest is bound to, or &"" when it names none or is not held.
+func site_of(actor: int, quest: StringName) -> StringName:
+	var rec: Dictionary = _record(actor, quest)
+	if rec.is_empty() or not rec.has("site"):
+		return &""
+	var site_s: String = rec["site"]
+	return StringName(site_s)
+
+
+## The site a quest template names, or &"" (the binding at M6 is the id itself).
+static func _site_named(t: Dictionary) -> StringName:
+	var v: Variant = t.get("site", "")
+	if typeof(v) != TYPE_STRING:
+		return &""
+	var site_s: String = v
+	return StringName(site_s)
+
+
 func _record(actor: int, quest: StringName) -> Dictionary:
 	var stored: Variant = _quests.get(actor)
 	if typeof(stored) != TYPE_DICTIONARY:
@@ -163,7 +191,11 @@ func _on_accept(_sim: SimRoot, payload: Dictionary) -> bool:
 		progress.append(0)
 	var stored: Variant = _quests.get(actor)
 	var table: Dictionary = stored if typeof(stored) == TYPE_DICTIONARY else {}
-	table[quest] = {"status": STATUS_ACTIVE, "progress": progress}
+	var record: Dictionary = {"status": STATUS_ACTIVE, "progress": progress}
+	var site: StringName = _site_named(t)
+	if not site.is_empty():
+		record["site"] = String(site)
+	table[quest] = record
 	_quests[actor] = table
 	return true
 
@@ -282,12 +314,16 @@ func restore(state: Dictionary) -> Error:
 			if not _content.has(KIND_QUEST, quest):
 				return _restore_fail("unknown quest %s" % quest)
 			var rec: Dictionary = table_in[qk]
-			if rec.size() != 2 or typeof(rec.get("status")) != TYPE_STRING or typeof(rec.get("progress")) != TYPE_ARRAY:
+			var t: Dictionary = _content.get_entry(KIND_QUEST, quest)
+			var site: StringName = _site_named(t)
+			var fields: int = 2 if site.is_empty() else 3
+			if rec.size() != fields or typeof(rec.get("status")) != TYPE_STRING or typeof(rec.get("progress")) != TYPE_ARRAY:
 				return _restore_fail("quest record")
+			if not site.is_empty() and (typeof(rec.get("site")) != TYPE_STRING or rec["site"] != String(site)):
+				return _restore_fail("quest %s is bound to a site it does not name" % quest)
 			var status: String = rec["status"]
 			if status != STATUS_ACTIVE and status != STATUS_COMPLETED:
 				return _restore_fail("quest status")
-			var t: Dictionary = _content.get_entry(KIND_QUEST, quest)
 			var objectives: Array = t["objectives"]
 			var progress_in: Array = rec["progress"]
 			if progress_in.size() != objectives.size():
@@ -304,7 +340,10 @@ func restore(state: Dictionary) -> Error:
 				progress.append(n)
 			if (status == STATUS_COMPLETED) != _all_done(progress, objectives):
 				return _restore_fail("quest status disagrees with its progress")
-			table[quest] = {"status": status, "progress": progress}
+			var restored: Dictionary = {"status": status, "progress": progress}
+			if not site.is_empty():
+				restored["site"] = String(site)
+			table[quest] = restored
 		out[actor] = table
 	_quests = out
 	_completed = completed

@@ -1,0 +1,35 @@
+{
+	"schema_version": 1,
+	"description": "The player's home (design doc §8.1): the starter plot, where a run starts and a death respawns (ADR-007 C). The fixer's post joins it with the contracts (M6 group G).",
+	"origin": [
+		0,
+		0,
+		0
+	],
+	"parcels": [
+		{
+			"parcel": "starter_plot",
+			"owner": "player"
+		}
+	],
+	"pieces": [],
+	"points": [
+		{
+			"id": "player_start",
+			"cell": [
+				2,
+				0,
+				1
+			]
+		},
+		{
+			"id": "respawn",
+			"cell": [
+				2,
+				0,
+				2
+			]
+		}
+	],
+	"agents": []
+}
