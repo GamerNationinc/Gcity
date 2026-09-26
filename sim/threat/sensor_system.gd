@@ -25,7 +25,9 @@ var _build: BuildSystem
 var _perception: PerceptionSystem
 var _squads: SquadSystem
 var _events: EventBus
-var _sim: SimRoot
+## The sim this system is registered with, held weakly: the root holds this system,
+## so a strong reference back would be a cycle and neither would ever be freed.
+var _sim_ref: WeakRef
 ## sensor id -> {"profile": String, "squad": int, "face": String, "cells": [cell key, ...],
 ##               "spoofed_until": int, "trips": int}
 var _sensors: Dictionary = {}
@@ -41,6 +43,14 @@ func _init(content: ContentDb, ids: EntityIds, build: BuildSystem, perception: P
 	_events = events
 
 
+## The tick the sim is on.
+func _now() -> int:
+	var ref: Object = _sim_ref.get_ref()
+	var sim: SimRoot = ref as SimRoot
+	assert(sim != null, "a system outlived its sim")
+	return sim.get_tick()
+
+
 func system_id() -> StringName:
 	return SYSTEM_ID
 
@@ -54,7 +64,7 @@ func snapshot() -> Dictionary:
 
 
 func attach(sim: SimRoot) -> Error:
-	_sim = sim
+	_sim_ref = weakref(sim)
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
@@ -138,7 +148,7 @@ func is_spoofed(sensor: int) -> bool:
 		return false
 	var rec: Dictionary = _sensors[sensor]
 	var until: int = rec["spoofed_until"]
-	return until > _sim.get_tick()
+	return until > _now()
 
 
 ## Keeps a spoofable sensor quiet until `until_tick` (a hack's result, M6 spec claim
@@ -240,7 +250,7 @@ func _trip(sensor: int, actor: int, cell: Vector3i) -> void:
 	var radio: bool = t["radio"]
 	var squad: int = rec["squad"]
 	if radio and squad > 0:
-		_squads.report_from_outside(squad, actor, cell, _sim.get_tick())
+		_squads.report_from_outside(squad, actor, cell, _now())
 
 
 # ---------------------------------------------------------------- restore

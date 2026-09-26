@@ -41,7 +41,9 @@ var _actors: ActorSystem
 var _land: LandSystem
 var _sensors: SensorSystem
 var _events: EventBus
-var _sim: SimRoot
+## The sim this system is registered with, held weakly: the root holds this system,
+## so a strong reference back would be a cycle and neither would ever be freed.
+var _sim_ref: WeakRef
 ## terminal id -> {"site": String, "name": String, "hacked": bool, "logged_in_by": int}
 var _terminals: Dictionary = {}
 ## actor -> {"kind": String, "target": int, "pos": [x, y, z], "done": int, "total": int, "ticks": int}
@@ -60,6 +62,14 @@ func _init(content: ContentDb, stats: StatResolver, ids: EntityIds, items: ItemS
 	_events = events
 
 
+## The tick the sim is on.
+func _now() -> int:
+	var ref: Object = _sim_ref.get_ref()
+	var sim: SimRoot = ref as SimRoot
+	assert(sim != null, "a system outlived its sim")
+	return sim.get_tick()
+
+
 func system_id() -> StringName:
 	return SYSTEM_ID
 
@@ -69,7 +79,7 @@ func snapshot() -> Dictionary:
 
 
 func attach(sim: SimRoot) -> Error:
-	_sim = sim
+	_sim_ref = weakref(sim)
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
@@ -384,7 +394,7 @@ func _advance(actor: int) -> void:
 		_:
 			var t: Dictionary = _content.get_entry(SensorSystem.KIND_SENSOR, _sensors.profile_of(target))
 			var quiet: int = t["spoof_ticks"]
-			_sensors.spoof(target, _sim.get_tick() + quiet)
+			_sensors.spoof(target, _now() + quiet)
 			_events.emit(EVENT_SPOOFED, {"actor": actor, "sensor": target})
 
 
