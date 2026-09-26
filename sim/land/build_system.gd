@@ -111,8 +111,10 @@ func validate_content() -> Error:
 		if typeof(lock_v) != TYPE_DICTIONARY or not passable or orientation != "vertical":
 			return _content_fail("build_piece/%s: a lock belongs on a vertical opening (a door, a window)" % piece)
 		var lock: Dictionary = lock_v
-		if lock.size() != 1 or typeof(lock.get("requires_tag")) != TYPE_STRING:
-			return _content_fail("build_piece/%s: a lock names one requires_tag" % piece)
+		var limit_v: Variant = lock.get("heat_max", 0)
+		var limit_ok: bool = typeof(limit_v) == TYPE_INT and limit_v >= 0
+		if lock.size() != (2 if lock.has("heat_max") else 1) or typeof(lock.get("requires_tag")) != TYPE_STRING or not limit_ok:
+			return _content_fail("build_piece/%s: a lock names one requires_tag and may set a heat_max" % piece)
 	if not has_root:
 		return _content_fail("piece_kind/foundation must exist: it is the root of support")
 	return OK

@@ -8,7 +8,7 @@
 		"material": {"type": "string", "ref": "material"},
 		"open_cost": {"type": "int", "min": 0, "max": 1000000000},
 		"value": {"type": "int", "min": 0, "max": 1000000000},
-		"lock": {"type": "object", "properties": {"requires_tag": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}}, "required": ["requires_tag"], "additional_properties": false}
+		"lock": {"type": "object", "properties": {"requires_tag": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}, "heat_max": {"type": "int", "min": 0, "max": 1000000000}}, "required": ["requires_tag"], "additional_properties": false}
 	},
 	"required": ["schema_version", "description", "kind", "material", "open_cost", "value"],
 	"additional_properties": false

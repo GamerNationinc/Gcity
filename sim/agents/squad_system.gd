@@ -133,6 +133,16 @@ func _on_build_changed(_payload: Dictionary) -> void:
 	_replan = true
 
 
+## A report from something that is not a member (a sensor on the squad's radio, M6
+## spec claim 10): queued as a member's report is, with no reporter and due on
+## `due_tick`, and delivered to every living member.
+func report_from_outside(squad: int, contact: int, cell: Vector3i, due_tick: int) -> bool:
+	if squad <= 0 or not _actors.has_actor(contact):
+		return false
+	_reports.append({"due": due_tick, "squad": squad, "reporter": EntityIds.NONE, "contact": contact, "cell": PathingSystem._arr(cell)})
+	return true
+
+
 # ---------------------------------------------------------------- the tick
 
 func tick(sim: SimRoot) -> void:

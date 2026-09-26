@@ -16,8 +16,12 @@
 ##
 ## Locks (M6 spec claim 8): a door whose template declares a `lock` lets through only
 ## an actor carrying an item tagged with its `requires_tag`, and every attempt to pass
-## one emits `land.door_check {actor, piece, passed}`. When a build change leaves an
-## actor standing on nothing, it falls to where something holds it.
+## one emits `land.door_check {actor, piece, passed, flagged}`: `flagged` when the
+## lock has a `heat_max` and the passer's heat is over it (the front route "fails
+## loudly if your heat is already high", design doc §15.2); sensors on that door
+## act on it. When a build change leaves an actor standing on nothing, it falls to
+## where something holds it. Every change of an actor's cell (a step, a climb, a
+## fall) is announced as `actor.moved {actor, from, to}` for sensors to watch.
 class_name MovementSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"movement"
@@ -27,6 +31,8 @@ const SIDES: Array[String] = ["px", "nx", "pz", "nz"]
 const DIR_UP: String = "up"
 const DIR_DOWN: String = "down"
 const EVENT_DOOR_CHECK: StringName = &"land.door_check"
+const EVENT_MOVED: StringName = &"actor.moved"
+const SCALAR_HEAT: StringName = &"heat"
 
 var _content: ContentDb
 var _actors: ActorSystem
@@ -34,6 +40,7 @@ var _land: LandSystem
 var _build: BuildSystem
 var _items: ItemSystem
 var _stats: StatResolver
+var _standing: StandingSystem
 var _events: EventBus
 var _moves: int = 0
 var _blocked: int = 0
@@ -44,7 +51,8 @@ var _blocked: int = 0
 var _climb_cells: Dictionary = {}
 
 
-func _init(content: ContentDb, actors: ActorSystem, land: LandSystem, build: BuildSystem, items: ItemSystem, stats: StatResolver) -> void:
+func _init(content: ContentDb, actors: ActorSystem, land: LandSystem, build: BuildSystem, items: ItemSystem, stats: StatResolver, standing: StandingSystem) -> void:
+	_standing = standing
 	_content = content
 	_actors = actors
 	_land = land
@@ -120,7 +128,16 @@ func move(actor: int, dx: int, dz: int) -> bool:
 	if _actors.set_position(actor, to) != OK:
 		return false
 	_moves += 1
+	_announce(actor, from, to)
 	return true
+
+
+## `actor.moved` when a position change crossed into another cell.
+func _announce(actor: int, from: Vector3i, to: Vector3i) -> void:
+	var a: Vector3i = BuildSystem.cell_of(from)
+	var b: Vector3i = BuildSystem.cell_of(to)
+	if a != b:
+		_events.emit(EVENT_MOVED, {"actor": actor, "from": [a.x, a.y, a.z] as Array[int], "to": [b.x, b.y, b.z] as Array[int]})
 
 
 func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
@@ -139,7 +156,9 @@ func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 				return false
 			if not lock_tag_of(piece).is_empty():
 				var passed: bool = may_pass(actor, piece)
-				_events.emit(EVENT_DOOR_CHECK, {"actor": actor, "piece": piece, "passed": passed})
+				var heat_max: int = lock_heat_max(piece)
+				var flagged: bool = passed and heat_max >= 0 and _standing.value_of(actor, SCALAR_HEAT) > heat_max
+				_events.emit(EVENT_DOOR_CHECK, {"actor": actor, "piece": piece, "passed": passed, "flagged": flagged})
 				if not passed:
 					return false
 	if _land.parcel_at(to) != _land.parcel_at(from):
@@ -228,8 +247,10 @@ func _settle() -> void:
 		var cell: Vector3i = BuildSystem.cell_of(pos)
 		var landing: Vector3i = landing_cell(cell)
 		if landing != cell:
+			var was: Vector3i = pos
 			pos.y = landing.y * BuildSystem.CELL
 			_actors.set_position(actor, pos)
+			_announce(actor, was, pos)
 
 
 # ---------------------------------------------------------------- locks
@@ -246,6 +267,20 @@ func lock_tag_of(piece: int) -> StringName:
 	var lock: Dictionary = lock_v
 	var tag_s: String = lock["requires_tag"]
 	return StringName(tag_s)
+
+
+## The heat above which a lock flags whoever passes it, or -1 when it has no limit.
+func lock_heat_max(piece: int) -> int:
+	var t: Dictionary = _content.get_entry(BuildSystem.KIND_PIECE, _build.template_of(piece))
+	var lock_v: Variant = t.get("lock")
+	if typeof(lock_v) != TYPE_DICTIONARY:
+		return -1
+	var lock: Dictionary = lock_v
+	var limit_v: Variant = lock.get("heat_max")
+	if typeof(limit_v) != TYPE_INT:
+		return -1
+	var limit: int = limit_v
+	return limit
 
 
 ## Whether an actor may pass a piece's lock: no lock, or an item in its inventory
@@ -349,6 +384,7 @@ func _climb_to(actor: int, target: Vector3i) -> bool:
 	if _actors.set_position(actor, to) != OK:
 		return false
 	_moves += 1
+	_announce(actor, from, to)
 	return true
 
 
