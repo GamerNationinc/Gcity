@@ -154,7 +154,7 @@ def check_client_file(path: Path, rel: str) -> list[str]:
 DEVICE_STATE_TYPES = ("Control", "Label", "RichTextLabel", "ColorRect", "Node", "PackedScene", "Callable", "String", "bool", "StringName",
                       "DeviceApp", "InputGlyphs", "ContentDb", "Dictionary[StringName, PackedScene]", "PackedVector2Array", "Vector3i", "float")
 DEVICE_STATE_NAMES = {"_cursor", "_scroll", "_page", "_open_app", "_last_text", "_last_strip", "_last_status", "_last_prompts", "_note_text", "_note_shown", "_last_key",
-                      "_parcels", "_pieces", "_others", "_me", "_me_yaw"}
+                      "_parcels", "_pieces", "_others", "_me", "_me_yaw", "_roads", "_places", "_sites"}
 VAR_RE = re.compile(r"^var\s+(\w+)\s*(?::\s*([\w\[\], ]+?))?\s*(?:=|$)", re.MULTILINE)
 
 

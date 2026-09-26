@@ -303,3 +303,40 @@ func test_the_death_screen_offers_the_way_back() -> void:
 	assert_eq(_submitted.size(), 1, "one command")
 	assert_eq(_submitted[0]["kind"], &"actor.respawn", "the way back")
 	_teardown()
+
+
+## M7 spec claim 16: the map app draws the graph. Select switches to the world page: the
+## places you have found and the roads out of them, the site your contract is bound to
+## whether you have been there or not, and you. Walking out finds places, and the map
+## redraws with them.
+func test_the_map_has_a_world_page_with_the_graph_you_know() -> void:
+	_setup()
+	_equip()
+	_shell.refresh(_sim, _player)
+	_shell.handle(&"device_next_app", _sim, _player)
+	_shell.handle(&"device_next_app", _sim, _player)
+	assert_eq(_shell.open_app(), &"map", "the map")
+	_shell.refresh(_sim, _player)
+	var map: MapApp = _shell._pane
+	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "select switches page")
+	assert_true(_shell.refresh(_sim, _player), "and the world page draws")
+	assert_eq(map._places.size(), 1, "you have found only the gate")
+	assert_eq(map._sites.size(), 0, "and you have no contract")
+	_submit(&"quest.accept", {"actor": _player, "quest": "cold_storage"})
+	_step()
+	assert_true(_shell.refresh(_sim, _player), "taking the contract puts its site on the map")
+	assert_eq(map._sites.size(), 1, "one site")
+	assert_eq(map._sites[0][2], "cold_storage", "Cold Storage's")
+	# out to the outskirts, standing on the ground there
+	var routes: RouteGraph = SimAssembly.routes_of(_sim)
+	var regions: Regions = SimAssembly.regions_of(_sim)
+	var at: Vector2i = routes.position_of(RouteGraph.OUTSKIRTS)
+	_actors.set_position(_player, Vector3i(at.x, regions.standing_cell_y(at.x, at.y) * BuildSystem.CELL, at.y))
+	for i: int in Discovery.LOOK_EVERY:
+		_step()
+	assert_true(_shell.refresh(_sim, _player), "the map redraws with what you found")
+	assert_true(map._places.size() >= 2, "the outskirts are found (%d places)" % map._places.size())
+	assert_true(map._roads.size() >= 2, "and the roads out of them drawn")
+	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "select switches back")
+	assert_true(_shell.refresh(_sim, _player), "to the block")
+	_teardown()
