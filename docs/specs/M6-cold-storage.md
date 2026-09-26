@@ -21,8 +21,8 @@ over finished systems**: the site, the fixer, the contract, the guards, the sens
 the terminal and the stealth counters are data files, and a second contract is a
 second set of files with an empty `sim/` diff. Death is survivable and costs what
 ADR-007 C says. G6's proof (standards §11): the full mission playable on the Deck
-from a Steam install on the `gate` branch; all three routes completable; stealth
-scoring correct on a full-stealth replay fixture; mutation score ≥ 70 % on `sim/`.
+from the exported build (a Steam install is deferred to the Steamworks phase); all
+three routes completable; stealth scoring correct on a full-stealth replay fixture; mutation score ≥ 70 % on `sim/`.
 
 ## Claims
 
@@ -275,8 +275,9 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
     tool is proposed instead, it is pinned per CLAUDE.md §10 and recorded in
     `docs/dependencies.md`). The G6 target is a score of at least 70 % on `sim/`,
     with surviving mutants listed in the gate.
-32. **Deck.** The mission is played by hand on the Deck from a Steam install of the
-    `gate` branch (see "Still open" below). The package records:
+32. **Deck.** The mission is played by hand on the Deck from the exported build
+    (`tools/export.sh`), launched as at G5; installing through Steam is deferred
+    (see "Deferred" below). The package records:
     - 1 % and 0.1 % lows for the whole run, with the site raised and all five guards
       and the camera active;
     - the ADR-006 legibility check: the terminal hack with the device raised in the
@@ -298,7 +299,7 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
 - Lighting in perception (G4 debt 9).
 - Non-lethal takedowns: at M6, avoidance is the only non-lethal answer.
 - Branching dialogue, voice, and a shop or economy beyond the ledger.
-- Achievements, SteamPipe upload itself (CEOGG's external action), and localisation.
+- Achievements, SteamPipe uploads (the Steamworks phase), and localisation.
 
 ## Decisions at approval (CEOGG, 2026-09-26)
 
@@ -317,12 +318,13 @@ The draft's open points, closed by taking each recommendation:
    amendment if a group's review runs long.
 5. **Audio.** Placeholder cues in M6 (claim 26).
 
-Still open, and external:
+Deferred (CEOGG, 2026-09-26):
 
-- **The Steamworks app id.** G6's "Steam install on the `gate` branch" (claim 32)
-  needs CEOGG to register the app (standards §12 item 4; G5 debt 2, 4, 6). Until
-  then, the Deck run falls back to the repo checkout and the export, as at G5, and
-  the gate records that item as not met.
+- **The Steamworks phase.** Registering the app, installs through Steam on a `gate`
+  branch, binding the Steam Input layout, Steam's glyph API and Cloud sync (G5 debt
+  2, 4, 6) wait until the full game is ready (standards §11). M6 neither builds nor
+  gates on them; the G6 debt log carries them to that phase. GodotSteam stays in the
+  build as it is.
 
 ## Assumptions to record in the gate
 
