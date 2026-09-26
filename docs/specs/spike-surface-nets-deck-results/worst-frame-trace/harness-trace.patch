@@ -1,0 +1,157 @@
+--- a/spikes/surface_nets_deck/godot/main.gd	2026-09-25 21:06:03.858855946 -0400
++++ b/spikes/surface_nets_deck/godot/main.gd	2026-09-25 20:35:30.374908263 -0400
+@@ -46,6 +46,17 @@
+ var _frame_upload_us: PackedFloat64Array = PackedFloat64Array()
+ var _frame_worker_us: PackedFloat64Array = PackedFloat64Array()
+ var _frame_chunks: PackedInt32Array = PackedInt32Array()
++# ADR-003 condition 2: frame-level trace of the worst frames
++var _frame_script_us: PackedFloat64Array = PackedFloat64Array()
++var _frame_cpu_render_ms: PackedFloat64Array = PackedFloat64Array()
++var _frame_gpu_render_ms: PackedFloat64Array = PackedFloat64Array()
++var _frame_nodes_made: PackedInt32Array = PackedInt32Array()
++var _frame_nodes_freed: PackedInt32Array = PackedInt32Array()
++var _frame_static_mb: PackedFloat64Array = PackedFloat64Array()
++var _frame_edit: PackedByteArray = PackedByteArray()
++var _made_this_frame: int = 0
++var _freed_this_frame: int = 0
++var _mesh_on: bool = true
+ var _minutes: Array[Dictionary] = []
+ var _next_minute: float = 60.0
+ var _peak_backlog: int = 0
+@@ -58,6 +69,7 @@
+ func _ready() -> void:
+ 	_parse_args()
+ 	Engine.max_fps = 0
++	RenderingServer.viewport_set_measure_render_time(get_viewport().get_viewport_rid(), true)
+ 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+ 	_world = VoxelWorld.new()
+ 	_world.setup(_seed, _workers)
+@@ -88,6 +100,7 @@
+ 			"seed": _seed = int(value)
+ 			"out": _out_path = value
+ 			"mode": _mode = value
++			"mesh": _mesh_on = value != "off"
+ 			_: push_warning("unknown arg " + key)
+ 
+ 
+@@ -142,17 +155,23 @@
+ func _process(delta: float) -> void:
+ 	if not _started or _finished:
+ 		return
++	var script_t0: int = Time.get_ticks_usec()
++	_made_this_frame = 0
++	_freed_this_frame = 0
+ 	_elapsed += delta
+ 	_since_edit += delta
+ 	_place_camera(delta)
+-	_update_streaming()
+-	if _since_edit >= _edit_interval:
+-		_since_edit = 0.0
+-		_dig()
++	var edited: bool = false
++	if _mesh_on:
++		_update_streaming()
++		if _since_edit >= _edit_interval:
++			_since_edit = 0.0
++			_dig()
++			edited = true
+ 	var upload_us: int = 0
+ 	var worker_us: int = 0
+ 	var uploaded: int = 0
+-	var results: Array = _world.poll(_uploads_per_frame)
++	var results: Array = _world.poll(_uploads_per_frame) if _mesh_on else []
+ 	for r: Variant in results:
+ 		var d: Dictionary = r
+ 		var t0: int = Time.get_ticks_usec()
+@@ -170,6 +189,14 @@
+ 	_frame_upload_us.append(float(upload_us))
+ 	_frame_worker_us.append(float(worker_us))
+ 	_frame_chunks.append(uploaded)
++	var rid: RID = get_viewport().get_viewport_rid()
++	_frame_cpu_render_ms.append(RenderingServer.viewport_get_measured_render_time_cpu(rid))
++	_frame_gpu_render_ms.append(RenderingServer.viewport_get_measured_render_time_gpu(rid))
++	_frame_nodes_made.append(_made_this_frame)
++	_frame_nodes_freed.append(_freed_this_frame)
++	_frame_static_mb.append(OS.get_static_memory_usage() / 1048576.0)
++	_frame_edit.append(1 if edited else 0)
++	_frame_script_us.append(float(Time.get_ticks_usec() - script_t0))
+ 	if _elapsed >= _next_minute:
+ 		_next_minute += 60.0
+ 		_record_minute()
+@@ -239,6 +266,7 @@
+ 		mi = _chunks[c]
+ 	else:
+ 		mi = MeshInstance3D.new()
++		_made_this_frame += 1
+ 		mi.position = Vector3(c) * float(CHUNK)
+ 		add_child(mi)
+ 		_chunks[c] = mi
+@@ -251,6 +279,7 @@
+ 	if _chunks.has(c):
+ 		var mi: MeshInstance3D = _chunks[c]
+ 		mi.queue_free()
++		_freed_this_frame += 1
+ 		_chunks.erase(c)
+ 		_tris.erase(c)
+ 
+@@ -278,14 +307,19 @@
+ 	return sorted[idx]
+ 
+ 
+-## Summary of frames with _frame_t in [t0, t1).
++## Summary of frames with _frame_t in [t0, t1). Frames are recorded in time order, so the
++## window is found by binary search and only its own frames are read: the original scanned
++## every frame since the start, once a minute, and that growing scan was the stall the
++## ADR-003 trace found at every minute mark.
+ func _window_summary(t0: float, t1: float) -> Dictionary:
+ 	var ms: PackedFloat64Array = PackedFloat64Array()
+ 	var upload_us: float = 0.0
+ 	var worker_us: float = 0.0
+ 	var chunks: int = 0
+ 	var over: int = 0
+-	for i: int in range(_frame_t.size()):
++	var first: int = _frame_t.bsearch(t0, true)
++	var last: int = _frame_t.bsearch(t1, true)
++	for i: int in range(first, last):
+ 		if _frame_t[i] < t0 or _frame_t[i] >= t1:
+ 			continue
+ 		ms.append(_frame_ms[i])
+@@ -353,6 +387,8 @@
+ 		"gen_us_per_meshed_chunk": float(_total_gen_us) / maxf(float(_total_meshed_chunks), 1.0),
+ 		"mesh_us_per_meshed_chunk": float(_total_mesh_us) / maxf(float(_total_meshed_chunks), 1.0),
+ 		"pass": {"frame_p99_within_25ms": pass_frame, "meshing_within_3ms": pass_meshing, "overall": pass_frame and pass_meshing},
++		"mesh": _mesh_on,
++		"worst_frames": _worst_frames(),
+ 	}
+ 	var f: FileAccess = FileAccess.open(_out_path, FileAccess.WRITE)
+ 	if f == null:
+@@ -366,6 +402,29 @@
+ 	get_tree().quit(0 if (pass_frame and pass_meshing) else 3)
+ 
+ 
++## Every frame over budget, and the 60 slowest, with everything recorded about it and the
++## frame before it: where the time went, what churned, whether a dig landed.
++func _worst_frames() -> Array:
++	var idx: Array[int] = []
++	for i: int in _frame_ms.size():
++		idx.append(i)
++	idx.sort_custom(func(a: int, b: int) -> bool: return _frame_ms[a] > _frame_ms[b])
++	var out: Array = []
++	for k: int in idx.size():
++		var i: int = idx[k]
++		if k >= 60 and _frame_ms[i] <= BUDGET_MS:
++			break
++		if out.size() >= 400:
++			break
++		out.append({"i": i, "t_s": _frame_t[i], "ms": _frame_ms[i], "prev_ms": _frame_ms[i - 1] if i > 0 else 0.0,
++			"script_us": _frame_script_us[i], "upload_us": _frame_upload_us[i], "chunks": _frame_chunks[i],
++			"nodes_made": _frame_nodes_made[i], "nodes_freed": _frame_nodes_freed[i],
++			"cpu_render_ms": _frame_cpu_render_ms[i], "gpu_render_ms": _frame_gpu_render_ms[i],
++			"static_mb": _frame_static_mb[i], "edit": _frame_edit[i] == 1,
++			"prev_nodes_freed": _frame_nodes_freed[i - 1] if i > 0 else 0})
++	return out
++
++
+ ## Rust vs GDScript on the same samples (standards §9.2 Tier 1): equal output, ≥5× speed.
+ func _run_bench() -> void:
+ 	var s: int = _world.sample_size()
