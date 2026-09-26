@@ -1,0 +1,14 @@
+{
+	"schema_version": 1,
+	"description": "Handheld plasma cutter (M6 spec claim 9): breaches with the cutter class. Its noise is how far a breach carries, scaled by the piece's breach_noise.",
+	"tool_class": "cutter",
+	"tags": [
+		"tool.cutter"
+	],
+	"stats": [
+		{
+			"stat": "noise",
+			"value": 15000
+		}
+	]
+}

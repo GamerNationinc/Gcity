@@ -24,7 +24,9 @@ const KIND_CALIBRE: StringName = &"calibre"
 const KIND_DEVICE_FRAME: StringName = &"device_frame"
 const KIND_DEVICE_MODULE: StringName = &"device_module"
 const KIND_DEVICE_SOCKET: StringName = &"device_socket"
-const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE]
+## A tool the player breaches with (M6 spec claim 9): names a `tool_class`.
+const KIND_TOOL: StringName = &"tool"
+const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_TOOL]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
 const COMMAND_LOAD: StringName = &"magazine.load"
@@ -179,6 +181,12 @@ func validate_content() -> Error:
 		var t: Dictionary = _content.get_entry(KIND_DEVICE_FRAME, frame)
 		if _check_stats_list(t["stats"], "device_frame/%s" % frame) != OK:
 			return ERR_INVALID_DATA
+	for tool: StringName in _content.ids(KIND_TOOL):
+		var t: Dictionary = _content.get_entry(KIND_TOOL, tool)
+		if not _content.has(BuildSystem.KIND_TOOL, _as_name(t["tool_class"])):
+			return _content_fail("tool/%s names no tool_class/%s" % [tool, t["tool_class"]])
+		if _check_stats_list(t["stats"], "tool/%s" % tool) != OK:
+			return ERR_INVALID_DATA
 	for module: StringName in _content.ids(KIND_DEVICE_MODULE):
 		var t: Dictionary = _content.get_entry(KIND_DEVICE_MODULE, module)
 		var mods: Array = t["modifiers"]
@@ -247,6 +255,22 @@ func item_template(item: int) -> StringName:
 		return &""
 	var rec: Dictionary = _items[item]
 	return rec["template"]
+
+
+## The tool class a tool item breaches as, or &"" for anything that is not a tool.
+func tool_class_of(item: int) -> StringName:
+	if item_kind(item) != KIND_TOOL:
+		return &""
+	var t: Dictionary = _content.get_entry(KIND_TOOL, item_template(item))
+	return _as_name(t["tool_class"])
+
+
+## The first tool of a class in an actor's inventory, in inventory order, or NONE.
+func first_tool_of_class(actor: int, tool_class: StringName) -> int:
+	for item: int in items_in(inventory_of(actor)):
+		if tool_class_of(item) == tool_class:
+			return item
+	return EntityIds.NONE
 
 
 func container_of(item: int) -> StringName:

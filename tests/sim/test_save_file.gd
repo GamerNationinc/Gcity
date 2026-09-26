@@ -315,7 +315,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 					out.append([at, &"actor.move", {"actor": rng.randi_range(1, 6), "dx": rng.randi_range(-150, 150), "dz": rng.randi_range(-150, 150)}])
 			16:
 				# M5 claim 16: the device, its bays, quests and the pause
-				out.append([at, &"item.spawn", {"kind": ["device_frame", "device_module"][rng.randi_range(0, 1)], "template": ["handset", "radio_module", "nothing"][rng.randi_range(0, 2)], "container": "inv.%d" % rng.randi_range(1, 3), "seed": rng.randi(), "count": 1}])
+				out.append([at, &"item.spawn", {"kind": ["device_frame", "device_module", "tool"][rng.randi_range(0, 2)], "template": ["handset", "radio_module", "cutter_handheld", "nothing"][rng.randi_range(0, 3)], "container": "inv.%d" % rng.randi_range(1, 3), "seed": rng.randi(), "count": 1}])
 			17:
 				out.append([at, &"actor.equip_device", {"actor": rng.randi_range(1, 3), "device": rng.randi_range(0, 14)}])
 			18:
