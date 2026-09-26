@@ -1,0 +1,16 @@
+{
+	"schema_version": 1,
+	"description": "Lobby camera (M6 spec claim 10): an agent that holds and sees, carries no weapon, and radios its squad at once. Sees through perception rather than tripping, so its cone is the guards' own machinery.",
+	"combat_profile": "guard",
+	"perception_profile": "lobby_camera",
+	"aim_profile": "sentry_drone",
+	"stress_profile": "sentry_drone",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 1000
+		}
+	],
+	"radio": true,
+	"radio_latency_ticks": 1
+}

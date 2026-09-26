@@ -16,7 +16,7 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
 | A. The site is content | 1–4 | code and tests in; Deck raise cost not yet measured | `eefdaa5`, `dfe0208`, `4064bc9`, `8c73f70` |
 | B. Levels | 5–7 | code and tests in; the search bound waits for the site (group H) | `9492918` |
 | C. Doors, locks, breaching | 8–9 | code and tests in; the lock's heat side waits for standing (group D) | `db8945c`, `df96f74`, `d19ff20` |
-| D. Sensors and standing | 10–11 | not started | |
+| D. Sensors and standing | 10–11 | code and tests in, with claim 8's heat side | `019f28b`, `4018071`, the group D sensors commit |
 | E. Hacking | 12–13 | not started | |
 | F. Death, corpses, recovery | 14–16 | not started | |
 | G. Contracts | 17–19 | not started | |
@@ -76,6 +76,22 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
   `noise.made` as it hears a shot. A build change that leaves someone standing on
   nothing drops them (cut the grate you stand on and you fall).
 
+### Group D, as delivered
+
+- `StandingSystem`: heat and notoriety per actor, each a `standing_scalar` file (decay
+  per tick, max), raised by `standing_rule` files on bus events as skill xp is. A
+  violation is 1 000 heat, a tripped sensor 1 500; heat cools 1 a tick. Property:
+  10 000 generated event streams equal an independent recount (`019f28b`).
+- Hooks (`4018071`): `actor.moved` on every cell change; a lock's `heat_max` flags
+  the door check of a card-carrier whose heat is over it; a squad takes a report
+  from outside it.
+- `SensorSystem`: sensors placed by a site's `sensors`, each an entity; an edge
+  sensor trips on a crossing, a volume on an entry, a credential (door reader) on a
+  flagged door check; a trip warms the intruder and radios the squad; a spoofed
+  sensor is quiet until the spoof runs out; guards never trip them. The power
+  monitor, the door reader and the lobby camera (an agent that holds, sees and
+  radios, with no weapon) ship.
+
 Screenshots: `docs/gates/screenshots/M6-groupA-site-raise.png` (the ready line: 93
 pieces, four guards, 0 rejected, player on the site's start point) and
 `M6-groupA-building.png` (the raised building in play).
@@ -110,3 +126,9 @@ pieces, four guards, 0 rejected, player on the site's start point) and
 | 22 | Settling (a build change drops anyone left standing on nothing) goes past claim 9's letter: without it, cutting out the grate you stand on left you standing on air. It is claim 5's fall rule applied when the floor changes, not only when the actor moves. | addition | none |
 | 23 | Guards plan around locks they cannot open, so the site's guards must carry the token for doors they patrol through (group H content), or their routes go round. Climbs ignore locks: a lock belongs on a vertical opening, which assembly enforces. | note | group H |
 | 24 | The player cannot breach from the client yet: no binding. The contextual prompt is group I's (claim 23). | scope | group I |
+| 25 | Claim 11 asks for heat to decay "at a content-declared rate" without naming where it is declared. A `standing_scalar` kind holds it (decay per tick and max for each scalar), so visible wealth in M8 is one more file. | addition | none |
+| 26 | Claim 10 names two things a sensor watches, an edge and a volume. A third, `credential`, is how claim 8's "fails loudly" reaches the squad's radio: the door reader trips on a door check flagged for heat, not on every card that passes. | addition | none |
+| 27 | Agents never trip sensors: at M6 every sensor belongs to the site its guards keep. Sensors owned by a faction, and guards of one faction tripping another's, are M8's. | assumption | M8 |
+| 28 | Sensors cannot be destroyed yet, so claim 19's "+1 trace on a destroyed sensor" has no event to count. Whether the site's sensors are breakable, and what event a destruction is, is group G's (the counters) and H's (the content). | scope | groups G, H |
+| 29 | Heat numbers are placeholders for the Deck run: 1 000 per violation, 1 500 per trip, cooling 1 a tick (25 s from one violation to cold), the front door's `heat_max` set in group H. | tuning | G6 Deck run |
+| 30 | The standing rule that raises notoriety on `contract.completed` ships with the contracts, since nothing emits that event before group G. | scope | group G |

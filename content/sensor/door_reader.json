@@ -1,0 +1,7 @@
+{
+	"schema_version": 1,
+	"description": "Card reader on a locked door (M6 spec claims 8, 10): trips when the door's check is flagged, a good card in a hot hand, and radios the site's squad. Not spoofable.",
+	"watches": "credential",
+	"radio": true,
+	"spoofable": false
+}

@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"description": "A sensor profile (design doc §9.1; M6 spec claim 10): what it watches (an edge: a face crossed; a volume: cells entered; a credential: a locked door's flagged check), whether a trip goes out on the site squad's radio, and whether it can be spoofed.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"watches": {"type": "string", "pattern": "edge|volume|credential"},
+		"radio": {"type": "bool"},
+		"spoofable": {"type": "bool"}
+	},
+	"required": ["schema_version", "description", "watches", "radio", "spoofable"],
+	"additional_properties": false
+}

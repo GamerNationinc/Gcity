@@ -2,7 +2,8 @@
 ## `content/site/<id>.json`. Pieces, named points and agents are cells relative to the
 ## site's `origin`; parcels are content parcels handed to an owner tag. `site.raise
 ## {site}` places every piece as one batch (one `build.changed`, one portal rebuild),
-## hands over every parcel and posts every agent, on one tick, once per site. It is
+## hands over every parcel, posts every agent and places every sensor (claim 10), on
+## one tick, once per site. It is
 ## debug-class like `item.spawn`: fixtures and the client's new-game path issue it.
 ##
 ## Quests name sites by id, never by coordinates; at M6 a site id is its own binding
@@ -17,11 +18,13 @@ var _content: ContentDb
 var _land: LandSystem
 var _build: BuildSystem
 var _perception: PerceptionSystem
+var _sensors: SensorSystem
 ## Sites raised so far, sorted by id.
 var _raised: Array[StringName] = []
 
 
-func _init(content: ContentDb, land: LandSystem, build: BuildSystem, perception: PerceptionSystem) -> void:
+func _init(content: ContentDb, land: LandSystem, build: BuildSystem, perception: PerceptionSystem, sensors: SensorSystem) -> void:
+	_sensors = sensors
 	_content = content
 	_land = land
 	_build = build
@@ -106,6 +109,15 @@ func validate_content() -> Error:
 				return _content_fail("site/%s: no patrol_route/%s" % [site, route_s])
 			if not _on_grid(origin + _cell(ad["cell"])):
 				return _content_fail("site/%s: an agent is off the grid" % site)
+		var sensors: Array = t.get("sensors", [])
+		for e: Variant in sensors:
+			var ed: Dictionary = e
+			if not _sensors.entry_is_valid(ed) or not _on_grid(origin + _cell(ed["cell"])):
+				return _content_fail("site/%s: sensor %s cannot watch what it names" % [site, ed.get("sensor")])
+			var cells: Array = ed["cells"]
+			for c: Variant in cells:
+				if not _on_grid(origin + _cell(c)):
+					return _content_fail("site/%s: a sensor cell is off the grid" % site)
 	return OK
 
 
@@ -216,6 +228,10 @@ func raise(site: StringName) -> bool:
 		var squad: int = ad["squad"]
 		var agent: int = _perception.spawn(StringName(profile_s), origin + _cell(ad["cell"]), facing, squad, route_s)
 		assert(agent != EntityIds.NONE, "site agents were validated at assembly")
+	var sensors: Array = t.get("sensors", [])
+	for e: Variant in sensors:
+		var ed: Dictionary = e
+		_sensors.install(ed, origin)
 	_raised.append(site)
 	_raised.sort_custom(func(x: StringName, y: StringName) -> bool: return String(x) < String(y))
 	return true

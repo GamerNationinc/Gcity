@@ -79,7 +79,10 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var quests: QuestSystem = QuestSystem.new(content, actors, items, events)
 	if quests.attach(sim) != OK:
 		return null
-	var sites: SiteSystem = SiteSystem.new(content, land, build, perception)
+	var sensors: SensorSystem = SensorSystem.new(content, ids, build, perception, squads, events)
+	if sensors.attach(sim) != OK:
+		return null
+	var sites: SiteSystem = SiteSystem.new(content, land, build, perception, sensors)
 	if sites.attach(sim) != OK:
 		return null
 	return sim
@@ -119,7 +122,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, BreachSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, BreachSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, SensorSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -169,6 +172,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = stances_of(sim).restore(state)
 			QuestSystem.SYSTEM_ID:
 				err = quests_of(sim).restore(state)
+			SensorSystem.SYSTEM_ID:
+				err = sensors_of(sim).restore(state)
 			SiteSystem.SYSTEM_ID:
 				err = sites_of(sim).restore(state)
 		if err != OK:
@@ -363,6 +368,15 @@ static func standing_of(sim: SimRoot) -> StandingSystem:
 		return null
 	var standing: StandingSystem = system
 	return standing
+
+
+static func sensors_of(sim: SimRoot) -> SensorSystem:
+	var system: SimSystem = sim.get_system(SensorSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % SensorSystem.SYSTEM_ID)
+		return null
+	var sensors: SensorSystem = system
+	return sensors
 
 
 static func sites_of(sim: SimRoot) -> SiteSystem:

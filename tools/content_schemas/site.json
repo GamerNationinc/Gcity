@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "A site (M6 spec claims 1-4; design doc §5.3): an authored place raised in one command. Pieces, points and agents are cells relative to the origin; parcels are content parcels handed to an owner tag when the site is raised. Quests name sites by id, never by coordinates.",
+	"description": "A site (M6 spec claims 1-4; design doc §5.3): an authored place raised in one command. Pieces, points and agents are cells relative to the origin; parcels are content parcels handed to an owner tag when the site is raised. Quests name sites by id, never by coordinates. Optional sensors (M6 spec claim 10): an edge or credential sensor watches the face of `cell` on the side `facing`; a volume sensor watches `cells`; a radio sensor reports to `squad`.",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -146,6 +146,60 @@
 					"facing",
 					"squad",
 					"route"
+				],
+				"additional_properties": false
+			}
+		},
+		"sensors": {
+			"type": "array",
+			"max_length": 64,
+			"items": {
+				"type": "object",
+				"properties": {
+					"sensor": {
+						"type": "string",
+						"ref": "sensor"
+					},
+					"squad": {
+						"type": "int",
+						"min": 0,
+						"max": 1000
+					},
+					"cell": {
+						"type": "array",
+						"min_length": 3,
+						"max_length": 3,
+						"items": {
+							"type": "int",
+							"min": -100000,
+							"max": 100000
+						}
+					},
+					"facing": {
+						"type": "string",
+						"pattern": "(|px|nx|pz|nz)"
+					},
+					"cells": {
+						"type": "array",
+						"max_length": 64,
+						"items": {
+							"type": "array",
+							"min_length": 3,
+							"max_length": 3,
+							"items": {
+								"type": "int",
+								"min": -100000,
+								"max": 100000
+							}
+						}
+					}
+				},
+				"required": [
+					"sensor",
+					"squad",
+					"cell",
+					"facing",
+					"cells"
 				],
 				"additional_properties": false
 			}

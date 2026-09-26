@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"description": "Lobby camera (M6 spec claim 10): 20 m in a 90 degree cone, a second and a half at rest to the alert threshold, deaf.",
+	"sight_range_mm": 20000,
+	"fov_deg": 90,
+	"gain_per_tick": 16667,
+	"speed_gain_per_mm_per_tick": 60,
+	"decay_per_tick": 10000,
+	"alert_threshold": 1000000,
+	"memory_ticks": 400,
+	"hearing_range_mm": 0,
+	"hearing_gain": 0
+}

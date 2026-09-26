@@ -1,0 +1,7 @@
+{
+	"schema_version": 1,
+	"description": "Power monitor on an opening (design doc §9.1; M6 spec claim 10): trips when an intruder crosses the face it watches, radios the site's squad, and can be spoofed.",
+	"watches": "edge",
+	"radio": true,
+	"spoofable": true
+}
