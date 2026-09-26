@@ -17,7 +17,7 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
 | B. Levels | 5–7 | code and tests in; the search bound waits for the site (group H) | `9492918` |
 | C. Doors, locks, breaching | 8–9 | code and tests in; the lock's heat side waits for standing (group D) | `db8945c`, `df96f74`, `d19ff20` |
 | D. Sensors and standing | 10–11 | code and tests in, with claim 8's heat side | `019f28b`, `4018071`, `223881d` |
-| E. Hacking | 12–13 | not started | |
+| E. Hacking | 12–13 | code and tests in | `2108d55`, `f4b6454`, the group E client commit |
 | F. Death, corpses, recovery | 14–16 | not started | |
 | G. Contracts | 17–19 | not started | |
 | H. The mission as content | 20–21 | not started | |
@@ -92,6 +92,19 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
   monitor, the door reader and the lobby camera (an agent that holds, sees and
   radios, with no weapon) ship.
 
+### Group E, as delivered
+
+- `goods` item kind; the data drive ships (`2108d55`).
+- `HackSystem`: terminals placed by sites; `hack.start`, `hack.logout`, `hack.spoof`,
+  one action per actor, beside the target, stopped by a step, a shot, a hit, a death
+  or the device losing its tag; work a tick is the device's resolved memory; a hack
+  is heard every second and is a `loot` offence where denied; it yields its item and
+  leaves the terminal logged in until the hacker logs out; a spoof keeps a sensor
+  quiet for its `spoof_ticks` (`f4b6454`).
+- The hacking pane lists terminals and spoofable sensors within 12 m, nearest first,
+  hacks, spoofs and logs out through commands, and shows a running action's progress
+  and how far a hack is heard.
+
 Screenshots: `docs/gates/screenshots/M6-groupA-site-raise.png` (the ready line: 93
 pieces, four guards, 0 rejected, player on the site's start point) and
 `M6-groupA-building.png` (the raised building in play).
@@ -132,3 +145,9 @@ pieces, four guards, 0 rejected, player on the site's start point) and
 | 28 | Sensors cannot be destroyed yet, so claim 19's "+1 trace on a destroyed sensor" has no event to count. Whether the site's sensors are breakable, and what event a destruction is, is group G's (the counters) and H's (the content). | scope | groups G, H |
 | 29 | Heat numbers are placeholders for the Deck run: 1 000 per violation, 1 500 per trip, cooling 1 a tick (25 s from one violation to cold), the front door's `heat_max` set in group H. | tuning | G6 Deck run |
 | 30 | The standing rule that raises notoriety on `contract.completed` ships with the contracts, since nothing emits that event before group G. | scope | group G |
+| 31 | A hack yields "the data item" (claim 12) and nothing in the item kinds could be it, so `goods` (tags and stats: carried, handed over, read by tag) is new. The front route's access card can be goods too, which settles the kind half of debt 21. | addition | none |
+| 32 | A spoof is quiet and a logout is quiet; only a hack is heard (the spec gives a terminal a noise and a sensor none). | assumption | tuning at G6 |
+| 33 | Hack and spoof work are milli-units of device memory: the handset with its coprocessor does 2 000 a tick, so 100 000 work is 2.5 s. Cold Storage's terminal work, its noise and the monitor's spoof numbers are group H's tuning. | tuning | group H, G6 Deck run |
+| 34 | The spoof's hardware tag is named by the sensor profile (`spoof_requires`) rather than fixed to the daemon coprocessor in code. | addition | none |
+| 35 | A terminal is hacked once: a second hack of a hacked terminal is refused. | assumption | none |
+| 36 | The pane lists targets within 12 m; acting on one still needs the player beside it, and a refused command shows nothing in the pane beyond the sim not changing. The contextual prompt (claim 23) says what is in reach. | scope | group I |

@@ -156,6 +156,14 @@ func terminal_position(terminal: int) -> Vector3i:
 	return Vector3i(c.x * BuildSystem.CELL + BuildSystem.CELL / 2, c.y * BuildSystem.CELL, c.z * BuildSystem.CELL + BuildSystem.CELL / 2)
 
 
+## How far a hack at this terminal is heard, in millimetres.
+func terminal_noise_mm(terminal: int) -> int:
+	var entry: Dictionary = _entry(terminal)
+	if entry.is_empty():
+		return 0
+	return entry["noise_mm"]
+
+
 func is_hacked(terminal: int) -> bool:
 	if not _terminals.has(terminal):
 		return false
