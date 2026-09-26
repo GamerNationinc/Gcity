@@ -39,6 +39,7 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `ammo` | M1 | `calibre` (ref), `tags`, `stats` |
 | `device_app` | M5 | `title`, `icon`, `order`, `requires` (a module's `provides` tag or empty) |
 | `quest` | M5 | `title`, `text`, `objectives` (`{description, event, credit, tags_any, count}`), `reward` (`{kind, template, count}`); optional `site` (ref, M6) |
+| `goods` | M6 | `tags`, `stats` |
 | `tool` | M6 | `tool_class` (ref), `tags`, `stats` (`{stat: ref, value}`; `noise` is how far a breach carries, mm) |
 | `sensor` | M6 | `watches` (`edge`, `volume`, `credential`), `radio`, `spoofable` |
 | `standing_scalar` | M6 | `decay_per_tick`, `max` (milli-units) |

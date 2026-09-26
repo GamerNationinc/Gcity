@@ -23,6 +23,7 @@ Kinds so far:
 | `skill`, `perk` | M1 | `ProgressionSystem`; see `docs/extending-progression.md` |
 | `device_app` | M5 | `DeviceShell` (`client/device/README.md`) |
 | `quest` | M5 | `QuestSystem` (`sim/quests/README.md`) |
+| `goods` | M6 | `ItemSystem` (an item kind: carried, handed over, read by tags) |
 | `tool` | M6 | `ItemSystem` (an item kind: the tool class it breaches as), `BreachSystem` |
 | `sensor` | M6 | `SensorSystem` (`sim/threat/README.md`), placed by a site's `sensors` |
 | `standing_scalar`, `standing_rule` | M6 | `StandingSystem` (`sim/threat/README.md`) |

@@ -26,7 +26,10 @@ const KIND_DEVICE_MODULE: StringName = &"device_module"
 const KIND_DEVICE_SOCKET: StringName = &"device_socket"
 ## A tool the player breaches with (M6 spec claim 9): names a `tool_class`.
 const KIND_TOOL: StringName = &"tool"
-const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_TOOL]
+## Goods (M6 spec claim 12): carried, handed over, read by their tags (a data drive,
+## an access card).
+const KIND_GOODS: StringName = &"goods"
+const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_TOOL, KIND_GOODS]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
 const COMMAND_LOAD: StringName = &"magazine.load"
@@ -186,6 +189,10 @@ func validate_content() -> Error:
 		if not _content.has(BuildSystem.KIND_TOOL, _as_name(t["tool_class"])):
 			return _content_fail("tool/%s names no tool_class/%s" % [tool, t["tool_class"]])
 		if _check_stats_list(t["stats"], "tool/%s" % tool) != OK:
+			return ERR_INVALID_DATA
+	for goods: StringName in _content.ids(KIND_GOODS):
+		var t: Dictionary = _content.get_entry(KIND_GOODS, goods)
+		if _check_stats_list(t["stats"], "goods/%s" % goods) != OK:
 			return ERR_INVALID_DATA
 	for module: StringName in _content.ids(KIND_DEVICE_MODULE):
 		var t: Dictionary = _content.get_entry(KIND_DEVICE_MODULE, module)

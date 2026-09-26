@@ -1,0 +1,54 @@
+{
+	"schema_version": 1,
+	"description": "Goods (M6 spec claim 12): an item that is carried, handed over and read by its tags: a hacked terminal's data drive, an access card a lock reads. Tags and stats like any template.",
+	"properties": {
+		"schema_version": {
+			"type": "int",
+			"min": 1,
+			"max": 1
+		},
+		"description": {
+			"type": "string",
+			"min_length": 1,
+			"max_length": 240
+		},
+		"tags": {
+			"type": "array",
+			"max_length": 16,
+			"items": {
+				"type": "string",
+				"pattern": "[a-z0-9][a-z0-9_.]*"
+			}
+		},
+		"stats": {
+			"type": "array",
+			"max_length": 32,
+			"items": {
+				"type": "object",
+				"properties": {
+					"stat": {
+						"type": "string",
+						"ref": "stat"
+					},
+					"value": {
+						"type": "int",
+						"min": -1000000000,
+						"max": 1000000000
+					}
+				},
+				"required": [
+					"stat",
+					"value"
+				],
+				"additional_properties": false
+			}
+		}
+	},
+	"required": [
+		"schema_version",
+		"description",
+		"tags",
+		"stats"
+	],
+	"additional_properties": false
+}

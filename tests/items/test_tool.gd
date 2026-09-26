@@ -33,6 +33,20 @@ func test_the_handheld_cutter_is_a_tool_of_the_cutter_class() -> void:
 	assert_eq(items.first_tool_of_class(player, &"breacher"), EntityIds.NONE, "no breacher carried")
 
 
+func test_goods_are_items_read_by_their_tags() -> void:
+	var sim: SimRoot = SimAssembly.build(SEED, _content())
+	var items: ItemSystem = SimAssembly.items_of(sim)
+	var player: int = SimAssembly.actors_of(sim).spawn(&"arcade", 0)
+	var drive: int = items.spawn(ItemSystem.KIND_GOODS, &"data_drive", ItemSystem.inventory_of(player), 1)
+	assert_true(drive > 0, "a data drive in the inventory")
+	assert_eq(items.item_kind(drive), ItemSystem.KIND_GOODS, "goods")
+	assert_true(SimAssembly.stats_of(sim).get_tags(drive).has(&"goods.data"), "tagged as data")
+	assert_eq(items.tool_class_of(drive), &"", "not a tool")
+	var db: ContentDb = _content()
+	assert_eq(db.add(ItemSystem.KIND_GOODS, &"zz_bad", {"schema_version": 1, "description": "x", "tags": [], "stats": [{"stat": "no_stat", "value": 1}]}), OK, "added")
+	assert_true(SimAssembly.build(SEED, db) == null, "goods with an unknown stat refuse assembly")
+
+
 func test_the_spawn_command_takes_tools() -> void:
 	var sim: SimRoot = SimAssembly.build(SEED, _content())
 	var player: int = SimAssembly.actors_of(sim).spawn(&"arcade", 0)

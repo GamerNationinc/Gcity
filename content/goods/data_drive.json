@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A data drive (M6 spec claim 12): what a hacked terminal yields into the hacker's inventory, carried out and handed over.",
+	"tags": [
+		"goods.data"
+	],
+	"stats": []
+}
