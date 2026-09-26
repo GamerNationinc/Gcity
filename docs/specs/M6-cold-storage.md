@@ -1,17 +1,17 @@
 # M6 — "Cold Storage": specification
 
 Milestone M6 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **draft, awaiting approval**
-(submitted 2026-09-26).
+before implementation (standards §2.1, §10.2). Status: **approved** (CEOGG,
+2026-09-26), with every recommendation in the draft's open points taken (see
+"Decisions at approval").
 
 **Preconditions.** G5 is signed in `docs/gates/M5-gate.md` (it is). **ADR-007** (death
 cost) is `accepted` as **C** (CEOGG, 2026-09-26): the corpse persists with the gear, a
 recovery run gets it back, and the city softening is driven by district `law_index`.
 **ADR-006** is `accepted` as C: the terminal hack happens with the device raised and
-the world running, because the site is not a `safe` parcel. ADR-010 (hub interiors)
-blocks M7, not M6. **Four open points below must be answered before the claims that
-depend on them are coded** (rights semantics for crimes, credits, the window
-question, the milestone's size); every other claim can start on approval.
+the world running, because the site is not a `safe` parcel. **ADR-011**
+(crimes against rights) is `accepted` as **C** (CEOGG, 2026-09-26): crimes proceed and
+raise heat, construction still refuses. ADR-010 (hub interiors) blocks M7, not M6.
 
 **The claim of the milestone.** One authored contract exercises nearly every system
 M1–M5 built, in one loop, with no procgen (§15): accept the job from a fixer, walk to
@@ -86,7 +86,8 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
 9. **The player breaches with a tool.** `tool` is a new item kind
    (`content/tool/<id>.json`, naming a `tool_class`); `build.breach {actor, piece,
    tool}` needs the tool in the actor's inventory and the actor adjacent to the
-   piece. It takes `piece_hp × hp_factor` ticks, cancels if the actor moves or
+   piece, and asks `LandSystem.offend()` for `build` on the piece's parcel
+   (ADR-011: it proceeds and records the violation). It takes `piece_hp × hp_factor` ticks, cancels if the actor moves or
    fires, emits the piece's `breach_noise` as a noise event on each progress step,
    and on completion removes the piece and emits `build.breached {actor, piece}`
    (the event raid tokens already use). M6 ships `cutter_handheld` and the
@@ -120,7 +121,8 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
     `terminals` entry declares its cell, `hack_ticks`, the `provides` tag it
     requires (`daemon_coprocessor`), the `noise` it emits per progress step, and the
     item template it yields. `hack.start {actor, terminal}` is accepted when the
-    actor is alive, adjacent, and has a device equipped that provides the tag.
+    actor is alive, adjacent, and has a device equipped that provides the tag; it
+    asks `offend()` for `loot` (ADR-011).
     Progress advances each tick at a rate resolved from the device's
     `memory_capacity` through the stat resolver. It cancels if the actor moves,
     fires, or is hit. On completion it spawns the data item into the actor's
@@ -143,8 +145,8 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
 15. **Recovery is a run, not a menu.** `container.take {actor, container, item}`
     moves one item from a corpse or a site container into the actor's inventory when
     the actor is adjacent. For a site container or someone else's corpse it asks
-    `rights_at()` for `loot` (see open point 1); an actor's own corpse is always
-    theirs. An empty corpse is removed. Scavengers taking from a corpse are the
+    `LandSystem.offend()` for `loot` (ADR-011: the take proceeds and a denied right
+    is recorded as a violation); an actor's own corpse is always theirs. An empty corpse is removed. Scavengers taking from a corpse are the
     threat director's (M8): at M6 a corpse persists untouched.
 16. **Respawn, softened by law.** `actor.respawn {actor}` is accepted only while the
     actor is dead. It restores health and places the actor at the `respawn` point of
@@ -159,8 +161,8 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
 
 ### G. Contracts (`sim/quests/`)
 
-17. **Credits are a per-actor balance** held by `QuestSystem`'s ledger (see open
-    point 2): `contract` payouts add to it, `impound.release` spends it, and a
+17. **Credits are a per-actor balance** held by `QuestSystem`'s ledger, an integer
+    per actor, not an item (decided at approval): `contract` payouts add to it, `impound.release` spends it, and a
     transfer never makes it negative.
 18. **A contract is a quest with a giver, a turn-in and a score.** The quest schema
     gains optional fields:
@@ -198,7 +200,11 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
     the contract, the fixer's profile, five guards (a lobby post, two upper-floor
     patrols, a roamer, and one in the server room; §15.3), the lobby camera, the power
     monitor, the terminal, the data item, the access token, the handheld cutter and
-    the grate. The site is two storeys plus a service tunnel. It has **three routes,
+    the grate. The site is two storeys plus a service tunnel, in the `corporate_core`
+    district. Its ordinary windows are a new `sealed_window` kind (sight-only,
+    `passable: false`); the side route's window is a passable `maintenance_window`.
+    No existing piece kind changes, so no existing fixture hash changes (closes
+    G4 debt 5 for this site). It has **three routes,
     all authored, all completable**:
     - **Front**: the access token, from a locker in the delivery office next door;
       looting it is a violation that raises heat, which the door then reads.
@@ -206,8 +212,7 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
       ladder, silent only if the power monitor is spoofed first.
     - **Under**: the service grate cut with the handheld cutter into the tunnel, the
       only route that never enters the lobby camera's cone.
-    All three converge on the server room. The site's district is decided by open
-    point 1.
+    All three converge on the server room.
 21. **The guards demonstrate §15.3 in this mission.** Each behaviour is shown by a
     fixture:
     - A detection delay the player can break contact within (`m6-break-contact`).
@@ -232,10 +237,16 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
     rows sort by kind and group stacks (G5 debt 11), and the quests app shows the
     live counters and the payout they imply.
 25. **The M1 range demo runs on sim ticks** (G5 debt 13), not wall time.
+26. **Placeholder audio on sim events**, client only (decided at approval). Cues play
+    for a guard's alert and stance change, footsteps, shots, the cutter, hack progress
+    and completion, a sensor trip, and death. Each is a subscriber reading sim
+    state; the sim gains nothing. Sounds are generated or CC0 files under
+    `client/audio/`, each with its source and licence recorded in
+    `docs/dependencies.md`.
 
 ### J. Fixtures, save, corpus, tools, Deck
 
-26. **Fixtures.** Each seeds, raises the sites and replays to a recorded hash:
+27. **Fixtures.** Each seeds, raises the sites and replays to a recorded hash:
     - `m6-front`, `m6-side`, `m6-under`: each route completed, full stealth, bonus
       paid. `m6-side` is the full-stealth fixture G6 names.
     - `m6-loud`: detected, alarm raised, completed, reduced payout, heat raised.
@@ -243,29 +254,29 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
       recovered, data turned in.
     - `m6-break-contact`, `m6-investigate`, `m6-alarm`, `m6-morale` (claim 21).
     - `m6-m9`: the second pistol frame through the mission kit (G1 debt 15).
-27. **Everything is in the snapshot and survives the round trip:**
+28. **Everything is in the snapshot and survives the round trip:**
     - site bindings, corpses, impounds, standing and the ledger;
     - hack and spoof progress, logged-in terminals and contract counters.
     Save schema moves to version 2 with a migration from version 1 (standards: every
     schema versioned). A v1 save loads with an empty ledger and no standing.
     Property: the save property's stream gains every new command kind.
-28. **Item conservation** (ADR-007 verification): over 10 000 generated streams of
+29. **Item conservation** (ADR-007 verification): over 10 000 generated streams of
     spawn, death, take, impound, release, turn-in and save/load, the multiset of
     item ids across all containers changes only by spawns. No item is duplicated or
     lost across death, corpse and recovery.
-29. **Schemas and corpus.** New schemas: `site`, `sensor`, `standing_rule`, `tool`.
+30. **Schemas and corpus.** New schemas: `site`, `sensor`, `standing_rule`, `tool`.
     Extended schemas:
     - `quest`: `giver`, `lines`, `match`, `turn_in`, `score`, `payout`, `site`.
     - `piece_kind`: `climb`.
     - `build_piece`: `lock`.
     - `district`: `impound_fee`.
     Every new command kind enters the fuzz corpus with hostile cases.
-30. **Mutation testing.** A mutation runner under `tools/` (own code; if an external
+31. **Mutation testing.** A mutation runner under `tools/` (own code; if an external
     tool is proposed instead, it is pinned per CLAUDE.md §10 and recorded in
     `docs/dependencies.md`). The G6 target is a score of at least 70 % on `sim/`,
     with surviving mutants listed in the gate.
-31. **Deck.** The mission is played by hand on the Deck from a Steam install of the
-    `gate` branch (open point 5). The package records:
+32. **Deck.** The mission is played by hand on the Deck from a Steam install of the
+    `gate` branch (see "Still open" below). The package records:
     - 1 % and 0.1 % lows for the whole run, with the site raised and all five guards
       and the camera active;
     - the ADR-006 legibility check: the terminal hack with the device raised in the
@@ -289,40 +300,29 @@ Each group is one session and one reviewable diff (CLAUDE.md §3).
 - Branching dialogue, voice, and a shop or economy beyond the ledger.
 - Achievements, SteamPipe upload itself (CEOGG's external action), and localisation.
 
-## Open points — to be answered before the named claims are coded
+## Decisions at approval (CEOGG, 2026-09-26)
 
-1. **Rights and crime (claims 8, 9, 15, 20).** Today `LandSystem.require()` refuses
-   an act the rights table denies and emits `land.violation`. §7.1 says a violation
-   "emits an event; it does not directly set a wanted level", but the mission needs
-   crimes to be possible: looting the locker, cutting the grate, hacking the
-   terminal. **Recommended:** the acts §7.3 treats as crimes (`loot`, `breach`,
-   `hack`) proceed and emit the violation, which raises heat. `build` and `dig` keep
-   refusing (§8.4). This changes the meaning of a right, so it may deserve its own
-   ADR; if it does, claims 8, 9 and 15 wait for it. With the rights as they stand,
-   `cold_storage` would have to sit in a district where others may loot (the
-   badlands table), which contradicts a corporate data site.
-2. **Credits (claim 17).** **Recommended:** a per-actor integer balance, because
-   credits are fungible and need no instance identity. The alternative is a
-   stackable currency item, which keeps "everything is an item" but makes every
-   payout thousands of entities under the M1 instance model.
-3. **Windows (G4 debt 5, claim 20).** M3's `window` kind is passable, so guards path
-   through windows. **Recommended:** add a `sealed_window` kind (sight-only,
-   `passable: false`) for the site's ordinary windows and a passable
-   `maintenance_window` for the side route. No existing content changes, and no
-   existing fixture hash changes.
-4. **Size.** This is larger than any milestone so far: nine sessions (groups A–I)
-   before the fixtures and the Deck run. Either keep one milestone and one gate, or
-   split it into **M6a** (A–G: the systems, gated on fixtures and properties
-   headless) and **M6b** (H–J: the mission, the client and G6's Deck proof).
-   Splitting keeps each review to one sitting; the gate schedule in standards §11
-   would gain a row.
-5. **Steam install on the `gate` branch (claim 31)** needs the registered Steamworks
-   app (standards §12 item 4; G5 debt 2, 4, 6). Without it, G6 cannot be met as
-   written and the Deck run falls back to the repo checkout and the export, as at G5.
-6. **Audio.** Nothing in `client/` plays a sound, and a stealth mission is hard to
-   read without the guard's alert, footsteps, the cutter and the hack. **Recommended:**
-   placeholder cues on sim events, client only, in M6. Otherwise it is recorded as
-   out of scope and the Deck feel run judges without it.
+The draft's open points, closed by taking each recommendation:
+
+1. **Rights and crime.** Closed by **ADR-011 C**. `loot`, `breach` and `hack` proceed
+   through `LandSystem.offend()` and record the violation, which raises heat.
+   `build`, `dig` and `enter` keep refusing through `require()` (claims 9, 12, 15).
+2. **Credits.** A per-actor integer balance in the quest system's ledger, not an
+   item (claim 17).
+3. **Windows.** New `sealed_window` and `maintenance_window` kinds; `window` is
+   unchanged (claim 20).
+4. **Size.** No split was recommended, so the milestone stays **one milestone, one
+   gate (G6)**, as in standards §11. It is still built one group per session and
+   one reviewable diff per group; splitting into M6a/M6b stays available as a spec
+   amendment if a group's review runs long.
+5. **Audio.** Placeholder cues in M6 (claim 26).
+
+Still open, and external:
+
+- **The Steamworks app id.** G6's "Steam install on the `gate` branch" (claim 32)
+  needs CEOGG to register the app (standards §12 item 4; G5 debt 2, 4, 6). Until
+  then, the Deck run falls back to the repo checkout and the export, as at G5, and
+  the gate records that item as not met.
 
 ## Assumptions to record in the gate
 
@@ -350,6 +350,7 @@ procedure.
 |---|---|---|
 | Item conservation across death, corpse, impound, recovery, turn-in, save/load | 10 000 streams | `tests/items/test_conservation.gd` |
 | Stealth counters equal an independent recount; bonus iff all zero | 10 000 event streams | `tests/quests/test_contract_score.gd` |
+| `offend()` never changes an act's outcome; exactly one violation iff the right is denied (ADR-011) | 10 000 | `tests/land/test_offend.gd` |
 | Standing: rules applied once per event; decay monotone; never negative | 10 000 | `tests/threat/test_standing.gd` |
 | Hack progress: stationary completes in resolved ticks; any move, fire or hit cancels; logout clears the trace | 10 000 | `tests/items/test_hack.gd` |
 | Levels: supported cells only; adding a `climb` piece never raises a path's cost (metamorphic) | 10 000 layouts | `tests/agents/test_levels.gd` |
