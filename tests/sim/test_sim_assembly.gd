@@ -21,7 +21,7 @@ func test_real_content_loads_and_registers_every_stat() -> void:
 	assert_eq(db.ids(&"stat"), expected, "every stat file is an entry")
 	var sim: SimRoot = SimAssembly.build(SEED, db)
 	assert_true(sim != null, "assembly succeeds")
-	assert_eq(sim.system_ids(), [&"content", &"entities", &"stats", &"items", &"actors", &"combat", &"progression", &"land", &"structures", &"build", &"portals", &"movement", &"raids", &"breaches", &"perception", &"aim", &"stress", &"pathing", &"squads", &"stances", &"quests", &"sites"] as Array[StringName], "fixed system order")
+	assert_eq(sim.system_ids(), [&"content", &"entities", &"stats", &"items", &"actors", &"combat", &"progression", &"land", &"standing", &"structures", &"build", &"portals", &"movement", &"raids", &"breaches", &"perception", &"aim", &"stress", &"pathing", &"squads", &"stances", &"quests", &"sites"] as Array[StringName], "fixed system order")
 	var stats: StatResolver = SimAssembly.stats_of(sim)
 	assert_eq(stats.stat_ids(), expected, "resolver registered every stat")
 	var entry: Dictionary = db.get_entry(&"stat", &"damage")

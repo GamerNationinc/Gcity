@@ -1,0 +1,6 @@
+{
+	"schema_version": 1,
+	"description": "Heat (design doc §7.3): raised by rights violations and tripped sensors, read by locks and, from M8, police and corp security. Milli-units; cools by 1 a tick, so a violation's 1000 is gone in 25 s.",
+	"decay_per_tick": 1,
+	"max": 20000
+}

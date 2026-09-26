@@ -1,0 +1,6 @@
+{
+	"schema_version": 1,
+	"description": "Notoriety (design doc §7.3): raised by completed contracts, read by fixers and, from M8, gangs and raiders. Milli-units; it does not cool.",
+	"decay_per_tick": 0,
+	"max": 1000000
+}

@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "A rights violation (a crime or a refused act) warms the actor who did it (design doc §7.1, §7.3; ADR-011).",
+	"event": "land.violation",
+	"credit": "actor",
+	"tags_any": [],
+	"scalar": "heat",
+	"amount": 1000
+}

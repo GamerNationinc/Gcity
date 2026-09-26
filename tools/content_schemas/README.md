@@ -40,6 +40,8 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `device_app` | M5 | `title`, `icon`, `order`, `requires` (a module's `provides` tag or empty) |
 | `quest` | M5 | `title`, `text`, `objectives` (`{description, event, credit, tags_any, count}`), `reward` (`{kind, template, count}`); optional `site` (ref, M6) |
 | `tool` | M6 | `tool_class` (ref), `tags`, `stats` (`{stat: ref, value}`; `noise` is how far a breach carries, mm) |
+| `standing_scalar` | M6 | `decay_per_tick`, `max` (milli-units) |
+| `standing_rule` | M6 | `event`, `credit`, `tags_any`, `scalar` (ref), `amount` |
 | `site` | M6 | `origin` (cell), `parcels` (`{parcel: ref, owner}`), `pieces` (`{piece: ref, cell, facing}`), `points` (`{id, cell}`), `agents` (`{profile: ref, cell, facing, squad, route}`); cells relative to `origin` |
 | `device_frame` | M5 | `sockets` (device_socket refs), `tags`, `stats` |
 | `device_socket` | M5 | `description` |

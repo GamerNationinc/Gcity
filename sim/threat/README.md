@@ -4,4 +4,8 @@ Heat, notoriety, visible wealth, signals and suspicion, the threat director and 
 
 **Allowed imports:** `sim/` only.
 
-**Introduced at:** M8 (threat director + raids).
+| File | What |
+|---|---|
+| `standing_system.gd` | `StandingSystem` (system id `standing`): per-actor scalars (`content/standing_scalar/`: heat and notoriety at M6, each with its decay per tick and max), raised by `content/standing_rule/` rules on bus events as skill xp is; cooled every tick (M6 spec claim 11). |
+
+**Introduced at:** M6 (standing, sensors), M8 (the threat director, suspicion, raid scheduling).

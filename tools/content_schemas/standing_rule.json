@@ -1,0 +1,15 @@
+{
+	"schema_version": 1,
+	"description": "A standing rule (M6 spec claim 11): an event on the bus raises a scalar for the actor named in a payload field, optionally only when the payload's tags include one listed. The same shape as a skill's xp rule.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"event": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"},
+		"credit": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"},
+		"tags_any": {"type": "array", "max_length": 8, "items": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}},
+		"scalar": {"type": "string", "ref": "standing_scalar"},
+		"amount": {"type": "int", "min": 1, "max": 1000000}
+	},
+	"required": ["schema_version", "description", "event", "credit", "tags_any", "scalar", "amount"],
+	"additional_properties": false
+}
