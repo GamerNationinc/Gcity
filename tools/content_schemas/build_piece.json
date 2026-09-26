@@ -1,13 +1,14 @@
 {
 	"schema_version": 1,
-	"description": "A placeable build piece: its kind, its material, the cost of passing through it if it is an opening, and its value if it is a raid target (M3 spec claims 1, 6, 8).",
+	"description": "A placeable build piece: its kind, its material, the cost of passing through it if it is an opening, and its value if it is a raid target (M3 spec claims 1, 6, 8); optionally a lock naming the item tag a passer must carry (M6 spec claim 8).",
 	"properties": {
 		"schema_version": {"type": "int", "min": 1, "max": 1},
 		"description": {"type": "string", "min_length": 1, "max_length": 240},
 		"kind": {"type": "string", "ref": "piece_kind"},
 		"material": {"type": "string", "ref": "material"},
 		"open_cost": {"type": "int", "min": 0, "max": 1000000000},
-		"value": {"type": "int", "min": 0, "max": 1000000000}
+		"value": {"type": "int", "min": 0, "max": 1000000000},
+		"lock": {"type": "object", "properties": {"requires_tag": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}}, "required": ["requires_tag"], "additional_properties": false}
 	},
 	"required": ["schema_version", "description", "kind", "material", "open_cost", "value"],
 	"additional_properties": false

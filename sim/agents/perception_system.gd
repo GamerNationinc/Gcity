@@ -72,7 +72,10 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.commands().register(COMMAND_SET_PROFILE, _on_set_profile)
 	if err != OK:
 		return err
-	return _events.subscribe(CombatSystem.EVENT_FIRE, _on_fire)
+	err = _events.subscribe(CombatSystem.EVENT_FIRE, _on_fire)
+	if err != OK:
+		return err
+	return _events.subscribe(BreachSystem.EVENT_NOISE, _on_noise)
 
 
 ## Every agent profile binds profiles that exist, and the noise stat is registered.
@@ -436,14 +439,31 @@ func _same_squad(a: int, b: int) -> bool:
 
 ## A shot is heard by every agent within the smaller of its hearing range and the
 ## weapon's resolved `noise`: awareness of the shooter rises by `hearing_gain` and the
-## shot's position becomes the last-known position (spec claim 4).
+## shot's position becomes the last-known position (M4 spec claim 4).
 func _on_fire(payload: Dictionary) -> void:
 	var shooter: int = payload["shooter"]
 	var weapon: int = payload["weapon"]
 	if not _actors.is_alive(shooter):
 		return
-	var loudness: int = _stats.resolve(weapon, STAT_NOISE)
-	var origin: Vector3i = _actors.position_of(shooter)
+	_hear(shooter, _actors.position_of(shooter), _stats.resolve(weapon, STAT_NOISE))
+
+
+## Any other noise an actor makes (M6 spec claim 9: a breach at work), heard exactly as
+## a shot is: `noise.made {source, x, y, z, range_mm}`.
+func _on_noise(payload: Dictionary) -> void:
+	var source: int = payload["source"]
+	var x: int = payload["x"]
+	var y: int = payload["y"]
+	var z: int = payload["z"]
+	var range_mm: int = payload["range_mm"]
+	if not _actors.is_alive(source):
+		return
+	_hear(source, Vector3i(x, y, z), range_mm)
+
+
+## Every agent within the smaller of its hearing range and the noise's loudness, not
+## the source's squadmate, grows aware of the source and learns where the noise was.
+func _hear(shooter: int, origin: Vector3i, loudness: int) -> void:
 	for observer: int in agent_ids():
 		if observer == shooter or not _actors.is_alive(observer) or _same_squad(observer, shooter):
 			continue

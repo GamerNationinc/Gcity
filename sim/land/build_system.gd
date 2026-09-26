@@ -78,7 +78,8 @@ func attach(sim: SimRoot) -> Error:
 # ---------------------------------------------------------------- content validation
 
 ## The two stats exist; at least one foundation kind exists; passable pieces are faces;
-## targets are cells; climbable faces are vertical and passable (M6 spec claim 6). Shape and references were checked at build time.
+## targets are cells; climbable faces are vertical and passable (M6 spec claim 6); a
+## lock sits on a vertical opening (M6 spec claim 8). Shape and references were checked at build time.
 func validate_content() -> Error:
 	for stat: StringName in [STAT_HP, STAT_NOISE]:
 		if not _stats.has_stat(stat):
@@ -99,6 +100,19 @@ func validate_content() -> Error:
 			return _content_fail("piece_kind/%s: a climbable face must be vertical and passable (a ladder)" % kind)
 		if kind == &"foundation":
 			has_root = true
+	for piece: StringName in _content.ids(KIND_PIECE):
+		var t: Dictionary = _content.get_entry(KIND_PIECE, piece)
+		if not t.has("lock"):
+			continue
+		var k: Dictionary = _content.get_entry(KIND_PIECE_KIND, LandSystem._as_name(t["kind"]))
+		var lock_v: Variant = t["lock"]
+		var passable: bool = k["passable"]
+		var orientation: String = k["orientation"]
+		if typeof(lock_v) != TYPE_DICTIONARY or not passable or orientation != "vertical":
+			return _content_fail("build_piece/%s: a lock belongs on a vertical opening (a door, a window)" % piece)
+		var lock: Dictionary = lock_v
+		if lock.size() != 1 or typeof(lock.get("requires_tag")) != TYPE_STRING:
+			return _content_fail("build_piece/%s: a lock names one requires_tag" % piece)
 	if not has_root:
 		return _content_fail("piece_kind/foundation must exist: it is the root of support")
 	return OK

@@ -15,7 +15,7 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
 |---|---|---|---|
 | A. The site is content | 1–4 | code and tests in; Deck raise cost not yet measured | `eefdaa5`, `dfe0208`, `4064bc9`, `8c73f70` |
 | B. Levels | 5–7 | code and tests in; the search bound waits for the site (group H) | `9492918` |
-| C. Doors, locks, breaching | 8–9 | not started | |
+| C. Doors, locks, breaching | 8–9 | code and tests in; the lock's heat side waits for standing (group D) | `db8945c`, `df96f74`, the group C agents commit |
 | D. Sensors and standing | 10–11 | not started | |
 | E. Hacking | 12–13 | not started | |
 | F. Death, corpses, recovery | 14–16 | not started | |
@@ -61,6 +61,21 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
 - All sixteen fixture hashes moved again with the piece-kind content; every other
   system's state compared fixture by fixture is identical before and after.
 
+### Group C, as delivered
+
+- `tool` is an item kind naming the tool class it breaches as; the handheld cutter
+  ships (`db8945c`).
+- `LandSystem.offend()` (ADR-011 C) and `build.breach`: beside the piece, tool in
+  hand, the piece's hp × the class's hp_factor ticks, stopped by a step, a shot or
+  death, heard every second as `noise.made`, ended by `build.breached`; on someone
+  else's land one build violation. The grate-steel `service_grate` ships
+  (`df96f74`). Property: `offend()` records exactly the denied rights (10 000).
+- Locks: a door's template may declare `lock: {requires_tag}`; movement lets through
+  only an actor carrying an item with that tag, and every attempt is a
+  `land.door_check`; guards plan around the locks they cannot open. Perception hears
+  `noise.made` as it hears a shot. A build change that leaves someone standing on
+  nothing drops them (cut the grate you stand on and you fall).
+
 Screenshots: `docs/gates/screenshots/M6-groupA-site-raise.png` (the ready line: 93
 pieces, four guards, 0 rejected, player on the site's start point) and
 `M6-groupA-building.png` (the raised building in play).
@@ -88,3 +103,10 @@ pieces, four guards, 0 rejected, player on the site's start point) and
 | 15 | A climb is instant: one command, one tick. Whether it should take time is a feel question for the Deck run. | tuning | G6 Deck run |
 | 16 | The player cannot climb from the client yet: there is no binding. The contextual prompt is group I's (claim 23). | scope | group I |
 | 17 | `tests/agents/test_agent_pathing.gd` changed with claim 6: "another level" is now an accepted goal, and the M4 property runs twice, over content with flat crates (unchanged thresholds, both outcomes common) and over the shipped content (climbable crates make most enclosures reachable). The unit stage is slower: the ladder property alone takes about six minutes, almost all of it portal-graph rebuilds (G3 debt 2's dirty set), and the full `tools/test.sh` now takes about 15 minutes in the cloud container. | note | G3 debt 2 |
+| 18 | Claim 8's heat side (a lock's `heat_max`, and the door's sensor tripping when the passer's heat is over it) needs heat (claim 11) and sensors (claim 10), which are group D's. The spec orders C before D; the lock ships with its tag check and `land.door_check` now, and `heat_max` joins its schema with standing. | deviation (order) | group D |
+| 19 | Breach time follows the spec: resolved `piece_hp` × the tool class's `hp_factor`, so tools and perks modify it through the resolver. The M3 material fields `breach_tool` and `breach_ticks` are still read by nothing (they were not before either), and any tool class may breach any material. Whether a cutter should refuse reinforced concrete is a content rule for group H to settle. | note | group H |
+| 20 | Units of breach noise, which the spec left open: `noise.made` carries a range in millimetres, the tool's resolved `noise` (mm, as a weapon's is) scaled by the piece's resolved `breach_noise` read as milli-units (the cutter on grate steel: 15 m × 0.5 = 7.5 m). Perception hears it within the smaller of that and the listener's hearing range, exactly as a shot. | assumption | tuning at G6 |
+| 21 | A lock reads tags on any item the passer carries; what kind of item the front route's access token is (a `tool` with no use, or a kind of its own) is group H's content decision. | scope | group H |
+| 22 | Settling (a build change drops anyone left standing on nothing) goes past claim 9's letter: without it, cutting out the grate you stand on left you standing on air. It is claim 5's fall rule applied when the floor changes, not only when the actor moves. | addition | none |
+| 23 | Guards plan around locks they cannot open, so the site's guards must carry the token for doors they patrol through (group H content), or their routes go round. Climbs ignore locks: a lock belongs on a vertical opening, which assembly enforces. | note | group H |
+| 24 | The player cannot breach from the client yet: no binding. The contextual prompt is group I's (claim 23). | scope | group I |

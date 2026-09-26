@@ -13,6 +13,11 @@
 ## ladder holds nobody by itself: it only joins two levels that each have a floor, so
 ## adding one never takes a fall or a step away. The sim holds no facing for the
 ## player, so the command names the side.
+##
+## Locks (M6 spec claim 8): a door whose template declares a `lock` lets through only
+## an actor carrying an item tagged with its `requires_tag`, and every attempt to pass
+## one emits `land.door_check {actor, piece, passed}`. When a build change leaves an
+## actor standing on nothing, it falls to where something holds it.
 class_name MovementSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"movement"
@@ -21,11 +26,15 @@ const COMMAND_CLIMB: StringName = &"actor.climb"
 const SIDES: Array[String] = ["px", "nx", "pz", "nz"]
 const DIR_UP: String = "up"
 const DIR_DOWN: String = "down"
+const EVENT_DOOR_CHECK: StringName = &"land.door_check"
 
 var _content: ContentDb
 var _actors: ActorSystem
 var _land: LandSystem
 var _build: BuildSystem
+var _items: ItemSystem
+var _stats: StatResolver
+var _events: EventBus
 var _moves: int = 0
 var _blocked: int = 0
 ## Derived, not state: cell key -> true for every cell a climb could start from (both
@@ -35,11 +44,13 @@ var _blocked: int = 0
 var _climb_cells: Dictionary = {}
 
 
-func _init(content: ContentDb, actors: ActorSystem, land: LandSystem, build: BuildSystem) -> void:
+func _init(content: ContentDb, actors: ActorSystem, land: LandSystem, build: BuildSystem, items: ItemSystem, stats: StatResolver) -> void:
 	_content = content
 	_actors = actors
 	_land = land
 	_build = build
+	_items = items
+	_stats = stats
 
 
 func system_id() -> StringName:
@@ -55,6 +66,7 @@ func snapshot() -> Dictionary:
 
 
 func attach(sim: SimRoot, events: EventBus) -> Error:
+	_events = events
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
@@ -125,6 +137,11 @@ func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 			var passable: bool = k["passable"]
 			if not passable:
 				return false
+			if not lock_tag_of(piece).is_empty():
+				var passed: bool = may_pass(actor, piece)
+				_events.emit(EVENT_DOOR_CHECK, {"actor": actor, "piece": piece, "passed": passed})
+				if not passed:
+					return false
 	if _land.parcel_at(to) != _land.parcel_at(from):
 		if not _land.require(to, actor, &"enter"):
 			return false
@@ -199,6 +216,58 @@ func climb_targets(cell: Vector3i) -> Array[Vector3i]:
 
 func _on_build_changed(_payload: Dictionary) -> void:
 	_index_climbs()
+	_settle()
+
+
+## Everyone a build change left standing on nothing falls, in actor order.
+func _settle() -> void:
+	for actor: int in _actors.actor_ids():
+		if not _actors.is_alive(actor):
+			continue
+		var pos: Vector3i = _actors.position_of(actor)
+		var cell: Vector3i = BuildSystem.cell_of(pos)
+		var landing: Vector3i = landing_cell(cell)
+		if landing != cell:
+			pos.y = landing.y * BuildSystem.CELL
+			_actors.set_position(actor, pos)
+
+
+# ---------------------------------------------------------------- locks
+
+## The tag a piece's lock asks for, or &"" when its template declares no lock.
+func lock_tag_of(piece: int) -> StringName:
+	var template: StringName = _build.template_of(piece)
+	if template.is_empty():
+		return &""
+	var t: Dictionary = _content.get_entry(BuildSystem.KIND_PIECE, template)
+	var lock_v: Variant = t.get("lock")
+	if typeof(lock_v) != TYPE_DICTIONARY:
+		return &""
+	var lock: Dictionary = lock_v
+	var tag_s: String = lock["requires_tag"]
+	return StringName(tag_s)
+
+
+## Whether an actor may pass a piece's lock: no lock, or an item in its inventory
+## tagged with what the lock asks for. No event: planners ask this; a step asks
+## through the move and is a door check.
+func may_pass(actor: int, piece: int) -> bool:
+	var tag: StringName = lock_tag_of(piece)
+	if tag.is_empty():
+		return true
+	for item: int in _items.items_in(ItemSystem.inventory_of(actor)):
+		if _stats.get_tags(item).has(tag):
+			return true
+	return false
+
+
+## Whether the lock on the face between two adjacent cells lets an actor through (true
+## where there is no face piece or no lock). Pathing plans with it.
+func lock_allows(actor: int, from: Vector3i, to: Vector3i) -> bool:
+	var d: Vector3i = to - from
+	var facing: String = ("p" if d.x > 0 else "n") + "x" if d.x != 0 else (("p" if d.y > 0 else "n") + "y" if d.y != 0 else ("p" if d.z > 0 else "n") + "z")
+	var piece: int = _build.face_piece_at(BuildSystem.face_key(from, facing))
+	return piece == EntityIds.NONE or may_pass(actor, piece)
 
 
 func _index_climbs() -> void:

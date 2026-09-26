@@ -159,7 +159,7 @@ func tick(_sim: SimRoot) -> void:
 		if _replan and rec["state"] != STATE_ARRIVED:
 			rec = _fresh(goal, here)
 		if rec["state"] == STATE_PLANNING:
-			budget = _plan(rec, goal, budget)
+			budget = _plan(agent, rec, goal, budget)
 		if rec["state"] == STATE_FOLLOWING:
 			_follow(agent, rec, goal)
 		_routes[agent] = rec
@@ -176,7 +176,7 @@ func _agent_order() -> Array[int]:
 
 
 ## Spends up to `budget` expansions on the route's search; returns what is left.
-func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
+func _plan(agent: int, rec: Dictionary, goal: Vector3i, budget: int) -> int:
 	var search: Dictionary = rec["search"]
 	var start: Vector3i = _vec(search["start"])
 	var open: Dictionary = search["open"]
@@ -200,7 +200,7 @@ func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
 		closed[current_key] = true
 		var current: Vector3i = _parse(current_key)
 		var g_here: int = _g_of(came, start, current_key, open, closed)
-		for next: Vector3i in _neighbours(current):
+		for next: Vector3i in _neighbours(current, agent):
 			var next_key: String = BuildSystem.cell_key(next)
 			if closed.has(next_key) or _manhattan(start, next) > SEARCH_RADIUS:
 				continue
@@ -216,13 +216,14 @@ func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
 	return 0
 
 
-## The cells one transition from `cell`: the four steps (each landing where a fall
-## ends), then the climbs, in a fixed order.
-func _neighbours(cell: Vector3i) -> Array[Vector3i]:
+## The cells one transition from `cell` for `agent`: the four steps (each landing
+## where a fall ends, none through a lock it cannot open), then the climbs, in a fixed
+## order.
+func _neighbours(cell: Vector3i, agent: int) -> Array[Vector3i]:
 	var out: Array[Vector3i] = []
 	for step: Vector3i in STEPS:
 		var next: Vector3i = cell + step
-		if can_step(cell, next):
+		if can_step(cell, next) and _movement.lock_allows(agent, cell, next):
 			out.append(_movement.landing_cell(next))
 	out.append_array(_movement.climb_targets(cell))
 	return out
