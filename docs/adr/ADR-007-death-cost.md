@@ -1,6 +1,6 @@
 # ADR-007: Death cost and kit loss
 
-Status: proposed
+Status: accepted
 Date: 2026-09-20
 Design doc: §13.4 (D-07); §7.2 district law index
 
@@ -30,7 +30,7 @@ No loss makes lethality meaningless.
 
 ## Decision
 
-Proposed: **C**, with the city softening driven by district `law_index` (§7.2) so it
+**Accepted: C** (CEOGG, 2026-09-26), as proposed, with the city softening driven by district `law_index` (§7.2) so it
 falls out of existing data rather than a special case.
 
 ## Consequences
@@ -45,4 +45,6 @@ loss across death, corpse, and recovery); an M6 replay fixture with a death in i
 
 ## Sign-off
 
-Approver: CEOGG — _pending_
+Approver: CEOGG
+Date: 2026-09-26
+Outcome: accepted (verification at the M6 gate: save round-trip with corpse records; item conservation across death, corpse and recovery; an M6 replay fixture with a death in it)
