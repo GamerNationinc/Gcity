@@ -9,6 +9,8 @@ containers of round instances (design doc §11, §13.3; ADR-009).
 
 `hack_system.gd`: `HackSystem` (system id `hacks`): terminals placed by sites, and timed device actions (hack, logout, spoof) whose work each tick is the device memory; a hack yields its item and leaves the terminal logged in until a logout (M6 spec claim 12).
 
+`loot_system.gd`: `LootSystem` (system id `loot`): bodies and site stores as holders of whole items at a place; `container.take` one item from beside one; your own body is yours, anything else is `loot` (M6 spec claims 1, 14, 15).
+
 **Allowed imports:** `sim/` only.
 
 **Introduced at:** M1 (one pistol). Modules follow at M2.

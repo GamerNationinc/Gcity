@@ -3,7 +3,7 @@
 ## site's `origin`; parcels are content parcels handed to an owner tag. `site.raise
 ## {site}` places every piece as one batch (one `build.changed`, one portal rebuild),
 ## hands over every parcel, posts every agent, places every sensor (claim 10) and
-## terminal (claim 12), on
+## terminal (claim 12), and stocks every store (claims 1, 15), on
 ## one tick, once per site. It is
 ## debug-class like `item.spawn`: fixtures and the client's new-game path issue it.
 ##
@@ -21,11 +21,15 @@ var _build: BuildSystem
 var _perception: PerceptionSystem
 var _sensors: SensorSystem
 var _hacks: HackSystem
+var _loot: LootSystem
+var _items: ItemSystem
 ## Sites raised so far, sorted by id.
 var _raised: Array[StringName] = []
 
 
-func _init(content: ContentDb, land: LandSystem, build: BuildSystem, perception: PerceptionSystem, sensors: SensorSystem, hacks: HackSystem) -> void:
+func _init(content: ContentDb, land: LandSystem, build: BuildSystem, perception: PerceptionSystem, sensors: SensorSystem, hacks: HackSystem, loot: LootSystem, items: ItemSystem) -> void:
+	_loot = loot
+	_items = items
 	_sensors = sensors
 	_hacks = hacks
 	_content = content
@@ -129,6 +133,14 @@ func validate_content() -> Error:
 			if names.has(name_s) or not _hacks.entry_is_valid(ed) or not _on_grid(origin + _cell(ed["cell"])):
 				return _content_fail("site/%s: terminal '%s' cannot be honoured" % [site, name_s])
 			names[name_s] = true
+		var stores: Array = t.get("containers", [])
+		var store_names: Dictionary = {}
+		for e: Variant in stores:
+			var ed: Dictionary = e
+			var name_s: String = ed["name"]
+			if store_names.has(name_s) or not _loot.store_entry_is_valid(ed) or not _on_grid(origin + _cell(ed["cell"])):
+				return _content_fail("site/%s: store '%s' cannot be stocked" % [site, name_s])
+			store_names[name_s] = true
 	return OK
 
 
@@ -248,6 +260,24 @@ func raise(site: StringName) -> bool:
 		var ed: Dictionary = e
 		var name_s: String = ed["name"]
 		_hacks.install(site, StringName(name_s))
+	var stores: Array = t.get("containers", [])
+	for e: Variant in stores:
+		var ed: Dictionary = e
+		var name_s: String = ed["name"]
+		var cell: Vector3i = origin + _cell(ed["cell"])
+		var c: int = BuildSystem.CELL
+		var store: int = _loot.install_store(site, StringName(name_s), Vector3i(cell.x * c + c / 2, cell.y * c, cell.z * c + c / 2))
+		var items: Array = ed["items"]
+		var seed: int = store * 100
+		for i: Variant in items:
+			var d: Dictionary = i
+			var kind_s: String = d["kind"]
+			var template_s: String = d["template"]
+			var count: int = d["count"]
+			for n: int in count:
+				var item: int = _items.spawn(StringName(kind_s), StringName(template_s), _loot.container_name(store), seed)
+				assert(item != EntityIds.NONE, "store contents were validated at assembly")
+				seed += 1
 	_raised.append(site)
 	_raised.sort_custom(func(x: StringName, y: StringName) -> bool: return String(x) < String(y))
 	return true
