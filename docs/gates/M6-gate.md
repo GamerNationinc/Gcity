@@ -18,7 +18,7 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
 | C. Doors, locks, breaching | 8–9 | code and tests in; the lock's heat side waits for standing (group D) | `db8945c`, `df96f74`, `d19ff20` |
 | D. Sensors and standing | 10–11 | code and tests in, with claim 8's heat side | `019f28b`, `4018071`, `223881d` |
 | E. Hacking | 12–13 | code and tests in | `2108d55`, `f4b6454`, `5e3d384` |
-| F. Death, corpses, recovery | 14–16 | code and tests in; `impound.release` waits for the ledger (group G) | `0afba5a`, `32d9553` |
+| F. Death, corpses, recovery | 14–16 | code and tests in; `impound.release` waits for the ledger (group G) | `0afba5a`, `32d9553`, `75b751c`, `a9ce149` |
 | G. Contracts | 17–19 | not started | |
 | H. The mission as content | 20–21 | not started | |
 | I. Client | 22–26 | not started | |
@@ -127,8 +127,63 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
 
 Screenshots: `docs/gates/screenshots/M6-groupA-site-raise.png` (the ready line: 93
 pieces, four guards, 0 rejected, player on the site's start point) and
-`M6-groupA-building.png` (the raised building in play).
+`M6-groupA-building.png` (the raised building in play); `M6-groupF-down.png` (the
+demo at 12 s after group F: the player shot down in the lobby, `YOU ARE DOWN`, the
+pistol no longer in hand because the kit went to a body; the HUD's `rejected` count
+varies between runs of the demo, a guard's shot at a player already killed that tick
+or the player's shot while the pistol is busy, both refused by `weapon.fire` as
+before group F).
 
+## Interim Deck run: groups A–F
+
+Not the G6 demo (claim 32 needs the mission, groups G–J). This run measures on the
+Deck what groups A–F can already show, so the numbers the debt log sends to the
+Deck arrive before the content is built on them. The build is the tip of this
+branch; the Deck is in desktop mode with a checkout of that commit. Numbers go in
+the table below; captures go under `docs/gates/captures/`.
+
+1. `tools/godotsteam.sh`, then `tools/test.sh` → `0 failed`, sixteen `ok` replay
+   lines, `all stages passed`. Record the wall time: the unit stage is about
+   15 minutes in the cloud container (debt 17).
+2. Plugged, then on battery:
+   `$(tools/godot.sh) --headless --path . -s tools/bench_site.gd -- --out=docs/gates/captures/M6-raise-plugged.json`
+   (then `-battery`) → the tick that raises each shipped site (`site_raise`) beside
+   the tick that places the M4 building one command per piece (`m4_commands`, G4
+   debt 7's hitch). Debt 6: this is claim 2's recorded raise cost.
+3. Plugged, then on battery:
+   `$(tools/godot.sh) --headless --path . -s tools/bench_agents.gd -- --out=docs/gates/captures/M6-bench-plugged.json`
+   (then `-battery`) → the agent row with the level-aware pathing, against
+   `M4-bench-plugged.json` (p99 1 399 µs). Debt 14.
+4. `$(tools/godot.sh) --headless --path . -s tools/steam_probe.gd` → as at G5:
+   online, `deck: true`, action sets unresolved until the store phase.
+5. `tools/export.sh`, then launch `build/linux/gcity.x86_64` with a controller:
+   - The street, the M4 building raised by `site.raise` and the player on its start
+     point: no hitch on the first frame.
+   - Hold View to restart, three times → the building comes back each time with no
+     visible hitch (claim 2, G4 debt 7).
+   - Walk in the front and let the guards find you → they detect, radio, flank and
+     shoot as at G4; they path across the building's level without stalling
+     (claims 6, 7).
+   - Get shot down → `YOU ARE DOWN`, no crash, no script error; hold View to
+     restart. Your kit is on a body in the sim; bodies are not drawn until
+     group I.
+6. Notes on anything that felt wrong, in the table below.
+
+What cannot be tried by hand yet: climbing, breaching, hacking, taking from a body
+or a store, and respawning have no binding in the client (debt 16, 24, 36, 42); the
+tests and fixtures carry them until group I.
+
+| Number | Plugged | Battery | Debt |
+|---|---|---|---|
+| `tools/test.sh` wall time | | | 17 |
+| `m4_building` raise, p99 / max (µs) | | | 6 |
+| `m4_commands` placement, p99 / max (µs) | | | G4 debt 7 |
+| agent row, p99 / p99.9 (µs) | | | 14 |
+| rebuild ticks, p99 (µs) | | | 14 |
+
+| # | What felt wrong or right | Number changed (file, value) or debt item |
+|---|---|---|
+| | | |
 ---
 
 ## 4. Debt and deviation log

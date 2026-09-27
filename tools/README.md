@@ -19,6 +19,7 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `bench_device.gd` | Time-to-complete for each core device task (M5 claim 14): presses, sim ticks and seconds, driven through the same shell the player uses. |
 | `make_m5_fixtures.gd` | Regenerates the three M5 replay fixtures; re-record their hashes afterwards. |
 | `bench_agents.gd` | The agent budget on the Deck (M4 claim 13): the M4 building with six armed guards for 12 000 ticks headless, per-tick sim time at the 99th and 99.9th percentiles, with and without agents, and the rebuild ticks, as JSON. |
+| `bench_site.gd` | The raise cost on the Deck (M6 claim 2): the tick that raises each shipped site, beside the tick that places the M4 building one command per piece, over fresh sims, as JSON. |
 | `make_m4_fixtures.gd` | Regenerates the six M4 replay fixtures from `M4Building`; re-record their hashes afterwards. |
 | `test.sh` | The whole verification run, in the order CI uses it. Run this before presenting any work. |
 | `tests/` | Unit tests for the Python tools (`python3 -m unittest discover tools/tests`). |
