@@ -29,6 +29,9 @@ const KIND_TOOL: StringName = &"tool"
 ## Goods (M6 spec claim 12): carried, handed over, read by their tags (a data drive,
 ## an access card).
 const KIND_GOODS: StringName = &"goods"
+## Holding containers (M6 spec claims 14–16): a body, an impound, a site's store, each
+## `<prefix>.<id>`. Top-level items move in and out whole; an emptied one is gone.
+const HOLDING_PREFIXES: Array[String] = ["corpse", "impound", "store"]
 const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_TOOL, KIND_GOODS]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
@@ -234,6 +237,11 @@ static func inventory_of(actor: int) -> StringName:
 	return StringName("inv.%d" % actor)
 
 
+## The holding container of a kind (`corpse`, `impound`, `store`) and an id.
+static func holding_container(prefix: StringName, id: int) -> StringName:
+	return StringName("%s.%d" % [prefix, id])
+
+
 static func magazine_container(magazine: int) -> StringName:
 	return StringName("mag.%d" % magazine)
 
@@ -371,8 +379,8 @@ func spawn(kind: StringName, template: StringName, container: StringName, seed: 
 	if not _content.has(kind, template):
 		push_error("ItemSystem: no template %s/%s" % [kind, template])
 		return EntityIds.NONE
-	if not _is_open_container(container):
-		push_error("ItemSystem: can only spawn into world or an inventory, not '%s'" % container)
+	if not _is_open_container(container) and not _is_holding_container(container):
+		push_error("ItemSystem: can only spawn into world, an inventory or a holding container, not '%s'" % container)
 		return EntityIds.NONE
 	var id: int = _ids.allocate()
 	_items[id] = {"kind": kind, "template": template, "seed": seed, "affixes": [] as Array}
@@ -657,7 +665,7 @@ func restore(state: Dictionary) -> Error:
 		var name: StringName = _as_name(ck)
 		if name.is_empty() or typeof(containers_in[ck]) != TYPE_ARRAY:
 			return _restore_fail("container key or list")
-		if not _is_open_container(name) and not _is_closed_container_name(name, new_items):
+		if not _is_open_container(name) and not _is_holding_container(name) and not _is_closed_container_name(name, new_items):
 			return _restore_fail("unknown container '%s'" % name)
 		var arr: Array = containers_in[ck]
 		var list: Array[int] = []
@@ -814,6 +822,22 @@ func _fits(part: int, weapon: int) -> bool:
 	return false
 
 
+## Moves a top-level item (one lying in the world, an inventory or a holding
+## container) whole to the world, an inventory or a holding container: parts,
+## magazines and rounds go with it, no id is made or lost. False, changing nothing,
+## for an unknown item, one inside another, or an unknown destination.
+func move_item(item: int, to: StringName) -> bool:
+	if not _location.has(item):
+		return false
+	var from: StringName = _location[item]
+	var top_level: bool = _is_open_container(from) or _is_holding_container(from)
+	var known: bool = _is_open_container(to) or _is_holding_container(to)
+	if not top_level or not known or from == to:
+		return false
+	_move(item, to)
+	return true
+
+
 func _move(item: int, to: StringName) -> void:
 	var from: StringName = _location[item]
 	var from_list: Array[int] = _containers[from]
@@ -872,6 +896,15 @@ func _is_open_container(name: StringName) -> bool:
 		return false
 	var rest: String = text.trim_prefix("inv.")
 	return rest.is_valid_int() and int(rest) >= 1 and str(int(rest)) == rest
+
+
+## `corpse.<n>`, `impound.<n>` or `store.<n>` with n a positive integer written plainly.
+static func _is_holding_container(name: StringName) -> bool:
+	var parts: PackedStringArray = String(name).split(".")
+	if parts.size() != 2 or not HOLDING_PREFIXES.has(parts[0]) or not parts[1].is_valid_int():
+		return false
+	var n: int = int(parts[1])
+	return n >= 1 and str(n) == parts[1]
 
 
 func _is_closed_container_name(name: StringName, items: Dictionary) -> bool:
