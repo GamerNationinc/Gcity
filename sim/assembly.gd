@@ -88,6 +88,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var loot: LootSystem = LootSystem.new(content, ids, items, actors, land)
 	if loot.attach(sim) != OK:
 		return null
+	var deaths: DeathSystem = DeathSystem.new(content, actors, items, land, loot, events)
+	if deaths.attach(sim) != OK:
+		return null
 	var sites: SiteSystem = SiteSystem.new(content, land, build, perception, sensors, hacks, loot, items)
 	if sites.attach(sim) != OK:
 		return null
@@ -128,7 +131,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, BreachSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, SensorSystem.SYSTEM_ID, HackSystem.SYSTEM_ID, LootSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, BreachSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID, SensorSystem.SYSTEM_ID, HackSystem.SYSTEM_ID, LootSystem.SYSTEM_ID, DeathSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -184,6 +187,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = hacks_of(sim).restore(state)
 			LootSystem.SYSTEM_ID:
 				err = loot_of(sim).restore(state)
+			DeathSystem.SYSTEM_ID:
+				err = deaths_of(sim).restore(state)
 			SiteSystem.SYSTEM_ID:
 				err = sites_of(sim).restore(state)
 		if err != OK:
@@ -405,6 +410,15 @@ static func loot_of(sim: SimRoot) -> LootSystem:
 		return null
 	var loot: LootSystem = system
 	return loot
+
+
+static func deaths_of(sim: SimRoot) -> DeathSystem:
+	var system: SimSystem = sim.get_system(DeathSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % DeathSystem.SYSTEM_ID)
+		return null
+	var deaths: DeathSystem = system
+	return deaths
 
 
 static func sites_of(sim: SimRoot) -> SiteSystem:

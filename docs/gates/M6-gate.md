@@ -18,7 +18,7 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
 | C. Doors, locks, breaching | 8–9 | code and tests in; the lock's heat side waits for standing (group D) | `db8945c`, `df96f74`, `d19ff20` |
 | D. Sensors and standing | 10–11 | code and tests in, with claim 8's heat side | `019f28b`, `4018071`, `223881d` |
 | E. Hacking | 12–13 | code and tests in | `2108d55`, `f4b6454`, `5e3d384` |
-| F. Death, corpses, recovery | 14–16 | not started | |
+| F. Death, corpses, recovery | 14–16 | code and tests in; `impound.release` waits for the ledger (group G) | `0afba5a`, `32d9553` |
 | G. Contracts | 17–19 | not started | |
 | H. The mission as content | 20–21 | not started | |
 | I. Client | 22–26 | not started | |
@@ -105,6 +105,26 @@ debt log, so deviations are recorded as they happen (CLAUDE.md §1).
   hacks, spoofs and logs out through commands, and shows a running action's progress
   and how far a hack is heard.
 
+### Group F, as delivered
+
+- Holding containers: `corpse.<id>`, `impound.<id>` and `store.<id>` hold whole
+  top-level items; a pistol moves with its parts, magazine and rounds, and no id is
+  made or lost; an emptied holding container is gone (`0afba5a`).
+- `LootSystem`: bodies and site stores as holders at a place; sites gain
+  `containers`, stocked on raise; `container.take` moves one item from beside a
+  holder; your own body is yours, anything else is a `loot` offence (`32d9553`).
+- `DeathSystem`: a death empties the hands, impounds the district's `law_index`
+  share chosen with `sim.rng()`, leaves the rest on a body where the actor fell and
+  emits `actor.died`; guards die the same way. `actor.set_home` and `actor.respawn`
+  bring the dead back whole at their home's `respawn` point; a quest stays active
+  through both. Property: 10 000 generated streams of kits, deaths, takes and
+  respawns never make or lose an item.
+- The replay hashes are re-recorded: the new `deaths` system is in every hash, and
+  in the four M4 fixtures where the player is shot dead (`m4-arcade`, `m4-detect`,
+  `m4-radio`, `m4-radio-off`) the player's kit now lies on a body on starter-ghetto
+  land (law 250: fewer than four items, so nothing is impounded and no random number
+  is drawn). Every other system's state, and the sim's random state, is unchanged.
+
 Screenshots: `docs/gates/screenshots/M6-groupA-site-raise.png` (the ready line: 93
 pieces, four guards, 0 rejected, player on the site's start point) and
 `M6-groupA-building.png` (the raised building in play).
@@ -152,3 +172,9 @@ pieces, four guards, 0 rejected, player on the site's start point) and
 | 35 | A terminal is hacked once: a second hack of a hacked terminal is refused. | assumption | none |
 | 36 | The pane lists targets within 12 m; acting on one still needs the player beside it, and a refused command shows nothing in the pane beyond the sim not changing. The contextual prompt (claim 23) says what is in reach. | scope | group I |
 | 37 | Commits `223881d` to `cfd0bd2` each fail the unit stage's log check on "resources still in use at exit": `SensorSystem` (and then `HackSystem`) held the sim strongly, a reference cycle. Every test passed in them; `2d343ea` fixes it with a weak reference, and the full `tools/test.sh` passes from there. Earlier commits in this milestone passed the full suite one by one. | note | none |
+| 38 | `impound.release {actor}` (claim 16) charges the district's `impound_fee` in credits, and credits are the ledger's (claim 17, group G). The impound fills now; the release ships with the ledger. | deviation (order) | group G |
+| 39 | The impounded share is `law_index` × items ÷ 1 000 rounded down, which the spec leaves open: a badlands death with a few items loses none of them. | assumption | tuning at G6 |
+| 40 | A death is settled on the tick after the hit, not inside the hit's handler, so its random draws fall in system order rather than in the middle of combat's. `actor.died` carries `impounded` beside the spec's fields, and has `corpse` 0 when nothing was left for a body. | addition | none |
+| 41 | Claim 16's "home site" needed a setter: `actor.set_home {actor, site}` (debug-class, as spawning is; the new-game path sends it). Which site is home for a new game is group H's content and group I's new-game path. | addition | groups H, I |
+| 42 | The player cannot take from a body or a store in the client yet, and nothing sends `actor.respawn`: the contextual prompt and the death screen are group I's (claim 23). | scope | group I |
+| 43 | The spec's conservation property (`tests/items/test_conservation.gd`, 10 000 streams) also spans impound release, turn-in and save/load, which are group G's. Group F's 10 000-stream version covering death, body, impound, take and respawn lives in `tests/agents/test_death_system.gd`; the full property is written when the ledger lands and moves to the spec's path. | deviation (order) | group G |

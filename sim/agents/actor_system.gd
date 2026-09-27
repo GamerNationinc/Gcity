@@ -255,6 +255,39 @@ func _spawn_at(profile: StringName, pos: Vector3i) -> int:
 	return id
 
 
+## Empties a dead actor's hands (M6 spec claim 14): unwields its weapon and puts its
+## device away, unlinking both from its modifiers, so its kit can leave its inventory.
+func release_hands(actor: int) -> void:
+	if not _actors.has(actor):
+		return
+	var rec: Dictionary = _actors[actor]
+	for slot: String in ["wielded", "device"]:
+		var held: int = rec[slot]
+		if held != EntityIds.NONE:
+			_stats.set_inherits(held, -1)
+			rec[slot] = EntityIds.NONE
+
+
+## Brings a dead actor back whole at `pos` (M6 spec claim 16): every health node full.
+## False for an unknown or living actor.
+func revive(actor: int, pos: Vector3i) -> bool:
+	if not _actors.has(actor) or is_alive(actor):
+		return false
+	var rec: Dictionary = _actors[actor]
+	var profile: StringName = rec["profile"]
+	var t: Dictionary = _content.get_entry(KIND_PROFILE, profile)
+	var health_t: Dictionary = t["health"]
+	var nodes: Array = health_t["nodes"]
+	var health: Dictionary = rec["health"]
+	for n: Variant in nodes:
+		var nd: Dictionary = n
+		var id_s: String = nd["id"]
+		health[StringName(id_s)] = nd["max"]
+	rec["alive"] = true
+	rec["pos"] = [pos.x, pos.y, pos.z] as Array[int]
+	return true
+
+
 ## Subtracts damage from a node, never below zero. A fatal node at zero kills the actor.
 ## Returns the amount actually applied.
 func damage_node(actor: int, node: StringName, amount: int) -> int:

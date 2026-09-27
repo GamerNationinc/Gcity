@@ -286,7 +286,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 	var out: Array = []
 	for _i: int in count:
 		var at: int = rng.randi_range(1, 3)
-		match rng.randi_range(0, 24):
+		match rng.randi_range(0, 25):
 			0:
 				if rng.randi_range(0, 3) == 0:
 					# M6 claim 3: at a site's named point
@@ -330,6 +330,12 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 				out.append([at, &"quest.accept" if rng.randi_range(0, 1) == 0 else &"quest.abandon", {"actor": rng.randi_range(1, 3), "quest": ["first_blood", "break_ground", "nothing"][rng.randi_range(0, 2)]}])
 			21:
 				out.append([at, &"sim.pause" if rng.randi_range(0, 1) == 0 else &"sim.resume", {"actor": rng.randi_range(1, 3)}])
+			25:
+				# M6 claim 16: homes and respawns
+				if rng.randi_range(0, 1) == 0:
+					out.append([at, &"actor.set_home", {"actor": rng.randi_range(1, 3), "site": ["home", "m4_building", "nowhere"][rng.randi_range(0, 2)]}])
+				else:
+					out.append([at, &"actor.respawn", {"actor": rng.randi_range(1, 6)}])
 			24:
 				# M6 claim 15: takes from holders, mostly refused
 				out.append([at, &"container.take", {"actor": rng.randi_range(1, 3), "container": rng.randi_range(1, 30), "item": rng.randi_range(1, 30)}])
