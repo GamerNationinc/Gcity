@@ -100,10 +100,7 @@ func tick(sim: SimRoot) -> void:
 		if _tokens.is_held(token):
 			continue
 		var at: Vector2i = _tokens.position_of(token)
-		# a token in a gate's opening is between regions; it comes out when it is through
-		if _regions.gate_at(Vector3i(at.x, 0, at.y)) != EntityIds.NONE:
-			continue
-		if _player_within(at, HYDRATE_MM):
+		if _player_within(at, HYDRATE_MM) and _file_is_through(token):
 			_hydrate(token)
 
 
@@ -184,6 +181,28 @@ func _hydrate(token: int) -> void:
 		_items.move_items(loose, ItemSystem.inventory_of(members[0]))
 	_tokens.hold(token)
 	_squads[token] = {"members": members, "leg": leg, "progress": progress}
+
+
+## Whether every place the squad would stand, the lead and the file behind it, is out of
+## any gate's opening and in the lead's region. A token in a gate is between regions, and
+## so is a file still strung through one: it comes in when it is through, or the members
+## behind the lead are stood on the far side of the seam, behind its wall for good.
+func _file_is_through(token: int) -> bool:
+	var route: Array[int] = _tokens.route_of(token)
+	var leg: int = _tokens.leg_of(token)
+	var progress: int = _tokens.progress_of(token)
+	var count: Variant = _tokens.payload_of(token).get("members")
+	var file: int = 1
+	if typeof(count) == TYPE_INT:
+		var n: int = count
+		file = clampi(n, 1, MAX_MEMBERS)
+	var lead: Vector2i = _tokens.point_at(route, leg, progress)
+	var region: StringName = _regions.region_at(lead.x, lead.y).id()
+	for i: int in file:
+		var at: Vector2i = _tokens.point_at(route, leg, progress, i * SPACING_MM)
+		if _regions.gate_at(Vector3i(at.x, 0, at.y)) != EntityIds.NONE or _regions.region_at(at.x, at.y).id() != region:
+			return false
+	return true
 
 
 ## A kit the squad carried off-screen comes back to it, a frame each in the order they

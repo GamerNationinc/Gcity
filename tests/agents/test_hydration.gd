@@ -197,6 +197,31 @@ func test_the_dead_stay_and_a_squad_with_nobody_left_leaves_no_token() -> void:
 	assert_false(_hydration.is_hydrated(token), "and no squad")
 
 
+## Found authoring the m7-hydrate fixture: a squad leaving the gate hydrated as soon as
+## its lead was through, and the members behind it, a file's spacing back along the
+## road, were stood on the gate itself, on the city side of the seam and behind its
+## wall for good. A squad comes in only when the whole file is through.
+func test_a_squad_leaving_the_gate_comes_in_only_when_the_whole_file_is_through() -> void:
+	_setup()
+	var regions: Regions = SimAssembly.regions_of(_sim)
+	_actors.set_position(_player, _on_ground(regions, 100_000, -10_000))
+	var token: int = _tokens.spawn(FACTION, 1, RouteGraph.OUTSKIRTS, PACE, _patrol(3, false))
+	for i: int in 400:
+		_sim.step()
+		if _hydration.is_hydrated(token):
+			break
+	assert_true(_hydration.is_hydrated(token), "the player is near: it came in")
+	var squad: Array[int] = _hydration.members_of(token)
+	assert_eq(squad.size(), 3, "all three")
+	for member: int in squad:
+		var at: Vector3i = _actors.position_of(member)
+		assert_eq(regions.region_at(at.x, at.z).id(), &"wilds", "member %d stands in the wilds (%s)" % [member, at])
+		assert_eq(regions.gate_at(at), EntityIds.NONE, "and not in the gate (%s)" % at)
+	_sim.step_n(4000)
+	assert_false(_hydration.is_hydrated(token), "and walked out of range, a token again")
+	assert_eq(_tokens.payload_of(token)["members"], 3, "all three of them")
+
+
 func test_a_token_that_cannot_walk_stays_a_token() -> void:
 	_setup()
 	var rng := RandomNumberGenerator.new()
