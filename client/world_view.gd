@@ -773,7 +773,9 @@ func _unhandled_input(event: InputEvent) -> void:
 ## The player on the street with the pistol kit and both parcels owned; the M4
 ## Cold Storage raised by its operator, and the player turning up on the street with a
 ## handset and a coprocessor and nothing else (M6 spec claim 13). The player owns
-## nothing, so the demo that follows is a break-in rather than a tour.
+## nothing, so the demo that follows is a break-in rather than a tour. Since M7 claim 10
+## the player takes the contract first, which binds its place out in the wilds, and the
+## operator raises the building there: the map shows where, and the gate is the way out.
 func _advance_mission_setup(sim: SimRoot) -> void:
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
 	var items: ItemSystem = SimAssembly.items_of(sim)
@@ -788,16 +790,19 @@ func _advance_mission_setup(sim: SimRoot) -> void:
 				return
 			_operator = ids[0]
 			_submit(sim, &"land.identify", {"actor": _operator, "owner": "corp.coldchain"})
-			_submit(sim, &"site.raise", {"actor": _operator, "site": String(MissionDemo.SITE)})
 			_submit(sim, &"actor.spawn", {"profile": String(PROFILE), "range_m": MISSION_SPAWN_M})
 			_setup_stage = 2
 		2:
+			if _player == 0:
+				var ids2: Array[int] = actors.actor_ids()
+				if ids2.size() < 2:
+					return
+				_player = ids2[ids2.size() - 1]
+				_submit(sim, &"quest.accept", {"actor": _player, "quest": String(MissionDemo.SITE)})
+				_submit(sim, &"site.raise", {"actor": _operator, "site": String(MissionDemo.SITE), "quest": String(MissionDemo.SITE)})
+				return
 			if not sites.is_raised(MissionDemo.SITE):
 				return
-			var ids2: Array[int] = actors.actor_ids()
-			if ids2.size() < 2:
-				return
-			_player = ids2[ids2.size() - 1]
 			var inv: String = String(ItemSystem.inventory_of(_player))
 			_submit(sim, &"item.spawn", {"kind": "device_frame", "template": "handset", "container": inv, "seed": 1, "count": 1})
 			_submit(sim, &"item.spawn", {"kind": "device_module", "template": "daemon_coprocessor", "container": inv, "seed": 2, "count": 1})
@@ -820,12 +825,15 @@ func _advance_mission_setup(sim: SimRoot) -> void:
 			if actors.device_of(_player) == EntityIds.NONE:
 				return
 			_submit(sim, &"run.begin", {"actor": _player})
-			_submit(sim, &"quest.accept", {"actor": _player, "quest": String(MissionDemo.SITE)})
 			_setup_stage = 5
 		5:
 			var refused: int = sim.rejected_count()
-			_note("t%d mission: Cold Storage raised, player %d on the street%s" % [
-				sim.get_tick(), _player, "" if refused == 0 else ", %d commands refused setting up" % refused])
+			var node: int = SimAssembly.binder_of(sim).node_of(MissionDemo.SITE)
+			_note("t%d mission: Cold Storage raised at node %d, %d m out; player %d in town%s" % [
+				sim.get_tick(), node, SimAssembly.routes_of(sim).distance_between(1, node), _player,
+				"" if refused == 0 else ", %d commands refused setting up" % refused])
+			_mission_steps = MissionDemo.travel(sim)
+			_mission_steps.append_array(MissionDemo.steps())
 			_setup_stage = READY
 
 
@@ -863,6 +871,26 @@ func _mission_tick(sim: SimRoot) -> void:
 			if dx != 0:
 				dz = 0
 			_submit(sim, &"actor.move", {"actor": _player, "dx": dx, "dz": dz, "dy": 0})
+		MissionDemo.Step.POINT:
+			var at: Vector2i = step["at"]
+			var here2: Vector3i = actors.position_of(_player)
+			var pace: int = SimAssembly.movement_of(sim).speed_of(_player)
+			var mx: int = clampi(at.x - here2.x, -pace, pace)
+			var mz: int = clampi(at.y - here2.z, -pace, pace)
+			if SimAssembly.regions_of(sim).in_transit(_player):
+				return
+			if mx == 0 and mz == 0:
+				_mission_index += 1
+				return
+			var axis: bool = step.get("axis", false)
+			if axis and mx != 0:
+				mz = 0
+			_submit(sim, &"actor.move", {"actor": _player, "dx": mx, "dz": mz, "dy": 0})
+		MissionDemo.Step.GATE:
+			var region: String = step["region"]
+			_submit(sim, Regions.COMMAND_ENTER, {"actor": _player, "region": region})
+			_note("t%d through the gate to %s" % [sim.get_tick(), region])
+			_mission_index += 1
 		MissionDemo.Step.CLIMB:
 			var dy: int = step["dy"]
 			_submit(sim, &"actor.move", {"actor": _player, "dx": 0, "dz": 0, "dy": dy})
