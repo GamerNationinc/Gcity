@@ -283,3 +283,31 @@ func test_property_a_token_keeps_to_its_edge_and_takes_one_road_at_a_time() -> v
 	assert_eq(restless, 0, "and a token that stopped stayed stopped")
 	assert_true(crossings > PROPERTY_STREAMS, "the streams crossed plenty of places (%d)" % crossings)
 	assert_true(arrivals > 100, "and plenty of tokens got where they were going (%d)" % arrivals)
+
+
+## Found by the G7 mutation run: a release was only ever checked at the leg the
+## token was already on, and a restore never saw the slowest pace a token may have.
+func test_a_released_token_stands_where_its_squad_handed_it_back() -> void:
+	_setup()
+	var pair: Array[int] = _far_pair()
+	var id: int = _tokens.spawn(FACTION, pair[0], pair[1], 50, {"members": 2})
+	var route: Array[int] = _tokens.route_of(id)
+	assert_true(route.size() >= 3, "a route of more than one road (%d places)" % route.size())
+	assert_false(_tokens.release(id, 1, 0, {"members": 2}), "a token that is not held is not released")
+	assert_true(_tokens.hold(id), "held")
+	var half: int = _length(_routes.edge_between(route[1], route[2])) / 2
+	assert_true(_tokens.release(id, 1, half, {"members": 1}), "released on its second road")
+	assert_eq(_tokens.leg_of(id), 1, "on the leg the squad got to")
+	assert_eq(_tokens.progress_of(id), half, "as far along it")
+	assert_eq(_tokens.payload_of(id)["members"], 1, "with who is left")
+	assert_false(_tokens.is_held(id), "and walking by itself")
+
+
+func test_a_token_at_the_slowest_pace_saves_and_loads() -> void:
+	_setup()
+	var pair: Array[int] = _far_pair()
+	var id: int = _tokens.spawn(FACTION, pair[0], pair[1], 1, {})
+	assert_true(id != EntityIds.NONE, "a token at a millimetre a tick")
+	var snap: Dictionary = _tokens.snapshot()
+	assert_eq(_tokens.restore(snap), OK, "restores")
+	assert_eq(_tokens.speed_of(id), 1, "at the same pace")

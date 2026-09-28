@@ -222,6 +222,20 @@ func test_a_squad_leaving_the_gate_comes_in_only_when_the_whole_file_is_through(
 	assert_eq(_tokens.payload_of(token)["members"], 3, "all three of them")
 
 
+## Found by the G7 mutation run: every squad in these tests was two or three strong,
+## so a rule refusing a squad of one went unnoticed.
+func test_a_squad_of_one_is_still_a_squad() -> void:
+	_setup()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SEED
+	var pair: Array[int] = _wild_pair(_routes, rng)
+	var token: int = _tokens.spawn(FACTION, pair[0], pair[1], PACE, _patrol(1, false))
+	_watch(token)
+	_until_look()
+	assert_true(_hydration.is_hydrated(token), "one member comes in")
+	assert_eq(_hydration.members_of(token).size(), 1, "as one agent")
+
+
 func test_a_token_that_cannot_walk_stays_a_token() -> void:
 	_setup()
 	var rng := RandomNumberGenerator.new()
@@ -298,13 +312,23 @@ func test_a_squad_on_the_road_into_the_gate_takes_it_and_its_token_carries_on() 
 	# stand outside the gate, on the level apron, and wait for it to come by
 	_actors.set_position(_player, Vector3i(40_000, 0, -60_000))
 	var hydrated: bool = false
+	var handed_back: bool = false
 	var ticks: int = 0
 	while not _tokens.is_stopped(token) and ticks < 400_000:
 		_sim.step()
 		twin.step()
 		ticks += 1
-		hydrated = hydrated or _hydration.is_hydrated(token)
+		var now: bool = _hydration.is_hydrated(token)
+		if hydrated and not now and not handed_back:
+			# the tick the squad takes the gate is the tick its token must be exactly where
+			# the unwatched one is, not only by the end of the road, where a token handed
+			# back short of it would have caught up again unnoticed
+			handed_back = true
+			assert_eq([_tokens.leg_of(token), _tokens.progress_of(token)], [twin_tokens.leg_of(token), twin_tokens.progress_of(token)],
+				"handed back at the gate where the unwatched token is")
+		hydrated = hydrated or now
 	assert_true(hydrated, "the squad came by as a squad")
+	assert_true(handed_back, "and handed its token back")
 	assert_true(_tokens.is_stopped(token), "and its token reached the gate (%d ticks)" % ticks)
 	assert_false(_hydration.is_hydrated(token), "having taken the gate rather than walked through the wall")
 	for member: int in _actors.actor_ids():

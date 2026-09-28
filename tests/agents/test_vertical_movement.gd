@@ -228,3 +228,28 @@ func test_climbing_into_a_solid_cell_is_refused_and_counted() -> void:
 	assert_false(_movement.move(_player, 0, 0, 1), "there is no room up there")
 	assert_eq(_movement.blocked_count(), blocked + 1, "counted once, not twice")
 	assert_eq(_actors.position_of(_player), _at(0, 1, 2), "and the actor stayed put")
+
+
+## Found by the G7 mutation run: the third way a level change is refused, a solid
+## floor between the two levels, was refused but never shown to be counted.
+func test_climbing_through_a_solid_floor_is_refused_and_counted() -> void:
+	_setup()
+	_two_storey()
+	assert_true(_place(&"stair_flight", 0, 1, 0, "nx") > 0, "a flight under the solid ceiling")
+	_actors.set_position(_player, _at(0, 1, 0))
+	var blocked: int = _movement.blocked_count()
+	assert_false(_movement.move(_player, 0, 0, 1), "the floor above is not a hatch")
+	assert_eq(_movement.blocked_count(), blocked + 1, "and the refusal was counted")
+	assert_eq(_actors.position_of(_player), _at(0, 1, 0), "the actor stayed put")
+
+
+## Found by the G7 mutation run: a save with a negative counter was never offered.
+func test_a_save_with_a_negative_counter_is_refused() -> void:
+	_setup()
+	var good: Dictionary = _movement.snapshot()
+	for key: String in ["moves", "blocked", "falls"]:
+		var bad: Dictionary = good.duplicate(true)
+		bad[key] = -1
+		assert_eq(_movement.restore(bad), ERR_INVALID_DATA, "refused: %s below zero" % key)
+	assert_eq(_movement.restore(good), OK, "the real one restores")
+

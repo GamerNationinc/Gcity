@@ -289,6 +289,16 @@ def sim_files(under: list[str]) -> list[Path]:
     return list(seen)
 
 
+def file_rng(seed: int, rel: str) -> random.Random:
+    """The sampler for one file: a function of the run's seed and the file's path only.
+
+    One generator shared across files made each file's sample depend on every file
+    before it, so a run stopped halfway could not be resumed on the rest and pick what
+    the whole run would have picked.
+    """
+    return random.Random(f"{seed}:{rel}")
+
+
 def mutant_timeout(baseline_seconds: float, floor: int) -> int:
     """Seconds a mutant may run before it counts as hung, and so killed.
 
@@ -369,7 +379,6 @@ def main() -> int:
         print("add them to EXTRA_TESTS in tools/mutate.py", file=sys.stderr)
         return 2
 
-    rng = random.Random(args.seed)
     report = Report()
     for path in sim_files(args.under):
         rel = path.relative_to(ROOT).as_posix()
@@ -383,7 +392,9 @@ def main() -> int:
                 candidates.append(Mutant(rel, i + 1, operator, line.rstrip("\n"), rewritten))
         if not candidates:
             continue
-        rng.shuffle(candidates)
+        # each file's sample depends on the seed and the file alone, so a run can be
+        # stopped and resumed on the files it had not reached, and picks the same mutants
+        file_rng(args.seed, rel).shuffle(candidates)
         chosen = candidates[: args.per_file]
         tests = tests_for(rel)
         # what the tests say with the file untouched, so a mutant that silences a

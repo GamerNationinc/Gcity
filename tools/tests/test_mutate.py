@@ -118,6 +118,18 @@ class InvalidMutants(unittest.TestCase):
     def test_a_score_with_nothing_to_score_is_zero_not_a_crash(self) -> None:
         self.assertEqual(mutate.Report().score, 0.0)
 
+    def test_a_file_samples_the_same_whatever_ran_before_it(self) -> None:
+        items = list(range(40))
+        first = list(items)
+        mutate.file_rng(7, "sim/a.gd").shuffle(first)
+        mutate.random.Random(1).shuffle(list(items))  # anything else drawn in between
+        again = list(items)
+        mutate.file_rng(7, "sim/a.gd").shuffle(again)
+        self.assertEqual(first, again)
+        other = list(items)
+        mutate.file_rng(7, "sim/b.gd").shuffle(other)
+        self.assertNotEqual(first, other)
+
     def test_a_slow_file_gets_time_in_proportion_not_a_kill_by_the_clock(self) -> None:
         # tests that take twenty minutes untouched were timing out under every mutant
         # at a flat ten, and each timeout counted as a kill

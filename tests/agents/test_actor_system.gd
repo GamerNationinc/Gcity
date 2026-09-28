@@ -305,3 +305,17 @@ func _holds(value: Variant, actor: int, depth: int) -> bool:
 					if typeof(v) == TYPE_INT and v == actor:
 						return true
 	return false
+
+
+## Found by the G7 mutation run: nothing checked that a revived actor's health is
+## its profile's again. Dropping that line left the dead at zero, alive.
+func test_a_revived_actor_comes_back_whole() -> void:
+	_build()
+	var a: int = _actors.spawn(&"arcade", 0)
+	_actors.damage_node(a, &"body", 999999)
+	assert_false(_actors.is_alive(a), "dead")
+	assert_false(_actors.revive(99), "nobody to revive")
+	assert_true(_actors.revive(a), "revived")
+	assert_true(_actors.is_alive(a), "alive again")
+	assert_eq(_actors.health_of(a), {&"body": _actors.max_health(a, &"body")}, "at full health, not at zero")
+	assert_false(_actors.revive(a), "and the living cannot be revived")

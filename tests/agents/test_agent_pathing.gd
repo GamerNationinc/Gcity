@@ -276,3 +276,24 @@ func test_sliced_planning_survives_the_save_round_trip_mid_search_and_mid_walk()
 	rec["index"] = 99
 	assert_eq(pathing.restore(bad), ERR_INVALID_DATA, "an index past the path")
 	assert_eq(pathing.snapshot(), state, "rejections leave the state untouched")
+
+
+## Found by the G7 mutation run: the pathing system could stop hearing the world and
+## nothing noticed. A change to the build must make a walking agent plan again at once,
+## not only when it next walks into the change, and a removed agent's route must go
+## the moment it is removed, not a tick later.
+func test_a_build_change_re_plans_at_once_and_a_removed_agent_leaves_no_route() -> void:
+	_setup()
+	var guard: int = _perception.spawn(&"guard_sim", _cell(4, 1), 0, 1, "")
+	assert_true(_pathing.request(guard, _cell(4, 8)), "a walk in the open")
+	_sim.step()
+	assert_eq(_pathing.state_of(guard), PathingSystem.STATE_FOLLOWING, "planned and walking")
+	var expanded: int = _pathing.expanded_count()
+	_sim.step()
+	assert_eq(_pathing.expanded_count(), expanded, "nothing changed: no planning while walking")
+	assert_true(_build.place(_player, &"foundation_block", _at(-20, -20), "") > 0, "something built far away")
+	_sim.step()
+	assert_true(_pathing.expanded_count() > expanded, "the build changed, so the walk was planned again")
+	assert_true(_actors.remove(guard, &""), "removed")
+	assert_eq(_pathing.state_of(guard), "", "and its route went with it, before the next tick")
+
