@@ -1,0 +1,5105 @@
+{
+	"commands": [
+		{
+			"kind": "actor.spawn",
+			"payload": {
+				"profile": "arcade",
+				"range_m": 12
+			},
+			"tick": 1
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 2
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 3
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 4
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 5
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 6
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 7
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 8
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 9
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 10
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 11
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 12
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 13
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 14
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 15
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 16
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 17
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 18
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 19
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 20
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 21
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 22
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 23
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 24
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 25
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 26
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 27
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 28
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 29
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 30
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 31
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 32
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 33
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 34
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 35
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 36
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 37
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 38
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 39
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 40
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 41
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 42
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 43
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 44
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 45
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 46
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 47
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 48
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 49
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 50
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 51
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 52
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 53
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 54
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 55
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 56
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 57
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 58
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 59
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 60
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 61
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 62
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 63
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 64
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 65
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 66
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 67
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 68
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 69
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 70
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 71
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 72
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 73
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 74
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 75
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 76
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 77
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -100,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 78
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 79
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 80
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 81
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 50
+			},
+			"tick": 82
+		},
+		{
+			"kind": "region.enter",
+			"payload": {
+				"actor": 1,
+				"region": "wilds"
+			},
+			"tick": 83
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 165
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 166
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 167
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 168
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 169
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 170
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 171
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -10
+			},
+			"tick": 172
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 173
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 174
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 175
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 176
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 177
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 178
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 179
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 180
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 181
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 182
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -60
+			},
+			"tick": 183
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 184
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 185
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 186
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 187
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 188
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 189
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 190
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 191
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 192
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 193
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -61
+			},
+			"tick": 194
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 195
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 196
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 197
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 198
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 199
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 200
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 201
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 202
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 203
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 204
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -60
+			},
+			"tick": 205
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 206
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 207
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 208
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 209
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 210
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 211
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 212
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 213
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 214
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 215
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -61
+			},
+			"tick": 216
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 217
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 218
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 219
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 220
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 221
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 222
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 223
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 224
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 225
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 226
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -60
+			},
+			"tick": 227
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 228
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 229
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 230
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 231
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 232
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 233
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 234
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 235
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 236
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 237
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -61
+			},
+			"tick": 238
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 239
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 240
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 241
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 242
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 243
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 244
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 245
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 246
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 247
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 248
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -60
+			},
+			"tick": 249
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 250
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 251
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 252
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 253
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 254
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 255
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 256
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 257
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 258
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 259
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -61
+			},
+			"tick": 260
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 261
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 262
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 263
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 264
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 265
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 266
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 267
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 268
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 269
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 270
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -60
+			},
+			"tick": 271
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 272
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 273
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 274
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 275
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 276
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 277
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 278
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 279
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 280
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 281
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -61
+			},
+			"tick": 282
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 283
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 284
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 285
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 286
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 287
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 288
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 289
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 290
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 291
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 292
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -60
+			},
+			"tick": 293
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 294
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 295
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 296
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 297
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 298
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 299
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 300
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 301
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 302
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 303
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -61
+			},
+			"tick": 304
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 305
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 306
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 307
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 308
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 309
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 310
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 311
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 312
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 313
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 314
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -60
+			},
+			"tick": 315
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 316
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 317
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 318
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 319
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 320
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 321
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 322
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 323
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 51,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 324
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -150
+			},
+			"tick": 325
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": -60
+			},
+			"tick": 326
+		},
+		{
+			"kind": "ground.dig",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					19,
+					-1,
+					-24
+				]
+			},
+			"tick": 327
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 328
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 329
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 330
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 331
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 332
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 333
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 334
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 335
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 336
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 337
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 60
+			},
+			"tick": 338
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 339
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 340
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 341
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 342
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 343
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 344
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 345
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 346
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 347
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 348
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 60
+			},
+			"tick": 349
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 350
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 351
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 352
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 353
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 354
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 355
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 356
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 357
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 358
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 359
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 61
+			},
+			"tick": 360
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 361
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 362
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 363
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 364
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 365
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 366
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 367
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 368
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 369
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 370
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 60
+			},
+			"tick": 371
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 372
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 373
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 374
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 375
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 376
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 377
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 378
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 379
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 380
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 381
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 61
+			},
+			"tick": 382
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 383
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 384
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 385
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 386
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 387
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 388
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 389
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 390
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 391
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 392
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 60
+			},
+			"tick": 393
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 394
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 395
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 396
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 397
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 398
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 399
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 400
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 401
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 402
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 403
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 61
+			},
+			"tick": 404
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 405
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 406
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 407
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 408
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 409
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 410
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 411
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 412
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 413
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 414
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 60
+			},
+			"tick": 415
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 416
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 417
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 418
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 419
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 420
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 421
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 422
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 423
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 424
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 425
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 61
+			},
+			"tick": 426
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 427
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 428
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 429
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 430
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 431
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 432
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 433
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 434
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 435
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 436
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 60
+			},
+			"tick": 437
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 438
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 439
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 440
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 441
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 442
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 443
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 444
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 445
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 446
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 447
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 61
+			},
+			"tick": 448
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 449
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 450
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 451
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 452
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 453
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 454
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 455
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 456
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 457
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 458
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 60
+			},
+			"tick": 459
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 460
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 461
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 462
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 463
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 464
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 465
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 466
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 467
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 468
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 469
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 61
+			},
+			"tick": 470
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 471
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 472
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 473
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 474
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 475
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 476
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 477
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 478
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -51,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 479
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 480
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 60
+			},
+			"tick": 481
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 482
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 483
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 484
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 485
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": -150,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 486
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 487
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 488
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 10
+			},
+			"tick": 489
+		},
+		{
+			"kind": "region.enter",
+			"payload": {
+				"actor": 1,
+				"region": "city"
+			},
+			"tick": 490
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 572
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 573
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 574
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 575
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 576
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 577
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 578
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 579
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 580
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 581
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 582
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 583
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 584
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 585
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 586
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 587
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 588
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 589
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 590
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 591
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 592
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 593
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 594
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 595
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 596
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 597
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 598
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 599
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 600
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 601
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 602
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 603
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 604
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 605
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 606
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 607
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 608
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 609
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 610
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 611
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 612
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 613
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 614
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 615
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 616
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 617
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 618
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 619
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 620
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 621
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 622
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 623
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 624
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 625
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 626
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 627
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 628
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 629
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 630
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 631
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 632
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 633
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 634
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 635
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 636
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 637
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 638
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 639
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 640
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 641
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 642
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 643
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 644
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 645
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 646
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 150,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 647
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 100,
+				"dy": 0,
+				"dz": 0
+			},
+			"tick": 648
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 649
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 650
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 651
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 652
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 653
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 654
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 655
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 656
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 657
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 658
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 659
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 660
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 661
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 662
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 663
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 664
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 665
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 666
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 667
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 668
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 669
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 670
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 671
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dy": 0,
+				"dz": 50
+			},
+			"tick": 672
+		}
+	],
+	"expected_hash": "0f583f106582270ade8fec1f5888afeed06635767247f7807d20161f1ab90104",
+	"name": "m7-seam",
+	"schema_version": 1,
+	"seed": 20261300,
+	"ticks": 712
+}

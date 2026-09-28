@@ -1,0 +1,25 @@
+{
+	"commands": [
+		{
+			"kind": "actor.spawn",
+			"payload": {
+				"profile": "arcade",
+				"range_m": 12
+			},
+			"tick": 1
+		},
+		{
+			"kind": "quest.accept",
+			"payload": {
+				"actor": 1,
+				"quest": "cold_storage"
+			},
+			"tick": 2
+		}
+	],
+	"expected_hash": "45814f803858d926b68560388c84af1c4fb59a24f08d7d912838a285553f0b40",
+	"name": "m7-bind",
+	"schema_version": 1,
+	"seed": 20261300,
+	"ticks": 42
+}

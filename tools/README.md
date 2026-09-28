@@ -21,6 +21,7 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `make_sites.gd` | Authors the `content/site/` files (M6 claim 3): the layout lives here as reviewable code, the JSON it writes is what the sim reads. |
 | `make_m5_fixtures.gd` | Regenerates the three M5 replay fixtures; re-record their hashes afterwards. |
 | `bench_agents.gd` | The agent budget on the Deck (M4 claim 13): the M4 building with six armed guards for 12 000 ticks headless, per-tick sim time at the 99th and 99.9th percentiles, with and without agents, and the rebuild ticks, as JSON. |
+| `make_m7_fixtures.gd` | Regenerates the four M7 replay fixtures (claim 17): the world alone, a contract binding its place, a squad coming in and going out past the player, the gate there and back. Re-record their hashes afterwards. |
 | `make_m4_fixtures.gd` | Regenerates the six M4 replay fixtures from `M4Building`; re-record their hashes afterwards. |
 | `test.sh` | The whole verification run, in the order CI uses it. Run this before presenting any work. |
 | `tests/` | Unit tests for the Python tools (`python3 -m unittest discover tools/tests`). |
