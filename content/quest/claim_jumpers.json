@@ -1,0 +1,28 @@
+{
+	"schema_version": 1,
+	"description": "A contract bound to the fifth site tag (M7 extension exercise, standards §11 Q4): a new kind of place and a job out at one, in content alone.",
+	"title": "Claim jumpers",
+	"text": "Somebody is working a claim that is not theirs, out past the edge of the map. The owner wants them gone and does not much care how. Go out there and make it expensive for them to stay.",
+	"objectives": [
+		{
+			"description": "Drive the claim jumpers off",
+			"event": "combat.hit",
+			"credit": "shooter",
+			"tags_any": [],
+			"count": 5
+		}
+	],
+	"site": {
+		"tags_any": ["extraction"],
+		"min_km": 0,
+		"max_km": 10,
+		"undiscovered": true
+	},
+	"reward": [
+		{
+			"kind": "ammo",
+			"template": "9x19_fmj",
+			"count": 30
+		}
+	]
+}

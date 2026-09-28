@@ -1,0 +1,30 @@
+{
+	"schema_version": 1,
+	"title": "Mining camp",
+	"description": "A town that exists because of a hole in the ground: a weighbridge where the road comes in, a haul road up to the pit head, and whatever the crews have put up around it. The spoil heaps, the bunkhouses and the washing plant are blocks the world may or may not have got round to, so one camp is a pit and a shed and the next is a small town.",
+	"district": "badlands_outskirts",
+	"min_blocks": 1,
+	"max_blocks": 3,
+	"nodes": [
+		{"rel": [40000, 0], "kind": "junction", "block": ""},
+		{"rel": [90000, 30000], "kind": "junction", "block": ""},
+		{"rel": [140000, 80000], "kind": "poi", "block": ""},
+		{"rel": [60000, -70000], "kind": "junction", "block": "spoil"},
+		{"rel": [110000, -120000], "kind": "poi", "block": "spoil"},
+		{"rel": [150000, 10000], "kind": "poi", "block": "bunkhouses"},
+		{"rel": [30000, 90000], "kind": "junction", "block": "washing"},
+		{"rel": [80000, 150000], "kind": "poi", "block": "washing"}
+	],
+	"edges": [
+		{"a": 0, "b": 1, "width": 9000},
+		{"a": 1, "b": 2, "width": 9000},
+		{"a": 0, "b": 3, "width": 7000},
+		{"a": 3, "b": 4, "width": 7000},
+		{"a": 1, "b": 5, "width": 4000},
+		{"a": 0, "b": 6, "width": 5000},
+		{"a": 6, "b": 7, "width": 5000}
+	],
+	"sockets": [
+		{"node": 0, "width": 10000}
+	]
+}

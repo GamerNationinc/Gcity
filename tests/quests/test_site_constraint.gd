@@ -121,12 +121,16 @@ func test_a_quest_reads_its_own_constraint() -> void:
 	_setup()
 	var sim: SimRoot = SimAssembly.build(SEED, _db)
 	var quests: QuestSystem = SimAssembly.quests_of(sim)
-	# claim 10: Cold Storage names a handle; every other contract still says where it is
+	# claim 10: Cold Storage names a handle; so does the Q4 exercise's contract. Every
+	# contract reads back exactly the constraint its own file declares, and one that
+	# declares none still says where it happens
+	assert_eq(quests.site_of(&"cold_storage")["max_km"], 3, "Cold Storage asks for somewhere close")
 	for quest: StringName in quests.quest_ids():
-		if quest == &"cold_storage":
-			assert_eq(quests.site_of(quest)["max_km"], 3, "Cold Storage asks for somewhere close")
-		else:
-			assert_eq(quests.site_of(quest), {}, "quest/%s still says where it happens" % quest)
+		var entry: Dictionary = _db.get_entry(QuestSystem.KIND_QUEST, quest)
+		var declared: Dictionary = entry.get("site", {})
+		assert_eq(quests.site_of(quest).is_empty(), declared.is_empty(), "quest/%s asks for a place only if its file does" % quest)
+		if not declared.is_empty():
+			assert_eq(quests.site_of(quest)["tags_any"], declared["tags_any"], "quest/%s asks for what its file says" % quest)
 	var db := ContentDb.new()
 	assert_eq(db.add(QuestSystem.KIND_QUEST, &"a_job", {
 		"schema_version": 1, "title": "A job", "description": "x", "text": "x",

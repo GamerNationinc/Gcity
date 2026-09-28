@@ -1,0 +1,7 @@
+{
+	"schema_version": 1,
+	"title": "Extraction",
+	"description": "Somewhere worth digging: pits, adits, a claim someone is sitting on. Bare rock and the scrub around it, and only off the main roads at a place of its own or a fork, where a haul road could plausibly have been cut.",
+	"biomes": ["rock", "scrub"],
+	"node_kinds": ["poi", "junction"]
+}
