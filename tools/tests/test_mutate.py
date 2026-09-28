@@ -118,6 +118,20 @@ class InvalidMutants(unittest.TestCase):
     def test_a_score_with_nothing_to_score_is_zero_not_a_crash(self) -> None:
         self.assertEqual(mutate.Report().score, 0.0)
 
+    def test_a_slow_file_gets_time_in_proportion_not_a_kill_by_the_clock(self) -> None:
+        # tests that take twenty minutes untouched were timing out under every mutant
+        # at a flat ten, and each timeout counted as a kill
+        self.assertEqual(mutate.mutant_timeout(1200.0, 600), 3660)
+
+    def test_a_quick_file_keeps_the_floor(self) -> None:
+        self.assertEqual(mutate.mutant_timeout(5.0, 600), 600)
+
+    def test_an_unscored_file_is_not_in_the_score(self) -> None:
+        report = mutate.Report(unscored=["sim/a.gd"])
+        report.mutants = [mutate.Mutant("sim/b.gd", 1, "op", "x", "y", outcome="failed")]
+        self.assertEqual(report.score, 100.0)
+        self.assertEqual(report.unscored, ["sim/a.gd"])
+
 
 class Coverage(unittest.TestCase):
     """Every sim file must map to tests that actually exercise it."""

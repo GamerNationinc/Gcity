@@ -147,6 +147,9 @@ class Mutant:
 @dataclass
 class Report:
     mutants: list[Mutant] = field(default_factory=list)
+    #: Files whose tests failed with nothing mutated. Their mutants are not run: a kill
+    #: against tests that already fail is no evidence of anything.
+    unscored: list[str] = field(default_factory=list)
 
     @property
     def scored(self) -> list[Mutant]:
@@ -286,6 +289,17 @@ def sim_files(under: list[str]) -> list[Path]:
     return list(seen)
 
 
+def mutant_timeout(baseline_seconds: float, floor: int) -> int:
+    """Seconds a mutant may run before it counts as hung, and so killed.
+
+    A fixed limit made every mutant of a file whose tests take longer than it "killed"
+    by the clock rather than by a test: M7's metamorphic hydration property alone runs
+    for a quarter of an hour. The limit is three times what the untouched tests took,
+    and a minute over, so only a mutant that really hangs times out.
+    """
+    return max(floor, int(baseline_seconds * 3) + 60)
+
+
 def diagnostics(output: str) -> tuple[str, ...]:
     """The engine errors a test run printed, as a comparable multiset.
 
@@ -330,7 +344,10 @@ def main() -> int:
     parser.add_argument("under", nargs="*", help="paths under the repo to mutate (default: sim)")
     parser.add_argument("--per-file", type=int, default=6, help="mutants sampled per file (default 6)")
     parser.add_argument("--seed", type=int, default=20261230, help="sampling seed")
-    parser.add_argument("--timeout", type=int, default=600, help="seconds allowed per mutant")
+    parser.add_argument("--timeout", type=int, default=600,
+                        help="least seconds allowed per mutant; more if the untouched tests take longer")
+    parser.add_argument("--baseline-timeout", type=int, default=7200,
+                        help="seconds allowed for a file's tests to run untouched")
     parser.add_argument("--json", help="write the full report here")
     parser.add_argument("--godot", default="", help="engine binary (default: tools/godot.sh)")
     args = parser.parse_args()
@@ -371,13 +388,19 @@ def main() -> int:
         tests = tests_for(rel)
         # what the tests say with the file untouched, so a mutant that silences a
         # diagnostic can be told from one that changes nothing at all
-        _, _, baseline = run(tests, godot, args.timeout)
+        started = time.monotonic()
+        base_outcome, base_why, baseline = run(tests, godot, args.baseline_timeout)
+        limit = mutant_timeout(time.monotonic() - started, args.timeout)
+        if base_outcome != "passed":
+            print(f"UNSCORED {rel}: its tests fail with nothing mutated ({base_why})", flush=True)
+            report.unscored.append(rel)
+            continue
         for mutant in chosen:
             lines[mutant.line - 1] = mutant.after + "\n"
             _hold(path, original)
             path.write_text("".join(lines), encoding="utf-8")
             started = time.monotonic()
-            outcome, why, printed = run(tests, godot, args.timeout)
+            outcome, why, printed = run(tests, godot, limit)
             mutant.seconds = time.monotonic() - started
             if outcome == "passed" and printed != baseline:
                 outcome = "failed"
@@ -393,6 +416,10 @@ def main() -> int:
     print()
     print(f"{len(report.scored)} mutants, {report.killed} killed, score {report.score:.1f}%"
           f"  ({len(report.invalid)} did not compile and are not counted)")
+    if report.unscored:
+        print(f"\n{len(report.unscored)} files not scored, their tests failing untouched:")
+        for rel in report.unscored:
+            print(f"  {rel}")
     survivors = [m for m in report.scored if not m.killed]
     if survivors:
         print("\nsurvived:")
@@ -405,11 +432,12 @@ def main() -> int:
             "mutants": len(report.scored),
             "killed": report.killed,
             "invalid": len(report.invalid),
+            "unscored": report.unscored,
             "per_file": args.per_file,
             "seed": args.seed,
             "detail": [vars(m) for m in report.mutants],
         }, indent="\t") + "\n", encoding="utf-8")
-    return 0
+    return 1 if report.unscored else 0
 
 
 if __name__ == "__main__":
