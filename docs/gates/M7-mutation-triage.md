@@ -112,3 +112,56 @@ handler is what those tests drive (`land_system.gd:134`).
 | 1b | `world/wild_region.gd:30` | `4096 -> 4097` | equivalent | the cache's size, which by its own comment changes nothing but time |
 | 1b | `world/wild_region.gd:228` | `1 -> 2` | equivalent | the one caller asks `>= 0` |
 
+## Pass 2: after
+
+Every `sim/` file again (`M7-mutation-pass2-a.log`, `-b.log`, split across two worktrees),
+with pass 1's tests and the fixed harness. **221 of 252 scored mutants killed: 87.7 %**
+(31 did not compile and are not counted). Files 21–48 drew the same mutants as in pass 1;
+the Deck's twenty drew new ones, since they are now sampled per file.
+
+Pass 2 started before the tests below were written, so they are not in its number. The
+movement and pathing files were run again once their last tests were in
+(`M7-mutation-pass2-agents` in the tree, not kept): the same twelve mutants, the same result.
+
+Survivors of pass 1 that pass 2 drew again survived again only where pass 1 called them
+equivalent or outside (`structure_system:410`, `region:24`, `wild_region:30` and `:228`,
+`item_system:621` and `:870`, `portal_graph:162`, `stat_resolver:640`, `standing_system:224`,
+`regions:474` and `:208`). The new ones:
+
+20 new survivors: 12 holes, 6 equivalent, 1 open, 1 on a defective branch.
+
+| mutant (`sim/…`) | operator | verdict | test, or why |
+|---|---|---|---|
+| `agents/actor_system.gd:226` | `<= -> <` | equivalent | the square root's upward correction again: the float estimate is exact on perfect squares at these magnitudes |
+| `agents/actor_system.gd:415` | `return false -> true` | hole | `test_actor_system`: putting away a device you do not carry is refused |
+| `agents/aim_system.gd:187` | `== -> !=` | hole | `test_aim_and_stress`: a quiet agent keeps its aim modifier (the mutant tears it down and makes it again every tick) |
+| `agents/corpse_system.gd:225` | `> -> >=` | equivalent | with nothing affordable the fee is zero, and moving no notes changes nothing |
+| `agents/corpse_system.gd:258` | `> -> >=` | hole | `test_corpse`: a district exactly at the threshold is not held (no shipped district sits on 200) |
+| `agents/hydration_system.gd:198` | `1 -> 2` | hole | `test_hydration`: a squad of one leaves the gate without waiting for a file (the count is only the file the gate rule checks, which is why the squad-of-one test did not see it) |
+| `agents/hydration_system.gd:247` | `> -> >=` | hole | `test_hydration`: a token at exactly the agents' pace comes in |
+| `agents/macro_token_system.gd:236` | `return false -> true` | hole | `test_macro_token`: dropping a token that is not held is refused |
+| `agents/pathing_system.gd:193` | deleted | hole | `test_agent_pathing`: a failed route survives a save (restore refuses a failed route holding a search) |
+| `agents/raid_token_system.gd:191` | `< -> <=` | open | a raid path of cost 0 needs a stair (opened for nothing) to be the only way between two volumes; the shipped pieces put stairs inside a volume and join levels by the hatch, and no geometry was found that reaches it. Not claimed equivalent |
+| `agents/squad_system.gd:239` | `0 -> 1` | defect | the branch it sits on is itself wrong: see *A defect the run turned up* below |
+| `agents/stance_system.gd:295` | `0 -> 1` | equivalent | the `else 0` in hold's score becomes 1 when a contact is known: one point in a million on a scoring weight no specification or content names |
+| `agents/stance_system.gd:460` | `2 -> 3` | equivalent | a tuning distance (retreat while closer than twice the retreat distance) no specification names |
+| `agents/stance_system.gd:531` | `0 -> 1` | hole | `test_stance_scoring`: facing toward nothing is north |
+| `agents/stance_system.gd:589` | `0 -> 1` | equivalent | a stance record is made during a tick, and ticks start at 1, so `since` is never 0 |
+| `agents/stress_system.gd:125` | `0 -> 1` | hole | `test_aim_and_stress`: something that is not an agent has no stress penalty |
+| `assembly.gd:371` | deleted | hole | `test_sim_assembly`: movement_of requires an assembled sim |
+| `core/content_db.gd:60` | deleted | hole | `test_content_db`: ids are sorted and the digest follows every add |
+| `core/content_db.gd:89` | deleted | hole | the same test |
+| `core/replay_fixture.gd:25` | `0 -> 1` | equivalent | the default of a field every valid parse sets; nothing reads it from an invalid fixture |
+
+## A defect the run turned up
+
+`SquadSystem._plan` hands each member outside the contact's volume the next edge in cost
+order. A solid block standing in a wall is an edge too, and has no face, so `_outside_cell`
+finds nothing for it; the loop then skips the member *without moving past the edge*, and
+every member after it meets the same edge and gets nothing. A block costs what a wall of
+the same material does and ties go to the lower piece id, so a block placed before the
+walls ranks first among them. Reproduced with the sim unchanged: the M3 demo room with a
+foundation block in place of one west wall, placed first, and three watchers told where the
+player is: the first member is given the door; the other two are given nothing, with
+sixteen walls on offer. The fix is in `sim/agents/` and outside claim 18, so it is not in
+this branch; it is in the debt log for CEOGG.

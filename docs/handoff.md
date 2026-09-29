@@ -13,12 +13,14 @@ session picks up. Read it first, then `CLAUDE.md`.
 - `tools/mutate.py` now counts `SCRIPT ERROR:` lines as diagnostics (a mutant that made the
   stress tick throw 3 309 times passed as `0 failed`), and maps `land_system.gd` to the pause
   tests. Both are in the triage note.
-- The suite with all of it: 478 tests, 340 086 assertions, one failure:
-  `test_terrain_streamer::test_a_frame_keeps_to_its_budget`, which fails on this laptop every
-  time (worst frame 7.9–10.1 ms against a 6 ms ceiling, idle machine, native mesher loaded)
-  and is left as it is for CEOGG to decide: it is a desktop wall-clock number.
-- Still to do: the second pass (every `sim/` file again, with the new tests and the fixed
-  harness) for the after score, then the gate.
+- Pass 2, every `sim/` file again with the new tests and the fixed harness: 221 of 252,
+  **87.7 %**. Its 20 new survivors are triaged too, with 12 more tests; one is left open
+  and one turned up a defect in the squad entry planner (gate §4 item 14).
+- The suite with all of it: 492 tests, 340 159 assertions, 0 failed, all stages passed.
+  `test_terrain_streamer::test_a_frame_keeps_to_its_budget` is flaky here (worst frame
+  7.9–10.1 ms in six runs of seven against a 6 ms ceiling, 5.8 ms in the last), left as it
+  is for CEOGG to decide: it is a desktop wall-clock number.
+- `docs/gates/M7-gate.md` is filled in but for the date, Q1 and CEOGG's parts; still a draft.
 
 ## Where things stood on the Deck
 

@@ -422,3 +422,41 @@ static func _someone_else_near(tokens: MacroTokenSystem, visiting: int, watch: V
 		if d.x * d.x + d.y * d.y <= NOTICE_MM * NOTICE_MM:
 			return true
 	return false
+
+
+## Found by the G7 mutation run: every token here walked slower than its agents can, so
+## one at exactly their pace, which they can keep, was never offered.
+func test_a_token_at_exactly_the_agents_pace_comes_in() -> void:
+	_setup()
+	var db: ContentDb = _sim.get_system(&"content")
+	var profile: Dictionary = db.get_entry(PerceptionSystem.KIND_AGENT, &"foot_patrol")
+	var combat_s: String = profile["combat_profile"]
+	var pace: int = db.get_entry(ActorSystem.KIND_PROFILE, StringName(combat_s))["speed_mm_per_tick"]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SEED
+	var pair: Array[int] = _wild_pair(_routes, rng)
+	var token: int = _tokens.spawn(FACTION, pair[0], pair[1], pace, _patrol(2, false))
+	assert_true(token > 0, "a token at %d mm a tick" % pace)
+	_watch(token)
+	_until_look()
+	assert_true(_hydration.is_hydrated(token), "its squad can keep that pace")
+
+
+## Found by the G7 mutation run: the gate's whole-file rule was only tried on a squad
+## of three. A squad of one has no file behind it to wait for, so from the gate it comes
+## in before a squad of two does.
+func test_a_squad_of_one_leaves_the_gate_without_waiting_for_a_file() -> void:
+	var came_in: Array[int] = []
+	for members: int in [1, 2]:
+		_setup()
+		_actors.set_position(_player, _on_ground(SimAssembly.regions_of(_sim), 100_000, -10_000))
+		var token: int = _tokens.spawn(FACTION, 1, RouteGraph.OUTSKIRTS, PACE, _patrol(members, false))
+		var tick: int = -1
+		for i: int in 400:
+			_sim.step()
+			if _hydration.is_hydrated(token):
+				tick = _sim.get_tick()
+				break
+		assert_true(tick > 0, "a squad of %d came in" % members)
+		came_in.append(tick)
+	assert_true(came_in[0] < came_in[1], "one before two (%d, %d)" % [came_in[0], came_in[1]])

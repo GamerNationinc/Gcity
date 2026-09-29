@@ -79,3 +79,14 @@ func test_has_is_false_for_an_unknown_kind() -> void:
 	assert_eq(db.add(&"stat", &"damage", _valid()), OK, "add")
 	assert_false(db.has(&"perk", &"damage"), "an id under a kind with no entries")
 	assert_false(db.has(&"stat", &"speed"), "an unknown id under a known kind")
+
+
+## Found by the G7 mutation run: ids were only read back from entries added in order,
+## and the digest only before and after a first add.
+func test_ids_are_sorted_and_the_digest_follows_every_add() -> void:
+	var db := ContentDb.new()
+	assert_eq(db.add(&"stat", &"zeta", _valid()), OK, "zeta")
+	var one: String = db.digest()
+	assert_eq(db.add(&"stat", &"alpha", _valid()), OK, "alpha")
+	assert_eq(db.ids(&"stat"), [&"alpha", &"zeta"] as Array[StringName], "sorted, whatever order they came in")
+	assert_ne(db.digest(), one, "a second entry is a different digest")

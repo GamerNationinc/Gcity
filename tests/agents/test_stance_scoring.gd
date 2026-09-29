@@ -358,3 +358,9 @@ func test_an_agent_that_is_not_alerted_scores_no_advance() -> void:
 	assert_false(alerted, "nobody has alerted it")
 	var only_advance: Array[Dictionary] = [{"stance": StanceSystem.STANCE_ADVANCE, "weight": 1000}]
 	assert_eq(_stances.choose(only_advance, ctx, &"", 0)["score"], 0, "advance scores nothing")
+
+
+## Found by the G7 mutation run: facing toward nothing was never asked.
+func test_facing_toward_nothing_is_north() -> void:
+	assert_eq(StanceSystem.facing_toward(Vector2i.ZERO), 0, "no direction, no turn")
+

@@ -320,3 +320,15 @@ func test_an_arrived_route_survives_a_save() -> void:
 	assert_true(_pathing.request(agent, _cell(3, 0)), "three cells east")
 	assert_true(_walk_until(agent, PathingSystem.STATE_ARRIVED, 200) > 0, "arrived")
 	assert_eq(_pathing.restore(_pathing.snapshot()), OK, "and the route as it stands restores")
+
+
+## Found by the G7 mutation run: nor after a search had failed. A failed route holds
+## no search either.
+func test_a_failed_route_survives_a_save() -> void:
+	_setup()
+	for c: Vector3i in [_cell(9, 10), _cell(11, 10), _cell(10, 9), _cell(10, 11)]:
+		assert_true(_build.place(_player, &"foundation_block", BuildSystem.cell_centre(c), "") > 0, "a ring of blocks")
+	var agent: int = _perception.spawn(&"guard_sim", _cell(10, 5), 0, 1, "")
+	assert_true(_pathing.request(agent, _cell(10, 10)), "a goal walled in")
+	assert_true(_walk_until(agent, PathingSystem.STATE_FAILED, 200) > 0, "no way in")
+	assert_eq(_pathing.restore(_pathing.snapshot()), OK, "and the route as it stands restores")

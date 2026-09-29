@@ -132,3 +132,8 @@ func test_restore_systems_restores_the_squads() -> void:
 	var target: SimRoot = SimAssembly.build(SEED, _content())
 	assert_eq(SimAssembly.restore_systems(target, snapshot), OK, "restore")
 	assert_eq(SimAssembly.squads_of(target).delivered_count(), 3, "the squads' state came back")
+
+
+## Found by the G7 mutation run: asking a bare sim for its movement was never tried.
+func test_movement_of_requires_an_assembled_sim() -> void:
+	assert_true(SimAssembly.movement_of(SimRoot.new(SEED)) == null, "bare sim has no movement")

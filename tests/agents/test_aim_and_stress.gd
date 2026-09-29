@@ -406,3 +406,23 @@ func test_a_calm_agent_keeps_one_record_and_one_modifier() -> void:
 ## segments long enough that a point just past it rounded to the start anyway.
 func test_distance_before_the_start_of_a_one_millimetre_segment() -> void:
 	assert_eq(StressSystem.distance_to_segment_mm(Vector3i(-5, 0, 0), Vector3i.ZERO, Vector3i(1, 0, 0)), 5, "measured from the start")
+
+
+## Found by the G7 mutation run: nothing watched an agent's aim modifier across quiet
+## ticks, so one torn down and made again every tick went unnoticed.
+func test_a_quiet_agent_keeps_its_aim_modifier() -> void:
+	_setup()
+	_actors.set_position(_player, _at(-200, 0))  # far behind it: nothing to aim at
+	var agent: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 1, "")
+	assert_true(agent > 0, "a guard")
+	_sim.step()
+	var first: Dictionary = _aim.snapshot()["aim"][agent]
+	_sim.step_n(5)
+	var later: Dictionary = _aim.snapshot()["aim"][agent]
+	assert_eq(later["handle"], first["handle"], "the same modifier")
+
+
+## Found by the G7 mutation run: the stress penalty was only asked of agents.
+func test_something_that_is_not_an_agent_has_no_stress_penalty() -> void:
+	_setup()
+	assert_eq(_stress.penalty_of(_player), 0, "the player has no stress profile")

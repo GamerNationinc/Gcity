@@ -319,3 +319,11 @@ func test_a_revived_actor_comes_back_whole() -> void:
 	assert_true(_actors.is_alive(a), "alive again")
 	assert_eq(_actors.health_of(a), {&"body": _actors.max_health(a, &"body")}, "at full health, not at zero")
 	assert_false(_actors.revive(a), "and the living cannot be revived")
+
+
+## Found by the G7 mutation run: putting a device away was only asked of an actor
+## carrying one.
+func test_putting_away_a_device_you_do_not_carry_is_refused() -> void:
+	_build()
+	var actor: int = _actors.spawn(&"arcade", 0)
+	assert_false(_do(ActorSystem.COMMAND_EQUIP_DEVICE, {"actor": actor, "device": EntityIds.NONE}), "nothing to put away")

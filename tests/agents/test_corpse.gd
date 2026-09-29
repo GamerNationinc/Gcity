@@ -360,3 +360,40 @@ func test_respawn_payload_is_exact_and_needs_a_body() -> void:
 	assert_false(_do(&"actor.respawn", {"actor": _player}), "a living actor")
 	_actors.damage_node(_player, &"body", 999999)
 	assert_true(_do(&"actor.respawn", {"actor": _player}), "dead, with a body: fine")
+
+
+## Found by the G7 mutation run: no shipped district sits on the police rule's threshold,
+## so which side of it the threshold itself is on was never asked. The rule holds scenes
+## where the law is above it.
+func test_a_district_exactly_at_the_threshold_is_not_held() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var watched: Dictionary = db.get_entry(LandSystem.KIND_DISTRICT, &"starter_ghetto").duplicate(true)
+	watched["law_index"] = 200
+	assert_eq(db.add(LandSystem.KIND_DISTRICT, &"watched", watched), OK, "a district on the threshold")
+	var lot: Dictionary = db.get_entry(LandSystem.KIND_PARCEL, &"starter_plot").duplicate(true)
+	lot["district"] = "watched"
+	lot["footprint"] = [[2000 * M, 2000 * M], [2012 * M, 2000 * M], [2012 * M, 2012 * M], [2000 * M, 2012 * M]]
+	assert_eq(db.add(LandSystem.KIND_PARCEL, &"watched_lot", lot), OK, "a lot in it")
+	_sim = SimAssembly.build(SEED, db)
+	assert_true(_sim != null, "assembly")
+	if _sim == null:
+		return
+	_corpses = SimAssembly.corpses_of(_sim)
+	_actors = SimAssembly.actors_of(_sim)
+	_items = SimAssembly.items_of(_sim)
+	_events = SimAssembly.combat_of(_sim).events()
+	var back: Array[Dictionary] = []
+	_events.subscribe(CorpseSystem.EVENT_RESPAWNED, func(payload: Dictionary) -> void:
+		back.append(payload))
+	_player = _actors.spawn(&"arcade", 0)
+	var inv: StringName = ItemSystem.inventory_of(_player)
+	for i: int in 10:
+		assert_true(_items.spawn(&"currency", &"credit_note", inv, i + 1) > 0, "note %d" % i)
+	_actors.set_position(_player, Vector3i(2006 * M, 0, 2006 * M))
+	_actors.damage_node(_player, &"body", 999999)
+	var corpse: int = _corpses.corpse_of(_player)
+	assert_true(_do(&"actor.respawn", {"actor": _player}), "come back")
+	assert_eq(back.size(), 1, "one actor.respawned")
+	assert_eq(back[0]["returned"], 0, "nobody held the scene")
+	assert_eq(_corpses.items_on(corpse).size(), 10, "it is all still lying there")

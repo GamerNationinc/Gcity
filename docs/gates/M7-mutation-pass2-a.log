@@ -1,0 +1,182 @@
+killed   sim/core/save_file.gd:87 != -> ==  (620.7s)
+killed   sim/core/save_file.gd:146 == -> !=  (293.1s)
+killed   sim/core/save_file.gd:127 1 -> 2  (2139.5s)
+killed   sim/core/save_file.gd:22 64 -> 65  (2122.1s)
+killed   sim/core/save_file.gd:194 statement deleted  (1452.4s)
+killed   sim/core/save_file.gd:243 statement deleted  (568.8s)
+invalid  sim/agents/actor_system.gd:22 statement deleted  (2.5s)
+SURVIVED sim/agents/actor_system.gd:226 <= -> <  (8.4s)
+killed   sim/agents/actor_system.gd:70 != -> ==  (8.4s)
+SURVIVED sim/agents/actor_system.gd:415 return false -> true  (8.3s)
+killed   sim/agents/actor_system.gd:386 == -> !=  (8.3s)
+killed   sim/agents/actor_system.gd:64 != -> ==  (7.7s)
+killed   sim/agents/corpse_system.gd:41 statement deleted  (11.5s)
+killed   sim/agents/corpse_system.gd:190 return false -> true  (39.5s)
+SURVIVED sim/agents/corpse_system.gd:258 > -> >=  (38.8s)
+SURVIVED sim/agents/corpse_system.gd:225 > -> >=  (39.0s)
+killed   sim/agents/corpse_system.gd:187 return false -> true  (38.7s)
+killed   sim/agents/corpse_system.gd:192 == -> !=  (38.8s)
+killed   sim/agents/macro_token_system.gd:84 1 -> 2  (37.3s)
+invalid  sim/agents/macro_token_system.gd:28 statement deleted  (0.3s)
+killed   sim/agents/macro_token_system.gd:406 0 -> 1  (36.7s)
+killed   sim/agents/macro_token_system.gd:159 statement deleted  (37.0s)
+SURVIVED sim/agents/macro_token_system.gd:236 return false -> true  (37.0s)
+killed   sim/agents/macro_token_system.gd:422 statement deleted  (37.1s)
+killed   sim/agents/pathing_system.gd:252 statement deleted  (600.0s)
+SURVIVED sim/agents/pathing_system.gd:193 statement deleted  (214.4s)
+killed   sim/agents/pathing_system.gd:143 statement deleted  (195.0s)
+killed   sim/agents/pathing_system.gd:234 == -> !=  (229.1s)
+killed   sim/agents/pathing_system.gd:165 == -> !=  (273.7s)
+killed   sim/agents/pathing_system.gd:201 statement deleted  (395.1s)
+invalid  sim/agents/raid_token_system.gd:246 statement deleted  (0.5s)
+SURVIVED sim/agents/raid_token_system.gd:191 < -> <=  (8.6s)
+killed   sim/agents/raid_token_system.gd:13 10 -> 11  (8.7s)
+killed   sim/agents/raid_token_system.gd:268 statement deleted  (9.5s)
+killed   sim/agents/raid_token_system.gd:229 0 -> 1  (9.0s)
+invalid  sim/agents/raid_token_system.gd:14 statement deleted  (3.0s)
+killed   sim/agents/stance_system.gd:71 statement deleted  (11.2s)
+SURVIVED sim/agents/stance_system.gd:531 0 -> 1  (10.7s)
+SURVIVED sim/agents/stance_system.gd:295 0 -> 1  (11.0s)
+killed   sim/agents/stance_system.gd:552 0 -> 1  (10.6s)
+SURVIVED sim/agents/stance_system.gd:460 2 -> 3  (10.9s)
+SURVIVED sim/agents/stance_system.gd:589 0 -> 1  (10.7s)
+killed   sim/assembly.gd:36 != -> ==  (2.7s)
+killed   sim/assembly.gd:227 statement deleted  (7.8s)
+SURVIVED sim/assembly.gd:371 statement deleted  (8.4s)
+killed   sim/assembly.gd:51 != -> ==  (3.1s)
+killed   sim/assembly.gd:298 == -> !=  (8.4s)
+killed   sim/assembly.gd:343 == -> !=  (8.3s)
+killed   sim/core/content_db.gd:14 0 -> 1  (6.4s)
+killed   sim/core/content_db.gd:66 != -> ==  (2.2s)
+killed   sim/core/content_db.gd:85 != -> ==  (2.3s)
+SURVIVED sim/core/content_db.gd:89 statement deleted  (6.5s)
+SURVIVED sim/core/content_db.gd:60 statement deleted  (6.6s)
+killed   sim/core/content_db.gd:54 statement deleted  (6.6s)
+killed   sim/core/event_bus.gd:33 statement deleted  (7.0s)
+killed   sim/core/event_bus.gd:12 0 -> 1  (7.2s)
+killed   sim/core/event_bus.gd:41 statement deleted  (7.0s)
+killed   sim/core/event_bus.gd:18 statement deleted  (7.0s)
+killed   sim/core/event_bus.gd:35 != -> ==  (7.1s)
+killed   sim/core/event_bus.gd:33 1 -> 2  (7.1s)
+killed   sim/core/replay.gd:15 != -> ==  (7.5s)
+killed   sim/core/replay.gd:16 statement deleted  (8.3s)
+killed   sim/core/replay.gd:26 statement deleted  (7.7s)
+killed   sim/core/replay.gd:15 0 -> 1  (7.1s)
+killed   sim/core/replay.gd:18 != -> ==  (7.2s)
+killed   sim/core/replay.gd:13 statement deleted  (8.2s)
+killed   sim/core/sim_command.gd:18 statement deleted  (9.4s)
+killed   sim/core/sim_command.gd:19 statement deleted  (9.3s)
+killed   sim/core/sim_command.gd:17 statement deleted  (9.3s)
+killed   sim/items/combat_system.gd:180 return false -> true  (38.7s)
+killed   sim/items/combat_system.gd:316 statement deleted  (38.8s)
+killed   sim/items/combat_system.gd:211 1 -> 2  (38.7s)
+killed   sim/items/combat_system.gd:253 0 -> 1  (39.1s)
+killed   sim/items/combat_system.gd:160 0 -> 1  (38.4s)
+killed   sim/items/combat_system.gd:312 statement deleted  (40.7s)
+killed   sim/land/build_system.gd:66 statement deleted  (8.8s)
+killed   sim/land/build_system.gd:292 < -> <=  (8.8s)
+killed   sim/land/build_system.gd:470 != -> ==  (10.5s)
+killed   sim/land/build_system.gd:502 statement deleted  (9.7s)
+invalid  sim/land/build_system.gd:22 statement deleted  (2.8s)
+killed   sim/land/build_system.gd:170 1 -> 2  (10.1s)
+killed   sim/land/structure_system.gd:237 1 -> 2  (8.6s)
+killed   sim/land/structure_system.gd:192 0 -> 1  (8.6s)
+killed   sim/land/structure_system.gd:414 != -> ==  (8.5s)
+killed   sim/land/structure_system.gd:439 != -> ==  (8.8s)
+invalid  sim/land/structure_system.gd:364 statement deleted  (0.3s)
+SURVIVED sim/land/structure_system.gd:410 1 -> 2  (8.9s)
+killed   sim/progression/progression_system.gd:396 statement deleted  (9.9s)
+killed   sim/progression/progression_system.gd:167 statement deleted  (10.2s)
+killed   sim/progression/progression_system.gd:298 statement deleted  (11.3s)
+killed   sim/progression/progression_system.gd:372 != -> ==  (11.2s)
+killed   sim/progression/progression_system.gd:59 != -> ==  (10.6s)
+killed   sim/progression/progression_system.gd:303 statement deleted  (10.8s)
+killed   sim/quests/quest_system.gd:77 statement deleted  (10.2s)
+killed   sim/quests/quest_system.gd:352 1 -> 2  (29.5s)
+killed   sim/quests/quest_system.gd:359 1 -> 2  (29.3s)
+killed   sim/quests/quest_system.gd:83 statement deleted  (29.3s)
+killed   sim/quests/quest_system.gd:359 statement deleted  (29.1s)
+killed   sim/quests/quest_system.gd:240 return true -> false  (29.0s)
+killed   sim/quests/site_binder.gd:71 statement deleted  (115.2s)
+killed   sim/quests/site_binder.gd:185 statement deleted  (115.8s)
+killed   sim/quests/site_binder.gd:75 statement deleted  (117.2s)
+killed   sim/quests/site_binder.gd:180 statement deleted  (114.7s)
+killed   sim/quests/site_binder.gd:129 statement deleted  (115.9s)
+killed   sim/quests/site_binder.gd:34 statement deleted  (116.2s)
+killed   sim/quests/terminal_system.gd:283 statement deleted  (110.4s)
+killed   sim/quests/terminal_system.gd:59 != -> ==  (102.0s)
+killed   sim/quests/terminal_system.gd:354 statement deleted  (104.3s)
+killed   sim/quests/terminal_system.gd:168 != -> ==  (108.8s)
+killed   sim/quests/terminal_system.gd:203 statement deleted  (110.9s)
+killed   sim/quests/terminal_system.gd:194 return false -> true  (101.2s)
+killed   sim/world/authored_region.gd:15 statement deleted  (242.2s)
+killed   sim/world/authored_region.gd:14 statement deleted  (449.7s)
+killed   sim/world/authored_region.gd:32 <= -> <  (244.5s)
+killed   sim/world/authored_region.gd:27 < -> <=  (243.9s)
+killed   sim/world/authored_region.gd:19 >= -> >  (244.6s)
+killed   sim/world/authored_region.gd:13 statement deleted  (247.7s)
+killed   sim/world/region.gd:52 1 -> 2  (243.5s)
+killed   sim/world/region.gd:52 statement deleted  (249.9s)
+SURVIVED sim/world/region.gd:24 return false -> true  (243.2s)
+killed   sim/world/region.gd:53 statement deleted  (248.4s)
+killed   sim/world/region.gd:59 return false -> true  (255.3s)
+killed   sim/world/region.gd:48 0 -> 1  (238.8s)
+killed   sim/world/settlement_kits.gd:119 >= -> >  (151.9s)
+invalid  sim/world/settlement_kits.gd:74 statement deleted  (0.3s)
+killed   sim/world/settlement_kits.gd:174 0 -> 1  (148.9s)
+killed   sim/world/settlement_kits.gd:62 statement deleted  (115.7s)
+invalid  sim/world/settlement_kits.gd:114 statement deleted  (0.3s)
+invalid  sim/world/settlement_kits.gd:72 statement deleted  (0.3s)
+killed   sim/world/site_tags.gd:46 == -> !=  (7.0s)
+killed   sim/world/site_tags.gd:48 return false -> true  (7.1s)
+killed   sim/world/site_tags.gd:38 return false -> true  (7.0s)
+invalid  sim/world/site_tags.gd:19 statement deleted  (0.3s)
+killed   sim/world/site_tags.gd:47 return true -> false  (6.9s)
+killed   sim/world/site_tags.gd:61 statement deleted  (7.1s)
+killed   sim/world/wild_region.gd:139 == -> !=  (301.5s)
+killed   sim/world/wild_region.gd:140 statement deleted  (298.9s)
+killed   sim/world/wild_region.gd:214 >= -> >  (298.3s)
+SURVIVED sim/world/wild_region.gd:30 4096 -> 4097  (301.3s)
+killed   sim/world/wild_region.gd:181 != -> ==  (306.3s)
+SURVIVED sim/world/wild_region.gd:228 1 -> 2  (303.3s)
+
+131 mutants, 113 killed, score 86.3%  (10 did not compile and are not counted)
+
+survived:
+  sim/agents/actor_system.gd:226  <= -> <
+      while (x + 1) * (x + 1) <= n:
+  sim/agents/actor_system.gd:415  return false -> true
+      return false
+  sim/agents/corpse_system.gd:258  > -> >=
+      return law > threshold
+  sim/agents/corpse_system.gd:225  > -> >=
+      if affordable > 0:
+  sim/agents/macro_token_system.gd:236  return false -> true
+      return false
+  sim/agents/pathing_system.gd:193  statement deleted
+      rec["search"] = {}
+  sim/agents/raid_token_system.gd:191  < -> <=
+      if cost < 0:
+  sim/agents/stance_system.gd:531  0 -> 1
+      return 0
+  sim/agents/stance_system.gd:295  0 -> 1
+      return maxi(300_000 + (400_000 if not known else 0) - stress / 4, 0)
+  sim/agents/stance_system.gd:460  2 -> 3
+      wants_goal = PathingSystem._manhattan(here, there) < RETREAT_CELLS * 2
+  sim/agents/stance_system.gd:589  0 -> 1
+      if since < 0 or score < 0 or waypoint < 0 or (not goal_in.is_empty() and not PathingSystem._is_cell(goal_in)):
+  sim/assembly.gd:371  statement deleted
+      push_error("SimAssembly: sim has no '%s' system" % MovementSystem.SYSTEM_ID)
+  sim/core/content_db.gd:89  statement deleted
+      keys.sort()
+  sim/core/content_db.gd:60  statement deleted
+      _digest_cache = ""
+  sim/land/structure_system.gd:410  1 -> 2
+      if typeof(sk) != TYPE_INT or sk < 1 or typeof(structures_in[sk]) != TYPE_DICTIONARY:
+  sim/world/region.gd:24  return false -> true
+      return false
+  sim/world/wild_region.gd:30  4096 -> 4097
+      const CACHE_CHUNKS: int = 4096
+  sim/world/wild_region.gd:228  1 -> 2
+      return -1
+exit 0

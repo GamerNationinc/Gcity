@@ -26,32 +26,63 @@ was approved before any of it was written.
 | 7 terrain is a consumer | `sim/world/terrain.gd`: cuttings, tunnels, bridges; every edge traversable, 10 000 seeds | `1e4701e` |
 | 8 a quest names a handle | the quest `site` block, `SiteConstraint` | `5614476` |
 | 9 binding is deterministic and permanent | `sim/quests/site_binder.gd` (`bindings`), `RouteGraph.stitch_slot`; 10 000 bindings | `80f33a5`, `7c65491` |
-| 10 Cold Storage is a bound site | the contract binds a slot 0–3 km out; the operator raises the building there; the four M6 fixtures walk out through the gate to it. The client's `--mission` did not until late (§4 item 4): it now takes the contract first, and its demo walks out through the gate, down the road and round the lot before the break-in | `feaf112`, `9ff7337`, {{CCLIENT}} |
+| 10 Cold Storage is a bound site | the contract binds a slot 0–3 km out; the operator raises the building there; the four M6 fixtures walk out through the gate to it. The client's `--mission` did not until late (§4 item 4): it now takes the contract first, and its demo walks out through the gate, down the road and round the lot before the break-in | `feaf112`, `9ff7337`, `3be5a1e` |
 | 11 an off-screen agent is a token | `sim/agents/macro_token_system.gd` (`tokens`), `token.spawn`; `advance(N) == N × advance(1)` | `d622f45` |
 | 12 hydration is a round trip | `sim/agents/hydration_system.gd` (`hydration`), the travel stance, actor removal purged from every module; ADR-010's metamorphic property over 10 000 visits | `7e6f8d1` … `9ce2816` |
 | 13 one rule for both region types | `Region` / `AuthoredRegion` / `WildRegion` behind `Regions`; `check_dependencies` rule 5 | `07ef765`, `0f11706` |
 | 14 the seam | `region.enter` with an 80-tick load window; squads take the gate by dehydrating | `7b00128` |
 | 15 seed plus overlay | `ground.dig` / `ground.fill` as chunk deltas, `Discovery`, save schema 2 with a migration from 1 | `7b00128` |
 | 16 the client shows the graph | the map app draws the graph, bound sites and the player; the world view streams wild ground (`native/terrain_mesher`, proposed — §6) and the gate | `f063d1f`, `db245b4`, `22f2318` |
-| 17 four fixtures | `tools/make_m7_fixtures.gd`, `tests/replay/m7-{graph,bind,hydrate,seam}.json`, `tests/sim/test_m7_fixtures.gd` | {{C17}} |
-| 18 schemas, corpus, mutation | `site_tag`, `settlement`, `region` schemas and the quest `site` block; every new command kind in the hostile corpus; mutation **{{SCORE}} %** against a 75 % bar | across the branch, {{C18}} |
+| 17 four fixtures | `tools/make_m7_fixtures.gd`, `tests/replay/m7-{graph,bind,hydrate,seam}.json`, `tests/sim/test_m7_fixtures.gd` | `5e4623a` |
+| 18 schemas, corpus, mutation | `site_tag`, `settlement`, `region` schemas and the quest `site` block; every new command kind in the hostile corpus; mutation **68.9 %** first pass, **87.7 %** after, against a 75 % bar | across the branch, `a0af2ee`, `2d80dae` and the pass 2 commit (on `m7-mutation-wip`, a straight continuation of `m7-procgen`) |
 | ADR-003 condition 2 | the worst-frame trace (`docs/specs/spike-surface-nets-deck-results/worst-frame-trace.md`) and pooled mesh nodes in the streamer; done late, before claim 16 | `9a2f86b`, `22f2318` |
-| Q4 extension exercise | `content/settlement/mining_camp.json`, `content/site_tag/extraction.json`, `content/quest/claim_jumpers.json`; **the diff under `sim/` is empty** | {{CQ4}} |
+| Q4 extension exercise | `content/settlement/mining_camp.json`, `content/site_tag/extraction.json`, `content/quest/claim_jumpers.json`; **the diff under `sim/` is empty** | `1da12db` |
 
 ## 2. Verification report
 
-{{WHERE — desktop Deck in desktop mode; the Deck run is §7}}
+The suite and both mutation passes ran on the Windows laptop under WSL2 (Ubuntu 24.04,
+the pinned Godot 4.6.1, the native mesher built with Rust 1.98.0), except the first 20
+files of pass 1, which ran on the Deck before the move (`docs/handoff.md`). Desktop
+numbers are a smoke signal; the Deck run is §7.
 
 ### Fitness functions, static analysis, tests, replay
 
 ```
 tools/test.sh
-{{SUITE OUTPUT}}
+== fitness functions        74 tool tests OK; check_dependencies, validate_content: clean
+== native mesher            clippy pedantic clean; its tests pass; built
+== script analysis          every .gd file ok
+== headless tests           492 tests, 340159 assertions, 0 failed; check_test_log: clean
+== replay determinism       24 fixtures, each twice, identical
+== all stages passed        (101 min on the laptop)
 ```
 
 ### Mutation score (claim 18)
 
-{{MUTATION}}
+Two passes, both reported, as at G6. Every survivor of both, and what became of it, is in
+`docs/gates/M7-mutation-triage.md`.
+
+| Pass | What | Scored | Killed | Score |
+|---|---|---|---|---|
+| 1 | files 1–20 on the Deck (`M7-mutation-pass1.log`), 21–48 on the laptop (`M7-mutation-pass1b.log`) | 257 | 177 | **68.9 %** |
+| 2 | every file again, with pass 1's tests and the fixed harness (`M7-mutation-pass2-a.log`, `-b.log`) | 252 | 221 | **87.7 %** |
+
+Pass 1's 80 survivors: 53 holes in the tests, each now with a test that fails on its
+mutant (checked by applying the mutant with the tool's own operators); 24 equivalent,
+each with its reason; 2 harness; 1 caught only outside its file's mapped tests. Pass 2
+drew 20 new survivors (the Deck's files are sampled anew, see below): 12 more holes,
+tested the same way after pass 2 had started, so not in its number; 6 equivalent; one
+left open (`raid_token_system:191`, no geometry found that reaches it); and one on a
+branch that is itself wrong, which is §4 item 14.
+
+The first 20 files of pass 1 were sampled the old way, before `mutate.py` sampled each
+file from the seed and its path alone, so pass 2 drew different mutants for them; files
+21–48 drew the same ones in both passes.
+
+Two corrections to the tool during the run, each with a test (§4 item 16): a GDScript
+runtime error now counts as a changed diagnostic — a mutant that made the stress tick
+throw 3 309 times had passed as `0 failed` — and `land_system.gd` is mapped to the pause
+tests that drive its pause handler.
 
 The tool changed for this run. A mutant used to get a flat 600 s and a timeout
 counted as a kill, but M7's metamorphic hydration property alone runs for about ten
@@ -92,7 +123,7 @@ curtain during the load window.
 
 Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 
-1. `tools/test.sh` → `{{N}} tests, … 0 failed`, twenty-four `ok` replay lines,
+1. `tools/test.sh` → `492 tests, … 0 failed`, twenty-four `ok` replay lines,
    `all stages passed`.
 2. `$(tools/godot.sh) --headless --path . -s tools/make_m7_fixtures.gd` → the four
    runs re-authored, the hydrate run printing `squad in at tick 1000, out at tick
@@ -123,15 +154,25 @@ Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 | 6 | **A cold wild column costs 1.3–2.7 ms in the sim** (`WildRegion._column` / `_near`), so a streaming frame can run to ~5 ms on desktop against its 3 ms allocation. | performance | M8 |
 | 7 | **`undiscovered` saw nothing until claims 13–15**, and a bound site appeared on the map only as a graph node until claim 16. Both closed by the later claims. | ordering | closed |
 | 8 | **Binding is per quest, not per actor**: two actors taking one contract share its place. Right for one player; co-op will need to decide. | scope | co-op |
-| 9 | **The suite now takes {{TIME}}**, dominated by the M7 properties (hydration metamorphic ~10 min, the walk property ~8 min). | residue | M8 |
+| 9 | **The suite now takes about 100 minutes on the laptop and 80 on the Deck**, dominated by the M7 properties (hydration metamorphic ~10 min, the walk property ~8 min). | residue | M8 |
 | 10 | **A new settlement kit moves every world** and so every fixture, and can move where a contract binds. The Q4 exercise did exactly that: M6's and M7's fixtures were regenerated, each checked for the run it is named for, then re-recorded. | note | none |
 | 11 | **Mutation timeouts** — see §2; the tool change is in `tools/mutate.py` with tests. | tooling | closed |
 | 12 | M6 debt 5 (mission items on the `ammo` kind), 6 (one-cell landing), 7 (`run.end` before `quest.turn_in`), 9 (no `assert_errors` helper), 13 (range demo on wall time) and the M4 building's missing way in (M6 debt 1) were scheduled for M7 and **were not done**: none is in the M7 spec, and CLAUDE.md keeps work outside the spec out of the milestone. | carried | M8 |
 | 13 | The `gate` Steam branch line is still unmet (no app id). | external | with the app id |
+| 14 | **The squad entry planner stops handing out entries at a solid block in a wall.** `SquadSystem._plan` skips a member whose next-ranked edge has no outside cell without moving past that edge, so every later member gets nothing; a block ranks with the walls of its material and ties go to the lower id. Reproduced with the sim unchanged (M3 room, a foundation block in place of one west wall, placed first: one member of three given an entry, sixteen walls on offer). Found by the mutation run (`squad_system:239`). A `sim/agents/` fix, outside claim 18. | defect | CEOGG |
+| 15 | **`test_terrain_streamer::test_a_frame_keeps_to_its_budget` is flaky on the laptop**: in seven runs its worst frame was 7.9–10.1 ms six times against the test's 6 ms ceiling, and 5.8 ms once (the run in §2), native mesher loaded. It passes on the Deck. A desktop wall-clock number; left as it is, so `tools/test.sh` is usually not green off the Deck. | environment | CEOGG |
+| 16 | **`tools/mutate.py` read only `ERROR:` lines**, not `SCRIPT ERROR:`, so a mutant that broke a tick with runtime errors passed; and the land system was not mapped to the pause tests. Both fixed with tests; pass 1's first 20 files ran before the fix. | tooling | closed |
+| 17 | **`raid_token_system:191` is open**: a raid path of cost 0 needs a stair to be the only way between two volumes, and no geometry was found that reaches it. Not claimed equivalent. | untested | M8 |
+| 18 | **`tools/test.sh` does not install GodotSteam**; without it the unit stage's log check fails on the missing extension. `docs/handoff.md` now lists `tools/godotsteam.sh` as a setup step. | setup | closed |
 
 ## 5. The four standing questions
 
-**Q1 — Does it function?** {{Q1}}
+**Q1 — Does it function?** On the laptop, yes: the whole suite passes (§2, 492 tests, 0
+failed, 24 fixtures reproduce), the four M7 fixtures record the runs they are named for,
+and pass 2 kills 87.7 % of its mutants against a 75 % bar. Two things stand against it:
+the squad entry planner's defect with a block in a wall (§4 item 14), found by the run and
+not yet fixed, and the terrain streamer's frame-budget test, flaky off the Deck (§4
+item 15). Whether it functions on the Deck is §7, CEOGG's run.
 
 **Q2 — Is it secure?** New untrusted inputs: the `site_tag`, `settlement` and
 `region` content kinds and the quest `site` block (schema-checked at build,
@@ -174,6 +215,9 @@ Conditions (if any):
 2. The Q4 content (`mining_camp`, `extraction`, `claim_jumpers`) stays in the game,
    or is kept as an exercise only.
 3. The carried M6 debt (§4 item 12) goes to M8.
+4. The squad planner defect (§4 item 14): fixed in M7 before the gate, or carried.
+5. The terrain streamer's frame-budget test on desktops (§4 item 15): kept as it is, or
+   asserted only on the Deck.
 
 ## 7. Deck run and feel notes
 

@@ -311,3 +311,9 @@ func test_a_token_at_the_slowest_pace_saves_and_loads() -> void:
 	var snap: Dictionary = _tokens.snapshot()
 	assert_eq(_tokens.restore(snap), OK, "restores")
 	assert_eq(_tokens.speed_of(id), 1, "at the same pace")
+
+
+## Found by the G7 mutation run: dropping a token nobody holds was never tried.
+func test_dropping_a_token_that_is_not_held_is_refused() -> void:
+	_setup()
+	assert_false(_tokens.drop(999), "no such token")
