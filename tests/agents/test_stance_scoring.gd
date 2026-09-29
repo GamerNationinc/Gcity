@@ -336,3 +336,25 @@ func test_restore_round_trip_and_rejections() -> void:
 	records[_player] = records[guard]
 	assert_eq(stances.restore(bad), ERR_INVALID_DATA, "a record for a non-agent")
 	assert_eq(stances.snapshot(), state, "rejections leave the state untouched")
+
+
+## Found by the G7 mutation run: the flank and retreat directions were only ever taken
+## from contacts several cells away on both axes.
+func test_the_dominant_step_of_a_one_cell_offset() -> void:
+	assert_eq(StanceSystem._dominant(Vector3i(1, 0, 0)), Vector3i(1, 0, 0), "one cell along x")
+	assert_eq(StanceSystem._dominant(Vector3i(0, 0, 1)), Vector3i(0, 0, 1), "one cell along z")
+	assert_eq(StanceSystem._dominant(Vector3i(0, 5, 0)), Vector3i.ZERO, "straight up has no horizontal step")
+	assert_eq(StanceSystem._dominant(Vector3i(-3, 0, 3)), Vector3i(-1, 0, 0), "x wins a tie")
+
+
+## Found by the G7 mutation run: an unalerted advance scored nothing, but nothing
+## checked it, because another stance always outscored it.
+func test_an_agent_that_is_not_alerted_scores_no_advance() -> void:
+	_setup()
+	var agent: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 1, "")
+	assert_true(agent > 0, "a guard")
+	var ctx: Dictionary = _stances.context_of(agent)
+	var alerted: bool = ctx["alerted"]
+	assert_false(alerted, "nobody has alerted it")
+	var only_advance: Array[Dictionary] = [{"stance": StanceSystem.STANCE_ADVANCE, "weight": 1000}]
+	assert_eq(_stances.choose(only_advance, ctx, &"", 0)["score"], 0, "advance scores nothing")

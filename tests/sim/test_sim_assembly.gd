@@ -96,3 +96,39 @@ func test_a_sim_nobody_holds_is_freed_with_every_system() -> void:
 			var name: String = key
 			alive.append(name)
 	assert_eq(alive, [] as Array[String], "nothing of it outlives it")
+
+
+func test_content_of_hands_back_the_content_the_sim_was_built_over() -> void:
+	var db := _content()
+	var sim: SimRoot = SimAssembly.build(SEED, db)
+	assert_true(SimAssembly.content_of(sim) == db, "the assembled sim's content")
+	assert_true(SimAssembly.content_of(SimRoot.new(SEED)) == null, "bare sim has no content")
+
+
+func test_load_save_refuses_a_save_made_over_other_content() -> void:
+	var db := _content()
+	var sim: SimRoot = SimAssembly.build(SEED, db)
+	sim.step_n(3)
+	var file: SaveFile = SaveFile.parse(SaveFile.serialize(sim, db.digest()))
+	assert_true(file.is_valid(), "parse: %s" % file.error)
+	assert_true(SimAssembly.load_save(file, db) != null, "a save over the same content loads")
+	var other := _content()
+	assert_eq(other.add(&"stat", &"zz_extra", {"schema_version": 1, "default_base": 1, "description": "x"}), OK, "extra entry")
+	assert_true(SimAssembly.load_save(file, other) == null, "a save over different content is refused")
+
+
+func test_restore_systems_refuses_a_snapshot_without_systems() -> void:
+	var sim: SimRoot = SimAssembly.build(SEED, _content())
+	assert_eq(SimAssembly.restore_systems(sim, {}), ERR_INVALID_DATA, "no systems")
+	assert_eq(SimAssembly.restore_systems(sim, {"systems": []}), ERR_INVALID_DATA, "systems not a dictionary")
+
+
+func test_restore_systems_restores_the_squads() -> void:
+	var source: SimRoot = SimAssembly.build(SEED, _content())
+	var snapshot: Dictionary = source.snapshot().duplicate(true)
+	var systems: Dictionary = snapshot["systems"]
+	var squads: Dictionary = systems[SquadSystem.SYSTEM_ID]
+	squads["delivered"] = 3
+	var target: SimRoot = SimAssembly.build(SEED, _content())
+	assert_eq(SimAssembly.restore_systems(target, snapshot), OK, "restore")
+	assert_eq(SimAssembly.squads_of(target).delivered_count(), 3, "the squads' state came back")

@@ -129,3 +129,9 @@ func _with(key: String, json_value: String) -> String:
 	var regex := RegEx.new()
 	regex.compile('"%s": [^,\\n]+(,?)\\n' % key)
 	return regex.sub(VALID, '"%s": %s$1\n' % [key, json_value.replace("$", "$$")])
+
+
+func test_name_length_boundary() -> void:
+	var longest: ReplayFixture = ReplayFixture.parse(_with("name", '"%s"' % "a".repeat(ReplayFixture.MAX_NAME_LENGTH)))
+	assert_true(longest.is_valid(), "a name of exactly the maximum length: %s" % longest.error)
+	assert_false(ReplayFixture.parse(_with("name", '"%s"' % "a".repeat(ReplayFixture.MAX_NAME_LENGTH + 1))).is_valid(), "one character over")

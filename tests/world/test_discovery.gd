@@ -134,3 +134,19 @@ func test_what_you_found_is_saved_and_a_bad_record_is_refused() -> void:
 	for bad: Dictionary in [{}, {"found": {}}, {"found": {1: 0, 99999: 4}}, {"found": {1: -1}}, {"found": {1: "0"}}, {"found": [1]}]:
 		assert_eq(_discovery.restore(bad), ERR_INVALID_DATA, "refused: %s" % [bad])
 		assert_eq(_discovery.snapshot(), good, "and nothing changed")
+
+
+## Found by the G7 mutation run: every test looked by stepping to the clock, so a look
+## on the wrong tick went unnoticed.
+func test_places_are_looked_for_on_the_clock_not_every_tick() -> void:
+	_setup()
+	var place: int = _routes.slot_node(_routes.slot_ids()[0])
+	var at: Vector2i = _routes.position_of(place)
+	var x: int = at.x + 50 * M
+	var y: int = SimAssembly.regions_of(_sim).standing_cell_y(x, at.y) * BuildSystem.CELL
+	_actors.set_position(_player, Vector3i(x, y, at.y))
+	_sim.step()
+	assert_true(_sim.get_tick() % Discovery.LOOK_EVERY != 0, "a tick between looks")
+	assert_false(_discovery.is_found(place), "nobody looked on it")
+	_look()
+	assert_true(_discovery.is_found(place), "the next look finds it")

@@ -72,3 +72,10 @@ func test_locks_at_first_tick_and_snapshot_carries_digest() -> void:
 	assert_eq(db.add(&"stat", &"y", _valid()), ERR_LOCKED, "no adds after the first tick")
 	assert_eq(db.snapshot(), before, "state unchanged by the rejected add")
 	assert_eq(StateHash.of(db.snapshot()).length(), 64, "snapshot is hashable")
+
+
+func test_has_is_false_for_an_unknown_kind() -> void:
+	var db := ContentDb.new()
+	assert_eq(db.add(&"stat", &"damage", _valid()), OK, "add")
+	assert_false(db.has(&"perk", &"damage"), "an id under a kind with no entries")
+	assert_false(db.has(&"stat", &"speed"), "an unknown id under a known kind")

@@ -130,3 +130,12 @@ func _run_script(seed: int, ticks: int, script: Array[Array]) -> String:
 		sim.submit(SimCommand.new(tick, CounterSystemDouble.COMMAND_ADD, {"amount": amount}))
 	sim.step_n(ticks)
 	return sim.state_hash()
+
+
+## Found by the G7 mutation run: every restored root had already ticked, so a restore
+## refusing tick 0 went unnoticed.
+func test_a_sim_that_has_not_ticked_restores() -> void:
+	var fresh := SimRoot.new(SEED_A)
+	var other := SimRoot.new(SEED_A)
+	assert_eq(other.restore_root(fresh.snapshot()), OK, "tick 0 is a tick")
+	assert_eq(other.state_hash(), fresh.state_hash(), "and restores to the same state")

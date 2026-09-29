@@ -197,3 +197,10 @@ func test_property_the_first_contract_can_happen_in_every_world() -> void:
 				fail("seed %d: the outskirts is not somewhere the first contract fits" % (SEED + 1000 + i))
 	assert_eq(nowhere, 0, "every one of 10 000 worlds has somewhere for the first contract")
 	assert_eq(far, 0, "and all of it within three kilometres")
+
+
+## Found by the G7 mutation run: only a contract that asks for nothing was offered
+## something that is not a place.
+func test_a_contract_that_asks_for_something_is_not_happy_nowhere() -> void:
+	_setup()
+	assert_false(SiteConstraint.matches(_asking(["ruin"], 0, 100), _db, _routes, 99999, {}), "not a place")

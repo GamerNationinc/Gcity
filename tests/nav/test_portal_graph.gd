@@ -358,3 +358,41 @@ func test_restore_rebuilds_and_verifies() -> void:
 	var edges: Array = bad["edges"]
 	edges.pop_back()
 	assert_eq(restored.restore(bad), ERR_INVALID_DATA, "a saved graph that the pieces do not produce is rejected")
+
+
+## A 5 x 5 patch of wild ground, flat and below the city's ground level, or a zero y
+## when the search finds none: the cell a room's floor stands in there.
+func _flat_hollow(regions: Regions) -> Vector3i:
+	for cz: int in range(-40, -4000, -7):
+		for cx: int in range(-2000, 2000, 7):
+			var h: int = regions.standing_cell_y(cx * M, cz * M)
+			if h >= 0:
+				continue
+			var flat: bool = true
+			for dx: int in range(-1, 4):
+				for dz: int in range(-1, 4):
+					if regions.standing_cell_y((cx + dx) * M, (cz + dz) * M) != h:
+						flat = false
+			if flat:
+				return Vector3i(cx, h, cz)
+	return Vector3i.ZERO
+
+
+## Found by the G7 mutation run: every building in these tests stood at the city's
+## ground level, so a graph that never looked below it went unnoticed. Out in the
+## wilds the ground can be lower, and a room built in a hollow is still a room.
+func test_a_room_in_a_hollow_below_city_ground_is_a_volume() -> void:
+	_setup()
+	var base: Vector3i = _flat_hollow(SimAssembly.regions_of(_sim))
+	assert_true(base.y < 0, "somewhere in the wilds lies below the city (%s)" % base)
+	if base.y >= 0:
+		return
+	for command: Dictionary in WorldView.room_commands(base, _player):
+		var piece_s: String = command["piece"]
+		var facing: String = command["facing"]
+		var x: int = command["x"]
+		var y: int = command["y"]
+		var z: int = command["z"]
+		assert_true(_build.place(_player, StringName(piece_s), Vector3i(x, y, z), facing) > 0, "room piece %s" % piece_s)
+	assert_eq(_portals.volume_count(), 1, "one enclosed volume")
+	assert_eq(_portals.node_at(base + Vector3i(1, 0, 1)), 1, "and the room's middle is in it")

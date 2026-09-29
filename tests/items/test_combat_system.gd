@@ -265,3 +265,29 @@ func test_property_fire_is_the_only_way_a_round_leaves() -> void:
 	assert_eq(failures, 0, "item count moved only by fire, by exactly one")
 	assert_eq(_items.item_count(), 3 + 30 - fired, "every fired round is accounted for (%d fired)" % fired)
 	assert_true(fired >= 30 - 1 or not _actors.is_alive(_dummy) or fired > 0, "shots happened")
+
+
+## Found by the G7 mutation run: nothing saved a sim after a shot, so neither the last
+## shot's record nor the type of its hit node was shown to survive a save.
+func test_the_last_shot_survives_a_save() -> void:
+	_build()
+	_range()
+	assert_true(_fire(), "fire")
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var file: SaveFile = SaveFile.parse(SaveFile.serialize(_sim, db.digest()))
+	assert_true(file.is_valid(), "parse: %s" % file.error)
+	var loaded: SimRoot = SimAssembly.load_save(file, db)
+	assert_true(loaded != null, "load")
+	if loaded == null:
+		return
+	var last: Dictionary = _combat.snapshot()["last"]
+	assert_false(last.is_empty(), "a shot was recorded")
+	assert_eq(StateHash.of(SimAssembly.combat_of(loaded).snapshot()), StateHash.of(_combat.snapshot()), "the same record, the same types")
+
+
+## Found by the G7 mutation run: a shooter with no profile was never asked about.
+func test_something_that_is_not_an_actor_has_no_hit_chance() -> void:
+	_build()
+	_range()
+	assert_eq(_combat.hit_chance_at(_pistol, _pistol, 0), 0, "a pistol does not shoot itself")

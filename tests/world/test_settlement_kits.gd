@@ -253,3 +253,12 @@ func _kit_named(kits: Array[Dictionary], wanted: StringName) -> Dictionary:
 		if id == wanted:
 			return kit
 	return {}
+
+
+## Found by the G7 mutation run: a road to a place past the kit's last was only offered
+## well past it.
+func test_a_road_to_one_past_the_last_place_fails() -> void:
+	assert_eq(SettlementKits.validate(_one_kit({"edges": [{"a": 3, "b": 0, "width": 6000}]})), ERR_INVALID_DATA,
+		"three places are 0, 1 and 2")
+	assert_eq(SettlementKits.validate(_one_kit({"edges": [{"a": 0, "b": 3, "width": 6000}]})), ERR_INVALID_DATA,
+		"whichever end of the road it is")

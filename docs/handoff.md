@@ -3,7 +3,24 @@
 Claude Code's memory lives on the machine it runs on, so this file is how the next
 session picks up. Read it first, then `CLAUDE.md`.
 
-## Where things stand
+## Update, 2026-09-29, on the laptop (WSL2)
+
+- The first pass is finished: files 21–48 are `docs/gates/M7-mutation-pass1b.log` and `.json`
+  (145 scored, 104 killed, 71.7 %). Over all 48 files: 257 scored, 177 killed, **68.9 %**.
+- Every survivor of both halves is triaged in `docs/gates/M7-mutation-triage.md`: 53 holes,
+  each with a test checked against its mutant; 24 equivalent, with reasons; 2 harness; 1 caught
+  only outside its file's mapped tests.
+- `tools/mutate.py` now counts `SCRIPT ERROR:` lines as diagnostics (a mutant that made the
+  stress tick throw 3 309 times passed as `0 failed`), and maps `land_system.gd` to the pause
+  tests. Both are in the triage note.
+- The suite with all of it: 478 tests, 340 086 assertions, one failure:
+  `test_terrain_streamer::test_a_frame_keeps_to_its_budget`, which fails on this laptop every
+  time (worst frame 7.9–10.1 ms against a 6 ms ceiling, idle machine, native mesher loaded)
+  and is left as it is for CEOGG to decide: it is a desktop wall-clock number.
+- Still to do: the second pass (every `sim/` file again, with the new tests and the fixed
+  harness) for the after score, then the gate.
+
+## Where things stood on the Deck
 
 - **G0–G6 signed.** M7 (route graph and procedural wilds) is on `m7-procgen`: claims
   1–17 and the Q4 extension exercise are pushed (`3be5a1e`; 433 tests, 339 534
@@ -59,7 +76,10 @@ Linux Godot build unchanged, and Claude Code runs in it natively.
 6. Git identity for this repo: `git config user.name CEOGG` and
    `git config user.email <your email>`. Pushing needs GitHub credentials (a
    personal access token, or `gh auth login`).
-7. `tools/test.sh` downloads and verifies the pinned Godot 4.6.1 on first use, then
+7. `tools/godotsteam.sh` once per checkout (and per worktree): `tools/test.sh` does not
+   install the GodotSteam binaries, and without them every engine run logs a missing
+   GDExtension, which fails the unit stage's log check.
+8. `tools/test.sh` downloads and verifies the pinned Godot 4.6.1 on first use, then
    runs everything. **Time it**: it took about 80 minutes on the Deck.
 
 For looking at the game (M8 work) run the Windows build of Godot 4.6.1 and open the

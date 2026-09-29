@@ -312,3 +312,25 @@ func test_a_site_raised_with_its_contract_stands_where_the_contract_bound_it() -
 	bad["raised"]["cold_storage"]["base"] = [1, 2]
 	assert_eq(_sites.restore(bad), ERR_INVALID_DATA, "a base that is not a cell is refused")
 	assert_eq(_sites.snapshot(), good, "and nothing changed")
+
+
+## Found by the G7 mutation run: no site file offered placed the same piece twice, and
+## the terminals a raised site records were only ever counted by the terminal tests.
+func test_a_site_placing_two_pieces_in_one_spot_fails_assembly() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var twin: Dictionary = db.get_entry(SiteSystem.KIND_SITE, &"m4_test_building").duplicate(true)
+	assert_eq(db.add(SiteSystem.KIND_SITE, &"twin", twin), OK, "a copy of a site")
+	assert_true(SimAssembly.build(SEED, db) != null, "assembles as it is")
+	var doubled: ContentDb = ContentDb.new()
+	assert_eq(ContentLoader.load_all(doubled), OK, "content loads")
+	var pieces: Array = twin["pieces"]
+	pieces.append(pieces[0])
+	assert_eq(doubled.add(SiteSystem.KIND_SITE, &"twin", twin), OK, "the copy with its first piece twice")
+	assert_true(SimAssembly.build(SEED, doubled) == null, "refused")
+
+
+func test_a_raised_site_records_the_terminals_it_placed() -> void:
+	_setup()
+	_raise(&"cold_storage")
+	assert_eq(_sites.terminals_of(&"cold_storage").size(), 2, "the server and the archive")

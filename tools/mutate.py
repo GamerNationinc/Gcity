@@ -113,7 +113,8 @@ EXTRA_TESTS = {
     "sim/world/region.gd": ["res://tests/world/test_regions.gd"],
     "sim/world/authored_region.gd": ["res://tests/world/test_regions.gd", "res://tests/agents/test_movement_system.gd"],
     "sim/world/wild_region.gd": ["res://tests/world/test_regions.gd", "res://tests/agents/test_movement_system.gd", "res://tests/agents/test_perception_system.gd"],
-    "sim/land/land_system.gd": ["res://tests/land/test_land_system.gd", "res://tests/agents/test_actor_system.gd"],
+    # G7: the land authority's pause handler is what the pause tests drive
+    "sim/land/land_system.gd": ["res://tests/land/test_land_system.gd", "res://tests/agents/test_actor_system.gd", "res://tests/sim/test_pause.gd"],
 }
 #: Files with no tests of their own and nothing to mutate worth scoring.
 NO_TESTS_NEEDED = {"sim/core/sim_system.gd"}
@@ -318,8 +319,12 @@ def diagnostics(output: str) -> tuple[str, ...]:
     changes, and this project's standards say errors are handled or loudly fatal — so
     the loud part going missing *is* a behavioural change, and one that is visible from
     out here even though it is not visible from inside a test.
+
+    A GDScript runtime error is read the same way. It does not fail the test it happens
+    in, so a mutant that broke a tick with thousands of them was scored a survivor (G7),
+    while `tools/check_test_log.py` fails the same run in the unit stage.
     """
-    lines = [line.strip() for line in output.splitlines() if line.strip().startswith("ERROR:")]
+    lines = [line.strip() for line in output.splitlines() if line.strip().startswith(("ERROR:", "SCRIPT ERROR:"))]
     return tuple(sorted(lines))
 
 

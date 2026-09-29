@@ -42,3 +42,12 @@ func test_dispatch_outcomes() -> void:
 	assert_eq(registry.dispatch(sim, SimCommand.new(1, &"no", {})), ERR_INVALID_PARAMETER, "rejected by handler")
 	assert_eq(registry.dispatch(sim, SimCommand.new(1, &"missing", {})), ERR_DOES_NOT_EXIST, "unknown kind")
 	assert_eq(registry.dispatch(sim, SimCommand.new(1, &"bug", {})), ERR_BUG, "handler contract violation")
+
+
+func test_pause_safe_is_recorded_only_when_asked_for() -> void:
+	var registry := CommandRegistry.new()
+	assert_eq(registry.register(&"safe", _accept, true), OK, "pause-safe kind")
+	assert_eq(registry.register(&"plain", _accept), OK, "ordinary kind")
+	assert_true(registry.is_pause_safe(&"safe"), "the pause-safe kind is")
+	assert_false(registry.is_pause_safe(&"plain"), "an ordinary kind is not")
+	assert_false(registry.is_pause_safe(&"missing"), "an unknown kind is not")

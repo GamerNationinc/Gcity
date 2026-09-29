@@ -309,3 +309,23 @@ func test_property_the_same_seed_and_constraints_give_the_same_slot_and_no_slot_
 	assert_eq(twice, 0, "no slot was ever bound twice")
 	assert_eq(misfit, 0, "and every slot fit what was asked")
 	assert_true(bound > bindings / 2, "and most contracts found somewhere (%d of %d)" % [bound, bindings])
+
+
+## Found by the G7 mutation run: no contract bound here wanted somewhere new, so the
+## binder was never shown to ask what has been found.
+func test_a_contract_wanting_somewhere_new_is_not_sent_where_you_have_been() -> void:
+	var job: Dictionary = _job(["ruin"], 0, 100)
+	var site: Dictionary = job["site"]
+	site["undiscovered"] = true
+	_setup({"somewhere_new": job})
+	assert_true(_accept("somewhere_new"), "accepted with nothing found")
+	var first: int = _binder.slot_of(&"somewhere_new")
+	assert_true(first != EntityIds.NONE, "bound")
+	# the same world again, this time having been there
+	_setup({"somewhere_new": job})
+	var found: Dictionary = {1: 0, _routes.slot_node(first): 0}
+	assert_eq(SimAssembly.discovery_of(_sim).restore({"found": found}), OK, "been there")
+	assert_true(_accept("somewhere_new"), "accepted again")
+	var second: int = _binder.slot_of(&"somewhere_new")
+	assert_true(second != EntityIds.NONE, "bound somewhere")
+	assert_ne(second, first, "somewhere else")

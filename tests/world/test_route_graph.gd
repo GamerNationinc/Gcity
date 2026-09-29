@@ -664,3 +664,15 @@ func test_regression_crowded_slots_still_find_their_clearance() -> void:
 		graph.generate(world)
 		assert_true(graph.road_clearance(graph.slot_position(slot)) >= RouteGraph.SLOT_CLEARANCE_MM,
 			"seed %d slot %d is clear of every road (%d mm)" % [world, slot, graph.road_clearance(graph.slot_position(slot))])
+
+
+## Found by the G7 mutation run: neighbours are promised lowest first and no test read
+## the order.
+func test_neighbours_are_lowest_first() -> void:
+	_setup()
+	for node: int in _routes.node_ids():
+		var near: Array[int] = _routes.neighbours(node)
+		var sorted: Array[int] = []
+		sorted.assign(near)
+		sorted.sort()
+		assert_eq(near, sorted, "node %d" % node)

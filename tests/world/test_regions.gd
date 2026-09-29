@@ -431,3 +431,54 @@ func test_every_change_to_the_ground_is_logged_for_the_client() -> void:
 	var now: int = _regions.ground_revision()
 	assert_eq(_regions.restore(_regions.snapshot()), OK, "restore")
 	assert_false(_regions.ground_log_reaches(now), "after a restore the log reaches nothing from before it")
+
+
+## Found by the G7 mutation run: the city's edges were only tried a millimetre either
+## side of the gate, never on the lines its bounds draw.
+func test_the_city_owns_its_west_and_south_edges() -> void:
+	_setup()
+	assert_eq(_regions.region_at(-30000 * M, 1).id(), &"city", "the west edge is the city's")
+	assert_eq(_regions.region_at(-30000 * M - 1, 1).id(), &"wilds", "a millimetre further west is not")
+	assert_eq(_regions.region_at(0, 0).id(), &"city", "the south edge is the city's")
+
+
+## Found by the G7 mutation run: the city's ground was only ever read, never offered an
+## edit, and only the wild's was ever drawn in bulk.
+func test_the_city_ground_is_not_dug_and_is_drawn_as_it_reads() -> void:
+	_setup()
+	var revision: int = _regions.ground_revision()
+	assert_false(_regions.set_ground(Vector3i(0, -1, 5), false), "the city is built on, not dug")
+	assert_eq(_regions.ground_revision(), revision, "and nothing was logged")
+	var origin: Vector3i = Vector3i(0, -2, 5)
+	var size: Vector3i = Vector3i(3, 4, 2)
+	var drawn: PackedByteArray = _regions.solids(origin, size)
+	var i: int = 0
+	for z: int in size.z:
+		for y: int in size.y:
+			for x: int in size.x:
+				var cell: Vector3i = origin + Vector3i(x, y, z)
+				assert_eq(drawn[i], 1 if _regions.is_solid(cell) else 0, "cell %s drawn as it reads" % cell)
+				i += 1
+
+
+## Found by the G7 mutation run: every region's edge lay on the build grid, so which
+## point of a cell decides its region was never asked. A cell belongs where its centre is.
+func test_a_cell_across_an_edge_off_the_grid_goes_with_its_centre() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	assert_eq(db.add(Regions.KIND, &"hollow", {"schema_version": 1, "title": "t", "description": "t", "kind": "authored",
+		"bounds": [400, -5000 * M, 10 * M, -4990 * M], "gates": []}), OK, "a region whose west edge is off the grid")
+	_sim = SimAssembly.build(SEED, db)
+	assert_true(_sim != null, "assembly")
+	if _sim == null:
+		return
+	_regions = SimAssembly.regions_of(_sim)
+	var cell: Vector3i = Vector3i(0, 0, -4995)
+	assert_eq(_regions.region_of_cell(cell).id(), &"hollow", "the cell's centre, 500 mm in, is inside")
+
+
+## Found by the G7 mutation run: regions attached to a sim without content went untried.
+func test_regions_need_content() -> void:
+	_setup()
+	var loose := Regions.new(_routes, _terrain)
+	assert_eq(loose.attach(SimRoot.new(SEED)), ERR_INVALID_DATA, "no content, no regions")

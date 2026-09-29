@@ -253,3 +253,16 @@ func test_a_save_with_a_negative_counter_is_refused() -> void:
 		assert_eq(_movement.restore(bad), ERR_INVALID_DATA, "refused: %s below zero" % key)
 	assert_eq(_movement.restore(good), OK, "the real one restores")
 
+
+
+## Found by the G7 mutation run: only actors that are hurt by falling were dropped. The
+## range dummy's profile takes no fall damage, so its fall is not worth an event.
+func test_a_fall_that_does_no_damage_is_not_an_event() -> void:
+	_setup()
+	var dummy: int = _actors.spawn(&"range_dummy", 0)
+	var full: int = _actors.health_of(dummy)[&"body"]
+	_actors.set_position(dummy, _at(4, 3, 4))
+	_sim.step_n(4)
+	assert_eq(_actors.position_of(dummy), _at(4, 0, 4), "fell all the way")
+	assert_eq(_actors.health_of(dummy)[&"body"], full, "unhurt")
+	assert_eq(_fell.size(), 0, "and no actor.fell")

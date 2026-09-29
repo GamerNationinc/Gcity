@@ -217,3 +217,45 @@ func test_restore_round_trip_and_rejections() -> void:
 	assignments[_player] = [0, 0, 0]
 	assert_eq(squads.restore(bad), ERR_INVALID_DATA, "an assignment for a non-agent")
 	assert_eq(squads.snapshot(), state, "rejections leave the state untouched")
+
+
+## Found by the G7 mutation run: the planner's room never had a neighbour, so a way in
+## through another room was never on offer. A door into the next room costs what the
+## front door does and must not be handed out as an entry from outside.
+func test_a_door_to_the_next_room_is_not_an_entry() -> void:
+	_setup()
+	var base: Vector3i = _cell(10, 10)
+	var inner: Vector3i = base + Vector3i(2, 0, 1)
+	for command: Dictionary in WorldView.room_commands(base, _player):
+		var piece_s: String = command["piece"]
+		var facing: String = command["facing"]
+		var x: int = command["x"]
+		var y: int = command["y"]
+		var z: int = command["z"]
+		var at: Vector3i = Vector3i(x, y, z)
+		if facing == "px" and BuildSystem.cell_of(at) == inner:
+			piece_s = "door_frame"
+		assert_true(_build.place(_player, StringName(piece_s), at, facing) > 0, "first room %s" % piece_s)
+	for command: Dictionary in WorldView.room_commands(base + Vector3i(3, 0, 0), _player):
+		var piece_s: String = command["piece"]
+		var facing: String = command["facing"]
+		if facing == "nx":
+			continue  # the first room's east wall is this one's west
+		var x: int = command["x"]
+		var y: int = command["y"]
+		var z: int = command["z"]
+		var at: Vector3i = Vector3i(x, y, z)
+		assert_true(_build.place(_player, StringName(piece_s), at, facing) > 0, "second room %s" % piece_s)
+	var portals: PortalGraph = SimAssembly.portals_of(_sim)
+	assert_eq(portals.volume_count(), 2, "two rooms")
+	_actors.set_position(_player, BuildSystem.cell_centre(base + Vector3i(1, 0, 1)))
+	var a: int = _perception.spawn(&"watcher", base + Vector3i(1, 0, -4), 90, 1, "")
+	var b: int = _perception.spawn(&"watcher", base + Vector3i(-3, 0, 1), 0, 1, "")
+	var c: int = _perception.spawn(&"watcher", base + Vector3i(1, 0, 5), 270, 1, "")
+	_sim.step()
+	for member: int in [a, b, c]:
+		assert_true(_perception.receive_report(member, _player, _actors.position_of(_player), _sim.get_tick()), "%d is told" % member)
+	_sim.step_n(30)
+	assert_true(_squads.has_assignment(a) and _squads.has_assignment(b) and _squads.has_assignment(c), "every member outside has an entry")
+	for member: int in [a, b, c]:
+		assert_eq(portals.node_at(_squads.assignment_of(member)), PortalGraph.EXTERIOR, "%d enters from outside" % member)

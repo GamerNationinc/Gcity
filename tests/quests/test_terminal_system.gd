@@ -234,3 +234,21 @@ func _raise_cold_storage() -> void:
 	assert_eq(_sim.submit(SimCommand.new(at, &"land.identify", {"actor": _player, "owner": "player"})), OK, "identify")
 	assert_eq(_sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "cold_storage_lot", "owner": "player"})), OK, "transfer")
 	_sim.step()
+
+
+## Found by the G7 mutation run: every hacker in these tests carried a device, so one
+## with none was never asked about.
+func test_nobody_without_a_device_can_hack() -> void:
+	_setup()
+	var bystander: int = _actors.spawn(&"arcade", 0)
+	_actors.set_position(bystander, _terminals.position_of(_terminal))
+	assert_eq(_actors.device_of(bystander), EntityIds.NONE, "empty-handed")
+	assert_false(_terminals.can_hack(bystander, _terminal), "nothing to talk to the machine with")
+
+
+## Found by the G7 mutation run: no site ever asked for a terminal content lacks.
+func test_placing_an_unknown_terminal_is_refused() -> void:
+	_setup()
+	var before: int = _terminals.terminal_ids().size()
+	assert_eq(_terminals.place(&"no_such_terminal", Vector3i.ZERO), EntityIds.NONE, "refused")
+	assert_eq(_terminals.terminal_ids().size(), before, "nothing placed")

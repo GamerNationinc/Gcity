@@ -297,3 +297,26 @@ func test_a_build_change_re_plans_at_once_and_a_removed_agent_leaves_no_route() 
 	assert_true(_actors.remove(guard, &""), "removed")
 	assert_eq(_pathing.state_of(guard), "", "and its route went with it, before the next tick")
 
+
+
+## Found by the G7 mutation run: nothing measured how directly the search heads for its
+## goal, so a search that forgot the best cell it had seen, and so spread out in every
+## direction, still found its paths. Across open ground it walks the straight line.
+func test_the_search_heads_straight_for_an_open_goal() -> void:
+	_setup()
+	var agent: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 1, "")
+	assert_true(_pathing.request(agent, _cell(12, 0)), "twelve cells east over open ground")
+	var before: int = _pathing.expanded_count()
+	_sim.step()
+	assert_true(_pathing.expanded_count() - before <= 4 * 12, "a line's worth of cells, not a field's (%d)" % (_pathing.expanded_count() - before))
+	assert_eq(_pathing.path_of(agent).size(), 12, "and the path is the line")
+
+
+## Found by the G7 mutation run: no save was taken after an agent arrived. An arrived
+## route holds no search, and a restore insists on it.
+func test_an_arrived_route_survives_a_save() -> void:
+	_setup()
+	var agent: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 1, "")
+	assert_true(_pathing.request(agent, _cell(3, 0)), "three cells east")
+	assert_true(_walk_until(agent, PathingSystem.STATE_ARRIVED, 200) > 0, "arrived")
+	assert_eq(_pathing.restore(_pathing.snapshot()), OK, "and the route as it stands restores")

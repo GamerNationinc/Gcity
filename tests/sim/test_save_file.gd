@@ -478,3 +478,21 @@ func test_the_generated_stream_covers_every_registered_command_kind() -> void:
 	for kind: Variant in seen:
 		var generated: StringName = kind
 		assert_true(registered.has(generated), "the stream only generates kinds the sim knows: %s" % generated)
+
+
+func test_size_limit_boundary() -> void:
+	var at_limit: SaveFile = SaveFile.parse(" ".repeat(SaveFile.MAX_BYTES))
+	assert_false(at_limit.is_valid(), "blank text is not a save")
+	assert_false(at_limit.error.begins_with("save exceeds"), "but exactly the limit is not refused for its size: %s" % at_limit.error)
+	var over: SaveFile = SaveFile.parse(" ".repeat(SaveFile.MAX_BYTES + 1))
+	assert_true(over.error.begins_with("save exceeds"), "one over is: %s" % over.error)
+
+
+## Found by the G7 mutation run: no state came near the nesting limit, so neither the
+## limit nor how an array counts toward it was ever checked.
+func test_nesting_limit_boundary() -> void:
+	var deepest: Variant = 1
+	for _i: int in SaveFile.MAX_DEPTH:
+		deepest = [deepest]
+	assert_true(typeof(SaveFile._encode(deepest, 0)) != TYPE_NIL, "a value exactly at the limit is saved")
+	assert_true(typeof(SaveFile._encode([deepest], 0)) == TYPE_NIL, "one array deeper is refused")

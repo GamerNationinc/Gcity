@@ -384,3 +384,25 @@ func test_stress_persists_across_ticks_and_its_modifier_follows_it() -> void:
 	var later: int = _stress.stress_of(agent)
 	assert_true(later < falling, "it decays (%d -> %d)" % [falling, later])
 	assert_true(later > 0, "but is not simply forgotten")
+
+
+## Found by the G7 mutation run: only a frightened agent's record was ever shown to be
+## kept. A calm one's is made by the tick itself, and a tick that forgot to store it
+## would hand the agent a fresh stress modifier every tick without anything noticing.
+func test_a_calm_agent_keeps_one_record_and_one_modifier() -> void:
+	_setup()
+	var agent: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 1, "")
+	assert_true(agent > 0, "a guard")
+	var stats: StatResolver = SimAssembly.stats_of(_sim)
+	_sim.step()
+	var records: Dictionary = _stress.snapshot()["stress"]
+	assert_true(records.has(agent), "the tick kept a record for a calm agent")
+	var modifiers: int = stats.modifier_count()
+	_sim.step_n(5)
+	assert_eq(stats.modifier_count(), modifiers, "and no new modifier each tick")
+
+
+## Found by the G7 mutation run: the projection's lower clamp was only ever tested on
+## segments long enough that a point just past it rounded to the start anyway.
+func test_distance_before_the_start_of_a_one_millimetre_segment() -> void:
+	assert_eq(StressSystem.distance_to_segment_mm(Vector3i(-5, 0, 0), Vector3i.ZERO, Vector3i(1, 0, 0)), 5, "measured from the start")

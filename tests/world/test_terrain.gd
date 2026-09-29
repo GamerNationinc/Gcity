@@ -256,3 +256,12 @@ func test_property_a_bound_sites_track_is_traversable_too() -> void:
 	assert_eq(blocked, 0, "every bound site can be reached on foot (%d tracks)" % PROPERTY_CASES)
 	assert_true(steepest <= Terrain.MAX_GRADE_PERMILLE / 2, "and the steepest is nowhere near the limit (%d ‰ of %d)" % [
 		steepest, Terrain.MAX_GRADE_PERMILLE])
+
+
+## Found by the G7 mutation run: the ground was only ever restored from its own seed.
+## A snapshot from another seed is that seed's ground, made again.
+func test_a_snapshot_from_another_seed_makes_that_ground() -> void:
+	_setup()
+	var other: Dictionary = _bare(SEED + 1).snapshot()
+	assert_eq(_terrain.restore(other), OK, "restored")
+	assert_eq(_terrain.snapshot(), other, "the other seed's ground")

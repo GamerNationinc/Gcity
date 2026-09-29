@@ -239,6 +239,11 @@ class Diagnostics(unittest.TestCase):
         other = mutate.diagnostics("ERROR: a\nERROR: b\n")
         self.assertEqual(one, other)
 
+    def test_a_runtime_error_is_a_diagnostic_too(self) -> None:
+        out = "SCRIPT ERROR: Invalid access to property or key 'stress'\n   at: StressSystem.tick\n3 tests, 0 failed\n"
+        self.assertEqual(mutate.diagnostics(out), ("SCRIPT ERROR: Invalid access to property or key 'stress'",),
+                         "a run that passes while the sim throws is not a run that noticed nothing")
+
     def test_losing_one_is_a_difference(self) -> None:
         before = mutate.diagnostics("ERROR: a\nERROR: b\n")
         after = mutate.diagnostics("ERROR: a\n")

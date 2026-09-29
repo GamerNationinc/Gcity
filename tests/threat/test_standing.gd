@@ -271,3 +271,37 @@ func test_restore_round_trip_and_rejections() -> void:
 	all[_player] = {}
 	assert_eq(restored.restore(bad), ERR_INVALID_DATA, "an actor at nothing should not be stored at all")
 	assert_eq(restored.snapshot(), state, "rejections leave the state untouched")
+
+
+func _grudge(period: int, raises: Array) -> Dictionary:
+	return {"schema_version": 1, "description": "test", "title": "Grudge", "source": "events", "period_ticks": period,
+		"raise": raises, "decay": {"amount": 20, "index": "", "mode": "flat"}, "max": 100000}
+
+
+## Found by the G7 mutation run: every rule in content decays, so a period of zero,
+## which the schema allows and which means a scalar that never cools, was never run.
+func test_a_rule_with_no_period_never_decays() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	assert_eq(db.add(StandingSystem.KIND_RULE, &"grudge", _grudge(0, [{"event": "land.violation", "credit": "actor", "tags_any": [], "when": "always", "amount": 200}])), OK, "a grudge")
+	_sim = SimAssembly.build(SEED, db)
+	assert_true(_sim != null, "assembly")
+	if _sim == null:
+		return
+	_standing = SimAssembly.standing_of(_sim)
+	_actors = SimAssembly.actors_of(_sim)
+	_land = SimAssembly.land_of(_sim)
+	_events = SimAssembly.combat_of(_sim).events()
+	_player = _actors.spawn(&"arcade", 0)
+	_actors.set_position(_player, ON_OPEN_GROUND)
+	_violate(_player)
+	_sim.step_n(HEAT_PERIOD * 3)
+	assert_eq(_standing.standing_of(_player, &"grudge"), 200, "held without cooling")
+
+
+## Found by the G7 mutation run: no test offered content the standing system refuses.
+func test_a_rule_raised_by_events_that_names_none_fails_assembly() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	assert_eq(db.add(StandingSystem.KIND_RULE, &"grudge", _grudge(40, [])), OK, "a grudge nothing raises")
+	assert_true(SimAssembly.build(SEED, db) == null, "refused")

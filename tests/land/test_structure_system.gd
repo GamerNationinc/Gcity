@@ -300,3 +300,39 @@ func test_snapshot_restore_round_trip_and_rejections() -> void:
 	var fresh: StructureSystem = SimAssembly.structures_of(SimAssembly.build(SEED, _content_db()))
 	assert_eq(fresh.restore(bad), ERR_INVALID_DATA, "bad rotation rejected")
 	assert_eq(fresh.structure_ids(), [] as Array[int], "nothing restored")
+
+
+## Found by the G7 mutation run: the far edge of a footprint was only tested against
+## rectangular plots, where its two far corners always agree. On a plot narrower at the
+## near side than the far one, only the near far corner is over the line.
+func test_every_corner_of_the_footprint_is_checked_to_the_millimetre() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var o: int = 1000 * M
+	assert_eq(db.add(&"parcel", &"stepped_plot", {"schema_version": 1, "description": "test", "district": "starter_ghetto", "owner": "player",
+		"footprint": [[o, o], [o + 12192, o], [o + 12192, o + 6000], [o + 24384, o + 6000], [o + 24384, o + 12192], [o, o + 12192]],
+		"floor_y": -3000, "ceiling_y": 9000}), OK, "a plot that widens")
+	assert_eq(db.add(&"parcel", &"stepped_notch", {"schema_version": 1, "description": "test", "district": "starter_ghetto", "owner": "npc.landlord_east",
+		"footprint": [[o + 12192, o], [o + 24384, o], [o + 24384, o + 6000], [o + 12192, o + 6000]],
+		"floor_y": -3000, "ceiling_y": 9000}), OK, "somebody else's corner beside its narrow part")
+	_sim = SimAssembly.build(SEED, db)
+	assert_true(_sim != null, "assembly")
+	if _sim == null:
+		return
+	_land = SimAssembly.land_of(_sim)
+	_structures = SimAssembly.structures_of(_sim)
+	_actors = SimAssembly.actors_of(_sim)
+	_player = _actors.spawn(&"arcade", 0)
+	assert_true(_do(LandSystem.COMMAND_IDENTIFY, {"actor": _player, "owner": "player"}), "identify")
+	# 6 058 long from here reaches x = 12 192 at z = 4 000, over the narrow part's edge,
+	# while its far side at z = 6 437 is inside the wide part
+	var over: Vector3i = Vector3i(o + 12192 - 6058 + 1, 0, o + 4000)
+	assert_eq(_structures.place(_player, CONTAINER, over, 0), EntityIds.NONE, "one millimetre over at the near side")
+	assert_true(_structures.place(_player, CONTAINER, over - Vector3i(1, 0, 0), 0) > 0, "flush with it")
+
+
+## Found by the G7 mutation run: the footprint of something that is not a structure
+## was never asked for.
+func test_an_unknown_structure_has_an_empty_footprint() -> void:
+	_build()
+	assert_eq(_structures.footprint_of(999), [0, 0, 0, 0] as Array[int], "nothing there")

@@ -167,3 +167,32 @@ func _do(kind: StringName, payload: Dictionary) -> bool:
 	assert_eq(_sim.submit(SimCommand.new(_sim.get_tick() + 1, kind, payload)), OK, "submit %s" % kind)
 	_sim.step()
 	return _sim.dispatched_count() == before + 1
+
+
+## Found by the G7 mutation run: every restored token had already made progress, so a
+## restore refusing one that had not started went unnoticed.
+func test_a_token_that_has_not_started_restores() -> void:
+	_setup()
+	_room(true)
+	var token: int = _raids.spawn(CUTTER)
+	assert_eq(_raids.token(token)["progress"], 0, "nothing done yet")
+	assert_eq(_raids.token(token)["breached"], 0, "nothing breached yet")
+	var db := ContentDb.new()
+	ContentLoader.load_all(db)
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, _sim.snapshot()), OK, "restore")
+	assert_eq(StateHash.of(SimAssembly.raids_of(other).snapshot()), StateHash.of(_raids.snapshot()), "identical tokens")
+
+
+## Found by the G7 mutation run: no test left a token with no way to its target.
+## A crate set down on the cell it stands in does.
+func test_a_token_built_over_where_it_stands_fails() -> void:
+	_setup()
+	_room(true)
+	var token: int = _raids.spawn(CUTTER)
+	_sim.step()
+	_place(&"foundation_block", 1, 0, -1, "")
+	_place(&"storage_crate", 1, 1, -1, "")
+	assert_eq(_portals.node_at(_raids.cell_of(token)), PortalGraph.SOLID, "the token stands in solid ground")
+	_sim.step()
+	assert_eq(_raids.state_of(token), "failed", "it has nowhere to go")
