@@ -37,6 +37,9 @@ var _authored: Array[Region] = []
 var _columns: Dictionary = {}
 ## Vector2i chunk -> the roads whose corridor could touch it, found once per chunk
 var _near: Dictionary = {}
+## Every road of the graph as [id, a position, b position, width, length], lowest id
+## first, read once per graph revision rather than once per chunk
+var _roads: Array[Array] = []
 var _built_for: Vector2i = Vector2i(-1, -1)
 ## "cx,cy,cz" chunk -> {local cell index (0..4095): 1 solid / 0 air}
 var _edits: Dictionary = {}
@@ -181,6 +184,7 @@ func _column(cx: int, cz: int) -> Vector2i:
 	if stamp != _built_for:
 		_columns.clear()
 		_near.clear()
+		_roads = _read_roads()
 		_built_for = stamp
 	var chunk: Vector2i = Vector2i(Terrain._floor_div(cx, CHUNK), Terrain._floor_div(cz, CHUNK))
 	if not _columns.has(chunk):
@@ -218,7 +222,7 @@ func _road_cell(roads: Array[Array], x: int, z: int) -> int:
 
 
 ## How far along a road a position is, if it lies within the road's corridor; else -1.
-## A road is [id, a position, b position, width, length], read from the graph once a chunk.
+## A road is [id, a position, b position, width, length], read from the graph once a revision.
 static func _along_if_on(road: Array, x: int, z: int) -> int:
 	var pa: Vector2i = road[1]
 	var pb: Vector2i = road[2]
@@ -235,11 +239,29 @@ static func _along_if_on(road: Array, x: int, z: int) -> int:
 
 
 ## The roads whose corridor could touch a chunk, lowest id first, each as
-## [id, a position, b position, width, length].
+## [id, a position, b position, width, length]. Runs inside a single streamer step, so it
+## must stay cheap: a road whose bounding box, grown by the reach, misses the chunk's
+## centre is skipped without the distance, and that never drops a road the distance would
+## keep, since `_length_mm` is never less than either axis's difference.
 func _roads_near(chunk: Vector2i) -> Array[Array]:
 	var side: int = CHUNK * BuildSystem.CELL
 	var cx: int = chunk.x * side + side / 2
 	var cz: int = chunk.y * side + side / 2
+	var out: Array[Array] = []
+	for road: Array in _roads:
+		var pa: Vector2i = road[1]
+		var pb: Vector2i = road[2]
+		var width: int = road[3]
+		var reach: int = width / 2 + side
+		if cx < mini(pa.x, pb.x) - reach or cx > maxi(pa.x, pb.x) + reach or cz < mini(pa.y, pb.y) - reach or cz > maxi(pa.y, pb.y) + reach:
+			continue
+		if _segment_distance(pa, pb, cx, cz) <= reach:
+			out.append(road)
+	return out
+
+
+## Every road of the graph, lowest id first, each read-only since the chunks share them.
+func _read_roads() -> Array[Array]:
 	var out: Array[Array] = []
 	for id: int in _routes.edge_ids():
 		var rec: Dictionary = _routes.edge(id)
@@ -247,10 +269,9 @@ func _roads_near(chunk: Vector2i) -> Array[Array]:
 		var b: int = rec["b"]
 		var width: int = rec["width"]
 		var length: int = rec["length"]
-		var pa: Vector2i = _routes.position_of(a)
-		var pb: Vector2i = _routes.position_of(b)
-		if _segment_distance(pa, pb, cx, cz) <= width / 2 + side:
-			out.append([id, pa, pb, width, length])
+		var road: Array = [id, _routes.position_of(a), _routes.position_of(b), width, length]
+		road.make_read_only()
+		out.append(road)
 	return out
 
 
