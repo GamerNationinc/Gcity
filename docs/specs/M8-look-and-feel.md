@@ -2,7 +2,10 @@
 
 Milestone M8 of `docs/gcity-design.md` §16, **proposed as a new milestone** ahead of the
 threat director. Written before implementation (standards §2.1, §10.2). Status:
-**proposed** (Claude Code, 2026-09-27), for CEOGG's approval.
+**proposed** (Claude Code, 2026-09-27), for CEOGG's approval. Decided so far
+(CEOGG, 2026-09-30): the reorder — this is M8 and the threat director M9 — and the
+carried G6 items 5 and 7 go to M9. The rest of the spec, ADR-011 and the §3.2
+amendment are still proposed.
 
 **Why this milestone exists.** Eight milestones have built the simulation: stats, land,
 building, the portal graph, perception AI, the device, a stealth mission with three
@@ -169,6 +172,9 @@ ambience bed; interiors of procedural settlements; multiplayer.
 
 ## Proposed change to the design doc (§16) and standards (§11)
 
+*The §16 and §11 changes were approved on 2026-09-30 and are made in those documents.
+The §3.2 change is still proposed.*
+
 - §16: insert **M8 — Look and feel** (this spec); the threat director and raids become
   **M9**. §11: the G8 row becomes this spec's claims 13–15; the current G8 row moves to
   G9 unchanged.
@@ -177,9 +183,8 @@ ambience bed; interiors of procedural settlements; multiplayer.
 ## Carried debt (G6, through G7)
 
 CEOGG moved the M6 debt that G7 carried (G7 gate §4 item 12) to M8 on 2026-09-30. Four
-items sit inside this spec's scope; two do not, because each needs a `sim/` change,
-which *Out of scope* above excludes. Those two are for CEOGG to settle with this spec:
-an exception for them, or on to M9.
+items sit inside this spec's scope. The two that need a `sim/` change, which *Out of
+scope* above excludes, CEOGG sent on to M9 the same day.
 
 | G6 item | What | Where it lands |
 |---|---|---|
@@ -187,8 +192,8 @@ an exception for them, or on to M9.
 | 6 | the step's landing is one cell wide, so walking off it sideways drops a metre | content (a wider apron): in scope |
 | 9 | nothing can assert that a diagnostic was emitted (an `assert_errors` helper) | `tests/`, with claims 1–2: in scope |
 | 13 | the M1 range demo still runs on wall time | `client/`: in scope |
-| 5 | mission items ride on the `ammo` kind; a `gear` kind needs a constant in `sim/items/` as well as the content move | **`sim/`: out of scope as written** |
-| 7 | nothing enforces `run.end` before `quest.turn_in`; enforcing it is a `sim/quests/` change (it is documented in `docs/extending-missions.md` meanwhile) | **`sim/`: out of scope as written** |
+| 5 | mission items ride on the `ammo` kind; a `gear` kind needs a constant in `sim/items/` as well as the content move | **`sim/`: M9** (CEOGG, 2026-09-30) |
+| 7 | nothing enforces `run.end` before `quest.turn_in`; enforcing it is a `sim/quests/` change (it is documented in `docs/extending-missions.md` meanwhile) | **`sim/`: M9** (CEOGG, 2026-09-30) |
 
 ## Extension exercise for Q4 (standards §11, G8)
 

@@ -812,8 +812,16 @@ vertical slice.
 Only after the slice plays well. Generation, site binding, region transition, macro nav
 hydration.
 
-**M8 — Threat director + raids**
+**M8 — Look and feel**
+What the player sees and hears, over a sim that does not move: one art direction,
+characters and their motion, materials for the world and what is built in it, the HUD
+and sound, all held to 40 fps on the Deck. Inserted ahead of the threat director by
+CEOGG, 2026-09-30 (`docs/specs/M8-look-and-feel.md`).
+
+**M9 — Threat director + raids**
 Signals, suspicion, investigation phase, base state machine, absent resolution.
+Written before the reorder, earlier specs, gates, ADR-004 and comments in `sim/` call this
+M8; they mean this milestone, and debt they scheduled for the threat director's M8 is M9's.
 
 Everything else — drone control, hacking depth, additional weapons, perk breadth, economy —
 is content on top of finished systems.
@@ -827,8 +835,8 @@ is content on top of finished systems.
 | D-01 | Clean start vs existing codebase | M0 |
 | D-02 | Deterministic tick vs variable step | M0, co-op later |
 | D-03 | **Heightmap carving vs volumetric voxels** | M7, all terrain code |
-| D-04 | Sensor-gated detection vs instant wanted level | M4, M8 |
-| D-05 | Claimed base keeps player structure vs faction template | M8 |
+| D-04 | Sensor-gated detection vs instant wanted level | M4, M9 |
+| D-05 | Claimed base keeps player structure vs faction template | M9 |
 | D-06 | Does the device pause time? | M5, M6 |
 | D-07 | Death cost / kit loss model | M6 |
 | D-08 | Arcade enemies: same AI retuned, or simpler agent | M4 |

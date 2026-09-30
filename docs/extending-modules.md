@@ -43,7 +43,7 @@ extension exercise is a fourth module with a dependency and water, data only, em
 - `depends_on` names module kinds that must already be installed on the same
   structure; a cycle refuses to assemble. Removing the last module of a kind that
   another installed module depends on is rejected.
-- `emits` lists signal types (`[a-z0-9][a-z0-9_.]*`) the threat director reads from M8.
+- `emits` lists signal types (`[a-z0-9][a-z0-9_.]*`) the threat director reads from M9.
 
 `tests/land/test_extension_content.gd` installs every module after its dependencies
 on an empty container and checks both budgets stay non-negative, so a module that
