@@ -213,8 +213,8 @@ Conditions (if any):
 1. **`native/terrain_mesher`** — the ADR-003 spike's surface nets promoted as a Rust
    GDExtension, 130× the GDScript port it falls back to. **Accepted, 2026-09-30**;
    `docs/dependencies.md` and the M7 spec note record it.
-2. The Q4 content (`mining_camp`, `extraction`, `claim_jumpers`) stays in the game,
-   or is kept as an exercise only.
+2. The Q4 content (`mining_camp`, `extraction`, `claim_jumpers`) stays in the game:
+   **decided, 2026-09-30.**
 3. The carried M6 debt (§4 item 12) goes to M8: **decided, 2026-09-30.** Two of its items
    (5, a `gear` kind, and 7, the order of `run.end` and `quest.turn_in`) need `sim/`
    changes, which the proposed M8 spec puts out of scope; its *Carried debt* section asks
