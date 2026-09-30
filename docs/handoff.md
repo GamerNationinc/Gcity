@@ -22,7 +22,9 @@ session picks up. Read it first, then `CLAUDE.md`.
 - The suite with all of it: 494 tests, 340 204 assertions, 0 failed, all stages passed.
 - Two sessions shared `~/Gcity` for a day without knowing it. One tree per session; scratch
   worktrees are `~/gc2`–`~/gc4`.
-- `docs/gates/M7-gate.md` is filled in but for the date, Q1 and CEOGG's parts; still a draft.
+- `docs/gates/M7-gate.md` is filled in but for CEOGG's parts; still a draft. Decided on
+  2026-09-30: the terrain mesher dependency is accepted, the carried M6 debt goes to M8
+  (the M8 spec on `m8-spec` lists it and flags the two items that need `sim/` changes).
 
 ## Where things stood on the Deck
 

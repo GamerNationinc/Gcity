@@ -32,7 +32,7 @@ was approved before any of it was written.
 | 13 one rule for both region types | `Region` / `AuthoredRegion` / `WildRegion` behind `Regions`; `check_dependencies` rule 5 | `07ef765`, `0f11706` |
 | 14 the seam | `region.enter` with an 80-tick load window; squads take the gate by dehydrating | `7b00128` |
 | 15 seed plus overlay | `ground.dig` / `ground.fill` as chunk deltas, `Discovery`, save schema 2 with a migration from 1 | `7b00128` |
-| 16 the client shows the graph | the map app draws the graph, bound sites and the player; the world view streams wild ground (`native/terrain_mesher`, proposed — §6) and the gate | `f063d1f`, `db245b4`, `22f2318` |
+| 16 the client shows the graph | the map app draws the graph, bound sites and the player; the world view streams wild ground (`native/terrain_mesher`, accepted — §6) and the gate | `f063d1f`, `db245b4`, `22f2318` |
 | 17 four fixtures | `tools/make_m7_fixtures.gd`, `tests/replay/m7-{graph,bind,hydrate,seam}.json`, `tests/sim/test_m7_fixtures.gd` | `5e4623a` |
 | 18 schemas, corpus, mutation | `site_tag`, `settlement`, `region` schemas and the quest `site` block; every new command kind in the hostile corpus; mutation **68.9 %** first pass, **87.7 %** after, against a 75 % bar | across the branch, `a0af2ee`, `2d80dae` and the pass 2 commit (on `m7-mutation-wip`, a straight continuation of `m7-procgen`) |
 | ADR-003 condition 2 | the worst-frame trace (`docs/specs/spike-surface-nets-deck-results/worst-frame-trace.md`) and pooled mesh nodes in the streamer; done late, before claim 16 | `9a2f86b`, `22f2318` |
@@ -159,7 +159,7 @@ Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 | 9 | **The suite now takes about 100 minutes on the laptop and 80 on the Deck**, dominated by the M7 properties (hydration metamorphic ~10 min, the walk property ~8 min). | residue | M8 |
 | 10 | **A new settlement kit moves every world** and so every fixture, and can move where a contract binds. The Q4 exercise did exactly that: M6's and M7's fixtures were regenerated, each checked for the run it is named for, then re-recorded. | note | none |
 | 11 | **Mutation timeouts** — see §2; the tool change is in `tools/mutate.py` with tests. | tooling | closed |
-| 12 | M6 debt 5 (mission items on the `ammo` kind), 6 (one-cell landing), 7 (`run.end` before `quest.turn_in`), 9 (no `assert_errors` helper), 13 (range demo on wall time) and the M4 building's missing way in (M6 debt 1) were scheduled for M7 and **were not done**: none is in the M7 spec, and CLAUDE.md keeps work outside the spec out of the milestone. | carried | M8 |
+| 12 | M6 debt 5 (mission items on the `ammo` kind), 6 (one-cell landing), 7 (`run.end` before `quest.turn_in`), 9 (no `assert_errors` helper), 13 (range demo on wall time) and the M4 building's missing way in (M6 debt 1) were scheduled for M7 and **were not done**: none is in the M7 spec, and CLAUDE.md keeps work outside the spec out of the milestone. | carried | M8 (CEOGG, 2026-09-30) |
 | 13 | The `gate` Steam branch line is still unmet (no app id). | external | with the app id |
 | 14 | **The squad entry planner stops handing out entries at a solid block in a wall.** `SquadSystem._plan` skips a member whose next-ranked edge has no outside cell without moving past that edge, so every later member gets nothing; a block ranks with the walls of its material and ties go to the lower id. Reproduced with the sim unchanged (M3 room, a foundation block in place of one west wall, placed first: one member of three given an entry, sixteen walls on offer). Found by the mutation run (`squad_system:239`). Fixed at CEOGG's word: an edge with no outside cell is passed over and the member offered the next, with `test_squad` a block in the wall does not stop the plan (failing before the fix). | defect | closed |
 | 15 | **`test_terrain_streamer::test_a_frame_keeps_to_its_budget` failed on the laptop** in six runs of seven, worst frame 7.9–10.1 ms against its 6 ms ceiling. The cause was the sim, not the machine: `WildRegion._roads_near` measured every road of the graph for each new chunk, 1.3–4.6 ms inside a single streamer step. `ea3937f` reads the roads once per graph revision and skips those whose bounds miss the chunk (checked against the old scan on about 191 000 chunks: no difference); worst frame since 4.0–5.8 ms. Also closes most of item 6's cold-column cost. | performance, claim 16 | closed |
@@ -184,7 +184,7 @@ each refused with a reason); the command kinds `token.spawn`, `region.enter`,
 payloads, bounds and reach checks and all in the hostile corpus; and the save at
 schema 2, with a migration from 1 and a property that a version-1 save still loads.
 One new binary dependency, `native/terrain_mesher` (Rust, godot crate `=0.5.5`,
-Rust 1.98.0), **proposed** — §6.
+Rust 1.98.0), **accepted** by CEOGG on 2026-09-30 — §6.
 
 **Q3 — Is it complete?** All eighteen claims are delivered with no stubs or `TODO`s
 in a shipped path, and the Q4 exercise is performed. What was not done is §4 item 12.
@@ -211,11 +211,14 @@ Conditions (if any):
 **For CEOGG's decision with this gate:**
 
 1. **`native/terrain_mesher`** — the ADR-003 spike's surface nets promoted as a Rust
-   GDExtension, 130× the GDScript port it falls back to. Recorded as *proposed* in
-   `docs/dependencies.md` and the M7 spec note; accept or reject it.
+   GDExtension, 130× the GDScript port it falls back to. **Accepted, 2026-09-30**;
+   `docs/dependencies.md` and the M7 spec note record it.
 2. The Q4 content (`mining_camp`, `extraction`, `claim_jumpers`) stays in the game,
    or is kept as an exercise only.
-3. The carried M6 debt (§4 item 12) goes to M8.
+3. The carried M6 debt (§4 item 12) goes to M8: **decided, 2026-09-30.** Two of its items
+   (5, a `gear` kind, and 7, the order of `run.end` and `quest.turn_in`) need `sim/`
+   changes, which the proposed M8 spec puts out of scope; its *Carried debt* section asks
+   for that to be settled when M8 is approved.
 
 ## 7. Deck run and feel notes
 

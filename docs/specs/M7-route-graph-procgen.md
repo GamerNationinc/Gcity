@@ -158,7 +158,9 @@ debt log. What follows is the design those decisions need.
    (claim 10: raised at a slot) and saving (claim 15). None of them names
    `AuthoredRegion` or `WildRegion`; `tools/check_dependencies.py` enforces it.
 
-## Note: claim 16's native mesher — proposed, for CEOGG at G7
+## Note: claim 16's native mesher — accepted by CEOGG at G7 (2026-09-30)
+
+*Accepted 2026-09-30. What follows is the note as it was proposed.*
 
 ADR-003 (accepted as option B) chose surface nets in a Rust GDExtension for chunk meshing;
 claim 16 promotes the spike's mesher to `native/terrain_mesher` — surface nets only, one
