@@ -24,8 +24,9 @@ session picks up. Read it first, then `CLAUDE.md`.
   worktrees are `~/gc2`–`~/gc4`.
 - `docs/gates/M7-gate.md` is filled in but for CEOGG's parts; still a draft. Decided on
   2026-09-30: the terrain mesher dependency is accepted, the Q4 content stays in the game,
-  the carried M6 debt goes to M8
-  (the M8 spec on `m8-spec` lists it and flags the two items that need `sim/` changes).
+  the carried M6 debt goes to M8 but for items 5 and 7, which need `sim/` changes and go to
+  M9; and the reorder is approved: M8 is look and feel, the threat director M9 (design doc
+  §16 and standards §2.1 on `m8-spec`; the rest of the M8 spec and ADR-011 still proposed).
 
 ## Where things stood on the Deck
 

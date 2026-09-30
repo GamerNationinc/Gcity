@@ -159,7 +159,7 @@ Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 | 9 | **The suite now takes about 100 minutes on the laptop and 80 on the Deck**, dominated by the M7 properties (hydration metamorphic ~10 min, the walk property ~8 min). | residue | M8 |
 | 10 | **A new settlement kit moves every world** and so every fixture, and can move where a contract binds. The Q4 exercise did exactly that: M6's and M7's fixtures were regenerated, each checked for the run it is named for, then re-recorded. | note | none |
 | 11 | **Mutation timeouts** — see §2; the tool change is in `tools/mutate.py` with tests. | tooling | closed |
-| 12 | M6 debt 5 (mission items on the `ammo` kind), 6 (one-cell landing), 7 (`run.end` before `quest.turn_in`), 9 (no `assert_errors` helper), 13 (range demo on wall time) and the M4 building's missing way in (M6 debt 1) were scheduled for M7 and **were not done**: none is in the M7 spec, and CLAUDE.md keeps work outside the spec out of the milestone. | carried | M8 (CEOGG, 2026-09-30) |
+| 12 | M6 debt 5 (mission items on the `ammo` kind), 6 (one-cell landing), 7 (`run.end` before `quest.turn_in`), 9 (no `assert_errors` helper), 13 (range demo on wall time) and the M4 building's missing way in (M6 debt 1) were scheduled for M7 and **were not done**: none is in the M7 spec, and CLAUDE.md keeps work outside the spec out of the milestone. | carried | M8; items 5 and 7 M9 (CEOGG, 2026-09-30) |
 | 13 | The `gate` Steam branch line is still unmet (no app id). | external | with the app id |
 | 14 | **The squad entry planner stops handing out entries at a solid block in a wall.** `SquadSystem._plan` skips a member whose next-ranked edge has no outside cell without moving past that edge, so every later member gets nothing; a block ranks with the walls of its material and ties go to the lower id. Reproduced with the sim unchanged (M3 room, a foundation block in place of one west wall, placed first: one member of three given an entry, sixteen walls on offer). Found by the mutation run (`squad_system:239`). Fixed at CEOGG's word: an edge with no outside cell is passed over and the member offered the next, with `test_squad` a block in the wall does not stop the plan (failing before the fix). | defect | closed |
 | 15 | **`test_terrain_streamer::test_a_frame_keeps_to_its_budget` failed on the laptop** in six runs of seven, worst frame 7.9–10.1 ms against its 6 ms ceiling. The cause was the sim, not the machine: `WildRegion._roads_near` measured every road of the graph for each new chunk, 1.3–4.6 ms inside a single streamer step. `ea3937f` reads the roads once per graph revision and skips those whose bounds miss the chunk (checked against the old scan on about 191 000 chunks: no difference); worst frame since 4.0–5.8 ms. Also closes most of item 6's cold-column cost. | performance, claim 16 | closed |
@@ -215,10 +215,10 @@ Conditions (if any):
    `docs/dependencies.md` and the M7 spec note record it.
 2. The Q4 content (`mining_camp`, `extraction`, `claim_jumpers`) stays in the game:
    **decided, 2026-09-30.**
-3. The carried M6 debt (§4 item 12) goes to M8: **decided, 2026-09-30.** Two of its items
-   (5, a `gear` kind, and 7, the order of `run.end` and `quest.turn_in`) need `sim/`
-   changes, which the proposed M8 spec puts out of scope; its *Carried debt* section asks
-   for that to be settled when M8 is approved.
+3. The carried M6 debt (§4 item 12) goes to M8: **decided, 2026-09-30**, except its items
+   5 (a `gear` kind) and 7 (the order of `run.end` and `quest.turn_in`), which need `sim/`
+   changes and go to **M9**, the threat director, since the reorder CEOGG approved the
+   same day (design doc §16 on `m8-spec`).
 
 ## 7. Deck run and feel notes
 
