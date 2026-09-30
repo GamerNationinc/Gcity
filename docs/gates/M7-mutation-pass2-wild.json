@@ -1,0 +1,71 @@
+{
+	"score": 33.333333333333336,
+	"mutants": 6,
+	"killed": 2,
+	"invalid": 0,
+	"unscored": [],
+	"per_file": 6,
+	"seed": 20261230,
+	"detail": [
+		{
+			"path": "sim/world/wild_region.gd",
+			"line": 185,
+			"operator": "statement deleted",
+			"before": "\t\t_columns.clear()",
+			"after": "\t\tpass",
+			"outcome": "failed",
+			"by": "FAIL res://tests/world/test_regions.gd::test_a_bound_sites_track_is_cut_in_as_soon_as_it_exists",
+			"seconds": 199.18372718199998
+		},
+		{
+			"path": "sim/world/wild_region.gd",
+			"line": 120,
+			"operator": "1 -> 2",
+			"before": "\t\tfor cy: int in range(lo.y, hi.y + 1):",
+			"after": "\t\tfor cy: int in range(lo.y, hi.y + 2):",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 200.66955454100002
+		},
+		{
+			"path": "sim/world/wild_region.gd",
+			"line": 231,
+			"operator": "0 -> 1",
+			"before": "\tif length <= 0:",
+			"after": "\tif length <= 1:",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 200.116394271
+		},
+		{
+			"path": "sim/world/wild_region.gd",
+			"line": 30,
+			"operator": "4096 -> 4097",
+			"before": "const CACHE_CHUNKS: int = 4096",
+			"after": "const CACHE_CHUNKS: int = 4097",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 199.09186880799996
+		},
+		{
+			"path": "sim/world/wild_region.gd",
+			"line": 203,
+			"operator": "2 -> 3",
+			"before": "\t\tvar x: int = cx * c + c / 2",
+			"after": "\t\tvar x: int = cx * c + c / 3",
+			"outcome": "passed",
+			"by": "",
+			"seconds": 202.14816988000007
+		},
+		{
+			"path": "sim/world/wild_region.gd",
+			"line": 109,
+			"operator": "!= -> ==",
+			"before": "\t\t\t\tif road != NO_ROAD:",
+			"after": "\t\t\t\tif road == NO_ROAD:",
+			"outcome": "failed",
+			"by": "FAIL res://tests/world/test_regions.gd::test_a_block_of_cells_is_the_ground_cell_for_cell",
+			"seconds": 199.5528749
+		}
+	]
+}

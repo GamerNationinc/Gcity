@@ -1,0 +1,18 @@
+killed   sim/world/wild_region.gd:185 statement deleted  (199.2s)
+SURVIVED sim/world/wild_region.gd:120 1 -> 2  (200.7s)
+SURVIVED sim/world/wild_region.gd:231 0 -> 1  (200.1s)
+SURVIVED sim/world/wild_region.gd:30 4096 -> 4097  (199.1s)
+SURVIVED sim/world/wild_region.gd:203 2 -> 3  (202.1s)
+killed   sim/world/wild_region.gd:109 != -> ==  (199.6s)
+
+6 mutants, 2 killed, score 33.3%  (0 did not compile and are not counted)
+
+survived:
+  sim/world/wild_region.gd:120  1 -> 2
+      for cy: int in range(lo.y, hi.y + 1):
+  sim/world/wild_region.gd:231  0 -> 1
+      if length <= 0:
+  sim/world/wild_region.gd:30  4096 -> 4097
+      const CACHE_CHUNKS: int = 4096
+  sim/world/wild_region.gd:203  2 -> 3
+      var x: int = cx * c + c / 2

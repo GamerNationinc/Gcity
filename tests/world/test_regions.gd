@@ -482,3 +482,26 @@ func test_regions_need_content() -> void:
 	_setup()
 	var loose := Regions.new(_routes, _terrain)
 	assert_eq(loose.attach(SimRoot.new(SEED)), ERR_INVALID_DATA, "no content, no regions")
+
+
+## Found by the G7 mutation run: the wild ground was compared with the terrain only
+## where it matters to walking, never at the point a column is sampled. A column's ground
+## is the terrain's height at the column's centre, to the nearest cell: tried on a column
+## whose centre and a point a third of the way in round to different cells, since on the
+## gentle relief most columns cannot tell them apart.
+func test_a_wild_column_is_the_terrain_at_its_centre() -> void:
+	_setup()
+	var wild: WildRegion = _regions.region_at(0, -1)
+	var c: int = BuildSystem.CELL
+	var tried: int = 0
+	for cz: int in range(-700, -20000, -7):
+		for cx: int in range(-3000, 3000, 11):
+			var centre: int = Terrain._floor_div(_terrain.ground_mm(cx * c + c / 2, cz * c + c / 2) + c / 2, c)
+			var aside: int = Terrain._floor_div(_terrain.ground_mm(cx * c + c / 3, cz * c + c / 3) + c / 2, c)
+			if centre == aside:
+				continue
+			assert_eq(wild._column(cx, cz).x, centre, "column %d,%d takes its centre's height" % [cx, cz])
+			tried += 1
+			if tried == 5:
+				return
+	assert_true(tried > 0, "found columns where the sample point matters")

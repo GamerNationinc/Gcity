@@ -153,6 +153,21 @@ equivalent or outside (`structure_system:410`, `region:24`, `wild_region:30` and
 | `core/content_db.gd:89` | deleted | hole | the same test |
 | `core/replay_fixture.gd:25` | `0 -> 1` | equivalent | the default of a field every valid parse sets; nothing reads it from an invalid fixture |
 
+### `wild_region.gd` after `ea3937f`
+
+`ea3937f` (the wild ground's road scan, read once per graph revision) changed
+`sim/world/wild_region.gd` after pass 2 had mutated it, so the file was run again on its
+new code: its lines moved, so it drew a new sample, **2 of 6 killed** where the old code's
+sample had 4 of 6. With that file's pass 2 replaced by its re-run, pass 2 is 219 of 252,
+**86.9 %**.
+
+| mutant (`sim/…`) | operator | verdict | test, or why |
+|---|---|---|---|
+| `world/wild_region.gd:30` | `4096 -> 4097` | equivalent | as in pass 1: the cache's size |
+| `world/wild_region.gd:120` | `1 -> 2` | equivalent | one more chunk row is scanned for edits, and every cell of it outside the box is skipped |
+| `world/wild_region.gd:203` | `2 -> 3` | hole | `test_regions`: a wild column is the terrain at its centre (tried where the centre and a point a third of the way in round to different cells: on the gentle relief most columns cannot tell them apart) |
+| `world/wild_region.gd:231` | `0 -> 1` | equivalent | only a road 1 mm long would change, and no edge is: `test_route_graph` holds nodes far enough apart that an edge is a journey |
+
 ## A defect the run turned up
 
 `SquadSystem._plan` hands each member outside the contact's volume the next edge in cost
