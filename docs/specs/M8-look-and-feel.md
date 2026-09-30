@@ -174,6 +174,22 @@ ambience bed; interiors of procedural settlements; multiplayer.
   G9 unchanged.
 - §3.2: the 10 000-case rule applies to gate and nightly runs (claim 1).
 
+## Carried debt (G6, through G7)
+
+CEOGG moved the M6 debt that G7 carried (G7 gate §4 item 12) to M8 on 2026-09-30. Four
+items sit inside this spec's scope; two do not, because each needs a `sim/` change,
+which *Out of scope* above excludes. Those two are for CEOGG to settle with this spec:
+an exception for them, or on to M9.
+
+| G6 item | What | Where it lands |
+|---|---|---|
+| 1 | `m4_test_building` has no way in: its own client places the player inside | content (the site file): in scope |
+| 6 | the step's landing is one cell wide, so walking off it sideways drops a metre | content (a wider apron): in scope |
+| 9 | nothing can assert that a diagnostic was emitted (an `assert_errors` helper) | `tests/`, with claims 1–2: in scope |
+| 13 | the M1 range demo still runs on wall time | `client/`: in scope |
+| 5 | mission items ride on the `ammo` kind; a `gear` kind needs a constant in `sim/items/` as well as the content move | **`sim/`: out of scope as written** |
+| 7 | nothing enforces `run.end` before `quest.turn_in`; enforcing it is a `sim/quests/` change (it is documented in `docs/extending-missions.md` meanwhile) | **`sim/`: out of scope as written** |
+
 ## Extension exercise for Q4 (standards §11, G8)
 
 Give a faction a new look — a different model, palette and set of sounds — and add a
