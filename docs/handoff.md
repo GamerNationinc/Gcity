@@ -26,7 +26,8 @@ session picks up. Read it first, then `CLAUDE.md`.
   2026-09-30: the terrain mesher dependency is accepted, the Q4 content stays in the game,
   the carried M6 debt goes to M8 but for items 5 and 7, which need `sim/` changes and go to
   M9; and the reorder is approved: M8 is look and feel, the threat director M9 (design doc
-  §16 and standards §2.1 on `m8-spec`; the rest of the M8 spec and ADR-011 still proposed).
+  §16 and standards §2.1 on `m8-spec`). Later the same day ADR-011 was accepted (1A; 2A,
+  then 2B) and the M8 spec approved (`m8-spec`, `25d0dea`); M8 starts when G7 is signed.
 
 ## Where things stood on the Deck
 
