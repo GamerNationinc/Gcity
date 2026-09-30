@@ -14,15 +14,15 @@ session picks up. Read it first, then `CLAUDE.md`.
   stress tick throw 3 309 times passed as `0 failed`), and maps `land_system.gd` to the pause
   tests. Both are in the triage note.
 - Pass 2, every `sim/` file again with the new tests and the fixed harness: 221 of 252,
-  **87.7 %**. Its 20 new survivors are triaged too, with 12 more tests; one is left open
-  and one turned up a defect in the squad entry planner (gate §4 item 14), since fixed.
+  **87.7 %**. Its 20 new survivors are triaged too, with 13 more tests; one turned up a
+  defect in the squad entry planner (gate §4 item 14), since fixed. None is left open.
 - `ea3937f` (another session, in `~/Gcity`) fixed why the streamer's frame-budget test
   failed here: the wild ground measured every road for each new chunk. `wild_region.gd`
   was mutated again on its new code (pass 2 with it: 86.9 %).
-- The suite with all of it: 494 tests, 340 204 assertions, 0 failed, all stages passed.
+- The suite with all of it: 496 tests, 340 273 assertions, 0 failed, all stages passed.
 - Two sessions shared `~/Gcity` for a day without knowing it. One tree per session; scratch
   worktrees are `~/gc2`–`~/gc4`.
-- `docs/gates/M7-gate.md` is filled in but for CEOGG's parts; still a draft. Decided on
+- `docs/gates/M7-gate.md` is **submitted** (2026-09-30), awaiting CEOGG's Deck run and sign-off. Decided on
   2026-09-30: the terrain mesher dependency is accepted, the Q4 content stays in the game,
   the carried M6 debt goes to M8 but for items 5 and 7, which need `sim/` changes and go to
   M9; and the reorder is approved: M8 is look and feel, the threat director M9 (design doc

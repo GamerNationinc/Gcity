@@ -3,9 +3,9 @@
 Milestone: M7 — the route graph and the procedural wilds (design doc §6, §16;
 standards §11 row G7; `docs/specs/M7-route-graph-procgen.md`, approved 2026-09-23
 with ADR-003 as B and ADR-010 as B)
-Submitted: {{DATE}} by Claude Code, on branch `m7-procgen`, commits `763ea52` … the
+Submitted: 2026-09-30 by Claude Code, on branch `m7-procgen`, commits `763ea52` … the
 package commit
-Outcome: **Draft — not yet submitted** (waiting on the mutation score; see docs/handoff.md)
+Outcome: **Submitted** — awaiting CEOGG's Deck run (§3 steps 5–8, §7) and sign-off (§6)
 
 ---
 
@@ -52,10 +52,9 @@ tools/test.sh
 == fitness functions        74 tool tests OK; check_dependencies, validate_content: clean
 == native mesher            clippy pedantic clean; its tests pass; built
 == script analysis          every .gd file ok
-== headless tests           494 tests, 340204 assertions, 0 failed; check_test_log: clean
-                            (and test_squad's last test, written after, run on its own: 7 of 7)
+== headless tests           496 tests, 340273 assertions, 0 failed; check_test_log: clean
 == replay determinism       24 fixtures, each twice, identical
-== all stages passed        (99 min on the laptop; the streamer's worst frame 3.9 ms)
+== all stages passed        (99 min on the laptop; the streamer's worst frame 4.0 ms)
 ```
 
 ### Mutation score (claim 18)
@@ -72,10 +71,9 @@ Two passes, both reported, as at G6. Every survivor of both, and what became of 
 Pass 1's 80 survivors: 53 holes in the tests, each now with a test that fails on its
 mutant (checked by applying the mutant with the tool's own operators); 24 equivalent,
 each with its reason; 2 harness; 1 caught only outside its file's mapped tests. Pass 2
-drew 20 new survivors (the Deck's files are sampled anew, see below): 12 more holes,
-tested the same way after pass 2 had started, so not in its number; 6 equivalent; one
-left open (`raid_token_system:191`, no geometry found that reaches it); and one on a
-branch that is itself wrong, which is §4 item 14.
+drew 20 new survivors (the Deck's files are sampled anew, see below): 13 more holes,
+tested the same way after pass 2 had started, so not in its number; 6 equivalent; and
+one on a branch that was itself wrong, which is §4 item 14. No survivor is left open.
 
 The first 20 files of pass 1 were sampled the old way, before `mutate.py` sampled each
 file from the seed and its path alone, so pass 2 drew different mutants for them; files
@@ -125,7 +123,7 @@ curtain during the load window.
 
 Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 
-1. `tools/test.sh` → `495 tests, … 0 failed`, twenty-four `ok` replay lines,
+1. `tools/test.sh` → `496 tests, … 0 failed`, twenty-four `ok` replay lines,
    `all stages passed`.
 2. `$(tools/godot.sh) --headless --path . -s tools/make_m7_fixtures.gd` → the four
    runs re-authored, the hydrate run printing `squad in at tick 1000, out at tick
@@ -153,7 +151,7 @@ Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 | 3a | **The client's `--mission` still raised Cold Storage in the city**, at its old authored base, and took the contract afterwards: the fixtures proved claim 10 and the game on the Deck did not show it. Found writing this package. It now binds first and raises at the bound slot; `--mission --demo` ran clean on two random worlds (bound 1 459 m and 1 230 m out; seen 0, alarms 0, bodies 0, traces 0, nothing refused). | correction to claim 10 | closed |
 | 4 | **GDScript reference cycles are never freed.** `Regions` ↔ `BuildSystem` leaked ~0.26 MB a sim and the suite, which builds 20 000+, was killed for memory twice. One side now holds a method `Callable`; `test_a_sim_nobody_holds_is_freed_with_every_system` guards it. | defect | closed |
 | 5 | **ADR-003 condition 2 was done late**: the worst-frame trace belonged before M7 and was done before claim 16. The stalls were the spike harness rescanning its own frames; one frame in 571 k over 25 ms, nothing of ours. | late | closed |
-| 6 | **A cold wild column costs 1.3–2.7 ms in the sim** (`WildRegion._column` / `_near`), so a streaming frame can run to ~5 ms on desktop against its 3 ms allocation. | performance | M8 |
+| 6 | **A cold wild column costs 1.3–2.7 ms in the sim** (`WildRegion._column` / `_near`), so a streaming frame can run to ~5 ms on desktop against its 3 ms allocation. `ea3937f` took the road scan out of `_near` (item 15); the streamer's worst frame on the laptop has been 3.9–5.8 ms since. Closed at CEOGG's word, 2026-09-30: the M8 it was scheduled for is now look and feel, which may not change `sim/`. | performance | closed |
 | 7 | **`undiscovered` saw nothing until claims 13–15**, and a bound site appeared on the map only as a graph node until claim 16. Both closed by the later claims. | ordering | closed |
 | 8 | **Binding is per quest, not per actor**: two actors taking one contract share its place. Right for one player; co-op will need to decide. | scope | co-op |
 | 9 | **The suite now takes about 100 minutes on the laptop and 80 on the Deck**, dominated by the M7 properties (hydration metamorphic ~10 min, the walk property ~8 min). | residue | M8 |
@@ -164,12 +162,12 @@ Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 | 14 | **The squad entry planner stops handing out entries at a solid block in a wall.** `SquadSystem._plan` skips a member whose next-ranked edge has no outside cell without moving past that edge, so every later member gets nothing; a block ranks with the walls of its material and ties go to the lower id. Reproduced with the sim unchanged (M3 room, a foundation block in place of one west wall, placed first: one member of three given an entry, sixteen walls on offer). Found by the mutation run (`squad_system:239`). Fixed at CEOGG's word: an edge with no outside cell is passed over and the member offered the next, with `test_squad` a block in the wall does not stop the plan (failing before the fix). | defect | closed |
 | 15 | **`test_terrain_streamer::test_a_frame_keeps_to_its_budget` failed on the laptop** in six runs of seven, worst frame 7.9–10.1 ms against its 6 ms ceiling. The cause was the sim, not the machine: `WildRegion._roads_near` measured every road of the graph for each new chunk, 1.3–4.6 ms inside a single streamer step. `ea3937f` reads the roads once per graph revision and skips those whose bounds miss the chunk (checked against the old scan on about 191 000 chunks: no difference); worst frame since 4.0–5.8 ms. Also closes most of item 6's cold-column cost. | performance, claim 16 | closed |
 | 16 | **`tools/mutate.py` read only `ERROR:` lines**, not `SCRIPT ERROR:`, so a mutant that broke a tick with runtime errors passed; and the land system was not mapped to the pause tests. Both fixed with tests; pass 1's first 20 files ran before the fix. | tooling | closed |
-| 17 | **`raid_token_system:191` is open**: a raid path of cost 0 needs a stair to be the only way between two volumes, and no geometry was found that reaches it. Not claimed equivalent. | untested | M8 |
+| 17 | **`raid_token_system:191` was left open** for want of a raid path costing nothing. A stair flight set in a wall is one (an opening passed for nothing); `test_raid_token_system`'s a token walks a plan that costs nothing kills it. | untested | closed |
 | 18 | **`tools/test.sh` does not install GodotSteam**; without it the unit stage's log check fails on the missing extension. `docs/handoff.md` now lists `tools/godotsteam.sh` as a setup step. | setup | closed |
 
 ## 5. The four standing questions
 
-**Q1 — Does it function?** On the laptop, yes: the whole suite passes (§2, 494 tests, 0
+**Q1 — Does it function?** On the laptop, yes: the whole suite passes (§2, 496 tests, 0
 failed, 24 fixtures reproduce), the four M7 fixtures record the runs they are named for,
 and pass 2 kills 86.9–87.7 % of its mutants against a 75 % bar. The one defect the run
 found, the squad entry planner's with a block in a wall (§4 item 14), is fixed. Whether it

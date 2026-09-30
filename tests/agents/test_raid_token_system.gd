@@ -196,3 +196,21 @@ func test_a_token_built_over_where_it_stands_fails() -> void:
 	assert_eq(_portals.node_at(_raids.cell_of(token)), PortalGraph.SOLID, "the token stands in solid ground")
 	_sim.step()
 	assert_eq(_raids.state_of(token), "failed", "it has nowhere to go")
+
+
+## Found by the G7 mutation run: every way in cost something, so a raid plan costing
+## nothing was never walked. A stair flight set in a wall is an opening that costs
+## nothing to pass; a token finds that plan and walks it.
+func test_a_token_walks_a_plan_that_costs_nothing() -> void:
+	_setup()
+	var r: Dictionary = _room(true)
+	var door: int = r["door"]
+	_build.breach(door)
+	_place(&"stair_flight", 1, 1, 0, "nz")
+	var plan: Dictionary = _portals.raid_plan(CUTTER)
+	assert_eq(plan["cost"], 0, "in through the stair for nothing")
+	var token: int = _raids.spawn(CUTTER)
+	assert_true(token > 0, "token spawned")
+	_sim.step_n(3)
+	assert_eq(_raids.state_of(token), "arrived", "and in")
+	assert_eq(_raids.token(token)["breached"], 0, "nothing breached")

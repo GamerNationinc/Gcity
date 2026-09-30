@@ -128,7 +128,7 @@ equivalent or outside (`structure_system:410`, `region:24`, `wild_region:30` and
 `item_system:621` and `:870`, `portal_graph:162`, `stat_resolver:640`, `standing_system:224`,
 `regions:474` and `:208`). The new ones:
 
-20 new survivors: 12 holes, 6 equivalent, 1 open, 1 on a defective branch.
+20 new survivors: 13 holes, 6 equivalent, 1 on a defective branch.
 
 | mutant (`sim/…`) | operator | verdict | test, or why |
 |---|---|---|---|
@@ -141,7 +141,7 @@ equivalent or outside (`structure_system:410`, `region:24`, `wild_region:30` and
 | `agents/hydration_system.gd:247` | `> -> >=` | hole | `test_hydration`: a token at exactly the agents' pace comes in |
 | `agents/macro_token_system.gd:236` | `return false -> true` | hole | `test_macro_token`: dropping a token that is not held is refused |
 | `agents/pathing_system.gd:193` | deleted | hole | `test_agent_pathing`: a failed route survives a save (restore refuses a failed route holding a search) |
-| `agents/raid_token_system.gd:191` | `< -> <=` | open | a raid path of cost 0 needs a stair (opened for nothing) to be the only way between two volumes; the shipped pieces put stairs inside a volume and join levels by the hatch, and no geometry was found that reaches it. Not claimed equivalent |
+| `agents/raid_token_system.gd:191` | `< -> <=` | hole | `test_raid_token_system`: a token walks a plan that costs nothing (a stair flight set in a wall is an opening passed for nothing; the mutant fails the token instead). Left open at first: only stairs between levels were looked at |
 | `agents/squad_system.gd:239` | `0 -> 1` | defect | the branch it sat on was itself wrong: see *A defect the run turned up* below; the line is gone with the fix |
 | `agents/stance_system.gd:295` | `0 -> 1` | equivalent | the `else 0` in hold's score becomes 1 when a contact is known: one point in a million on a scoring weight no specification or content names |
 | `agents/stance_system.gd:460` | `2 -> 3` | equivalent | a tuning distance (retreat while closer than twice the retreat distance) no specification names |
