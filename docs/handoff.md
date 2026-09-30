@@ -15,11 +15,11 @@ session picks up. Read it first, then `CLAUDE.md`.
   tests. Both are in the triage note.
 - Pass 2, every `sim/` file again with the new tests and the fixed harness: 221 of 252,
   **87.7 %**. Its 20 new survivors are triaged too, with 12 more tests; one is left open
-  and one turned up a defect in the squad entry planner (gate §4 item 14).
+  and one turned up a defect in the squad entry planner (gate §4 item 14), since fixed.
 - `ea3937f` (another session, in `~/Gcity`) fixed why the streamer's frame-budget test
   failed here: the wild ground measured every road for each new chunk. `wild_region.gd`
   was mutated again on its new code (pass 2 with it: 86.9 %).
-- The suite with all of it: 493 tests, 340 166 assertions, 0 failed, all stages passed.
+- The suite with all of it: 494 tests, 340 204 assertions, 0 failed, all stages passed.
 - Two sessions shared `~/Gcity` for a day without knowing it. One tree per session; scratch
   worktrees are `~/gc2`–`~/gc4`.
 - `docs/gates/M7-gate.md` is filled in but for the date, Q1 and CEOGG's parts; still a draft.

@@ -228,18 +228,20 @@ func _plan(squad: int) -> void:
 	ranked.sort()
 	var next: int = 0
 	for member: int in members:
-		if next >= ranked.size():
-			break
 		var here: Vector3i = BuildSystem.cell_of(_actors.position_of(member))
 		if _portals.node_at(here) == volume:
 			continue
-		var entry: Array = ranked[next]
-		var piece: int = entry[1]
-		var outside: Vector3i = _outside_cell(piece, volume)
+		# an edge with no outside cell (a solid block in the wall has no face) is passed
+		# over, not offered to every member after this one
+		var outside: Vector3i = Vector3i(0, -1, 0)
+		while next < ranked.size() and outside == Vector3i(0, -1, 0):
+			var entry: Array = ranked[next]
+			var piece: int = entry[1]
+			outside = _outside_cell(piece, volume)
+			next += 1
 		if outside == Vector3i(0, -1, 0):
-			continue
+			break
 		_assignments[member] = PathingSystem._arr(outside)
-		next += 1
 
 
 ## The contact the most members know, ties to the lowest contact id.

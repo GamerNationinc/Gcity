@@ -259,3 +259,70 @@ func test_a_door_to_the_next_room_is_not_an_entry() -> void:
 	assert_true(_squads.has_assignment(a) and _squads.has_assignment(b) and _squads.has_assignment(c), "every member outside has an entry")
 	for member: int in [a, b, c]:
 		assert_eq(portals.node_at(_squads.assignment_of(member)), PortalGraph.EXTERIOR, "%d enters from outside" % member)
+
+
+## G7 debt 14: a solid block standing in a room's wall is an edge of the room with no
+## face, so it has no outside cell to send anyone to. The planner skipped the member it
+## was offered to without moving past it, and every member after met the same block.
+## A block costs what a wall of its material does and ties go to the lower id, so one
+## placed before the walls ranks first among them. An edge nobody can be sent to is
+## passed over, and the members still get the edges that remain.
+func test_a_block_in_the_wall_does_not_stop_the_plan() -> void:
+	_setup()
+	var base: Vector3i = _cell(10, 10)
+	var block: int = _build.place(_player, &"foundation_block", BuildSystem.cell_centre(base + Vector3i(-1, 0, 1)), "")
+	assert_true(block > 0, "the block first, so it has the lowest id of its cost")
+	for command: Dictionary in WorldView.room_commands(base, _player):
+		var piece_s: String = command["piece"]
+		var facing: String = command["facing"]
+		var x: int = command["x"]
+		var y: int = command["y"]
+		var z: int = command["z"]
+		var at: Vector3i = Vector3i(x, y, z)
+		if facing == "nx" and BuildSystem.cell_of(at) == base + Vector3i(0, 0, 1):
+			continue  # the block stands where this wall would
+		assert_true(_build.place(_player, StringName(piece_s), at, facing) > 0, "room piece %s" % piece_s)
+	var portals: PortalGraph = SimAssembly.portals_of(_sim)
+	assert_eq(portals.volume_count(), 1, "one enclosed volume")
+	var edges: Array[int] = []
+	for e: Array in portals.edges_of(1):
+		var piece: int = e[0]
+		edges.append(piece)
+	assert_true(edges.has(block), "and the block is one of its edges")
+	_actors.set_position(_player, BuildSystem.cell_centre(base + Vector3i(1, 0, 1)))
+	var a: int = _perception.spawn(&"watcher", base + Vector3i(1, 0, -4), 90, 1, "")
+	var b: int = _perception.spawn(&"watcher", base + Vector3i(-4, 0, 4), 0, 1, "")
+	var c: int = _perception.spawn(&"watcher", base + Vector3i(5, 0, 1), 180, 1, "")
+	_sim.step()
+	for member: int in [a, b, c]:
+		assert_true(_perception.receive_report(member, _player, _actors.position_of(_player), _sim.get_tick()), "%d is told" % member)
+	_sim.step_n(30)
+	assert_true(_squads.has_assignment(a) and _squads.has_assignment(b) and _squads.has_assignment(c), "every member outside has an entry")
+	var cells: Array[Vector3i] = [_squads.assignment_of(a), _squads.assignment_of(b), _squads.assignment_of(c)]
+	assert_true(cells[0] != cells[1] and cells[1] != cells[2] and cells[0] != cells[2], "three distinct entries")
+	for cell: Vector3i in cells:
+		assert_eq(portals.node_at(cell), PortalGraph.EXTERIOR, "every entry cell is outside")
+
+
+## Found by the G7 mutation run, on the fixed planner: no member died holding an entry.
+## A dead member's entry is dropped at the end of the tick it died in.
+func test_a_dead_member_keeps_no_entry() -> void:
+	_setup()
+	var base: Vector3i = _cell(10, 10)
+	for command: Dictionary in WorldView.room_commands(base, _player):
+		var piece_s: String = command["piece"]
+		var facing: String = command["facing"]
+		var x: int = command["x"]
+		var y: int = command["y"]
+		var z: int = command["z"]
+		assert_true(_build.place(_player, StringName(piece_s), Vector3i(x, y, z), facing) > 0, "room piece %s" % piece_s)
+	_actors.set_position(_player, BuildSystem.cell_centre(base + Vector3i(1, 0, 1)))
+	var a: int = _perception.spawn(&"watcher", base + Vector3i(1, 0, -4), 90, 1, "")
+	_sim.step()
+	assert_true(_perception.receive_report(a, _player, _actors.position_of(_player), _sim.get_tick()), "told")
+	_sim.step_n(30)
+	assert_true(_squads.has_assignment(a), "given the door")
+	_actors.damage_node(a, &"body", 999999)
+	assert_false(_actors.is_alive(a), "down")
+	_sim.step()
+	assert_false(_squads.has_assignment(a), "and the entry goes with it")

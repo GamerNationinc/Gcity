@@ -142,7 +142,7 @@ equivalent or outside (`structure_system:410`, `region:24`, `wild_region:30` and
 | `agents/macro_token_system.gd:236` | `return false -> true` | hole | `test_macro_token`: dropping a token that is not held is refused |
 | `agents/pathing_system.gd:193` | deleted | hole | `test_agent_pathing`: a failed route survives a save (restore refuses a failed route holding a search) |
 | `agents/raid_token_system.gd:191` | `< -> <=` | open | a raid path of cost 0 needs a stair (opened for nothing) to be the only way between two volumes; the shipped pieces put stairs inside a volume and join levels by the hatch, and no geometry was found that reaches it. Not claimed equivalent |
-| `agents/squad_system.gd:239` | `0 -> 1` | defect | the branch it sits on is itself wrong: see *A defect the run turned up* below |
+| `agents/squad_system.gd:239` | `0 -> 1` | defect | the branch it sat on was itself wrong: see *A defect the run turned up* below; the line is gone with the fix |
 | `agents/stance_system.gd:295` | `0 -> 1` | equivalent | the `else 0` in hold's score becomes 1 when a contact is known: one point in a million on a scoring weight no specification or content names |
 | `agents/stance_system.gd:460` | `2 -> 3` | equivalent | a tuning distance (retreat while closer than twice the retreat distance) no specification names |
 | `agents/stance_system.gd:531` | `0 -> 1` | hole | `test_stance_scoring`: facing toward nothing is north |
@@ -178,5 +178,11 @@ the same material does and ties go to the lower piece id, so a block placed befo
 walls ranks first among them. Reproduced with the sim unchanged: the M3 demo room with a
 foundation block in place of one west wall, placed first, and three watchers told where the
 player is: the first member is given the door; the other two are given nothing, with
-sixteen walls on offer. The fix is in `sim/agents/` and outside claim 18, so it is not in
-this branch; it is in the debt log for CEOGG.
+sixteen walls on offer.
+
+Fixed at CEOGG's word (gate debt 14): an edge with no outside cell is passed over and the
+member is offered the next one. `test_squad`'s a block in the wall does not stop the plan
+is that room, failed before the fix and passes after. `squad_system.gd` was mutated again
+on the fixed code: 6 of its mutants drawn, 5 killed. The one that survived (`:182` deleted,
+which leaves a dead member holding its entry) was a hole, now with `test_squad`'s a dead
+member keeps no entry.

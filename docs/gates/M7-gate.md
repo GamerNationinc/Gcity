@@ -52,9 +52,10 @@ tools/test.sh
 == fitness functions        74 tool tests OK; check_dependencies, validate_content: clean
 == native mesher            clippy pedantic clean; its tests pass; built
 == script analysis          every .gd file ok
-== headless tests           493 tests, 340166 assertions, 0 failed; check_test_log: clean
+== headless tests           494 tests, 340204 assertions, 0 failed; check_test_log: clean
+                            (and test_squad's last test, written after, run on its own: 7 of 7)
 == replay determinism       24 fixtures, each twice, identical
-== all stages passed        (99 min on the laptop; the streamer's worst frame 4.0 ms)
+== all stages passed        (99 min on the laptop; the streamer's worst frame 3.9 ms)
 ```
 
 ### Mutation score (claim 18)
@@ -124,7 +125,7 @@ curtain during the load window.
 
 Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 
-1. `tools/test.sh` → `493 tests, … 0 failed`, twenty-four `ok` replay lines,
+1. `tools/test.sh` → `495 tests, … 0 failed`, twenty-four `ok` replay lines,
    `all stages passed`.
 2. `$(tools/godot.sh) --headless --path . -s tools/make_m7_fixtures.gd` → the four
    runs re-authored, the hydrate run printing `squad in at tick 1000, out at tick
@@ -160,7 +161,7 @@ Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 | 11 | **Mutation timeouts** — see §2; the tool change is in `tools/mutate.py` with tests. | tooling | closed |
 | 12 | M6 debt 5 (mission items on the `ammo` kind), 6 (one-cell landing), 7 (`run.end` before `quest.turn_in`), 9 (no `assert_errors` helper), 13 (range demo on wall time) and the M4 building's missing way in (M6 debt 1) were scheduled for M7 and **were not done**: none is in the M7 spec, and CLAUDE.md keeps work outside the spec out of the milestone. | carried | M8 |
 | 13 | The `gate` Steam branch line is still unmet (no app id). | external | with the app id |
-| 14 | **The squad entry planner stops handing out entries at a solid block in a wall.** `SquadSystem._plan` skips a member whose next-ranked edge has no outside cell without moving past that edge, so every later member gets nothing; a block ranks with the walls of its material and ties go to the lower id. Reproduced with the sim unchanged (M3 room, a foundation block in place of one west wall, placed first: one member of three given an entry, sixteen walls on offer). Found by the mutation run (`squad_system:239`). A `sim/agents/` fix, outside claim 18. | defect | CEOGG |
+| 14 | **The squad entry planner stops handing out entries at a solid block in a wall.** `SquadSystem._plan` skips a member whose next-ranked edge has no outside cell without moving past that edge, so every later member gets nothing; a block ranks with the walls of its material and ties go to the lower id. Reproduced with the sim unchanged (M3 room, a foundation block in place of one west wall, placed first: one member of three given an entry, sixteen walls on offer). Found by the mutation run (`squad_system:239`). Fixed at CEOGG's word: an edge with no outside cell is passed over and the member offered the next, with `test_squad` a block in the wall does not stop the plan (failing before the fix). | defect | closed |
 | 15 | **`test_terrain_streamer::test_a_frame_keeps_to_its_budget` failed on the laptop** in six runs of seven, worst frame 7.9–10.1 ms against its 6 ms ceiling. The cause was the sim, not the machine: `WildRegion._roads_near` measured every road of the graph for each new chunk, 1.3–4.6 ms inside a single streamer step. `ea3937f` reads the roads once per graph revision and skips those whose bounds miss the chunk (checked against the old scan on about 191 000 chunks: no difference); worst frame since 4.0–5.8 ms. Also closes most of item 6's cold-column cost. | performance, claim 16 | closed |
 | 16 | **`tools/mutate.py` read only `ERROR:` lines**, not `SCRIPT ERROR:`, so a mutant that broke a tick with runtime errors passed; and the land system was not mapped to the pause tests. Both fixed with tests; pass 1's first 20 files ran before the fix. | tooling | closed |
 | 17 | **`raid_token_system:191` is open**: a raid path of cost 0 needs a stair to be the only way between two volumes, and no geometry was found that reaches it. Not claimed equivalent. | untested | M8 |
@@ -168,11 +169,11 @@ Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 
 ## 5. The four standing questions
 
-**Q1 — Does it function?** On the laptop, yes: the whole suite passes (§2, 493 tests, 0
+**Q1 — Does it function?** On the laptop, yes: the whole suite passes (§2, 494 tests, 0
 failed, 24 fixtures reproduce), the four M7 fixtures record the runs they are named for,
-and pass 2 kills 86.9–87.7 % of its mutants against a 75 % bar. One thing stands against
-it: the squad entry planner's defect with a block in a wall (§4 item 14), found by the run
-and not yet fixed. Whether it functions on the Deck is §7, CEOGG's run.
+and pass 2 kills 86.9–87.7 % of its mutants against a 75 % bar. The one defect the run
+found, the squad entry planner's with a block in a wall (§4 item 14), is fixed. Whether it
+functions on the Deck is §7, CEOGG's run.
 
 **Q2 — Is it secure?** New untrusted inputs: the `site_tag`, `settlement` and
 `region` content kinds and the quest `site` block (schema-checked at build,
@@ -215,7 +216,6 @@ Conditions (if any):
 2. The Q4 content (`mining_camp`, `extraction`, `claim_jumpers`) stays in the game,
    or is kept as an exercise only.
 3. The carried M6 debt (§4 item 12) goes to M8.
-4. The squad planner defect (§4 item 14): fixed in M7 before the gate, or carried.
 
 ## 7. Deck run and feel notes
 

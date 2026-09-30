@@ -1,0 +1,12 @@
+killed   sim/agents/squad_system.gd:169 statement deleted  (130.1s)
+killed   sim/agents/squad_system.gd:242 == -> !=  (68.9s)
+killed   sim/agents/squad_system.gd:214 == -> !=  (69.6s)
+killed   sim/agents/squad_system.gd:175 statement deleted  (71.1s)
+SURVIVED sim/agents/squad_system.gd:182 statement deleted  (66.9s)
+killed   sim/agents/squad_system.gd:252 == -> !=  (66.4s)
+
+6 mutants, 5 killed, score 83.3%  (0 did not compile and are not counted)
+
+survived:
+  sim/agents/squad_system.gd:182  statement deleted
+      _assignments.erase(agent)
