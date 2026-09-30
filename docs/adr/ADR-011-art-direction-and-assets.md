@@ -1,6 +1,6 @@
 # ADR-011: Art direction, and where the assets come from
 
-Status: proposed
+Status: accepted
 Date: 2026-09-27
 Design doc: §1 (concept, reference lineage), §2 (Deck target); M8 spec (look and feel)
 
@@ -63,8 +63,10 @@ schedule depends on someone outside it.
 
 ## Decision
 
-Pending CEOGG. Recommended: **1A** (grounded near-future grit) and **2A**, moving to
-**2B** asset by asset where CC0 falls short and CEOGG approves the spend.
+**Accepted: 1A and 2A, moving to 2B asset by asset** (CEOGG, 2026-09-30), as recommended:
+grounded near-future grit; CC0 and CC-BY assets first, each in `assets/MANIFEST.md`, and
+paid stock only where CC0 falls short, each purchase approved by CEOGG before it is made.
+Generated (2C) and commissioned (2D) art are not part of the decision.
 
 ## Consequences
 
@@ -73,3 +75,16 @@ long-run bar without a restart, and every asset is traceable to a licence. Hard:
 curated library does not look unified by itself; `docs/art-direction.md` (M8 claim 3)
 and a shared material set carry that, and the first `tools/look.sh` view set will show
 how far off it is.
+
+## Verification
+
+At the M8 gate: `docs/art-direction.md` exists and the view set is checked against it
+(M8 claims 2–3); `tools/check_assets.py` passes, so every file under `assets/` is in the
+manifest with a matching hash and a licence on the allowed list, CC0 or CC-BY, or a 2B
+line CEOGG approved (claim 4); and CEOGG's look review (claim 15).
+
+## Sign-off
+
+Approver: CEOGG
+Date: 2026-09-30
+Outcome: accepted (1A; 2A, moving to 2B asset by asset with CEOGG's approval; verification at the M8 gate)

@@ -135,8 +135,10 @@ attack them.
 | Inventory / magazines | Round count is conserved across every reload operation; no operation can duplicate or destroy an item instance. |
 | Save/load | `load(save(state)) == state` for all generated states. Round-trip is the single most valuable property test in the project. |
 
-**Requirement:** each property runs a minimum of 10,000 cases in CI, with failing seeds
-committed permanently as regression cases.
+**Requirement:** each property runs a minimum of 10,000 cases at every gate and in the
+nightly run (`tools/test.sh`), with failing seeds committed permanently as regression
+cases. The per-commit quick suite (`tools/test.sh quick`) may run each property on a
+sample (M8 spec claim 1; amended 2026-09-30).
 
 ### 3.3 Model checking for state machines
 

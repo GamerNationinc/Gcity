@@ -2,10 +2,10 @@
 
 Milestone M8 of `docs/gcity-design.md` §16, **proposed as a new milestone** ahead of the
 threat director. Written before implementation (standards §2.1, §10.2). Status:
-**proposed** (Claude Code, 2026-09-27), for CEOGG's approval. Decided so far
-(CEOGG, 2026-09-30): the reorder — this is M8 and the threat director M9 — and the
-carried G6 items 5 and 7 go to M9. The rest of the spec, ADR-011 and the §3.2
-amendment are still proposed.
+**approved** as written (CEOGG, 2026-09-30), with the reorder (this is M8, the threat
+director M9), the carried G6 items 5 and 7 going to M9, ADR-011 accepted (1A; 2A, then
+2B asset by asset) and claim 1's §3.2 amendment made in the standards. Work starts
+when G7 is signed (below).
 
 **Why this milestone exists.** Eight milestones have built the simulation: stats, land,
 building, the portal graph, perception AI, the device, a stealth mission with three
@@ -172,8 +172,7 @@ ambience bed; interiors of procedural settlements; multiplayer.
 
 ## Proposed change to the design doc (§16) and standards (§11)
 
-*The §16 and §11 changes were approved on 2026-09-30 and are made in those documents.
-The §3.2 change is still proposed.*
+*Approved on 2026-09-30 and made in those documents, the §3.2 change with them.*
 
 - §16: insert **M8 — Look and feel** (this spec); the threat director and raids become
   **M9**. §11: the G8 row becomes this spec's claims 13–15; the current G8 row moves to

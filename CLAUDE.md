@@ -30,7 +30,7 @@ Project-specific additions:
 
 - **Check `docs/adr/README.md` first.** If the work depends on an ADR still marked
   `proposed`, stop and say so. Do not pick a side to keep moving. An implementation
-  built on a guessed decision is worse than no implementation. (ADR-002 to 010 are accepted;
+  built on a guessed decision is worse than no implementation. (ADR-002 to 011 are accepted;
   ADR-001 remains and blocks nothing.)
 - **Check the design doc and the milestone spec before inventing a design.** If what
   you're about to build is already specified, follow the spec. If the spec is wrong,
@@ -172,7 +172,8 @@ Per system, in rough order of value here:
 - **Replay fixture** — seed plus input log, replayed headless, state hash asserted. Every
   milestone from M1 ships at least one.
 - **Property tests** for the invariants listed in the standards doc §3.2. Minimum 10,000
-  generated cases. Commit every failing seed permanently as a regression case.
+  generated cases at gates and nightly; the quick suite may sample (§3.2). Commit every
+  failing seed permanently as a regression case.
 - **Round-trip property** for anything serialised: `load(save(x)) == x`.
 - **Metamorphic relations** for AI and generation, which have no oracle. Raising a wall's
   HP must not lower the chosen breach path's cost, and so on.
