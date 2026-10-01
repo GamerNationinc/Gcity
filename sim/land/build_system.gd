@@ -46,6 +46,47 @@ var _occupied: Dictionary = {}
 ## ground level, as it always was; in the wilds, wherever the ground is. Unset, the
 ## ground level is the only ground there is.
 var _regions: Regions = null
+## Movement's `body_cells(actor) -> int` (M7.5 spec claim 2), a method Callable so the
+## land module holds no agents; without it every body is one cell.
+var _body_cells: Callable = Callable()
+
+
+func set_body_cells(body_cells: Callable) -> void:
+	_body_cells = body_cells
+
+
+## Whether a piece of `template` at `cell` (on `facing`, for a face piece) would put
+## something solid inside a live actor's body: a cell piece in any of its cells, or a
+## solid floor between two of them (M7.5 spec claim 2). Walls stand between cells and
+## never do.
+func would_enclose_a_body(template: StringName, cell: Vector3i, facing: String) -> bool:
+	if not _content.has(KIND_PIECE, template):
+		return false
+	var t: Dictionary = _content.get_entry(KIND_PIECE, template)
+	var k: Dictionary = _content.get_entry(KIND_PIECE_KIND, LandSystem._as_name(t["kind"]))
+	var occupies: String = k["occupies"]
+	var passable: bool = k["passable"]
+	var lower: Vector3i = cell
+	if occupies == "face":
+		if facing.substr(1, 1) != "y" or passable:
+			return false
+		var face: String = face_key(cell, facing)
+		if face.is_empty():
+			return false
+		lower = face_cells(face)[0]
+	for actor: int in _actors.actor_ids():
+		if not _actors.is_alive(actor):
+			continue
+		var feet: Vector3i = cell_of(_actors.position_of(actor))
+		if feet.x != lower.x or feet.z != lower.z:
+			continue
+		var height: int = _body_cells.call(actor) if _body_cells.is_valid() else 1
+		var top: int = feet.y + height - 1
+		if occupies == "cell" and lower.y >= feet.y and lower.y <= top:
+			return true
+		if occupies == "face" and lower.y >= feet.y and lower.y + 1 <= top:
+			return true
+	return false
 
 
 func set_regions(regions: Regions) -> void:
@@ -357,6 +398,8 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 			return EntityIds.NONE
 		if kind == &"foundation" and not _on_ground(cell):
 			return EntityIds.NONE
+	if would_enclose_a_body(template, cell, facing):
+		return EntityIds.NONE
 	if not _land.require(cell_centre(cell), actor, &"build"):
 		return EntityIds.NONE
 	var id: int = _ids.allocate()

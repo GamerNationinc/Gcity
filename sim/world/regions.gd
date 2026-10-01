@@ -41,6 +41,8 @@ var _transits: Dictionary = {}
 ## Movement's body test, `func(actor: int, feet: Vector3i) -> bool` (M7.5 spec claim 1),
 ## held as a method Callable so the world keeps no reference to the agents.
 var _body_fits: Callable = Callable()
+## Movement's `body_cells(actor) -> int`, the same way: filling ground never closes on a body.
+var _body_cells: Callable = Callable()
 var _authored: Array[Region] = []
 var _wild: Region = null
 ## What the client asks to know which chunks to mesh again (claim 16): a count that rises
@@ -88,8 +90,9 @@ func tick(sim: SimRoot) -> void:
 		assert(err == OK, "a gate sets you down inside the world")
 
 
-func set_body_check(body_fits: Callable) -> void:
+func set_body_check(body_fits: Callable, body_cells: Callable) -> void:
 	_body_fits = body_fits
+	_body_cells = body_cells
 
 
 ## The ground is the seed's; what is state is who is in a gate and what has been dug or
@@ -354,13 +357,17 @@ func _on_dig(_sim: SimRoot, payload: Dictionary) -> bool:
 	return set_ground(cell, false)
 
 
-## {"actor": int, "cell": [x, y, z]}: fill a cell in. Never where somebody is standing.
+## {"actor": int, "cell": [x, y, z]}: fill a cell in. Never where somebody's body is.
 func _on_fill(_sim: SimRoot, payload: Dictionary) -> bool:
 	var cell: Vector3i = _edit_cell(payload)
 	if cell == INVALID_CELL or is_solid(cell):
 		return false
 	for actor: int in _actors.actor_ids():
-		if _actors.is_alive(actor) and BuildSystem.cell_of(_actors.position_of(actor)) == cell:
+		if not _actors.is_alive(actor):
+			continue
+		var feet: Vector3i = BuildSystem.cell_of(_actors.position_of(actor))
+		var height: int = _body_cells.call(actor) if _body_cells.is_valid() else 1
+		if feet.x == cell.x and feet.z == cell.z and cell.y >= feet.y and cell.y < feet.y + height:
 			return false
 	return set_ground(cell, true)
 

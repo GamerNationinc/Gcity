@@ -102,7 +102,8 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	if regions.attach(sim) != OK:
 		return null
 	movement.set_regions(regions)
-	regions.set_body_check(movement.actor_fits)
+	regions.set_body_check(movement.actor_fits, movement.body_cells)
+	build.set_body_cells(movement.body_cells)
 	perception.set_regions(regions)
 	build.set_regions(regions)
 	portals.set_regions(regions)

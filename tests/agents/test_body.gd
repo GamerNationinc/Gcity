@@ -139,3 +139,46 @@ func test_pathing_asks_the_same_body_question() -> void:
 	assert_true(pathing.can_step(a, b, 1), "a one-cell agent may plan under the lintel")
 	assert_false(pathing.can_step(a, b, 2), "a two-cell agent may not")
 	assert_true(pathing.can_step(a, a + Vector3i(0, 0, 1), 2), "nor is it stopped where nothing is in the way")
+
+
+func _do(kind: StringName, payload: Dictionary) -> bool:
+	var before: int = _sim.dispatched_count()
+	assert_eq(_sim.submit(SimCommand.new(_sim.get_tick() + 1, kind, payload)), OK, "submit %s" % kind)
+	_sim.step()
+	return _sim.dispatched_count() == before + 1
+
+
+## M7.5 spec claim 2: filling ground in never closes on a body, at any of its rows.
+func test_filling_ground_never_closes_on_a_head() -> void:
+	_setup()
+	var regions: Regions = SimAssembly.regions_of(_sim)
+	# the level apron outside the gate (M7's dig test): ground at y -1, air from y 0 up
+	for pair: Array in [[_tall, 0], [_short, 3]]:
+		var actor: int = pair[0]
+		var x: int = pair[1]
+		_actors.set_position(actor, Vector3i(x * M + 500, 0, -40_500))
+		var under: Vector3i = Vector3i(x, -1, -41)
+		assert_true(_do(Regions.COMMAND_DIG, {"actor": actor, "cell": [under.x, under.y, under.z]}), "dig under the feet")
+		_sim.step_n(2)
+		assert_eq(BuildSystem.cell_of(_actors.position_of(actor)).y, -1, "and drop a level")
+	var tall_head: Vector3i = Vector3i(0, 0, -41)
+	var short_above: Vector3i = Vector3i(3, 0, -41)
+	assert_false(_do(Regions.COMMAND_FILL, {"actor": _tall, "cell": [tall_head.x, tall_head.y, tall_head.z]}), "the cell a tall body's head is in cannot be filled")
+	assert_false(regions.is_solid(tall_head), "it is still air")
+	assert_true(_do(Regions.COMMAND_FILL, {"actor": _short, "cell": [short_above.x, short_above.y, short_above.z]}), "the cell over a one-cell body can (by itself, within reach)")
+
+
+## M7.5 spec claim 2: building never puts a piece in a body or a solid floor through it.
+func test_building_never_closes_on_a_body() -> void:
+	_setup()
+	_actors.set_position(_tall, _at(2, 0, 2))
+	_actors.set_position(_short, _at(5, 0, 2))
+	assert_true(_build.place(_short, &"foundation_block", _at(2, 0, 1), "") > 0, "a foundation beside the tall body")
+	assert_eq(_build.place(_short, &"foundation_block", _at(2, 0, 2), ""), EntityIds.NONE, "not on its feet")
+	assert_true(_build.would_enclose_a_body(&"floor_panel", BuildSystem.cell_of(_at(2, 0, 2)), "py"), "a solid floor at one metre would cut through it")
+	assert_eq(_build.place(_short, &"floor_panel", _at(2, 0, 2), "py"), EntityIds.NONE, "so it is refused")
+	assert_false(_build.would_enclose_a_body(&"roof_hatch", BuildSystem.cell_of(_at(2, 0, 2)), "py"), "a hatch is passable and would not")
+	assert_false(_build.would_enclose_a_body(&"floor_panel", BuildSystem.cell_of(_at(2, 1, 2)), "py"), "a floor at two metres is over its head")
+	assert_false(_build.would_enclose_a_body(&"wall_panel", BuildSystem.cell_of(_at(2, 0, 2)), "px"), "a wall stands between cells")
+	assert_true(_build.would_enclose_a_body(&"foundation_block", BuildSystem.cell_of(_at(5, 0, 2)), ""), "a one-cell body's own cell is refused too")
+	assert_false(_build.would_enclose_a_body(&"foundation_block", BuildSystem.cell_of(_at(5, 1, 2)), ""), "but not the cell over it")

@@ -30,7 +30,8 @@ func _setup() -> void:
 	_movement = SimAssembly.movement_of(_sim)
 	SimAssembly.combat_of(_sim).events().subscribe(MovementSystem.EVENT_FELL, _on_fell)
 	_player = _actors.spawn(&"arcade", 0)
-	_actors.set_position(_player, _at(0, 0, 0))
+	# off the build area: since M7.5 claim 2 nothing is built where a body stands
+	_actors.set_position(_player, _at(-4, 0, -4))
 	_fell = []
 
 
