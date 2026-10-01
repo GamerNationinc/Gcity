@@ -3,6 +3,37 @@
 Claude Code's memory lives on the machine it runs on, so this file is how the next
 session picks up. Read it first, then `CLAUDE.md`.
 
+## Update, 2026-10-01, on the Deck: M7.5 in progress — read this first
+
+- **G7 is signed** (CEOGG, 2026-10-01, `68b4847` on `m7-deck-run`). The Deck run's fixes
+  (strafe, facing arrow, camera, the run log in `client/run_log.gd`) are on `m7-deck-run`.
+  Nothing is merged to the default branch yet: ask CEOGG before merging.
+- **M7.5 — Human scale is approved** (`docs/specs/M7.5-human-scale.md`, amended with the
+  creator tool, claims 14–16). Work branch: **`m7_5-human-scale`**. Gate draft:
+  `docs/gates/M7.5-gate.md` (§4 has the deviations so far).
+- **Pushed and verified on `m7_5-human-scale`:** claim 1 (`5785f6d`, the body rule) and
+  claim 2 (`972e0b7`, nothing built or filled in a body; 10 000-step property).
+- **Claims 3–4 are written but NOT verified by a full suite**: they are on branch
+  **`m7_5-wip`** (one commit on top of `972e0b7`). Done there: sight eyes→eyes/centre,
+  shots eyes→centre, cover the same lines (`tests/agents/test_eyes.gd`, 10 000-case
+  metamorphic property, mutation-checked); reach from `ActorSystem.centre_of`; profile
+  fields `eye_mm`/`centre_mm` at 0; all 24 replays proven unchanged with the fields at
+  their old values, then re-recorded. Every directly affected test file passed; the full
+  `tools/test.sh` was started at 15:48 and stopped unfinished when CEOGG had to leave.
+  **First thing on the laptop:** check out `m7_5-wip`, run `tools/test.sh`, and if it is
+  green fast-forward `m7_5-human-scale` to it and push; then continue.
+- **Next: claim 5, support by column** — in `BuildSystem.supported_set`, a piece resting
+  directly on a supported piece below it keeps that piece's depth (0-1 BFS), so
+  `max_span` limits overhangs, not height. Then claim 7 (falls in metres), then claim 6
+  (rebuild both sites in `tools/make_sites.gd` at 3-cell storeys with 2-cell doors and
+  sill windows, and flip every profile to `body_cells` 2, `eye_mm` 1600, `centre_mm`
+  1000 in the same change; raid tokens and stacked openings, gate §4 item 2).
+- **Method that worked:** to prove a content-field change moved no behaviour, stash the
+  content change, read the field with a default in code, replay all 24 against the old
+  hashes, restore, then `tools/rerecord_hashes.sh`. Tests add their own tall profiles with
+  `db.add` before `SimAssembly.build` (see `test_body.gd`, `test_eyes.gd`).
+- Every run of the client writes `user://logs/runs/run-*.log`; read it after any Deck run.
+
 ## Update, 2026-09-29, on the laptop (WSL2)
 
 - The first pass is finished: files 21–48 are `docs/gates/M7-mutation-pass1b.log` and `.json`

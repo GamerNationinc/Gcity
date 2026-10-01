@@ -183,7 +183,7 @@ func _on_loot(_sim: SimRoot, payload: Dictionary) -> bool:
 	var corpse: int = payload["corpse"]
 	if not _actors.is_alive(actor) or not _corpses.has(corpse):
 		return false
-	if _actors.position_of(actor).distance_squared_to(position_of(corpse)) > REACH_MM * REACH_MM:
+	if _actors.centre_of(actor).distance_squared_to(position_of(corpse)) > REACH_MM * REACH_MM:
 		return false
 	var on_it: Array[int] = items_on(corpse)
 	if on_it.is_empty():

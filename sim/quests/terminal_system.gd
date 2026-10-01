@@ -142,7 +142,7 @@ func in_reach_of(actor: int) -> Array[int]:
 	var out: Array[int] = []
 	if not _actors.has_actor(actor):
 		return out
-	var here: Vector3i = _actors.position_of(actor)
+	var here: Vector3i = _actors.centre_of(actor)
 	for terminal: int in terminal_ids():
 		if PerceptionSystem.distance_mm(here, position_of(terminal)) <= _reach_of(terminal):
 			out.append(terminal)
@@ -240,7 +240,7 @@ func tick(_sim: SimRoot) -> void:
 func _in_reach(actor: int, terminal: int) -> bool:
 	if not _actors.has_actor(actor):
 		return false
-	return PerceptionSystem.distance_mm(_actors.position_of(actor), position_of(terminal)) <= _reach_of(terminal)
+	return PerceptionSystem.distance_mm(_actors.centre_of(actor), position_of(terminal)) <= _reach_of(terminal)
 
 
 func _cancel(terminal: int, rec: Dictionary, reason: String) -> void:

@@ -256,17 +256,45 @@ func can_see(observer: int, contact: int) -> bool:
 	var fov: int = p["fov_deg"]
 	if not in_cone(facing_of(observer), Vector2i(d.x, d.z), fov):
 		return false
-	return line_of_sight(a, b)
+	return sight_line(observer, a, contact, b)
 
 
 ## The sight check combat runs before a shot (spec claim 7): an agent must see its
-## target (cone, range, line); any other actor needs only a clear line.
+## target (cone, range, line); any other actor needs only a clear line. Either way the
+## shot itself needs a clear line from the shooter's eyes to the target's centre
+## (M7.5 spec claim 3).
 func can_target(shooter: int, target: int) -> bool:
-	if is_agent(shooter):
-		return can_see(shooter, target)
 	if shooter == target or not _actors.has_actor(shooter) or not _actors.has_actor(target):
 		return false
-	return line_of_sight(_actors.position_of(shooter), _actors.position_of(target))
+	if is_agent(shooter) and not can_see(shooter, target):
+		return false
+	var a: Vector3i = _actors.position_of(shooter)
+	var b: Vector3i = _actors.position_of(target)
+	return line_of_sight(a + eye_of(shooter), b + centre_of(target))
+
+
+## The height of an actor's eyes above its feet (M7.5 spec claim 3), from its profile.
+func eye_of(actor: int) -> Vector3i:
+	var t: Dictionary = _actors.profile_data(actor)
+	if t.is_empty():
+		return Vector3i.ZERO
+	var mm: int = t["eye_mm"]
+	return Vector3i(0, mm, 0)
+
+
+## The height of the middle of an actor's body above its feet, what a shot aims at.
+func centre_of(actor: int) -> Vector3i:
+	return _actors.centre_of(actor) - _actors.position_of(actor)
+
+
+## Whether `observer`, standing at `at`, has a line to `contact` standing at `there`:
+## from its eyes to the contact's eyes or to its centre, either one clear (M7.5 spec
+## claim 3). `there` may be a remembered place rather than where the contact is.
+func sight_line(observer: int, at: Vector3i, contact: int, there: Vector3i) -> bool:
+	var eyes: Vector3i = at + eye_of(observer)
+	if line_of_sight(eyes, there + eye_of(contact)):
+		return true
+	return centre_of(contact) != eye_of(contact) and line_of_sight(eyes, there + centre_of(contact))
 
 
 ## Whether the segment between two positions crosses no solid face and enters no solid

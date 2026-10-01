@@ -244,7 +244,7 @@ func context_of(agent: int) -> Dictionary:
 	var here: Vector3i = _actors.position_of(agent)
 	var there: Vector3i = _actors.position_of(contact) if ctx["visible"] else _perception.last_known(agent, contact)
 	ctx["distance_mm"] = PerceptionSystem.distance_mm(here, there)
-	ctx["in_cover"] = not _perception.line_of_sight(here, there)
+	ctx["in_cover"] = not _perception.sight_line(agent, here, contact, there)
 	return ctx
 
 

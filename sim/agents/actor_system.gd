@@ -131,6 +131,14 @@ func profile_data(actor: int) -> Dictionary:
 	return _content.get_entry(KIND_PROFILE, profile)
 
 
+## The middle of an actor's body (M7.5 spec claim 4): its position raised by its
+## profile's `centre_mm`. Reach is measured from here.
+func centre_of(actor: int) -> Vector3i:
+	var t: Dictionary = profile_data(actor)
+	var mm: int = t["centre_mm"] if not t.is_empty() else 0
+	return position_of(actor) + Vector3i(0, mm, 0)
+
+
 ## node -> current hit points (milli-hp). A copy.
 func health_of(actor: int) -> Dictionary:
 	if not _actors.has(actor):

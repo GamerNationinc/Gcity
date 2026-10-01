@@ -427,7 +427,7 @@ func _edit_cell(payload: Dictionary) -> Vector3i:
 		return INVALID_CELL
 	var c: int = BuildSystem.CELL
 	var centre: Vector3i = Vector3i(x * c + c / 2, y * c + c / 2, z * c + c / 2)
-	if PerceptionSystem.distance_mm(_actors.position_of(actor), centre) > REACH_MM:
+	if PerceptionSystem.distance_mm(_actors.centre_of(actor), centre) > REACH_MM:
 		return INVALID_CELL
 	var piece: int = _piece_at.call(cell)
 	if piece != EntityIds.NONE:

@@ -102,6 +102,16 @@
 			"type": "int",
 			"min": 1,
 			"max": 4
+		},
+		"eye_mm": {
+			"type": "int",
+			"min": 0,
+			"max": 4000
+		},
+		"centre_mm": {
+			"type": "int",
+			"min": 0,
+			"max": 4000
 		}
 	},
 	"required": [
@@ -112,7 +122,9 @@
 		"speed_mm_per_tick",
 		"health",
 		"fall_damage_per_level",
-		"body_cells"
+		"body_cells",
+		"eye_mm",
+		"centre_mm"
 	],
 	"additional_properties": false
 }
