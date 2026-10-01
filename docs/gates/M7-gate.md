@@ -5,7 +5,7 @@ standards §11 row G7; `docs/specs/M7-route-graph-procgen.md`, approved 2026-09-
 with ADR-003 as B and ADR-010 as B)
 Submitted: 2026-09-30 by Claude Code, on branch `m7-procgen`, commits `763ea52` … the
 package commit
-Outcome: **Submitted** — awaiting CEOGG's Deck run (§3 steps 5–8, §7) and sign-off (§6)
+Outcome: **Accepted** (CEOGG, 2026-10-01); the first Deck run is recorded in §7
 
 ---
 
@@ -214,11 +214,15 @@ slots it describes, and accepting the contract binds one of them.
 
 Approver: CEOGG
 
-Date:
+Date: 2026-10-01
 
-Outcome:
+Outcome: **Accepted** (CEOGG: "sign off g7", after the first Deck run and the §4
+items 19–24 it produced)
 
-Conditions (if any):
+Conditions (if any): none stated. Recorded for the record: §3 steps 6–8 (the map, the
+bound mission, `--mission --demo`) were not hand-run on the Deck before sign-off; CEOGG
+was testing the rebuilt export from Steam at the time. The wilds and mission
+screenshots are to be re-taken with the Deck's screen awake (§2).
 
 **For CEOGG's decision with this gate:**
 
