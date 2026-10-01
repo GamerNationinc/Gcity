@@ -47,7 +47,7 @@ Explicitly out of bounds, because each one destroys verifiability:
 
 ### 2.1 Structure of a gate
 
-Each milestone M0–M8 ends in a gate. A gate has four parts, all of which must be delivered
+Each milestone M0–M9 ends in a gate. A gate has four parts, all of which must be delivered
 together as an **evidence package** before review:
 
 | Part | Content |
@@ -135,8 +135,10 @@ attack them.
 | Inventory / magazines | Round count is conserved across every reload operation; no operation can duplicate or destroy an item instance. |
 | Save/load | `load(save(state)) == state` for all generated states. Round-trip is the single most valuable property test in the project. |
 
-**Requirement:** each property runs a minimum of 10,000 cases in CI, with failing seeds
-committed permanently as regression cases.
+**Requirement:** each property runs a minimum of 10,000 cases at every gate and in the
+nightly run (`tools/test.sh`), with failing seeds committed permanently as regression
+cases. The per-commit quick suite (`tools/test.sh quick`) may run each property on a
+sample (M8 spec claim 1; amended 2026-09-30).
 
 ### 3.3 Model checking for state machines
 
@@ -507,7 +509,9 @@ Mapping to the design doc's build order, with the specific proof each gate deman
 | **G5** | The device | Steam Input configuration shipped; Deck Verified input and display axes self-assessed as passing; UI legible at 1280×800 handheld; GodotSteam integrated and pinned. |
 | **G6** | "Cold Storage" | The full mission playable on Deck from a Steam install on the `gate` branch. All three routes completable. Stealth scoring correct on a full-stealth replay fixture. Mutation score ≥70% on `sim/`. |
 | **G7** | Route graph + procgen | Connectivity property holds across 10k seeds. Same seed always produces the same world hash. Site binding is deterministic. |
-| **G8** | Threat director + raids | Base state machine model-checked: safety, liveness, deadlock freedom. Absent-resolution and live-defence produce consistent outcomes from identical inputs. |
+| **G7.5** | Human scale | The body invariant holds over 10k generated sequences (no actor overlaps ground or a piece in either body cell). Sight runs eyes to eyes and its metamorphic relations pass. Every replay fixture re-recorded by a generator, each moved hash explained. Mutation score ≥75% on the changed `sim/` files. (M7.5 spec claims 2, 3, 5, 9, 12, 13.) |
+| **G8** | Look and feel | The sim did not move: every G7.5 replay fixture reproduces its hash and the `sim/` diff since G7.5 is empty. 40 fps on the Deck with the look on (1 % low ≥ 40, 0.1 % low recorded, render submission within its §4.1 allocation, thermal soak clean). A look review: the view set, a Deck capture of the mission and CEOGG's feel notes. (M8 spec claims 13–15.) |
+| **G9** | Threat director + raids | Base state machine model-checked: safety, liveness, deadlock freedom. Absent-resolution and live-defence produce consistent outcomes from identical inputs. |
 
 Each gate's evidence package lands in `docs/gates/` before review, and nothing proceeds
 without a recorded sign-off.
