@@ -66,7 +66,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var pathing: PathingSystem = PathingSystem.new(actors, build, movement, perception, events)
 	if pathing.attach(sim) != OK:
 		return null
-	var squads: SquadSystem = SquadSystem.new(content, actors, perception, portals, build, events)
+	var squads: SquadSystem = SquadSystem.new(content, actors, perception, portals, build, events, movement)
 	if squads.attach(sim) != OK:
 		return null
 	var stances: StanceSystem = StanceSystem.new(content, actors, items, perception, aim, stress, pathing, squads, events)
@@ -102,6 +102,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	if regions.attach(sim) != OK:
 		return null
 	movement.set_regions(regions)
+	regions.set_body_check(movement.actor_fits)
 	perception.set_regions(regions)
 	build.set_regions(regions)
 	portals.set_regions(regions)

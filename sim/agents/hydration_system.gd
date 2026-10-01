@@ -164,10 +164,16 @@ func _hydrate(token: int) -> void:
 		else:
 			loose.append(item)
 	var members: Array[int] = []
+	var agent_profile: Dictionary = _content.get_entry(PerceptionSystem.KIND_AGENT, StringName(profile_s))
+	var combat_s: String = agent_profile["combat_profile"]
+	var height: int = _movement.profile_body_cells(StringName(combat_s))
 	for i: int in count:
 		var at: Vector2i = _tokens.point_at(route, leg, progress, i * SPACING_MM)
 		var level: int = _regions.standing_cell_y(at.x, at.y) * BuildSystem.CELL
 		var cell: Vector3i = BuildSystem.cell_of(Vector3i(at.x, level, at.y))
+		# nobody is set down where their body does not fit (M7.5 spec claim 1)
+		if not _movement.body_fits(cell, height):
+			continue
 		var agent: int = _perception.spawn(StringName(profile_s), cell, facing, SQUAD_BASE + token, "", _tokens.faction_of(token))
 		if agent == EntityIds.NONE:
 			continue

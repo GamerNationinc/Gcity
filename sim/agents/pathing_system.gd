@@ -108,21 +108,26 @@ func _route(agent: int) -> Dictionary:
 	return stored
 
 
-## Whether an actor may step from one cell into an adjacent one: the movement rules
-## without the land check (agents enter what they are sent into).
-func can_step(from: Vector3i, to: Vector3i) -> bool:
+## Whether a body `height` cells tall may step from one cell into an adjacent one: the
+## movement rules without the land check (agents enter what they are sent into). The
+## body is movement's own test (M7.5 spec claim 1); a sideways step crosses a face at
+## every row of it.
+func can_step(from: Vector3i, to: Vector3i, height: int = 1) -> bool:
 	var d: Vector3i = to - from
 	if absi(d.x) + absi(d.y) + absi(d.z) != 1:
 		return false
-	if _build.cell_piece_at(to) != EntityIds.NONE:
+	if _build.cell_piece_at(to) != EntityIds.NONE or not _movement.body_fits(to, height):
 		return false
 	var facing: String = ("p" if d.x > 0 else "n") + "x" if d.x != 0 else (("p" if d.y > 0 else "n") + "y" if d.y != 0 else ("p" if d.z > 0 else "n") + "z")
-	var piece: int = _build.face_piece_at(BuildSystem.face_key(from, facing))
-	if piece == EntityIds.NONE:
-		return true
-	var kind: Dictionary = _build.kind_data(piece)
-	var passable: bool = kind["passable"]
-	return passable
+	for row: int in (height if d.y == 0 else 1):
+		var piece: int = _build.face_piece_at(BuildSystem.face_key(from + Vector3i(0, row, 0), facing))
+		if piece == EntityIds.NONE:
+			continue
+		var kind: Dictionary = _build.kind_data(piece)
+		var passable: bool = kind["passable"]
+		if not passable:
+			return false
+	return true
 
 
 # ---------------------------------------------------------------- requests
@@ -163,7 +168,7 @@ func tick(_sim: SimRoot) -> void:
 		if _replan and rec["state"] != STATE_ARRIVED:
 			rec = _fresh(goal, here)
 		if rec["state"] == STATE_PLANNING:
-			budget = _plan(rec, goal, budget)
+			budget = _plan(rec, goal, budget, _movement.body_cells(agent))
 		if rec["state"] == STATE_FOLLOWING:
 			_follow(agent, rec, goal)
 		_routes[agent] = rec
@@ -180,7 +185,7 @@ func _agent_order() -> Array[int]:
 
 
 ## Spends up to `budget` expansions on the route's search; returns what is left.
-func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
+func _plan(rec: Dictionary, goal: Vector3i, budget: int, height: int) -> int:
 	var search: Dictionary = rec["search"]
 	var start: Vector3i = _vec(search["start"])
 	var open: Dictionary = search["open"]
@@ -207,7 +212,7 @@ func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
 		for step: Vector3i in STEPS:
 			var next: Vector3i = current + step
 			var next_key: String = BuildSystem.cell_key(next)
-			if closed.has(next_key) or _manhattan(start, next) > SEARCH_RADIUS or not can_step(current, next):
+			if closed.has(next_key) or _manhattan(start, next) > SEARCH_RADIUS or not can_step(current, next, height):
 				continue
 			var g: int = g_here + 1
 			var known: Variant = open.get(next_key)

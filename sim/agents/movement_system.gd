@@ -12,6 +12,13 @@
 ## actor over nothing falls one level a tick, landing on the tick it reaches
 ## something and taking the profile's `fall_damage_per_level` for every level beyond
 ## the first. An actor on a climbable face stands on the stairs themselves.
+##
+## The body (M7.5 spec claim 1): an actor is `body_cells` cells tall, read from its
+## profile, its feet in the lowest. A step, a climb or a level change needs every one
+## of those cells free of ground and of cell pieces, no solid floor between two of
+## them, and every face it crosses passable at every row of the body. Standing and
+## falling are still decided at the feet. `body_fits` is the one test; pathing, squads,
+## raid tokens and set-downs ask it rather than keeping their own.
 class_name MovementSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"movement"
@@ -139,6 +146,50 @@ func is_falling(actor: int) -> bool:
 	return _falling.has(actor)
 
 
+## How many cells tall `actor` is (M7.5 spec claim 1): its profile's `body_cells`, or
+## one for an actor without a profile.
+func body_cells(actor: int) -> int:
+	var t: Dictionary = _actors.profile_data(actor)
+	if t.is_empty():
+		return 1
+	return t["body_cells"]
+
+
+## Whether `actor`'s own body fits with its feet in `feet`.
+func actor_fits(actor: int, feet: Vector3i) -> bool:
+	return body_fits(feet, body_cells(actor))
+
+
+## The body of a combat profile before anyone has it: for placing an actor not yet made.
+func profile_body_cells(combat_profile: StringName) -> int:
+	if not _content.has(ActorSystem.KIND_PROFILE, combat_profile):
+		return 1
+	var t: Dictionary = _content.get_entry(ActorSystem.KIND_PROFILE, combat_profile)
+	return t["body_cells"]
+
+
+## Whether a body `height` cells tall fits with its feet in `feet`: none of its cells
+## holds ground or a cell piece, and no solid floor lies between two of them.
+func body_fits(feet: Vector3i, height: int) -> bool:
+	for row: int in height:
+		var cell: Vector3i = feet + Vector3i(0, row, 0)
+		if _build.cell_piece_at(cell) != EntityIds.NONE or _in_ground(cell):
+			return false
+		if row > 0 and not _floor_open(cell - Vector3i(0, 1, 0)):
+			return false
+	return true
+
+
+## Whether the horizontal face over `lower` is absent or passable.
+func _floor_open(lower: Vector3i) -> bool:
+	var piece: int = _build.face_piece_at(BuildSystem.face_key(lower, "py"))
+	if piece == EntityIds.NONE:
+		return true
+	var kind: Dictionary = _build.kind_data(piece)
+	var passable: bool = kind["passable"]
+	return passable
+
+
 ## Whether an actor may stand in `cell`: a solid horizontal face under it, a solid
 ## piece in the cell below, or the ground level of the parcel it is over.
 func is_standable(cell: Vector3i) -> bool:
@@ -237,20 +288,17 @@ func move(actor: int, dx: int, dz: int, dy: int = 0) -> bool:
 		if not has_any_climb(here) and not has_any_climb(there):
 			_blocked += 1
 			return false
-		if _build.cell_piece_at(there) != EntityIds.NONE:
+		var height: int = body_cells(actor)
+		if _build.cell_piece_at(there) != EntityIds.NONE or not body_fits(there, height):
 			_blocked += 1
 			return false
 		# you climb onto something, never into the air: the top of a flight is the top
 		if not is_standable(there):
 			_blocked += 1
 			return false
-		# the floor between the two levels must be passable or absent
-		var between: String = "py" if dy > 0 else "ny"
-		var floor_piece: int = _build.face_piece_at(BuildSystem.face_key(here, between))
-		if floor_piece != EntityIds.NONE:
-			var k: Dictionary = _build.kind_data(floor_piece)
-			var passable: bool = k["passable"]
-			if not passable:
+		# every floor a row of the body passes through must be passable or absent
+		for row: int in height:
+			if not _floor_open(here + Vector3i(0, row if dy > 0 else row - 1, 0)):
 				_blocked += 1
 				return false
 		to.y += dy * BuildSystem.CELL
@@ -310,13 +358,15 @@ func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 		if _regions.crosses_edge(from, to) or _regions.is_solid(to_cell):
 			return false
 	if to_cell != from_cell:
-		if _build.cell_piece_at(to_cell) != EntityIds.NONE:
+		var height: int = body_cells(actor)
+		if not body_fits(to_cell, height):
 			return false
 		var d: Vector3i = to_cell - from_cell
 		var facing: String = "px" if d.x > 0 else ("nx" if d.x < 0 else ("pz" if d.z > 0 else "nz"))
-		var piece: int = _build.face_piece_at(BuildSystem.face_key(from_cell, facing))
-		if piece != EntityIds.NONE and not passes(actor, piece):
-			return false
+		for row: int in height:
+			var piece: int = _build.face_piece_at(BuildSystem.face_key(from_cell + Vector3i(0, row, 0), facing))
+			if piece != EntityIds.NONE and not passes(actor, piece):
+				return false
 	if _land.parcel_at(to) != _land.parcel_at(from):
 		if not _land.require(to, actor, &"enter"):
 			return false
@@ -333,7 +383,9 @@ func _climbs_onto(actor: int, from: Vector3i, blocked: Vector3i, up: Vector3i) -
 	if _regions.step_levels(from_cell) < 1 or not _regions.is_solid(BuildSystem.cell_of(blocked)):
 		return false
 	var above: Vector3i = from + Vector3i(0, BuildSystem.CELL, 0)
-	if _regions.is_solid(BuildSystem.cell_of(above)) or _build.cell_piece_at(BuildSystem.cell_of(above)) != EntityIds.NONE:
+	var height: int = body_cells(actor)
+	# rising a level: the body's cells one up are clear, and so is the floor over its head
+	if not body_fits(BuildSystem.cell_of(above), height) or not _floor_open(from_cell + Vector3i(0, height - 1, 0)):
 		return false
 	return _can_step(actor, above, up) and is_standable(BuildSystem.cell_of(up))
 

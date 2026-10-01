@@ -97,6 +97,11 @@
 			"type": "int",
 			"min": 0,
 			"max": 1000000000
+		},
+		"body_cells": {
+			"type": "int",
+			"min": 1,
+			"max": 4
 		}
 	},
 	"required": [
@@ -106,7 +111,8 @@
 		"range_falloff_per_m",
 		"speed_mm_per_tick",
 		"health",
-		"fall_damage_per_level"
+		"fall_damage_per_level",
+		"body_cells"
 	],
 	"additional_properties": false
 }

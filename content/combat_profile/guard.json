@@ -23,5 +23,6 @@
 			}
 		]
 	},
-	"fall_damage_per_level": 12000
+	"fall_damage_per_level": 12000,
+	"body_cells": 1
 }

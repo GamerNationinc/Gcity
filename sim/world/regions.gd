@@ -38,6 +38,9 @@ var _land: LandSystem
 var _piece_at: Callable = Callable()
 ## actor -> {"region": String (where they are going), "gate": int (graph node), "due": int (tick)}
 var _transits: Dictionary = {}
+## Movement's body test, `func(actor: int, feet: Vector3i) -> bool` (M7.5 spec claim 1),
+## held as a method Callable so the world keeps no reference to the agents.
+var _body_fits: Callable = Callable()
 var _authored: Array[Region] = []
 var _wild: Region = null
 ## What the client asks to know which chunks to mesh again (claim 16): a count that rises
@@ -79,8 +82,14 @@ func tick(sim: SimRoot) -> void:
 		var here: Vector3i = _actors.position_of(actor)
 		var target_s: String = rec["region"]
 		var there: Vector2i = _far_side(StringName(target_s), gate, Vector2i(here.x, here.z))
-		var err: Error = _actors.set_position(actor, Vector3i(there.x, standing_cell_y(there.x, there.y) * BuildSystem.CELL, there.y))
+		var landing: Vector3i = Vector3i(there.x, standing_cell_y(there.x, there.y) * BuildSystem.CELL, there.y)
+		assert(not _body_fits.is_valid() or _body_fits.call(actor, BuildSystem.cell_of(landing)), "a gate sets you down where you fit")
+		var err: Error = _actors.set_position(actor, landing)
 		assert(err == OK, "a gate sets you down inside the world")
+
+
+func set_body_check(body_fits: Callable) -> void:
+	_body_fits = body_fits
 
 
 ## The ground is the seed's; what is state is who is in a gate and what has been dug or

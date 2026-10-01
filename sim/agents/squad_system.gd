@@ -21,6 +21,7 @@ var _perception: PerceptionSystem
 var _portals: PortalGraph
 var _build: BuildSystem
 var _events: EventBus
+var _movement: MovementSystem
 ## [{"due": tick, "squad": int, "reporter": int, "contact": int, "cell": [x, y, z]}] in due, then submission order
 var _reports: Array = []
 ## agent -> [x, y, z]: the cell outside the entry edge the planner assigned
@@ -30,7 +31,8 @@ var _delivered: int = 0
 var _replan: bool = false
 
 
-func _init(content: ContentDb, actors: ActorSystem, perception: PerceptionSystem, portals: PortalGraph, build: BuildSystem, events: EventBus) -> void:
+func _init(content: ContentDb, actors: ActorSystem, perception: PerceptionSystem, portals: PortalGraph, build: BuildSystem, events: EventBus, movement: MovementSystem) -> void:
+	_movement = movement
 	_content = content
 	_actors = actors
 	_perception = perception
@@ -237,7 +239,7 @@ func _plan(squad: int) -> void:
 		while next < ranked.size() and outside == Vector3i(0, -1, 0):
 			var entry: Array = ranked[next]
 			var piece: int = entry[1]
-			outside = _outside_cell(piece, volume)
+			outside = _outside_cell(piece, volume, _movement.body_cells(member))
 			next += 1
 		if outside == Vector3i(0, -1, 0):
 			break
@@ -280,15 +282,15 @@ func _contact_cell(members: Array[int], contact: int) -> Vector3i:
 	return cell
 
 
-## The air cell on the exterior side of an entry edge, or (0, -1, 0) if neither side
-## is exterior air.
-func _outside_cell(piece: int, volume: int) -> Vector3i:
+## The air cell on the exterior side of an entry edge where a body `height` cells tall
+## fits (M7.5 spec claim 1), or (0, -1, 0) if there is none.
+func _outside_cell(piece: int, volume: int, height: int) -> Vector3i:
 	var rec: Dictionary = _build.piece(piece)
 	var face: String = rec["face"]
 	if face.is_empty():
 		return Vector3i(0, -1, 0)
 	for c: Vector3i in BuildSystem.face_cells(face):
-		if _portals.node_at(c) == PortalGraph.EXTERIOR and _portals.node_at(c) != volume:
+		if _portals.node_at(c) == PortalGraph.EXTERIOR and _portals.node_at(c) != volume and _movement.body_fits(c, height):
 			return c
 	return Vector3i(0, -1, 0)
 
