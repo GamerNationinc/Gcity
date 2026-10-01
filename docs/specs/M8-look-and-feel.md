@@ -19,14 +19,15 @@ on to the threat director, which would put a sixth invisible system under the sa
 capsules. This milestone puts presentation in front of it instead, while there is still
 only one mission to dress.
 
-**Preconditions.** G7 is signed. **ADR-011** (art direction and asset sourcing,
+**Preconditions.** G7.5 is signed (M7.5, human scale, inserted ahead of this milestone
+by CEOGG on 2026-10-01; before that, G7). **ADR-011** (art direction and asset sourcing,
 proposed with this spec) is accepted: claims 3–13 depend on it, and CLAUDE.md does not
 let an open ADR be guessed around. The reorder in §16 below is approved.
 
 **The claim of the milestone.** Someone watching thirty seconds of the Deck playing the
 Cold Storage mission sees and hears a game, not a test harness, **and the simulation is
 exactly the one G7 signed**: M8 is presentation only. Every one of the 24 replay fixtures
-reproduces its G7 hash unchanged at the M8 gate, and the diff under `sim/` is empty.
+reproduces its G7.5 hash unchanged at the M8 gate, and the diff under `sim/` is empty.
 That is what makes a milestone this visual checkable: it can make everything look
 different, and it cannot make anything behave differently.
 
@@ -127,8 +128,8 @@ lost time in M7); **the Deck remains the only machine whose numbers count** (sta
 
 ### Verification
 
-13. **The sim did not move.** All 24 replay fixtures reproduce their G7 hashes
-    unchanged; `git diff --stat <G7 sign-off>..HEAD -- sim/` is empty. A claim that
+13. **The sim did not move.** All 24 replay fixtures reproduce their G7.5 hashes
+    unchanged; `git diff --stat <G7.5 sign-off>..HEAD -- sim/` is empty. A claim that
     needs a sim change is not an M8 claim: it goes to the debt log with the reason.
 14. **It holds 40 fps on the Deck with the look on.** `--mission --demo` and a `--wilds`
     walk captured on the Deck, plugged and on battery: 1 % low ≥ 40 fps; 0.1 % low

@@ -812,6 +812,12 @@ vertical slice.
 Only after the slice plays well. Generation, site binding, region transition, macro nav
 hydration.
 
+**M7.5 — Human scale**
+A person is two cells tall and a storey three, in the sim and the content: every rule that
+places or moves a body asks about both of its cells, sight runs between eyes, and every
+site and fixture is rebuilt at that scale. Inserted ahead of look and feel by CEOGG,
+2026-10-01, after the first hand-played Deck run (`docs/specs/M7.5-human-scale.md`).
+
 **M8 — Look and feel**
 What the player sees and hears, over a sim that does not move: one art direction,
 characters and their motion, materials for the world and what is built in it, the HUD
