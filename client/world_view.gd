@@ -46,8 +46,12 @@ const STANCE_COLOURS: Dictionary = {
 	&"retreat": Color(0.3, 0.55, 0.95), &"investigate": Color(0.95, 0.85, 0.25), &"surrender": Color(0.95, 0.95, 0.95),
 }
 const EYE_HEIGHT: float = 1.6
-const THIRD_PERSON_BACK: float = 4.0
-const THIRD_PERSON_UP: float = 2.2
+## Pulled back from 4 m and 2.2 m after the 2026-10-01 Deck run: from 4 m the capsule
+## filled the middle of the screen. M8 claim 6 replaces this with a spring arm.
+const THIRD_PERSON_BACK: float = 6.0
+const THIRD_PERSON_UP: float = 2.8
+## Over the right shoulder, so the ground ahead of the player is not behind the capsule.
+const THIRD_PERSON_SIDE: float = 0.9
 const LOOK_SPEED: float = 2.0
 const AIM_CONE_DEG: float = 15.0
 const SAVE_DIR: String = "user://saves/world"
@@ -118,6 +122,18 @@ var _mission_index: int = 0
 var _mission_wait: int = 0
 var _mission_patience: int = 0
 var _operator: int = 0
+## The run log (`RunLog`): one file per launch. The `_seen_*` fields are what it last
+## wrote, so it writes changes rather than every frame.
+var _run_log: RunLog
+var _seen: Dictionary = {}
+var _seen_rejected: int = 0
+var _seen_move: String = ""
+var _seen_look: int = 0
+var _submitted_kinds: Dictionary = {}
+var _frame_commands: Array[String] = []
+var _beat_usec: int = 0
+var _beat_frames: int = 0
+var _beat_worst_usec: int = 0
 
 
 func _ready() -> void:
@@ -138,6 +154,8 @@ func _ready() -> void:
 			_mission = true
 		elif arg == "--wilds":
 			_wilds = true
+	_run_log = RunLog.open(OS.get_cmdline_user_args())
+	Input.joy_connection_changed.connect(_on_joy_changed)
 	_piece_templates = _host.content().ids(&"build_piece")
 	_glyphs.set_deck(_steam.is_deck())
 	_glyphs.set_controller_active(_steam.is_deck() or not Input.get_connected_joypads().is_empty())
@@ -386,6 +404,8 @@ func _sync_scene(sim: SimRoot) -> void:
 	for actor: int in actors.actor_ids():
 		if not _actor_nodes.has(actor):
 			var node: MeshInstance3D = _capsule(Color(0.2, 0.6, 0.9) if actor == _player else Color(0.85, 0.3, 0.25))
+			if actor == _player:
+				node.add_child(_facing_arrow())
 			_actor_nodes[actor] = node
 			add_child(node)
 		var capsule: MeshInstance3D = _actor_nodes[actor]
@@ -481,6 +501,28 @@ func _sync_guard_overlay(guard: int, alive: bool, p: Vector3i, perception: Perce
 
 ## Draws every standing piece as a handful of multimeshes rather than one node each.
 ##
+## A flat arrow on the ground 1.4 m ahead of the player, pointing where the stick's up
+## walks: the nose is behind the capsule from a camera that follows it (Deck run,
+## 2026-10-01). A child of the capsule, so it turns with it (nose along local +x).
+func _facing_arrow() -> MeshInstance3D:
+	var mesh := PrismMesh.new()
+	mesh.size = Vector3(0.6, 0.8, 0.03)
+	var arrow := MeshInstance3D.new()
+	arrow.name = "facing"
+	arrow.mesh = mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = Color(1.0, 0.85, 0.2)
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	# drawn over the capsule: from a camera behind it, the ground ahead is behind it too
+	material.no_depth_test = true
+	material.render_priority = 1
+	arrow.material_override = material
+	# the prism's apex is its +y: lay it flat (apex to -z), then turn -z to +x
+	arrow.basis = Basis(Vector3.UP, -PI / 2.0) * Basis(Vector3.RIGHT, -PI / 2.0)
+	arrow.position = Vector3(1.4, -0.86, 0.0)
+	return arrow
+
+
 ## A piece was a MeshInstance3D with its own BoxMesh and its own material, so a site
 ## cost one draw call per piece: measured on the Deck, the 93-piece M4 building ran at
 ## 68 fps and Cold Storage's 363 pieces at 37, under the 40 fps floor. Pieces come in
@@ -570,6 +612,7 @@ static func _piece_colour(kind: StringName) -> Color:
 # ---------------------------------------------------------------- loop
 
 func _process(delta: float) -> void:
+	_log_frame(delta)
 	if not _capture_path.is_empty():
 		_frame_usec.append(int(delta * 1_000_000.0))
 	var sim: SimRoot = _host.sim()
@@ -633,12 +676,11 @@ func _physics_process(_delta: float) -> void:
 			input = _demo_walk_dir
 	else:
 		input = Input.get_vector("world_move_left", "world_move_right", "world_move_forward", "world_move_back")
+		_log_sticks(input)
 	if _device_raised or input.length_squared() < 0.01 or not SimAssembly.actors_of(sim).is_alive(_player):
 		return
 	var speed: int = SimAssembly.movement_of(sim).speed_of(_player)
-	var forward: Vector2 = Vector2(-sin(_yaw), -cos(_yaw))
-	var right: Vector2 = Vector2(forward.y, -forward.x)
-	var world: Vector2 = (right * input.x - forward * input.y).limit_length(1.0) * float(speed)
+	var world: Vector2 = ground_move(_yaw, input) * float(speed)
 	var dx: int = roundi(world.x)
 	var dz: int = roundi(world.y)
 	if dx == 0 and dz == 0:
@@ -646,6 +688,15 @@ func _physics_process(_delta: float) -> void:
 	if _take_gate(sim, dx, dz):
 		return
 	_submit(sim, &"actor.move", {"actor": _player, "dx": dx, "dz": dz})
+
+
+## The stick, seen from a camera at `yaw`, as a direction on the ground (x, z): up is
+## the camera's forward and right is the screen's right. Until the 2026-10-01 Deck run
+## right was the camera's left, so the stick strafed backwards.
+static func ground_move(yaw: float, input: Vector2) -> Vector2:
+	var forward: Vector2 = Vector2(-sin(yaw), -cos(yaw))
+	var right: Vector2 = Vector2(-forward.y, forward.x)
+	return (right * input.x - forward * input.y).limit_length(1.0)
 
 
 ## Walking from a gate's opening towards the other side of the edge takes the gate
@@ -675,8 +726,9 @@ func _place_camera(sim: SimRoot) -> void:
 		_camera.position = feet + Vector3(0.0, EYE_HEIGHT, 0.0)
 		_camera.look_at(_camera.position + forward, Vector3.UP)
 	else:
-		_camera.position = feet - forward * THIRD_PERSON_BACK + Vector3(0.0, THIRD_PERSON_UP, 0.0)
-		_camera.look_at(feet + Vector3(0.0, 1.2, 0.0) + forward * 2.0, Vector3.UP)
+		var side: Vector3 = Vector3(-forward.z, 0.0, forward.x) * THIRD_PERSON_SIDE
+		_camera.position = feet - forward * THIRD_PERSON_BACK + side + Vector3(0.0, THIRD_PERSON_UP, 0.0)
+		_camera.look_at(feet + side + Vector3(0.0, 1.0, 0.0) + forward * 4.0, Vector3.UP)
 
 
 ## Frame times to JSON: all of them, and the final five minutes on their own
@@ -736,6 +788,7 @@ func _save_screenshot() -> void:
 
 func _unhandled_input(event: InputEvent) -> void:
 	_glyphs.note(event)
+	_log_input(event)
 	if event.is_echo():
 		return
 	# the device button: a short press raises or lowers, a long hold restarts
@@ -1063,6 +1116,7 @@ func _loose_mags(items: ItemSystem, actor: int = _player) -> Array[int]:
 
 
 func _perform(action: String) -> void:
+	_record("action", action)
 	if action == "restart":
 		_restart()
 		return
@@ -1225,6 +1279,14 @@ func _submit(sim: SimRoot, kind: StringName, payload: Dictionary) -> void:
 	var err: Error = sim.submit(SimCommand.new(sim.get_tick() + 1, kind, payload))
 	if err != OK:
 		_note("submit %s failed: %s" % [kind, error_string(err)])
+	elif _run_log != null:
+		var due: int = sim.get_tick() + 1
+		if not _submitted_kinds.has(due):
+			_submitted_kinds[due] = []
+		var kinds: Array = _submitted_kinds[due]
+		kinds.append(String(kind))
+		if kind != &"actor.move":  # moves are logged as the stick, not 40 times a second
+			_frame_commands.append("%s %s" % [kind, JSON.stringify(payload)])
 
 
 ## The state hash for the HUD, at most `DIGEST_EVERY_TICKS` apart.
@@ -1242,6 +1304,7 @@ func _state_digest(sim: SimRoot) -> String:
 
 
 func _note(text: String) -> void:
+	_record("note", text)
 	if _mission:
 		print(text)  # the mission demo is also run headless for the gate's evidence
 	_log.append(text)
@@ -1360,6 +1423,8 @@ func _render(sim: SimRoot) -> void:
 	lines.append(_glyphs.line([[&"world_move_forward", "move"], [&"world_look_left", "look"], [&"world_camera", "camera"], [&"world_fire", "fire"], [&"world_reload", "reload"], [&"world_wield", "wield"]]))
 	lines.append(_glyphs.line([[&"world_build_place", "place"], [&"world_build_remove", "remove"], [&"world_build_next", "next piece"], [&"world_device", "device (hold: restart)"], [&"world_profile", "guard profile"], [&"world_overlay", "overlay"], [&"world_restart", "restart"], [&"world_save", "save"], [&"world_load", "load"]]))
 	lines.append("steam: %s%s" % [_steam.status(), ("  (%s)" % _steam.persona()) if _steam.is_online() else ""])
+	if _run_log != null:
+		lines.append("run log: %s" % _run_log.path().get_file())
 	if _demo:
 		if _mission:
 			lines.append("DEMO %.1fs  step %d/%d of the under route" % [_demo_t, _mission_index, _mission_steps.size()])
@@ -1368,3 +1433,157 @@ func _render(sim: SimRoot) -> void:
 	for entry: String in _log:
 		lines.append(entry)
 	_status.text = "\n".join(lines)
+
+
+# ---------------------------------------------------------------- the run log
+
+func _record(category: String, text: String) -> void:
+	if _run_log != null:
+		_run_log.line(_host.sim().get_tick() if _host != null and _host.sim() != null else -1, category, text)
+
+
+func _on_joy_changed(device: int, connected: bool) -> void:
+	_record("input", "controller %d %s: %s" % [device, "connected" if connected else "disconnected", Input.get_joy_name(device)])
+
+
+## Every action pressed or released, and any controller button that is not bound to one.
+func _log_input(event: InputEvent) -> void:
+	if _run_log == null or event.is_echo() or event is InputEventMouseMotion or event is InputEventJoypadMotion:
+		return
+	var named: bool = false
+	for action: StringName in InputMap.get_actions():
+		var a: String = String(action)
+		if (a.begins_with("world_") or a.begins_with("device_")) and event.is_action(action):
+			named = true
+			_record("input", "%s %s (%s)" % [a, "pressed" if event.is_pressed() else "released", event.as_text()])
+	if not named and event.is_pressed() and (event is InputEventJoypadButton or event is InputEventKey):
+		_record("input", "unbound %s" % event.as_text())
+
+
+## The move stick as a direction (to 45°) and how far it is pushed, and the way that walks
+## the player on the ground; the look stick as left, right or still. Changes only.
+func _log_sticks(input: Vector2) -> void:
+	if _run_log == null:
+		return
+	var move: String = "still"
+	if input.length_squared() >= 0.01:
+		var dirs: Array[String] = ["right", "down-right", "down", "down-left", "left", "up-left", "up", "up-right"]
+		var octant: int = posmod(roundi(input.angle() / (PI / 4.0)), 8)
+		var world: Vector2 = ground_move(_yaw, input)
+		move = "%s %s -> walks toward (%+.2f, %+.2f) on x, z; camera faces (%+.2f, %+.2f)" % [dirs[octant], "full" if input.length() > 0.7 else "half",
+			world.x, world.y, -sin(_yaw), -cos(_yaw)]
+	if move.get_slice(" ->", 0) != _seen_move.get_slice(" ->", 0):
+		_seen_move = move
+		_record("stick", "move " + move)
+	var look_axis: float = Input.get_action_strength("world_look_right") - Input.get_action_strength("world_look_left")
+	var look: int = 0 if absf(look_axis) < 0.2 else signi(roundi(signf(look_axis)))
+	if look != _seen_look:
+		_seen_look = look
+		_record("stick", "look %s, yaw %d°" % [["left", "still", "right"][look + 1], roundi(rad_to_deg(_yaw))])
+
+
+## Once a frame: what changed that the player could see, rejected commands, a
+## heartbeat each second, and the write to disk.
+func _log_frame(delta: float) -> void:
+	if _run_log == null:
+		return
+	var usec: int = int(delta * 1_000_000.0)
+	_beat_frames += 1
+	_beat_worst_usec = maxi(_beat_worst_usec, usec)
+	_log_commands()
+	var sim: SimRoot = _host.sim()
+	if sim != null:
+		_log_rejections(sim)
+		if _setup_stage >= READY and _player != 0:
+			_log_changes(sim)
+	var now: int = Time.get_ticks_usec()
+	if now - _beat_usec >= 1_000_000 and sim != null:
+		_beat_usec = now
+		var where: String = "-"
+		if _player != 0 and _setup_stage >= READY:
+			var p: Vector3i = SimAssembly.actors_of(sim).position_of(_player)
+			where = "(%.1f, %.1f, %.1f) m, yaw %d°" % [p.x / M, p.y / M, p.z / M, roundi(rad_to_deg(_yaw))]
+		_record("beat", "%d fps, worst frame %.1f ms, %d frames; player %s; setup %d/%d; ground %d chunks%s; commands %d ok, %d rejected" % [
+			Engine.get_frames_per_second(), _beat_worst_usec / 1000.0, _beat_frames, where, _setup_stage, READY,
+			_ground.shown_chunks().size() if _ground != null else 0, "" if _ground == null or _ground.is_settled() else " (streaming)",
+			sim.dispatched_count(), sim.rejected_count()])
+		_beat_frames = 0
+		_beat_worst_usec = 0
+	_run_log.flush()
+
+
+## The frame's commands, a kind sent more than three times in one frame (a site being
+## raised) as one line with its first payload.
+func _log_commands() -> void:
+	var counts: Dictionary = {}
+	for entry: String in _frame_commands:
+		var kind: String = entry.get_slice(" ", 0)
+		var so_far: int = counts.get(kind, 0)
+		counts[kind] = so_far + 1
+	var told: Dictionary = {}
+	for entry: String in _frame_commands:
+		var kind: String = entry.get_slice(" ", 0)
+		var count: int = counts[kind]
+		if count <= 3:
+			_record("command", entry)
+		elif not told.has(kind):
+			told[kind] = true
+			_record("command", "%s x%d, the first: %s" % [kind, count, entry.trim_prefix(kind + " ")])
+	_frame_commands.clear()
+
+
+func _log_rejections(sim: SimRoot) -> void:
+	var rejected: int = sim.rejected_count()
+	if rejected < _seen_rejected:
+		_seen_rejected = 0  # a restart or a load: a new sim counts from zero
+	if rejected > _seen_rejected:
+		var kinds: Array = []
+		for due: int in _submitted_kinds:
+			if due <= sim.get_tick():
+				var those: Array = _submitted_kinds[due]
+				kinds.append_array(those)
+		_record("rejected", "%d command(s) refused by the sim; submitted for those ticks: %s" % [rejected - _seen_rejected, ", ".join(PackedStringArray(kinds))])
+		_seen_rejected = rejected
+	for due: int in _submitted_kinds.keys():
+		if due <= sim.get_tick():
+			_submitted_kinds.erase(due)
+
+
+func _log_changes(sim: SimRoot) -> void:
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var regions: Regions = SimAssembly.regions_of(sim)
+	var combat: CombatSystem = SimAssembly.combat_of(sim)
+	var perception: PerceptionSystem = SimAssembly.perception_of(sim)
+	var p: Vector3i = actors.position_of(_player)
+	var now: Dictionary = {
+		"region": String(regions.region_at(p.x, p.z).id()),
+		"in the gate": regions.in_transit(_player),
+		"alive": actors.is_alive(_player),
+		"health": actors.health_of(_player)["body"] / 1000,
+		"shots": combat.shots(), "hits": combat.hits(), "kills": combat.kills(),
+		"paused": sim.is_paused(),
+		"camera": "first person" if _first_person else "third person",
+		"device": "raised" if _device_raised else "lowered",
+		"wielded": actors.wielded(_player) == _pistol,
+	}
+	var alerted: Array[String] = []
+	for guard: int in _guards:
+		if actors.is_alive(guard) and perception.is_alerted(guard, _player):
+			alerted.append("#%d" % guard)
+	now["guards alerted"] = ", ".join(PackedStringArray(alerted)) if not alerted.is_empty() else "none"
+	var blocked: int = SimAssembly.movement_of(sim).blocked_count()
+	var was_blocked: int = _seen.get("blocked", blocked)
+	if blocked > was_blocked:
+		_record("world", "a step was blocked at (%.1f, %.1f, %.1f) m (%d so far)" % [p.x / M, p.y / M, p.z / M, blocked])
+	_seen["blocked"] = blocked
+	for key: String in now:
+		if not _seen.has(key) or _seen[key] != now[key]:
+			_record("world", "%s: %s" % [key, now[key]])
+			_seen[key] = now[key]
+
+
+func _exit_tree() -> void:
+	if _run_log != null:
+		_record("end", "the world view closed")
+		_run_log.close(_host.sim().get_tick() if _host.sim() != null else -1, "quit")
+		_run_log = null

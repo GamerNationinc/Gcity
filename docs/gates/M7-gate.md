@@ -57,6 +57,10 @@ tools/test.sh
 == all stages passed        (99 min on the laptop; the streamer's worst frame 4.0 ms)
 ```
 
+Re-run on the Deck on 2026-10-01 with the Deck-run changes (§4 items 19–22): fitness,
+native mesher and script analysis clean; **500 tests, 340 317 assertions, 0 failed**;
+check_test_log clean; 24 fixtures identical; all stages passed (83 min, 10:10–11:34).
+
 ### Mutation score (claim 18)
 
 Two passes, both reported, as at G6. Every survivor of both, and what became of it, is in
@@ -117,7 +121,11 @@ they ended.
 gate and 182 m down the road in a cutting, on the way to where the contract bound
 Cold Storage. `docs/gates/screenshots/M7-wilds.png` — the wild ground streamed around the player
 south of the gate. `docs/gates/screenshots/M7-seam.png` — the gate posts and the
-curtain during the load window.
+curtain during the load window. The seam view was re-captured on the Deck on 2026-10-01 with the
+§4 item 20 camera and facing arrow. The other two keep their earlier capture: re-taken the
+same day, the Deck's screen had gone to sleep, the compositor handed the game about one
+frame a second, and the terrain streamer (a slice per frame) had drawn 15 chunks instead of
+~100 (the run log's heartbeat showed it). They are re-taken with the screen awake.
 
 ## 3. Demo script
 
@@ -164,6 +172,12 @@ Steps 1–4 on any Linux x86_64 machine; the rest on the Deck.
 | 16 | **`tools/mutate.py` read only `ERROR:` lines**, not `SCRIPT ERROR:`, so a mutant that broke a tick with runtime errors passed; and the land system was not mapped to the pause tests. Both fixed with tests; pass 1's first 20 files ran before the fix. | tooling | closed |
 | 17 | **`raid_token_system:191` was left open** for want of a raid path costing nothing. A stair flight set in a wall is one (an opening passed for nothing); `test_raid_token_system`'s a token walks a plan that costs nothing kills it. | untested | closed |
 | 18 | **`tools/test.sh` does not install GodotSteam**; without it the unit stage's log check fails on the missing extension. `docs/handoff.md` now lists `tools/godotsteam.sh` as a setup step. | setup | closed |
+| 19 | **The stick strafed backwards.** CEOGG's first Deck run (2026-10-01): "controls seem inverted". The world view's right was the camera's left, so pushing right walked left; turning was right. Fixed in `WorldView.ground_move`, with `tests/client/test_world_controls.gd` (fails on the old line). The demo scripts only walk forward, so no recording moved. | defect, client | closed |
+| 20 | **Nothing showed which way the player faces.** Same run: "I don't know which way the character is pointing". The capsule's nose is on the side the following camera never sees, and from 4 m the capsule filled the middle of the screen. Interim: a flat arrow on the ground ahead of the player, drawn over the capsule; the camera 6 m back, 2.8 m up and 0.9 m over the right shoulder. M8 claims 5 and 6 (people, a spring arm) replace both. | feel, client | interim; M8 |
+| 21 | **The player is taller than the buildings.** Same run: "the pill character is much larger than buildings". Real, and not the camera: a build cell is drawn 1 m on a side, every wall piece is one cell high (`m4_test_building` has all 93 pieces at y 0; Cold Storage stacks four 1 m storeys), and the player is drawn 1.8 m. In the sim a person is a point and a wall piece fills its cell for sight and movement, so a cell row behaves like a whole storey while the view draws it waist-high. M8 claims 5 and 7 would put 1.8 m rigged people beside 1 m walls, so this needs deciding before M8's look work. Decided 2026-10-01, option (a): a scale step in the sim before M8's look work — §6 item 4. | scale, design | its own milestone |
+| 22 | **No record of what happened in a run.** Same run: "there should be a detailed log every time it runs so we know exactly what happened." Every launch of the world view now writes `user://logs/runs/run-<date>_<time>.log` (`~/.local/share/godot/app_userdata/Gcity/logs/runs/` on the Deck; the newest 30 kept; its name is on screen): the machine, GPU, screen and controllers; the launch arguments; every action pressed and released and any unbound button; where the move stick points and which way that walks the player against the camera; every command submitted (a site's 93 placements as one line) and every one the sim refuses; changes of region, gate, health, shots, camera, device, alerted guards, blocked steps; a heartbeat each second (fps, worst frame, position, streaming); and every engine error, warning and print, through `OS.add_logger`. Flushed every frame. `tests/client/test_run_log.gd`. Client only. | new, at CEOGG's request | closed |
+| 23 | **The interface is debug text.** Same run: "the interface is lacking". It is: M8 claim 12 (a HUD, a title screen, a pause menu, settings with invert) is where it is built. | feel | M8 claim 12 |
+| 24 | **Launched from a desktop terminal the game saw no controller** ("Inputs found 0 controllers"): the Deck's controls reach a game as a pad only through Steam Input. The export is now a non-Steam shortcut in Steam (launch options `-- --wilds`), and launched that way it finds the Steam Deck Controller. The run log's header records which. | setup | closed |
 
 ## 5. The four standing questions
 
@@ -217,8 +231,25 @@ Conditions (if any):
    5 (a `gear` kind) and 7 (the order of `run.end` and `quest.turn_in`), which need `sim/`
    changes and go to **M9**, the threat director, since the reorder CEOGG approved the
    same day (design doc §16 on `m8-spec`).
+4. **The scale of a storey (§4 item 21)** — open, raised by the 2026-10-01 Deck run.
+   (a) *A scale step before M8's look work:* a person is two cells tall and a storey three
+   in the sim and the content (headroom, climbing, sight from eye height, sites
+   re-authored; every fixture hash moves, so it is a sim milestone, not M8).
+   (b) *M8 draws a cell taller than it is wide* (about 2.5 m a storey): no sim change, but
+   the wilds' hills stretch with it and a one-cell climb is drawn as a 2.5 m ledge.
+   (c) *M8 draws people to fit a 1 m storey:* cheapest, and they look like children next
+   to the 4.3 m gate. **Recommended: (a)**, because both M8 options build the look on
+   a scale the sim does not have, and the art would be redone when it does.
+   **Decided, 2026-10-01: (a)** (CEOGG: "go with a"). The scale step gets its own spec,
+   proposed for approval before any code; M8's look work waits for it.
 
 ## 7. Deck run and feel notes
+
+**First run, 2026-10-01, `--wilds` from Steam (CEOGG's words, transcribed):** "I don't
+know which way the character is pointing and the controls seem inverted. The pill
+character is much larger than the buildings and the interface is lacking. There should
+be a detailed log every time it runs so we know exactly what happened." What became of
+each: §4 items 19–24. The run itself was not logged (the log came after it).
 
 {{Deck run by CEOGG: steps 5–7 of §3, and whether the wilds feel like a place — the
 spec's open point says that is M8's content pass, not M7's bar.}}
