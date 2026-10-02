@@ -55,6 +55,34 @@ class ScheduleTest(unittest.TestCase):
         self.assertEqual(pt.schedule(["y", "x"], {"x": 1.0, "y": 1.0}, {}), ["x", "y"])
 
 
+class SplitTest(unittest.TestCase):
+    LISTING = ("Godot Engine v4.6.1\n"
+               "test res://tests/a/test_slow.gd::test_one\n"
+               "test res://tests/a/test_slow.gd::test_two\n")
+
+    def test_the_listing_is_read_in_order(self) -> None:
+        self.assertEqual(pt.parse_listing(self.LISTING),
+                         ["res://tests/a/test_slow.gd::test_one", "res://tests/a/test_slow.gd::test_two"])
+
+    def test_only_slow_files_are_split(self) -> None:
+        lister = lambda p: pt.parse_listing(self.LISTING) if p.endswith("test_slow.gd") else ["unexpected"]
+        work = pt.plan(["res://tests/a/test_fast.gd", "res://tests/a/test_slow.gd"],
+                       {"res://tests/a/test_slow.gd": pt.SPLIT_SECONDS, "res://tests/a/test_fast.gd": 1.0}, lister)
+        self.assertEqual(work, ["res://tests/a/test_fast.gd", "res://tests/a/test_slow.gd::test_one",
+                                "res://tests/a/test_slow.gd::test_two"])
+
+    def test_a_failed_or_foreign_listing_runs_the_file_whole(self) -> None:
+        slow = {"res://tests/a/test_slow.gd": 999.0}
+        self.assertEqual(pt.plan(["res://tests/a/test_slow.gd"], slow, lambda p: []), ["res://tests/a/test_slow.gd"])
+        foreign = lambda p: ["res://tests/b/test_other.gd::test_x"]
+        self.assertEqual(pt.plan(["res://tests/a/test_slow.gd"], slow, foreign), ["res://tests/a/test_slow.gd"])
+
+    def test_a_split_file_keeps_its_total_time(self) -> None:
+        times = pt.file_times([pt.FileRun("f.gd::a", "", 0, 100.0), pt.FileRun("f.gd::b", "", 0, 50.0),
+                               pt.FileRun("g.gd", "", 0, 3.0)])
+        self.assertEqual(times, {"f.gd::a": 100.0, "f.gd::b": 50.0, "f.gd": 150.0, "g.gd": 3.0})
+
+
 class SummariseTest(unittest.TestCase):
     def test_totals_add_up_over_files(self) -> None:
         runs = [run("b", "ok   b::t\n\n3 tests, 40 assertions, 0 failed\n"),

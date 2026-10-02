@@ -13,7 +13,9 @@ changing what a test means:
           a temporary directory outside the project, removed afterwards), so no two
           tests share saves or logs and nothing in the project tree sees them. The per-file logs are joined in path order
           into tests/out/unit.log, ending in the same summary line run_tests.gd prints,
-          so tools/check_test_log.py reads it unchanged.
+          so tools/check_test_log.py reads it unchanged. A file that took longer than
+          SPLIT_SECONDS last time is split into one job per test method, the methods
+          listed by the engine (`run_tests.gd -- --list`), never guessed from the text.
   replay  every fixture is replayed twice by tools/replay_hash.gd and the hashes
           compared, as stage_replay does, several fixtures at once.
 
@@ -43,6 +45,8 @@ ALONE = re.compile(r"^## Runs alone:", re.MULTILINE)
 # process that file simply adds nothing (tests/harness/test_case.gd, the base class, is
 # named like a test file); alone, it is the same nothing, not a failure.
 NO_TESTS_EXIT = 2
+#: A file slower than this on the last run is run one test method per job.
+SPLIT_SECONDS = 120.0
 SUMMARY = re.compile(r"^(?P<tests>\d+) tests, (?P<assertions>\d+) assertions, (?P<failed>\d+) failed$", re.MULTILINE)
 
 
@@ -72,6 +76,37 @@ def schedule(paths: list[str], durations: dict[str, float], sizes: dict[str, int
             return (1, -durations[p], 0, p)
         return (0, 0.0, -sizes.get(p, 0), p)
     return sorted(paths, key=key)
+
+
+def parse_listing(output: str) -> list[str]:
+    """The `path::method` keys from `run_tests.gd -- --list`, in the order printed."""
+    return [line[len("test "):].strip() for line in output.splitlines() if line.startswith("test res://")]
+
+
+def plan(paths: list[str], durations: dict[str, float], lister) -> list[str]:
+    """Job keys: a file, or each of its methods when it ran longer than SPLIT_SECONDS.
+    `lister(path)` returns the engine's method keys for a file, or [] if it could not
+    list them; then the file runs whole, so nothing can be skipped by a failed listing."""
+    jobs: list[str] = []
+    for p in paths:
+        methods = lister(p) if durations.get(p, 0.0) >= SPLIT_SECONDS else []
+        if methods and all(m.startswith(p + "::") for m in methods):
+            jobs.extend(methods)
+        else:
+            jobs.append(p)
+    return jobs
+
+
+def file_times(runs: list[FileRun]) -> dict[str, float]:
+    """Each job's time, and for a split file the sum of its methods' under the file's
+    own key, so it is still recognised as slow next time."""
+    times: dict[str, float] = {}
+    for r in runs:
+        times[r.path] = round(r.seconds, 1)
+        if "::" in r.path:
+            f = r.path.split("::", 1)[0]
+            times[f] = round(times.get(f, 0.0) + r.seconds, 1)
+    return times
 
 
 def summarise(runs: list[FileRun]) -> tuple[int, int, int, list[str]]:
@@ -130,6 +165,13 @@ def _with_user_root(stage) -> int:
         _user_root = None
 
 
+def _list_methods(godot: str, path: str) -> list[str]:
+    proc = subprocess.run([godot, "--headless", "--path", str(ROOT), "-s", "tests/run_tests.gd", "--", "--list", path],
+                          cwd=ROOT, env=_user_dir("list-" + path), stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                          text=True, encoding="utf-8", errors="replace")
+    return parse_listing(proc.stdout) if proc.returncode == 0 else []
+
+
 def _run_file(godot: str, path: str) -> FileRun:
     start = time.monotonic()
     proc = subprocess.run([godot, "--headless", "--path", str(ROOT), "-s", "tests/run_tests.gd", "--", path],
@@ -151,10 +193,11 @@ def unit(godot: str, jobs: int) -> int:
         durations = {str(k): float(v) for k, v in json.loads(times_file.read_text(encoding="utf-8")).items()}
     except (OSError, ValueError, AttributeError):
         durations = {}
-    sizes = {p: len(texts[p]) for p in paths}
     start = time.monotonic()
+    work = plan(together, durations, lambda p: _list_methods(godot, p))
+    sizes = {key: len(texts[key.split("::", 1)[0]]) for key in work}
     with ThreadPoolExecutor(max_workers=jobs) as pool:
-        runs = list(pool.map(lambda p: _run_file(godot, p), schedule(together, durations, sizes)))
+        runs = list(pool.map(lambda p: _run_file(godot, p), schedule(work, durations, sizes)))
     for p in alone:
         runs.append(_run_file(godot, p))
     wall = time.monotonic() - start
@@ -164,9 +207,11 @@ def unit(godot: str, jobs: int) -> int:
     if problems:
         log += "\n".join(problems) + "\n"
     log += f"\n{tests} tests, {assertions} assertions, {failed} failed\n"
-    log += f"({len(runs)} files, {jobs} at once, {len(alone)} alone after: {', '.join(alone) or 'none'}; {wall:.0f} s)\n"
+    split = sorted({r.path.split("::", 1)[0] for r in runs if "::" in r.path})
+    log += f"({len(runs)} jobs, {jobs} at once, {len(alone)} alone after: {', '.join(alone) or 'none'}; "
+    log += f"split by method: {', '.join(split) or 'none'}; {wall:.0f} s)\n"
     (OUT / "unit.log").write_text(log, encoding="utf-8")
-    times_file.write_text(json.dumps({r.path: round(r.seconds, 1) for r in runs}, indent=1, sort_keys=True) + "\n", encoding="utf-8")
+    times_file.write_text(json.dumps(file_times(runs), indent=1, sort_keys=True) + "\n", encoding="utf-8")
     return 0 if failed == 0 and tests > 0 else 1
 
 
