@@ -27,8 +27,8 @@ session picks up. Read it first, then `CLAUDE.md`.
   CEOGG chose (2026-10-02) to make Rust required: on branch `tools-parallel-tests`,
   `test.sh` installs GodotSteam and builds the mesher before any engine stage and stops
   with a message if `cargo` is missing; CI's engine job installs the pinned toolchain.
-  Pushed 2026-10-02; its first CI run is the test of the fix: check Actions, and merge
-  the branch where CEOGG says.
+  **CI green again** on `9ca7f1f` (fitness 3 min, engine 42 min), the first since
+  `8e36876`; merged into `m7_5-human-scale` with CEOGG's yes, 2026-10-02.
 - **Run suites from a login shell** (`bash -l`): a plain `bash` has no `~/.cargo/bin`, and
   before that branch `test.sh` silently skipped the native mesher.
 - **The parallel test runner** (same branch, `tools/parallel_tests.py`, `GCITY_JOBS`):
@@ -36,7 +36,8 @@ session picks up. Read it first, then `CLAUDE.md`.
   this laptop, same commit, with per-test results identical line by line, the same 24
   replay hashes and a clean log check. The floor is two files of about 30 min each
   (`test_route_graph`, `test_save_file`); splitting them by test method is the next step
-  if the time matters. Not merged anywhere: CEOGG decides where it lands.
+  if the time matters. **Done** (`b3f125b`): slow files run one method per job, whole
+  suite 28 min, bound by total work now. Merged into `m7_5-human-scale`.
 - **M7.6, the sandbox, is approved** (`docs/specs/M7.6-sandbox.md`, branch `m7_6-spec`):
   spawner, trainer, AI and time controls, inspector, sessions as fixtures, dev builds
   only. It starts when G7.5 is signed; M8's empty-sim-diff baseline is now G7.6.
