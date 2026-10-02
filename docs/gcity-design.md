@@ -818,12 +818,12 @@ places or moves a body asks about both of its cells, sight runs between eyes, an
 site and fixture is rebuilt at that scale. Inserted ahead of look and feel by CEOGG,
 2026-10-01, after the first hand-played Deck run (`docs/specs/M7.5-human-scale.md`).
 
-**M7.6 — The sandbox** *(proposed)*
+**M7.6 — The sandbox**
 A dev-build sandbox, like Garry's Mod for testing: from the controller, spawn anything the
 content defines, make the player unkillable, supplied and able to fly, hold and step the AI
 and the clock, and draw what the sim knows over the world. Every action is a command the sim
-judges, and a session saves as a replay fixture. Not in the release export. Requested by
-CEOGG, 2026-10-02 (`docs/specs/M7.6-sandbox.md`).
+judges, and a session saves as a replay fixture. Not in the release export. Requested and
+its spec approved by CEOGG, 2026-10-02 (`docs/specs/M7.6-sandbox.md`).
 
 **M8 — Look and feel**
 What the player sees and hears, over a sim that does not move: one art direction,
