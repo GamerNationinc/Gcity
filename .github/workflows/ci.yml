@@ -32,6 +32,10 @@ jobs:
           key: godot-${{ steps.pin.outputs.GODOT_VERSION }}-linux-x86_64
       - name: Download and verify engine
         run: tools/godot.sh
+      # test.sh installs the pinned GodotSteam binaries and builds the native mesher
+      # before the first engine stage; the mesher needs the crate's pinned toolchain
+      - name: Pinned Rust toolchain
+        run: rustup toolchain install "$(sed -n 's/^channel = "\(.*\)"/\1/p' native/terrain_mesher/rust-toolchain.toml)" --profile minimal
       - name: Static analysis (typed GDScript)
         run: tools/test.sh scripts
       - name: Headless test suite

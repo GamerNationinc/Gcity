@@ -4,6 +4,8 @@ extends GcityTest
 ## meshed by surface nets. The mesh is closed where the ground is, faces outward, meets
 ## its neighbour's without a crack, and the native mesher and the GDScript port give the
 ## same one — the native one at least five times faster (standards §9.2's pass metric).
+##
+## Runs alone: it compares two wall-clock times (tools/parallel_tests.py).
 
 const S: int = SurfaceNets.S
 const N: int = SurfaceNets.N
