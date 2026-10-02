@@ -1,15 +1,23 @@
 ## Headless test runner. Usage:
-##   godot --headless --path . -s tests/run_tests.gd
-## Discovers tests/**/test_*.gd, runs every test_* method on a fresh instance, prints
-## one line per test and a summary, and exits 0 only if everything passed.
+##   godot --headless --path . -s tests/run_tests.gd [-- res://tests/.../test_x.gd ...]
+## Discovers tests/**/test_*.gd (or runs the files named after `--`, which is how
+## tools/parallel_tests.py gives each its own process), runs every test_* method on a
+## fresh instance, prints one line per test and a summary, and exits 0 only if
+## everything passed.
 extends SceneTree
 
 const TESTS_ROOT: String = "res://tests"
 
 
 func _initialize() -> void:
-	var paths: PackedStringArray = PackedStringArray()
-	_discover(TESTS_ROOT, paths)
+	var paths: PackedStringArray = OS.get_cmdline_user_args()
+	for path: String in paths:
+		if not (path.begins_with(TESTS_ROOT + "/") and path.get_file().begins_with("test_") and path.ends_with(".gd")):
+			print("FAIL %s: not a test file under %s" % [path, TESTS_ROOT])
+			quit(2)
+			return
+	if paths.is_empty():
+		_discover(TESTS_ROOT, paths)
 	paths.sort()
 	var total: int = 0
 	var failed: int = 0

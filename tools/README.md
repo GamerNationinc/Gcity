@@ -7,7 +7,7 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `godot.pin` | The exact engine version, its SHA-256, and the export templates' SHA-512, used by CI and locally. |
 | `godotsteam.pin` | The pinned GodotSteam GDExtension: version, godot-cpp target, Steamworks SDK, URL, SHA-256, and the Steam app id the client initialises with. |
 | `godotsteam.sh` | Downloads and verifies the pinned release into `addons/godotsteam/`, keeping only the Linux and Windows libraries (no editor self-updater). |
-| `build_native.sh` | Builds `native/terrain_mesher` with the pinned Rust toolchain and locked crates and installs the library and its `.gdextension` into `addons/terrain_mesher/` (not committed). `test.sh` runs it after Clippy and the crate's tests when `cargo` is present. |
+| `build_native.sh` | Builds `native/terrain_mesher` with the pinned Rust toolchain and locked crates and installs the library and its `.gdextension` into `addons/terrain_mesher/` (not committed). `test.sh` runs it after Clippy and the crate's tests, and before any engine stage if the library is missing; without `cargo` the suite stops with a message (Rust is required). |
 | `steam_probe.gd` | What the pinned GodotSteam binding sees on this machine: extension, Steam client, app id, action sets, controllers. |
 | `godot.sh` | Downloads and verifies the pinned engine into `.cache/godot/`, prints its path. |
 | `check_dependencies.py` | Architectural fitness function: the `sim/` → `client/` rule and the sim's determinism deny-list. |
@@ -23,5 +23,6 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `bench_agents.gd` | The agent budget on the Deck (M4 claim 13): the M4 building with six armed guards for 12 000 ticks headless, per-tick sim time at the 99th and 99.9th percentiles, with and without agents, and the rebuild ticks, as JSON. |
 | `make_m7_fixtures.gd` | Regenerates the four M7 replay fixtures (claim 17): the world alone, a contract binding its place, a squad coming in and going out past the player, the gate there and back. Re-record their hashes afterwards. |
 | `make_m4_fixtures.gd` | Regenerates the six M4 replay fixtures from `M4Building`; re-record their hashes afterwards. |
-| `test.sh` | The whole verification run, in the order CI uses it. Run this before presenting any work. |
+| `test.sh` | The whole verification run, in the order CI uses it. Run this before presenting any work. `GCITY_JOBS` sets how many engine processes the unit and replay stages use (default: cores less two). |
+| `parallel_tests.py` | The unit and replay stages across several engine processes: one per test file, each with its own `user://`, longest first by the last run's times (`tests/out/durations.json`); files marked `## Runs alone:` (they assert wall-clock time) run by themselves afterwards. The joined log is `tests/out/unit.log`, as before. |
 | `tests/` | Unit tests for the Python tools (`python3 -m unittest discover tools/tests`). |

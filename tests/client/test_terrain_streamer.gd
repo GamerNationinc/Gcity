@@ -4,6 +4,8 @@ extends GcityTest
 ## player is streamed a slice at a time, nearest first, on pooled mesh nodes; it is the
 ## ground the sim walks on; and a change to that ground is drawn again where it happened
 ## and nowhere else.
+##
+## Runs alone: a frame's budget is wall-clock time (tools/parallel_tests.py).
 
 const SEED: int = 20261600
 ## On the level apron outside the gate, in the wilds: standing in cell y 0.
