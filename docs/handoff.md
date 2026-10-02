@@ -3,7 +3,60 @@
 Claude Code's memory lives on the machine it runs on, so this file is how the next
 session picks up. Read it first, then `CLAUDE.md`.
 
-## Update, 2026-10-01, on the Deck: M7.5 in progress — read this first
+## Update, 2026-10-02, on the laptop (WSL2): claims 3–5 verified — read this first
+
+- **The first full suite on `m7_5-wip` was not green**: 515 tests, 1 failed
+  (`test_quest_system.gd::test_a_build_objective_credits_the_builder` built on its own
+  player's feet, which claim 2 refuses; the failure was already in `972e0b7`), and the
+  log check flagged `test_run_log.gd` listing a folder that does not exist on a fresh
+  machine. Both fixed in `c9240d7` (gate §4 items 4 and 8). **Watch for this:** under
+  `set -e`, `tools/test.sh` used to stop without a word when the unit run failed — a log
+  that ends at `== headless tests` is a failure. Success ends `== all stages passed`.
+- **Claim 5, support by column, is done** (`50ba29f`): a piece resting on the one below
+  takes its depth (0-1 search, `BuildSystem._slots_under`). Two 10 000-case properties
+  against a geometric oracle; five hand mutants (four killed, one equivalent); no
+  fixture hash moved. The M3 span test now counts five walls from a foundation (gate
+  item 9). `supported_set` costs 15.5 ms at 252 pieces against 10.6 before (item 10:
+  measure on the Deck when the creator tool lands).
+- `m7_5-human-scale` now points at `50ba29f` (claims 1–5), verified by a full suite:
+  519 tests, 341 389 assertions, 0 failed, all 24 replays, all stages passed (90 min, native mesher on).
+- **CI has been red since M5** (`8e36876`, the GodotSteam pin; the last green run was
+  `d5a037d`), through the G5, G6 and G7 sign-offs. CI never installed GodotSteam (every
+  engine run then logs a missing GDExtension, which the log check fails), and from M7 its
+  unit stage had no native mesher (the frame-budget test fails on the GDScript port).
+  CEOGG chose (2026-10-02) to make Rust required: on branch `tools-parallel-tests`,
+  `test.sh` installs GodotSteam and builds the mesher before any engine stage and stops
+  with a message if `cargo` is missing; CI's engine job installs the pinned toolchain.
+  Pushed 2026-10-02; its first CI run is the test of the fix: check Actions, and merge
+  the branch where CEOGG says.
+- **Run suites from a login shell** (`bash -l`): a plain `bash` has no `~/.cargo/bin`, and
+  before that branch `test.sh` silently skipped the native mesher.
+- **The parallel test runner** (same branch, `tools/parallel_tests.py`, `GCITY_JOBS`):
+  serial 90 min, parallel (6 workers) 35 min on
+  this laptop, same commit, with per-test results identical line by line, the same 24
+  replay hashes and a clean log check. The floor is two files of about 30 min each
+  (`test_route_graph`, `test_save_file`); splitting them by test method is the next step
+  if the time matters. Not merged anywhere: CEOGG decides where it lands.
+- **M7.6, the sandbox, is approved** (`docs/specs/M7.6-sandbox.md`, branch `m7_6-spec`):
+  spawner, trainer, AI and time controls, inspector, sessions as fixtures, dev builds
+  only. It starts when G7.5 is signed; M8's empty-sim-diff baseline is now G7.6.
+- **Study-and-rebuild policy adopted** (`docs/policy/study-and-rebuild.md`, branch
+  `policy-study-rebuild`; CLAUDE.md §10 carries the rule): never read reverse-engineered
+  source in a Gcity workspace; a separate study agent writes design notes, code is built
+  from them. **Study 1** (iw4L, skate-3-rust-engine) is in `docs/references/` on branch
+  `references-study-1`, vetted; nothing is scheduled from it yet (M8 motion, M9 AI).
+- **Next: claim 7, falls in metres** (`sim/agents/movement_system.gd`), in its own session
+  (one `sim/` system per session). Plan: a `fall_free_levels` profile field (schema-
+  checked) at 1 on every profile, so nothing moves and the replays prove it; claim 6 then
+  sets 3 (one storey) and `fall_damage_per_level` 4 000, so a 6 m fall does the 12 000 a
+  two-level fall did at M6. Log it beside items 1 and 6 as the same kind of deviation.
+  Then claim 6 (the sites at human scale).
+- Working from Windows: the file tools cannot write under `\\wsl$`; edit through a script
+  run with `wsl -d Ubuntu-24.04 -e bash -lc "bash /mnt/c/.../x.sh"`. Worktrees this
+  session: `~/gc9` (claims 3–4 + fixes), `~/gc10` (claim 5), `~/gc11` (a detached check
+  of `972e0b7`), `~/gc12` (tools), `~/gc13` (M7.6 spec), `~/gc14` (policy, references).
+
+## Update, 2026-10-01, on the Deck: M7.5 in progress
 
 - **G7 is signed** (CEOGG, 2026-10-01, `68b4847` on `m7-deck-run`). The Deck run's fixes
   (strafe, facing arrow, camera, the run log in `client/run_log.gd`) are on `m7-deck-run`.
