@@ -4,7 +4,11 @@ extends GcityTest
 ## the newest thirty kept.
 
 
+## No folder yet is no runs yet: on a machine the client has never run on, the first
+## test opens the first log.
 func _runs() -> PackedStringArray:
+	if not DirAccess.dir_exists_absolute(RunLog.DIR):
+		return PackedStringArray()
 	return DirAccess.get_files_at(RunLog.DIR)
 
 
