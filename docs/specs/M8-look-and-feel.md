@@ -20,7 +20,8 @@ capsules. This milestone puts presentation in front of it instead, while there i
 only one mission to dress.
 
 **Preconditions.** G7.5 is signed (M7.5, human scale, inserted ahead of this milestone
-by CEOGG on 2026-10-01; before that, G7). **ADR-011** (art direction and asset sourcing,
+by CEOGG on 2026-10-01; before that, G7), and so is G7.6 (the sandbox, proposed
+2026-10-02). **ADR-011** (art direction and asset sourcing,
 proposed with this spec) is accepted: claims 3–13 depend on it, and CLAUDE.md does not
 let an open ADR be guessed around. The reorder in §16 below is approved.
 
@@ -129,7 +130,9 @@ lost time in M7); **the Deck remains the only machine whose numbers count** (sta
 ### Verification
 
 13. **The sim did not move.** All 24 replay fixtures reproduce their G7.5 hashes
-    unchanged; `git diff --stat <G7.5 sign-off>..HEAD -- sim/` is empty. A claim that
+    unchanged; `git diff --stat <G7.6 sign-off>..HEAD -- sim/` is empty (G7.6, not G7.5:
+    the M7.6 sandbox adds `sim/` code; amendment proposed with `docs/specs/M7.6-sandbox.md`,
+    2026-10-02). A claim that
     needs a sim change is not an M8 claim: it goes to the debt log with the reason.
 14. **It holds 40 fps on the Deck with the look on.** `--mission --demo` and a `--wilds`
     walk captured on the Deck, plugged and on battery: 1 % low ≥ 40 fps; 0.1 % low
