@@ -7,7 +7,9 @@
 ## face's axis plus that axis, so a wall placed from either side is the same face.
 ##
 ## Support: a piece is supported if it reaches a ground-level foundation through a
-## chain of touching pieces no longer than its material's `max_span`. Placement that
+## chain of touching pieces no longer than its material's `max_span`, where a piece
+## resting directly on the one below it adds nothing to the chain (M7.5 decision 4:
+## the span limits overhangs, not height). Placement that
 ## would be unsupported is rejected; removal collapses whatever it left unsupported, in
 ## one deterministic pass on the tick of the change. Every successful change emits
 ## `build.changed {added, removed, removed_at, actor}` for the portal graph, the quests
@@ -312,8 +314,11 @@ func cells_of_piece(id: int) -> Array[Vector3i]:
 
 
 ## Piece ids whose support distance from a ground foundation is within their span.
-## Recomputed over the whole set on every change (M3 assumption: sizes are small;
-## claim 10 records the cost).
+## The distance counts hops between touching pieces, except that a piece resting
+## directly on another (`_slots_under`) takes that piece's distance unchanged, so
+## `max_span` limits overhangs, not height (M7.5 decision 4). Distances are settled one
+## level at a time in increasing order: a 0-1 breadth-first search. Recomputed over the
+## whole set on every change (M3 assumption: sizes are small; claim 10 records the cost).
 func supported_set() -> Dictionary:
 	var by_cell: Dictionary = {}
 	for id: int in _pieces:
@@ -323,36 +328,103 @@ func supported_set() -> Dictionary:
 				by_cell[key] = [] as Array[int]
 			var list: Array[int] = by_cell[key]
 			list.append(id)
-	var depth: Dictionary = {}
-	var frontier: Array[int] = []
+	var carried: Dictionary = {}
+	var spans: Dictionary = {}
+	var queued: Dictionary = {}
+	var level: Array[int] = []
 	for id: int in piece_ids():
+		spans[id] = _max_span(id)
 		if kind_of(id) == &"foundation" and _on_ground(cell_of_piece(id)):
-			depth[id] = 0
-			frontier.append(id)
-	var head: int = 0
-	while head < frontier.size():
-		var id: int = frontier[head]
-		head += 1
-		var d: int = depth[id]
-		var neighbours: Array[int] = []
-		for c: Vector3i in cells_of_piece(id):
-			for offset: Vector3i in [Vector3i.ZERO, Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 1, 0), Vector3i(0, -1, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]:
-				var key: String = cell_key(c + offset)
-				if by_cell.has(key):
-					var list: Array[int] = by_cell[key]
-					for other: int in list:
-						if not neighbours.has(other):
-							neighbours.append(other)
-		neighbours.sort()
-		for other: int in neighbours:
-			if depth.has(other):
+			queued[id] = 0
+			level.append(id)
+		for key: String in _slots_under(id):
+			var v: Variant = _occupied.get(key)
+			if typeof(v) != TYPE_INT:
 				continue
-			var span: int = _max_span(other)
-			if d + 1 > span:
+			var below: int = v
+			if not carried.has(below):
+				carried[below] = [] as Array[int]
+			var resting: Array[int] = carried[below]
+			resting.append(id)
+	var depth: Dictionary = {}
+	var d: int = 0
+	while not level.is_empty():
+		var next: Array[int] = []
+		var head: int = 0
+		while head < level.size():
+			var id: int = level[head]
+			head += 1
+			if depth.has(id):
 				continue
-			depth[other] = d + 1
-			frontier.append(other)
+			depth[id] = d
+			if carried.has(id):
+				var resting: Array[int] = carried[id]
+				for other: int in resting:
+					if not depth.has(other) and _improves(other, d, spans, queued):
+						level.append(other)
+			for other: int in _touching(id, by_cell):
+				if not depth.has(other) and _improves(other, d + 1, spans, queued):
+					next.append(other)
+		level = next
+		d += 1
 	return depth
+
+
+## True, and `to` recorded as the best known depth of `id`, when `to` is within its
+## span and shallower than any depth it is already queued at.
+static func _improves(id: int, to: int, spans: Dictionary, queued: Dictionary) -> bool:
+	var span: int = spans[id]
+	if to > span:
+		return false
+	if queued.has(id):
+		var known: int = queued[id]
+		if known <= to:
+			return false
+	queued[id] = to
+	return true
+
+
+## Pieces sharing or next to a cell of `id`, in ascending order.
+func _touching(id: int, by_cell: Dictionary) -> Array[int]:
+	var neighbours: Array[int] = []
+	for c: Vector3i in cells_of_piece(id):
+		for offset: Vector3i in [Vector3i.ZERO, Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 1, 0), Vector3i(0, -1, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]:
+			var key: String = cell_key(c + offset)
+			if by_cell.has(key):
+				var list: Array[int] = by_cell[key]
+				for other: int in list:
+					if not neighbours.has(other):
+						neighbours.append(other)
+	neighbours.sort()
+	return neighbours
+
+
+## The slots a piece rests on: those whose top is this piece's bottom and which meet
+## it along a line or over an area. Under a cell piece: the cell below, the floor face
+## between, and the four walls along that floor's edges. Under a floor face: the cell
+## it tops and the four walls along its edges. Under a wall face: the wall below it,
+## and the cells and floor faces of the two cells it separates, one row down. Pieces
+## side by side, or meeting only at a corner, do not rest on each other.
+func _slots_under(id: int) -> Array[String]:
+	var c: Vector3i = cell_of_piece(id)
+	var record: Dictionary = _pieces[id]
+	var face: String = record["face"]
+	var down: Vector3i = Vector3i(0, -1, 0)
+	var east: Vector3i = Vector3i(1, 0, 0)
+	var south: Vector3i = Vector3i(0, 0, 1)
+	if face.is_empty():
+		var b: Vector3i = c + down
+		return [cell_key(b), _slot(b, "y"), _slot(b, "x"), _slot(b - east, "x"), _slot(b, "z"), _slot(b - south, "z")]
+	var axis: String = face.get_slice("|", 1)
+	if axis == "y":
+		return [cell_key(c), _slot(c, "x"), _slot(c - east, "x"), _slot(c, "z"), _slot(c - south, "z")]
+	var across: Vector3i = east if axis == "x" else south
+	return [_slot(c + down, axis), cell_key(c + down), cell_key(c + across + down), _slot(c + down, "y"), _slot(c + across + down, "y")]
+
+
+## A face key without going through `cell_key` first: one format, not two.
+static func _slot(lower: Vector3i, axis: String) -> String:
+	return "%d,%d,%d|%s" % [lower.x, lower.y, lower.z, axis]
 
 
 func is_supported(id: int) -> bool:
