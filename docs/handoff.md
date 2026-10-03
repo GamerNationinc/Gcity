@@ -46,12 +46,16 @@ session picks up. Read it first, then `CLAUDE.md`.
   source in a Gcity workspace; a separate study agent writes design notes, code is built
   from them. **Study 1** (iw4L, skate-3-rust-engine) is in `docs/references/` on branch
   `references-study-1`, vetted; nothing is scheduled from it yet (M8 motion, M9 AI).
-- **Next: claim 7, falls in metres** (`sim/agents/movement_system.gd`), in its own session
-  (one `sim/` system per session). Plan: a `fall_free_levels` profile field (schema-
-  checked) at 1 on every profile, so nothing moves and the replays prove it; claim 6 then
-  sets 3 (one storey) and `fall_damage_per_level` 4 000, so a 6 m fall does the 12 000 a
-  two-level fall did at M6. Log it beside items 1 and 6 as the same kind of deviation.
-  Then claim 6 (the sites at human scale).
+- **Claim 7, falls in metres, is done** (same day, this session, at CEOGG's word): the
+  `fall_free_levels` profile field, at 1 everywhere (gate item 11); claim 6's tuning is
+  pinned by a test profile. All 24 hashes re-recorded for the content digest only.
+- **Next: claim 6, the sites at human scale** (spec claim 6, gate §4 items 1, 2, 6, 11):
+  rebuild both sites in `tools/make_sites.gd` at 3-cell storeys with 2-cell doors and
+  sill windows, and in the same change flip every profile to `body_cells` 2, `eye_mm`
+  1600, `centre_mm` 1000, `fall_free_levels` 3, `fall_damage_per_level` 4000; update
+  `test_every_shipped_profile_still_has_one_free_level_until_claim_6`; raid tokens and
+  stacked openings (item 2). Its own session: it is the largest claim, and every
+  fixture's run must be re-checked for still recording what it is named for.
 - Working from Windows: the file tools cannot write under `\\wsl$`; edit through a script
   run with `wsl -d Ubuntu-24.04 -e bash -lc "bash /mnt/c/.../x.sh"`. Worktrees this
   session: `~/gc9` (claims 3–4 + fixes), `~/gc10` (claim 5), `~/gc11` (a detached check
