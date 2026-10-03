@@ -88,10 +88,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "px",
 				"piece": "wall_panel",
 				"x": 6500,
 				"y": 500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -112,10 +160,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "nz",
 				"piece": "wall_panel",
 				"x": 4500,
 				"y": 500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -136,6 +232,30 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 5500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
+				"z": 5500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "px",
 				"piece": "wall_panel",
 				"x": 6500,
@@ -148,10 +268,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 5500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
+				"z": 5500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "pz",
 				"piece": "wall_panel",
 				"x": 5500,
 				"y": 500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 5500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 5500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -172,10 +340,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nz",
+				"piece": "door_frame",
+				"x": 5500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 5500,
+				"y": 2500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "nx",
 				"piece": "wall_panel",
 				"x": 4500,
 				"y": 500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -196,10 +412,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "pz",
 				"piece": "wall_panel",
 				"x": 6500,
 				"y": 500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -220,10 +484,22 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
-				"facing": "py",
-				"piece": "floor_panel",
-				"x": 4500,
-				"y": 500,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -235,7 +511,19 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 4500,
-				"y": 500,
+				"y": 2500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "py",
+				"piece": "floor_panel",
+				"x": 4500,
+				"y": 2500,
 				"z": 5500
 			},
 			"tick": 3
@@ -247,7 +535,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 4500,
-				"y": 500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -259,7 +547,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 5500,
-				"y": 500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -271,7 +559,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 5500,
-				"y": 500,
+				"y": 2500,
 				"z": 5500
 			},
 			"tick": 3
@@ -283,7 +571,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 5500,
-				"y": 500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -295,7 +583,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 6500,
-				"y": 500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -307,7 +595,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 6500,
-				"y": 500,
+				"y": 2500,
 				"z": 5500
 			},
 			"tick": 3
@@ -319,7 +607,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 6500,
-				"y": 500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -1129,7 +1417,7 @@
 			"tick": 97
 		}
 	],
-	"expected_hash": "bf22dc215f1cf8155b870c1cb83a3b7fcc0f31bae424799c903dbbdfe6f21849",
+	"expected_hash": "c1d2894b024fbd1025b7e75283f549f766b038b5f6d27a9f9f5b6b8f4061f265",
 	"name": "m3-walk",
 	"schema_version": 1,
 	"seed": 20261010,

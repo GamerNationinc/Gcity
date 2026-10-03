@@ -29,7 +29,7 @@ func test_bunker_is_raided_through_its_door_without_a_breach() -> void:
 	var raids: RaidTokenSystem = SimAssembly.raids_of(sim)
 	var build: BuildSystem = SimAssembly.build_of(sim)
 	var portals: PortalGraph = SimAssembly.portals_of(sim)
-	assert_eq(build.piece_ids().size(), 26, "four foundations, twelve walls incl. the door, nine roof panels, a crate")
+	assert_eq(build.piece_ids().size(), 50, "four foundations, twelve storey-high walls of three faces incl. the door, nine roof panels, a crate")
 	assert_eq(portals.volume_count(), 1, "one enclosed volume")
 	assert_eq(raids.token_ids(), [1] as Array[int], "one token")
 	assert_eq(raids.state_of(1), "arrived", "arrived")
@@ -43,7 +43,7 @@ func test_killbox_the_new_door_beats_the_wall_being_cut() -> void:
 	var build: BuildSystem = SimAssembly.build_of(sim)
 	assert_eq(raids.state_of(1), "arrived", "arrived")
 	assert_eq(raids.token(1)["breached"], 0, "the token took the door instead of finishing the cut")
-	assert_eq(build.piece_ids().size(), 26, "wall swapped for a door: same count")
+	assert_eq(build.piece_ids().size(), 50, "two wall faces swapped for a 2 m door: same count")
 	assert_eq(sim.rejected_count(), 0, "every command applied")
 
 

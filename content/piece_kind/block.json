@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "A solid block built up off the ground: neither a foundation (it need not touch the ground) nor worth anything to a raider. Slabs, fill and cover a person can stand behind (M7.5 claim 6).",
+	"occupies": "cell",
+	"orientation": "any",
+	"passable": false,
+	"target": false,
+	"climb": false
+}

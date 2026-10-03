@@ -12,6 +12,8 @@ const PROPERTY_CASES: int = 10_000
 const M: int = 1000
 const FAR: Vector3i = Vector3i(500 * M, 0, 500 * M)
 const FALL_PER_LEVEL: int = 12000
+## The player of these tests: the M6 rules at one-cell scale (the header says why).
+const M6_SCALE: StringName = &"m6_scale_test"
 
 var _sim: SimRoot
 var _actors: ActorSystem
@@ -26,12 +28,17 @@ func _setup(given: ContentDb = null) -> void:
 	if db == null:
 		db = ContentDb.new()
 		assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	# the M6 rules on one-cell levels: the shipped bodies have been two cells with a storey
+	# of drop free since M7.5 claim 6, so the player here is a profile of the old scale
+	var m6: Dictionary = db.get_entry(ActorSystem.KIND_PROFILE, &"arcade").duplicate(true)
+	m6.merge({"body_cells": 1, "eye_mm": 0, "centre_mm": 0, "fall_free_levels": 1, "fall_damage_per_level": FALL_PER_LEVEL}, true)
+	assert_eq(db.add(ActorSystem.KIND_PROFILE, M6_SCALE, m6), OK, "the M6-scale player")
 	_sim = SimAssembly.build(SEED, db)
 	_actors = SimAssembly.actors_of(_sim)
 	_build = SimAssembly.build_of(_sim)
 	_movement = SimAssembly.movement_of(_sim)
 	SimAssembly.combat_of(_sim).events().subscribe(MovementSystem.EVENT_FELL, _on_fell)
-	_player = _actors.spawn(&"arcade", 0)
+	_player = _actors.spawn(M6_SCALE, 0)
 	# off the build area: since M7.5 claim 2 nothing is built where a body stands
 	_actors.set_position(_player, _at(-4, 0, -4))
 	_fell = []
@@ -140,7 +147,7 @@ func test_falls_in_metres_a_storey_is_free_and_two_storeys_cost_what_two_levels_
 	storey["fall_damage_per_level"] = 4000
 	assert_eq(db.add(ActorSystem.KIND_PROFILE, &"storey_faller", storey), OK, "a profile with a storey free")
 	_setup(db)
-	# M6's rule on a shipped profile: a two-level drop, the first level free
+	# M6's rule, the old scale's profile: a two-level drop, the first level free
 	var m6_before: int = _actors.health_of(_player)[&"body"]
 	_actors.set_position(_player, _at(6, 2, 6))
 	_sim.step_n(3)
@@ -159,12 +166,16 @@ func test_falls_in_metres_a_storey_is_free_and_two_storeys_cost_what_two_levels_
 		assert_eq(_fell.size(), 1 if expected > 0 else 0, "an event only when it hurts (%d m)" % height)
 
 
-func test_every_shipped_profile_still_has_one_free_level_until_claim_6() -> void:
+## M7.5 claim 6: every shipped profile frees a storey (3 m), and every one that takes
+## fall damage takes 4 000 a metre beyond it: the tuning the storey test above pins.
+func test_every_shipped_profile_frees_a_storey() -> void:
 	var db := ContentDb.new()
 	assert_eq(ContentLoader.load_all(db), OK, "content loads")
 	for id: StringName in db.ids(ActorSystem.KIND_PROFILE):
 		var profile: Dictionary = db.get_entry(ActorSystem.KIND_PROFILE, id)
-		assert_eq(profile["fall_free_levels"], 1, "%s: one free level, the M6 rule, until the storeys are rebuilt" % id)
+		assert_eq(profile["fall_free_levels"], 3, "%s: a storey of drop is free" % id)
+		var per: int = profile["fall_damage_per_level"]
+		assert_true(per == 0 or per == 4000, "%s: nothing, or 4 000 a metre beyond it (%d)" % [id, per])
 
 
 func test_a_long_fall_can_kill_and_the_move_command_carries_dy() -> void:
@@ -178,11 +189,12 @@ func test_a_long_fall_can_kill_and_the_move_command_carries_dy() -> void:
 	assert_false(_do({"actor": _player, "dx": 0, "dz": 0, "dy": 1, "dw": 1}), "an unknown key")
 	assert_false(_do({"actor": _player, "dx": 0, "dz": 0, "dy": 1.5}), "a fractional level")
 	assert_false(_do({"actor": _player, "dx": 0, "dz": 0}), "the three-key form still parses; a zero move is refused as ever")
-	# a lethal fall
+	# a lethal fall, at the shipped tuning: a storey free, then 4 000 a metre (M7.5 claim 6),
+	# so 27 m beyond the free drop is more than an arcade profile's 100 000
 	var other: int = _actors.spawn(&"arcade", 0)
-	_actors.set_position(other, _at(9, 12, 9))
-	_sim.step_n(14)
-	assert_false(_actors.is_alive(other), "a twelve-level fall kills an arcade profile")
+	_actors.set_position(other, _at(9, 30, 9))
+	_sim.step_n(32)
+	assert_false(_actors.is_alive(other), "a thirty-metre fall kills an arcade profile")
 
 
 func _do(payload: Dictionary) -> bool:

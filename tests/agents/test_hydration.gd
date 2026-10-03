@@ -309,8 +309,10 @@ func test_a_squad_on_the_road_into_the_gate_takes_it_and_its_token_carries_on() 
 	var skip: int = maxi(0, (length - 300_000) / PACE)
 	_tokens.advance(skip)
 	twin_tokens.advance(skip)
-	# stand outside the gate, on the level apron, and wait for it to come by
-	_actors.set_position(_player, Vector3i(40_000, 0, -60_000))
+	# wait just inside the city for it to come by: near enough that it is a squad and
+	# not a token, out of its sight so it does not stop to look (eyes are 1.6 m up since
+	# M7.5 claim 6, and the old spot on the apron was in plain view of the road)
+	_actors.set_position(_player, Vector3i(40_000, 0, 20_000))
 	var hydrated: bool = false
 	var handed_back: bool = false
 	var ticks: int = 0

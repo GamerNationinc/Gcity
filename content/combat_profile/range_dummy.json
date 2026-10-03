@@ -24,8 +24,8 @@
 		]
 	},
 	"fall_damage_per_level": 0,
-	"fall_free_levels": 1,
-	"body_cells": 1,
-	"eye_mm": 0,
-	"centre_mm": 0
+	"fall_free_levels": 3,
+	"body_cells": 2,
+	"eye_mm": 1600,
+	"centre_mm": 1000
 }

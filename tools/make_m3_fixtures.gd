@@ -2,15 +2,18 @@
 ## raided through its door, the killbox where a new door beats the wall a raid token was
 ## cutting, and the walk through the door. Until M7.5 these three were written by hand;
 ## generating them is M7.5 spec claim 9, so that when the scale changes they are
-## rebuilt by code, not edited.
+## rebuilt by code, not edited. At human scale (M7.5 claim 6) the bunker is a storey
+## tall: walls of three faces, a 2 m door under a wall face, the roof on top.
 ##   godot --headless --path . -s tools/make_m3_fixtures.gd
 ## Then `tools/rerecord_hashes.sh tests/replay/m3-*.json` fills in "expected_hash".
 extends SceneTree
 
 const OUT_DIR: String = "res://tests/replay"
 const M: int = 1000
+## Cells from floor to roof (M7.5 decision 1).
+const STOREY: int = 3
 ## The player is the first entity, so the bunker's pieces are numbered from 2: four
-## foundations, then the twelve walls in `_bunker`'s order.
+## foundations, then the twelve wall columns in `_bunker`'s order, STOREY faces each.
 const FIRST_PIECE_ID: int = 2
 
 var _commands: Array = []
@@ -32,14 +35,19 @@ func _bunker_fixture() -> void:
 
 
 ## The same bunker with a wall where the door would be: the token starts cutting it,
-## and at tick 60 the player swaps that wall for a door, which is cheaper to go through.
+## and at tick 60 the player swaps the bottom of that wall for a door, which is cheaper
+## to go through.
 func _killbox_fixture() -> void:
 	_begin()
 	_bunker(false)
 	_at(40, &"raid.spawn", {"tool": "cutter"})
-	# the south wall's middle panel: the eighth wall placed, after the four foundations
-	_at(60, &"build.remove", {"actor": 1, "piece_id": FIRST_PIECE_ID + 4 + 7})
+	# the south wall's middle column: the eighth placed, after the four foundations; its
+	# two lowest faces come out and a 2 m door goes in under the third
+	var column: int = FIRST_PIECE_ID + 4 + 7 * STOREY
+	_at(60, &"build.remove", {"actor": 1, "piece_id": column})
+	_at(60, &"build.remove", {"actor": 1, "piece_id": column + 1})
 	_place(61, "door_frame", Vector3i(5, 0, 4), "nz")
+	_place(61, "door_frame", Vector3i(5, 1, 4), "nz")
 	_write("m3-killbox", 20261009, 220)
 
 
@@ -59,10 +67,11 @@ func _walk_fixture() -> void:
 	_write("m3-walk", 20261010, 118)
 
 
-## A 3 × 3 room on the starter plot, one cell high: foundations at its four outer
-## corners, three rings of walls (west, east, north, south, one panel of each per ring;
-## the south ring's middle panel is the door when `door`), a roof, and a crate in the
-## north-east corner for a raid to go for. The player spawns, takes the plot, builds.
+## A 3 × 3 room on the starter plot, a storey high: foundations at its four outer
+## corners, three rings of wall columns (west, east, north, south, one column of each
+## per ring; the south ring's middle column is the door when `door`), a roof, and a
+## crate in the north-east corner for a raid to go for. The player spawns, takes the
+## plot, builds.
 func _bunker(door: bool) -> void:
 	_at(1, &"actor.spawn", {"profile": "arcade", "range_m": 0})
 	_at(2, &"land.identify", {"actor": 1, "owner": "player"})
@@ -70,14 +79,21 @@ func _bunker(door: bool) -> void:
 	for corner: Vector3i in [Vector3i(3, 0, 3), Vector3i(7, 0, 3), Vector3i(3, 0, 7), Vector3i(7, 0, 7)]:
 		_place(3, "foundation_block", corner, "")
 	for i: int in 3:
-		_place(3, "wall_panel", Vector3i(4, 0, 4 + i), "nx")
-		_place(3, "wall_panel", Vector3i(6, 0, 4 + i), "px")
-		_place(3, "wall_panel", Vector3i(4 + i, 0, 6), "pz")
-		_place(3, "door_frame" if door and i == 1 else "wall_panel", Vector3i(4 + i, 0, 4), "nz")
+		_column(Vector3i(4, 0, 4 + i), "nx", false)
+		_column(Vector3i(6, 0, 4 + i), "px", false)
+		_column(Vector3i(4 + i, 0, 6), "pz", false)
+		_column(Vector3i(4 + i, 0, 4), "nz", door and i == 1)
 	for x: int in range(4, 7):
 		for z: int in range(4, 7):
-			_place(3, "floor_panel", Vector3i(x, 0, z), "py")
+			_place(3, "floor_panel", Vector3i(x, STOREY - 1, z), "py")
 	_place(3, "storage_crate", Vector3i(6, 0, 6), "")
+
+
+## A wall a storey high, or a 2 m door under a wall face.
+func _column(cell: Vector3i, facing: String, door: bool) -> void:
+	for row: int in STOREY:
+		var piece: String = "door_frame" if door and row < 2 else "wall_panel"
+		_place(3, piece, cell + Vector3i(0, row, 0), facing)
 
 
 # ---------------------------------------------------------------- writing

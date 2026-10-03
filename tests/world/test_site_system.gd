@@ -71,25 +71,25 @@ func _at(site: StringName, rel: Vector3i) -> Vector3i:
 	return Vector3i(centre.x, rel.y * M, centre.z)
 
 
-func test_the_m4_building_is_a_site_file_and_raises_as_it_always_did() -> void:
+func test_the_m4_building_is_a_site_file_and_raises_whole() -> void:
 	_setup()
 	assert_true(_sites.site_ids().has(&"m4_test_building"), "the site is content")
 	assert_false(_sites.is_raised(&"m4_test_building"), "not raised yet")
 	_raise(&"m4_test_building")
 	assert_true(_sites.is_raised(&"m4_test_building"), "raised")
-	assert_eq(_sites.pieces_of(&"m4_test_building").size(), 93, "the same ninety-three pieces as the hand-built one")
+	assert_eq(_sites.pieces_of(&"m4_test_building").size(), 197, "every piece of the building at human scale (M7.5 claim 6)")
 	assert_eq(_sites.agents_of(&"m4_test_building").size(), 4, "and its four guards")
 	for id: int in _sites.pieces_of(&"m4_test_building"):
 		assert_true(_build.is_supported(id), "piece %d stands" % id)
 	assert_false(_sites.raise_site(_player, &"m4_test_building"), "a second raise is refused")
-	assert_eq(_build.piece_ids().size(), 93, "and nothing was placed twice")
+	assert_eq(_build.piece_ids().size(), 197, "and nothing was placed twice")
 
 
 func test_cold_storage_stands_with_its_three_routes_in() -> void:
 	_setup()
 	var site: StringName = &"cold_storage"
 	_raise(site)
-	assert_eq(_sites.pieces_of(site).size(), 366, "every piece of the site stands")
+	assert_eq(_sites.pieces_of(site).size(), 699, "every piece of the site stands")
 	assert_eq(_sites.agents_of(site).size(), 4, "four guards (design doc §15.3)")
 	var unsupported: int = 0
 	for id: int in _sites.pieces_of(site):
@@ -97,26 +97,28 @@ func test_cold_storage_stands_with_its_three_routes_in() -> void:
 			unsupported += 1
 	assert_eq(unsupported, 0, "every piece is supported")
 	# the front route: the lobby door reads a token
-	_actors.set_position(_player, _at(site, Vector3i(2, 1, -1)))
+	_actors.set_position(_player, _at(site, Vector3i(2, 2, -1)))
 	assert_false(_walk(0, 1), "no token: the door is a wall")
 	var token: int = _items.spawn(&"ammo", &"access_token", ItemSystem.inventory_of(_player), 1)
 	assert_true(token > 0, "a stolen token")
 	assert_true(_walk(0, 1), "with it, the door opens")
-	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(2, 1, 0)), "inside the lobby")
+	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(2, 2, 0)), "inside the lobby")
 	# the side route: the fire stair outside the east wall, then the window
-	_actors.set_position(_player, _at(site, Vector3i(5, 1, 7)))
-	assert_true(_movement.is_standable(_sites.cell_of(site, Vector3i(5, 1, 7))), "the fire stair's foot, on the slab")
-	assert_true(_movement.move(_player, 0, 0, 1), "up the fire stair")
-	assert_eq(_actors.position_of(_player).y, 2 * M, "on the upper landing")
+	_actors.set_position(_player, _at(site, Vector3i(5, 2, 7)))
+	assert_true(_movement.is_standable(_sites.cell_of(site, Vector3i(5, 2, 7))), "the fire stair's foot, on the slab")
+	for level: int in 3:
+		assert_true(_movement.move(_player, 0, 0, 1), "up the fire stair, level %d of a storey" % (level + 1))
+	assert_eq(_actors.position_of(_player).y, 5 * M, "on the upper landing")
 	assert_true(_walk(-1, 0), "in through the maintenance window")
-	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 2, 7)), "upstairs, inside")
+	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 5, 7)), "upstairs, inside")
 	# the under route: the street grate, the tunnel, the ladder into the hall
-	_actors.set_position(_player, _at(site, Vector3i(4, 1, -2)))
+	_actors.set_position(_player, _at(site, Vector3i(4, 2, -2)))
 	assert_false(_movement.move(_player, 0, 0, -1), "the grate is shut: no way down")
-	var grate: int = _build.face_piece_at(BuildSystem.face_key(_sites.cell_of(site, Vector3i(4, 1, -2)), "ny"))
+	var grate: int = _build.face_piece_at(BuildSystem.face_key(_sites.cell_of(site, Vector3i(4, 2, -2)), "ny"))
 	assert_true(grate > 0, "the grate is a piece in the street")
 	assert_false(_build.remove(_player, grate).is_empty(), "cut it: the badlands let anyone build here")
-	assert_true(_movement.move(_player, 0, 0, -1), "down the ladder into the tunnel")
+	for level: int in 2:
+		assert_true(_movement.move(_player, 0, 0, -1), "down the ladder into the tunnel, level %d of the slab" % (level + 1))
 	assert_eq(_actors.position_of(_player).y, 0, "in the tunnel, under the slab")
 	var walked: int = 0
 	for i: int in 10:
@@ -124,8 +126,9 @@ func test_cold_storage_stands_with_its_three_routes_in() -> void:
 			walked += 1
 	assert_true(walked >= 9, "the tunnel runs north under the building (%d cells)" % walked)
 	_actors.set_position(_player, _at(site, Vector3i(4, 0, 8)))
-	assert_true(_movement.move(_player, 0, 0, 1), "and up the ladder into the back hall")
-	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 1, 8)), "inside, past the lobby entirely")
+	for level: int in 2:
+		assert_true(_movement.move(_player, 0, 0, 1), "and up the ladder into the back hall, level %d" % (level + 1))
+	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 2, 8)), "inside, past the lobby entirely")
 
 
 func test_a_site_raises_through_its_command_and_survives_the_round_trip() -> void:
@@ -149,7 +152,7 @@ func test_a_site_raises_through_its_command_and_survives_the_round_trip() -> voi
 	assert_eq(other.restore_root(snap), OK, "root restored")
 	var sites: SiteSystem = SimAssembly.sites_of(other)
 	assert_true(sites.is_raised(&"cold_storage"), "still raised")
-	assert_eq(sites.pieces_of(&"cold_storage").size(), 366, "with its pieces")
+	assert_eq(sites.pieces_of(&"cold_storage").size(), 699, "with its pieces")
 	_sim.step()
 	other.step()
 	assert_eq(other.state_hash(), _sim.state_hash(), "hashes agree")
@@ -182,30 +185,32 @@ func test_the_under_route_is_a_break_in_by_somebody_who_owns_nothing() -> void:
 	assert_true(_sites.raise_site(operator, site), "the cold store stands on its own lot")
 	var land: LandSystem = SimAssembly.land_of(_sim)
 	assert_eq(land.owner_of(&"cold_storage_lot"), &"corp.coldchain", "and the lot is not the player's")
-	assert_eq(land.parcel_at(_at(site, Vector3i(4, 1, -2))), &"", "the grate is out in the street")
-	assert_eq(land.parcel_at(_at(site, Vector3i(4, 1, 8))), &"cold_storage_lot", "the back hall is not")
+	assert_eq(land.parcel_at(_at(site, Vector3i(4, 2, -2))), &"", "the grate is out in the street")
+	assert_eq(land.parcel_at(_at(site, Vector3i(4, 2, 8))), &"cold_storage_lot", "the back hall is not")
 	# cutting a grate in a public street is nobody's business
 	var before: int = land.violation_count()
-	var grate: int = _build.face_piece_at(BuildSystem.face_key(_sites.cell_of(site, Vector3i(4, 1, -2)), "ny"))
+	var grate: int = _build.face_piece_at(BuildSystem.face_key(_sites.cell_of(site, Vector3i(4, 2, -2)), "ny"))
 	assert_true(grate > 0, "the grate")
-	_actors.set_position(_player, _at(site, Vector3i(4, 1, -2)))
+	_actors.set_position(_player, _at(site, Vector3i(4, 2, -2)))
 	assert_false(_build.remove(_player, grate).is_empty(), "cut it")
 	assert_eq(land.violation_count(), before, "and no trespass: the street is public")
 	# the tunnel goes under the wall, which is where the trespass starts
-	assert_true(_movement.move(_player, 0, 0, -1), "down into the tunnel")
+	for level: int in 2:
+		assert_true(_movement.move(_player, 0, 0, -1), "down into the tunnel, level %d" % (level + 1))
 	var walked: int = 0
 	for i: int in 10:
 		if _walk(0, 1):
 			walked += 1
 	assert_true(walked >= 9, "north under the building (%d cells)" % walked)
 	_actors.set_position(_player, _at(site, Vector3i(4, 0, 8)))
-	assert_true(_movement.move(_player, 0, 0, 1), "up the ladder")
-	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 1, 8)), "inside the operator's building, owning nothing")
+	for level: int in 2:
+		assert_true(_movement.move(_player, 0, 0, 1), "up the ladder, level %d" % (level + 1))
+	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 2, 8)), "inside the operator's building, owning nothing")
 	assert_eq(land.parcel_at(_actors.position_of(_player)), &"cold_storage_lot", "standing on their land")
 
 
 ## M6 spec claim 4, the thing every other test quietly skipped: you have to be able to
-## walk up to the building. The slab is a metre above the pavement and a level change
+## walk up to the building. The slab is two cells above the pavement and a level change
 ## needs something to climb, so without a step at the edge the site is unreachable on
 ## foot and every test that "entered" it had placed the actor inside by hand.
 func test_the_site_can_be_walked_into_from_the_street() -> void:
@@ -223,13 +228,14 @@ func test_the_site_can_be_walked_into_from_the_street() -> void:
 		if BuildSystem.cell_of(_actors.position_of(_player)) == _sites.cell_of(site, Vector3i(4, 0, -5)):
 			break
 	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(site, Vector3i(4, 0, -5)), "up to the foot of the step (%d cells)" % walked)
-	assert_true(_movement.move(_player, 0, 0, 1), "up the step onto the slab")
-	assert_eq(_actors.position_of(_player).y, M, "a metre up, on the slab")
+	for level: int in 2:
+		assert_true(_movement.move(_player, 0, 0, 1), "up the step onto the slab, level %d" % (level + 1))
+	assert_eq(_actors.position_of(_player).y, 2 * M, "two metres up, on the slab")
 	# and on north across the street to the grate, without touching the lobby
 	var reached: bool = false
 	for i: int in 30:
 		_walk(0, 1)
-		if BuildSystem.cell_of(_actors.position_of(_player)) == _sites.cell_of(site, Vector3i(4, 1, -2)):
+		if BuildSystem.cell_of(_actors.position_of(_player)) == _sites.cell_of(site, Vector3i(4, 2, -2)):
 			reached = true
 			break
 	assert_true(reached, "standing on the grate, having walked the whole way")
@@ -285,7 +291,7 @@ func test_a_site_raised_with_its_contract_stands_where_the_contract_bound_it() -
 	var base: Vector3i = _sites.base_of(&"cold_storage")
 	assert_eq(Vector2i(base.x, base.z), Vector2i(Terrain._floor_div(at.x, M), Terrain._floor_div(at.y, M)), "at the slot")
 	assert_eq(regions.region_at(at.x, at.y).id(), &"wilds", "out in the wilds")
-	assert_eq(_sites.pieces_of(&"cold_storage").size(), 366, "every piece of it")
+	assert_eq(_sites.pieces_of(&"cold_storage").size(), 699, "every piece of it")
 	# the lot moved with it
 	var authored: Vector3i = Vector3i(40, 0, 40)
 	var offset: Vector3i = (base - authored) * M

@@ -1,9 +1,10 @@
 extends GcityTest
 
 ## M7.5 spec claim 3: sight runs from the eyes to the eyes or the centre, and a shot from
-## the eyes to the centre. The shipped profiles keep their eyes at the feet until claim 6;
-## these tests add a two-cell body with eyes at 1 600 mm and a centre at 1 000 mm, and a
-## guard that has it.
+## the eyes to the centre. The shipped profiles have had eyes at 1.6 m since claim 6;
+## these tests add their own two-cell body with eyes at 1 600 mm and a centre at 1 000 mm,
+## a one-cell body with both at the feet, and a guard with each, so they test the rule
+## and not the content.
 
 const SEED: int = 20261330
 const PROPERTY_CASES: int = 10_000
@@ -12,6 +13,8 @@ const M: int = 1000
 const FAR: Vector3i = Vector3i(300 * M, 0, 300 * M)
 const TALL: StringName = &"tall_test"
 const TALL_GUARD: StringName = &"tall_guard_test"
+const FEET: StringName = &"feet_test"
+const FEET_GUARD: StringName = &"feet_guard_test"
 const ARENA: int = 7
 const OBSTACLES: Array[StringName] = [&"wall_panel", &"wall_panel", &"concrete_wall", &"window_frame", &"door_frame", &"floor_panel", &"storage_crate"]
 const SIDES: Array[String] = ["px", "nx", "pz", "nz", "py"]
@@ -26,17 +29,20 @@ var _builder: int = 0
 func _setup() -> void:
 	var db := ContentDb.new()
 	assert_eq(ContentLoader.load_all(db), OK, "content loads")
-	for pair: Array in [[&"arcade", TALL], [&"guard", &"tall_guard_body"]]:
-		var from: StringName = pair[0]
-		var to: StringName = pair[1]
+	for row: Array in [[&"arcade", TALL, 2, 1600, 1000], [&"guard", &"tall_guard_body", 2, 1600, 1000],
+			[&"arcade", FEET, 1, 0, 0], [&"guard", &"feet_guard_body", 1, 0, 0]]:
+		var from: StringName = row[0]
+		var to: StringName = row[1]
 		var body: Dictionary = db.get_entry(ActorSystem.KIND_PROFILE, from).duplicate(true)
-		body["body_cells"] = 2
-		body["eye_mm"] = 1600
-		body["centre_mm"] = 1000
-		assert_eq(db.add(ActorSystem.KIND_PROFILE, to, body), OK, "a tall body %s" % to)
-	var agent: Dictionary = db.get_entry(PerceptionSystem.KIND_AGENT, &"guard_sim").duplicate(true)
-	agent["combat_profile"] = "tall_guard_body"
-	assert_eq(db.add(PerceptionSystem.KIND_AGENT, TALL_GUARD, agent), OK, "a tall guard")
+		body["body_cells"] = row[2]
+		body["eye_mm"] = row[3]
+		body["centre_mm"] = row[4]
+		assert_eq(db.add(ActorSystem.KIND_PROFILE, to, body), OK, "a body %s" % to)
+	for pair: Array in [[TALL_GUARD, "tall_guard_body"], [FEET_GUARD, "feet_guard_body"]]:
+		var guard_id: StringName = pair[0]
+		var agent: Dictionary = db.get_entry(PerceptionSystem.KIND_AGENT, &"guard_sim").duplicate(true)
+		agent["combat_profile"] = pair[1]
+		assert_eq(db.add(PerceptionSystem.KIND_AGENT, guard_id, agent), OK, "a guard %s" % guard_id)
 	_sim = SimAssembly.build(SEED, db)
 	assert_true(_sim != null, "assembly")
 	_actors = SimAssembly.actors_of(_sim)
@@ -74,10 +80,11 @@ func _across_a_wall(rows: int, observer_profile: StringName, contact_profile: St
 func test_eyes_and_centre_come_from_the_profile() -> void:
 	_setup()
 	var tall: int = _actors.spawn(TALL, 0)
-	var short: int = _actors.spawn(&"arcade", 0)
+	var short: int = _actors.spawn(FEET, 0)
 	assert_eq(_perception.eye_of(tall), Vector3i(0, 1600, 0), "eyes at 1.6 m")
 	assert_eq(_perception.centre_of(tall), Vector3i(0, 1000, 0), "the centre at 1 m")
-	assert_eq(_perception.eye_of(short), Vector3i.ZERO, "the shipped profiles look from the feet until claim 6")
+	assert_eq(_perception.eye_of(short), Vector3i.ZERO, "a body with its eyes at its feet looks from there")
+	assert_eq(_perception.eye_of(_builder), Vector3i(0, 1600, 0), "the shipped profiles look from 1.6 m (claim 6)")
 
 
 func test_a_tall_guard_sees_over_a_one_metre_wall_and_not_a_two_metre_one() -> void:
@@ -93,7 +100,7 @@ func test_a_tall_guard_sees_over_a_one_metre_wall_and_not_a_two_metre_one() -> v
 
 func test_a_guard_looking_from_its_feet_is_stopped_by_the_one_metre_wall() -> void:
 	_setup()
-	var pair: Array[int] = _across_a_wall(1, &"guard_sim", &"arcade")
+	var pair: Array[int] = _across_a_wall(1, FEET_GUARD, FEET)
 	assert_false(_perception.can_see(pair[0], pair[1]), "eyes at the feet: a one-metre wall hides everything, as before")
 
 
@@ -163,8 +170,8 @@ func test_more_wall_never_shows_and_less_wall_never_hides() -> void:
 func test_reach_is_measured_from_the_body_centre() -> void:
 	_setup()
 	var tall: int = _actors.spawn(TALL, 0)
-	var short: int = _actors.spawn(&"arcade", 0)
-	assert_eq(_actors.centre_of(_builder), _actors.position_of(_builder), "a shipped body's centre is its feet, until claim 6")
+	var short: int = _actors.spawn(FEET, 0)
+	assert_eq(_actors.centre_of(_builder), _actors.position_of(_builder) + Vector3i(0, 1000, 0), "a shipped body's centre is a metre up (claim 6)")
 	var regions: Regions = SimAssembly.regions_of(_sim)
 	for pair: Array in [[short, 0, false], [tall, 4, true]]:
 		var actor: int = pair[0]

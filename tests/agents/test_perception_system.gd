@@ -52,6 +52,25 @@ func _at(cx: int, cz: int) -> Vector3i:
 	return FAR + Vector3i(cx * M + 500, 0, cz * M + 500)
 
 
+## A column of faces a storey high on the face of the ground cell at `at` (M7.5 claim 6:
+## a person is two cells tall and sees from 1.6 m, so a wall that hides one is three faces
+## and an opening is a column), bottom row first. Returns the pieces placed.
+func _column(pieces: Array[StringName], at: Vector3i, facing: String) -> Array[int]:
+	var ids: Array[int] = []
+	for row: int in pieces.size():
+		var id: int = _build.place(_player, pieces[row], at + Vector3i(0, row * M, 0), facing)
+		assert_true(id > 0, "%s at row %d" % [pieces[row], row])
+		ids.append(id)
+	return ids
+
+
+## Takes a column down, every face of it.
+func _clear(ids: Array[int]) -> void:
+	for id: int in ids:
+		if _build.has_piece(id):
+			_build.breach(id)
+
+
 func _guard(profile: StringName = &"guard_sim", cx: int = 0, cz: int = 0, facing: int = 0, squad: int = 1) -> int:
 	var id: int = _perception.spawn(profile, _cell(cx, cz), facing, squad, "")
 	assert_true(id > 0, "guard spawned")
@@ -247,22 +266,23 @@ func test_walls_and_solids_block_sight_and_openings_pass_it() -> void:
 	_actors.set_position(_player, _at(3, 4))
 	assert_true(_perception.can_see(guard, _player), "open ground")
 	_build.place(_player, &"foundation_block", _at(3, 5), "")
-	var wall: int = _build.place(_player, &"wall_panel", _at(3, 4), "nz")
-	assert_true(wall > 0, "a ground-level wall between z = 3 and z = 4")
+	var wall: Array[int] = _column([&"wall_panel", &"wall_panel", &"wall_panel"], _at(3, 4), "nz")
+	assert_eq(wall.size(), 3, "a storey of wall between z = 3 and z = 4")
 	assert_false(_perception.can_see(guard, _player), "the wall blocks")
 	assert_false(_perception.line_of_sight(_at(3, 4), _at(3, 3)), "and blocks the other way")
 	_sim.step()
 	assert_eq(_perception.awareness_of(guard, _player), 0, "nothing gained through a wall")
-	_build.breach(wall)
-	var door: int = _build.place(_player, &"door_frame", _at(3, 4), "nz")
-	assert_true(door > 0, "a door in its place")
+	_clear(wall)
+	var door: Array[int] = _column([&"door_frame", &"door_frame", &"wall_panel"], _at(3, 4), "nz")
+	assert_eq(door.size(), 3, "a 2 m door in its place")
 	assert_true(_perception.can_see(guard, _player), "a door passes sight")
-	_build.breach(door)
-	var window: int = _build.place(_player, &"window_frame", _at(3, 4), "nz")
-	assert_true(window > 0, "a window in its place")
-	assert_true(_perception.can_see(guard, _player), "a window passes sight")
+	_clear(door)
+	var window: Array[int] = _column([&"wall_panel", &"window_frame", &"wall_panel"], _at(3, 4), "nz")
+	assert_eq(window.size(), 3, "a window with a sill in its place")
+	assert_true(_perception.can_see(guard, _player), "a window passes sight, at eye height over its sill")
+	assert_true(_build.place(_player, &"concrete_block", _at(3, 5) + Vector3i(0, M, 0), "") > 0, "a block on the foundation: a person tall")
 	_actors.set_position(_player, _at(3, 6))
-	assert_false(_perception.can_see(guard, _player), "the foundation in between is opaque")
+	assert_false(_perception.can_see(guard, _player), "the foundation and the block in between are opaque")
 	assert_true(_perception.line_of_sight(_at(3, 3), _at(3, 3) + Vector3i(0, 0, 400)), "inside one cell")
 
 

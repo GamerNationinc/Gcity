@@ -8,11 +8,13 @@ extends GcityTest
 ## exposure to the shot (0.625 s at 40 Hz), on the arcade guard 11 ticks.
 
 const PLAYER: int = 1
-## The guards in spawn order: the lobby post, the roamer, the two wing patrollers.
-const POST: int = 95
-const ROAMER: int = 96
-const PATROL_A: int = 97
-const PATROL_B: int = 98
+
+## The guards in spawn order: the lobby post, the roamer, the two wing patrollers. Their
+## ids follow the building's pieces, so they are read from the replay, not written here.
+var _post: int = 0
+var _roamer: int = 0
+var _patrol_a: int = 0
+var _patrol_b: int = 0
 
 var _sim: SimRoot
 var _perception: PerceptionSystem
@@ -65,7 +67,13 @@ func _replay(name: String) -> void:
 			_first_guard_shot = tick + 1  # submitted for the next tick
 	assert_false(fixture.expected_hash.is_empty(), "%s has its hash recorded" % name)
 	assert_eq(_sim.state_hash(), fixture.expected_hash, "%s matches the recorded hash" % name)
-	assert_eq(_perception.agent_ids(), [POST, ROAMER, PATROL_A, PATROL_B] as Array[int], "the four guards")
+	var guards: Array[int] = _perception.agent_ids()
+	assert_eq(guards.size(), 4, "the four guards")
+	if guards.size() == 4:
+		_post = guards[0]
+		_roamer = guards[1]
+		_patrol_a = guards[2]
+		_patrol_b = guards[3]
 
 
 func perception_sees(guard: int) -> bool:
@@ -78,11 +86,11 @@ func _alive(actor: int) -> bool:
 
 func test_detect_the_first_shot_lands_time_to_first_shot_ticks_after_first_exposure() -> void:
 	_replay("m4-detect")
-	assert_eq(_first_seen[ROAMER], 129, "the roamer, crossing the lobby, sees the player on the street through the door first")
-	assert_eq(_first_alert[ROAMER], 153, "alerted 24 ticks later (a walking contact at 40 Hz)")
+	assert_eq(_first_seen[_roamer], 129, "the roamer, crossing the lobby, sees the player on the street through the door first")
+	assert_eq(_first_alert[_roamer], 153, "alerted 24 ticks later (a walking contact at 40 Hz)")
 	assert_eq(_first_guard_shot, 154, "and the first shot lands the tick after: time_to_first_shot = 25 ticks")
-	assert_eq(_combat.last_shot()["shooter"] if _combat.shots() == 1 else ROAMER, ROAMER, "the roamer's")
-	var post_seen: int = _first_seen[POST]
+	assert_eq(_combat.last_shot()["shooter"] if _combat.shots() == 1 else _roamer, _roamer, "the roamer's")
+	var post_seen: int = _first_seen[_post]
 	assert_eq(post_seen, 175, "the post sees the player in front of the door later")
 	assert_true(_first_guard_shot < post_seen, "the roamer fired before the post ever saw the player")
 	assert_true(_combat.shots() >= 8 and _combat.hits() >= 3, "the guards keep firing (%d shots, %d hits)" % [_combat.shots(), _combat.hits()])
@@ -92,25 +100,25 @@ func test_detect_the_first_shot_lands_time_to_first_shot_ticks_after_first_expos
 
 func test_arcade_the_same_walk_is_detected_and_shot_at_sooner() -> void:
 	_replay("m4-arcade")
-	assert_eq(_first_seen[ROAMER], 129, "the same first exposure as under guard_sim")
-	assert_eq(_first_alert[ROAMER], 139, "alerted after 10 ticks under the arcade tuning")
+	assert_eq(_first_seen[_roamer], 129, "the same first exposure as under guard_sim")
+	assert_eq(_first_alert[_roamer], 139, "alerted after 10 ticks under the arcade tuning")
 	assert_eq(_first_guard_shot, 140, "time_to_first_shot = 11 ticks: the same AI, different numbers (ADR-008 A)")
-	assert_eq(_first_alert[POST], 143, "the post hears it on the arcade radio 4 ticks later")
+	assert_eq(_first_alert[_post], 143, "the post hears it on the arcade radio 4 ticks later")
 	assert_false(_alive(PLAYER), "and the player is down")
 
 
 func test_break_contact_a_glimpse_is_investigated_then_forgotten_with_no_shot() -> void:
 	_replay("m4-break-contact")
-	assert_eq(_first_seen[POST], 154, "the post glimpses the player stepping into the door's line")
-	assert_false(_first_alert.has(POST), "never alerted")
-	var peak: int = _max_awareness[POST]
+	assert_eq(_first_seen[_post], 154, "the post glimpses the player stepping into the door's line")
+	assert_false(_first_alert.has(_post), "never alerted")
+	var peak: int = _max_awareness[_post]
 	assert_true(peak > StanceSystem.INVESTIGATE_MIN and peak < PerceptionSystem.AWARENESS_MAX / 2, "awareness peaked well short of the threshold (%d)" % peak)
-	assert_eq(_stances_seen[POST], [&"hold", &"investigate", &"hold"] as Array[StringName], "the post walked out to look, then went back to holding")
-	assert_false(_perception.has_last_known(POST, PLAYER), "and has forgotten the contact")
-	var roamer_peak: int = _max_awareness[ROAMER]
+	assert_eq(_stances_seen[_post], [&"hold", &"investigate", &"hold"] as Array[StringName], "the post walked out to look, then went back to holding")
+	assert_false(_perception.has_last_known(_post, PLAYER), "and has forgotten the contact")
+	var roamer_peak: int = _max_awareness[_roamer]
 	assert_true(roamer_peak < 250_000, "the roamer caught a flicker through the west window (%d) and let it go" % roamer_peak)
-	assert_eq(_stances_seen[ROAMER], [&"hold"] as Array[StringName], "without leaving its round")
-	for g: int in [PATROL_A, PATROL_B]:
+	assert_eq(_stances_seen[_roamer], [&"hold"] as Array[StringName], "without leaving its round")
+	for g: int in [_patrol_a, _patrol_b]:
 		assert_eq(_max_awareness.get(g, 0), 0, "guard %d never noticed anything" % g)
 	assert_eq(_stances.fire_count(), 0, "no guard fired")
 	assert_true(_alive(PLAYER), "the player lives")
@@ -122,7 +130,7 @@ func test_noise_a_shot_through_a_wall_is_heard_investigated_and_nobody_is_alerte
 	assert_eq(_combat.shots(), 1, "one shot: the player's")
 	assert_eq(_combat.last_shot()["reason"], CombatSystem.REASON_NO_LOS, "into the wall, for lack of sight")
 	assert_eq(_stances.fire_count(), 0, "no guard fired")
-	for g: int in [POST, ROAMER, PATROL_A, PATROL_B]:
+	for g: int in [_post, _roamer, _patrol_a, _patrol_b]:
 		var seen: Array[StringName] = _stances_seen[g]
 		assert_true(seen.has(&"investigate"), "guard %d went to look at the noise" % g)
 		assert_false(_first_alert.has(g), "guard %d was never alerted" % g)
@@ -134,18 +142,21 @@ func test_noise_a_shot_through_a_wall_is_heard_investigated_and_nobody_is_alerte
 
 func test_radio_the_wing_hears_of_the_contact_at_the_latency_and_never_without_a_radio() -> void:
 	_replay("m4-radio")
-	assert_eq(_first_alert[ROAMER], 153, "the roamer is alerted")
-	assert_eq(_first_alert[POST], 173, "the post hears it exactly radio_latency_ticks (20) later")
-	assert_eq(_first_alert[PATROL_A], 173, "so does patroller A")
-	assert_eq(_first_alert[PATROL_B], 173, "and patroller B")
-	var a_seen: int = _first_seen.get(PATROL_A, -1)
+	assert_eq(_first_alert[_roamer], 153, "the roamer is alerted")
+	assert_eq(_first_alert[_post], 173, "the post hears it exactly radio_latency_ticks (20) later")
+	assert_eq(_first_alert[_patrol_a], 173, "so does patroller A")
+	assert_eq(_first_alert[_patrol_b], 173, "and patroller B")
+	var a_seen: int = _first_seen.get(_patrol_a, -1)
 	assert_true(a_seen < 0 or a_seen > 173, "who could not see the street from the wing")
 	assert_true(_squads.delivered_count() >= 1, "reports delivered (%d)" % _squads.delivered_count())
 	_replay("m4-radio-off")
-	assert_eq(_first_alert[ROAMER], 153, "the same alert without a radio")
-	assert_eq(_first_alert[POST], 202, "the post is alerted only by its own eyes, 29 ticks later")
-	assert_eq(_max_awareness[PATROL_A], 0, "the wing never learns")
-	assert_eq(_max_awareness[PATROL_B], 0, "either of them")
+	assert_eq(_first_alert[_roamer], 153, "the same alert without a radio")
+	assert_eq(_first_alert[_post], 202, "the post is alerted only by its own eyes, 29 ticks later")
+	assert_eq(_max_awareness[_patrol_a], 0, "the wing never learns")
+	# at human scale (M7.5 claim 6) patroller B's eyes are over its room's window sill
+	# and it glimpses the street for itself; it is told nothing and is never alerted
+	assert_true(_first_seen.has(_patrol_b), "patroller B only glimpses the street through its window")
+	assert_false(_first_alert.has(_patrol_b), "and is never alerted")
 	assert_eq(_squads.delivered_count(), 0, "no report")
-	for g: int in [PATROL_A, PATROL_B]:
+	for g: int in [_patrol_a, _patrol_b]:
 		assert_eq(_stances_seen[g], [&"hold"] as Array[StringName], "guard %d stayed on patrol" % g)

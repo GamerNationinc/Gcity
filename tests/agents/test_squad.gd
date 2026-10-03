@@ -73,7 +73,9 @@ func _screen() -> void:
 	for x: int in [-1, 6]:
 		_build.place(_player, &"foundation_block", _at(x, 5), "")
 	for x: int in [0, 1, 2, 5, 4, 3]:  # from both foundations inward, so every wall is within span when placed
-		assert_true(_build.place(_player, &"wall_panel", _at(x, 5), "nz") > 0, "screen wall at x = %d" % x)
+		# a storey high: a person sees from 1.6 m (M7.5 claim 6)
+		for row: int in 3:
+			assert_true(_build.place(_player, &"wall_panel", _at(x, 5) + Vector3i(0, row * M, 0), "nz") > 0, "screen wall at x = %d, row %d" % [x, row])
 
 
 func test_a_report_reaches_the_squad_after_the_latency_and_only_by_radio() -> void:

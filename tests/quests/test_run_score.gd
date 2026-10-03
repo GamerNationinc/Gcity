@@ -149,9 +149,9 @@ func test_traces_are_what_is_left_behind_and_a_wipe_takes_one_away() -> void:
 	assert_true(_do(&"run.begin", {"actor": _player}), "begin")
 	assert_eq(_score.traces_left(_player), 0, "nothing left behind yet")
 	# a piece the player removes is a trace
-	var grate: int = _build.face_piece_at(BuildSystem.face_key(sites.cell_of(&"cold_storage", Vector3i(4, 1, -2)), "ny"))
+	var grate: int = _build.face_piece_at(BuildSystem.face_key(sites.cell_of(&"cold_storage", Vector3i(4, 2, -2)), "ny"))
 	assert_true(grate > 0, "the street grate")
-	var grate_cell: Vector3i = sites.cell_of(&"cold_storage", Vector3i(4, 1, -2))
+	var grate_cell: Vector3i = sites.cell_of(&"cold_storage", Vector3i(4, 2, -2))
 	var slot: String = _build.key_of_piece(grate)
 	assert_eq(slot, BuildSystem.face_key(grate_cell, "ny"), "the grate's slot")
 	assert_false(_build.remove(_player, grate).is_empty(), "cut it")

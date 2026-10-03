@@ -10,8 +10,13 @@ const OUT_DIR: String = "res://tests/replay"
 const M: int = 1000
 const SEED: int = 20261230
 const SITE: StringName = &"cold_storage"
-## The street step onto the slab, on public ground south of the lot.
-const STEP: Vector3i = Vector3i(4, 1, -5)
+## Site-relative heights at human scale (M7.5 claim 6): the street and the ground floor
+## stand on the two-cell slab, the upper floor a storey above; the tunnel floor is the
+## ground under the slab.
+const GROUND: int = 2
+const UPPER: int = 5
+## The street step onto the slab, its top landing, south of the lot.
+const STEP: Vector3i = Vector3i(4, GROUND, -5)
 ## Where the player turns up: `actor.spawn` places on the x axis at z 0, in the city just
 ## east of the gate. The site is out in the wilds where the contract bound it (M7 claim
 ## 10), so every run begins with the walk to the gate and down the road.
@@ -42,11 +47,15 @@ var _debug: bool = false
 
 
 func _initialize() -> void:
-	_debug = OS.get_cmdline_user_args().has("--debug")
-	_stealth()
-	_loud()
-	_death()
-	_side()
+	var args: PackedStringArray = OS.get_cmdline_user_args()
+	_debug = args.has("--debug")
+	# `--only <name>` writes one fixture, for authoring a route without waiting on all four
+	var only: String = args[args.find("--only") + 1] if args.has("--only") and args.find("--only") + 1 < args.size() else ""
+	for run: Array in [["stealth", _stealth], ["loud", _loud], ["death", _death], ["side", _side]]:
+		var name: String = run[0]
+		var play: Callable = run[1]
+		if only.is_empty() or only == name:
+			play.call()
 	quit(0)
 
 
@@ -59,23 +68,27 @@ func _stealth() -> void:
 	_begin(false)
 	_watch_alerts()
 	_command(&"run.begin", {"actor": _player})
-	_walk_to(Vector3i(4, 1, -2))
-	var grate: int = _piece_at(Vector3i(4, 1, -2), "ny")
+	_walk_to(Vector3i(4, GROUND, -2))
+	var grate: int = _piece_at(Vector3i(4, GROUND, -2), "ny")
 	_command(&"build.remove", {"actor": _player, "piece_id": grate})
-	_climb(-1)
-	for i: int in 10:
+	_climb_levels(-GROUND)
+	# the tunnel's head is under the back hall's open hatch, and a hatch a person climbs
+	# through is one a guard looks down through: wait two cells short of it, under the
+	# solid floor, until the roamer has gone down to the lobby, then go to the ladder,
+	# climb, and cross to the server room before it comes back
+	for i: int in 8:
 		_walk_to(Vector3i(4, 0, -1 + i))
-	# the tunnel's head is under the back hall: wait there until the roamer has gone
-	# down to the lobby, then cross to the server room before it comes back
 	if not _wait_until_hall_is_clear(4, 900):
 		push_error("the hall never cleared on the way in")
-	_climb(1)
-	_walk_to(Vector3i(3, 1, 8))
-	_walk_to(Vector3i(2, 1, 8))
-	_walk_to(Vector3i(2, 1, 9))
+	_walk_to(Vector3i(4, 0, 7))
+	_walk_to(Vector3i(4, 0, 8))
+	_climb_levels(GROUND)
+	_walk_to(Vector3i(3, GROUND, 8))
+	_walk_to(Vector3i(2, GROUND, 8))
+	_walk_to(Vector3i(2, GROUND, 9))
 	# hack from the corner of the server room rather than the middle: the terminal is
 	# within reach either way, and the doorway's sight line runs up the x = 2 column
-	_walk_to(Vector3i(1, 1, 10))
+	_walk_to(Vector3i(1, GROUND, 10))
 	var terminal: int = _sites.terminals_of(SITE)[0]
 	if _debug:
 		print("    at the terminal: player cell %s, hacking from %s" % [
@@ -91,17 +104,17 @@ func _stealth() -> void:
 	# the hall can see into, so standing in it to wait is how the last run was caught.
 	if not _wait_until_hall_is_clear(4, 900):
 		push_error("the hall never cleared on the way out")
-	_walk_to(Vector3i(2, 1, 9))
-	_walk_to(Vector3i(2, 1, 8))
-	_walk_to(Vector3i(3, 1, 8))
-	_walk_to(Vector3i(4, 1, 8))
-	_climb(-1)
+	_walk_to(Vector3i(2, GROUND, 9))
+	_walk_to(Vector3i(2, GROUND, 8))
+	_walk_to(Vector3i(3, GROUND, 8))
+	_walk_to(Vector3i(4, GROUND, 8))
+	_climb_levels(-GROUND)
 	for i: int in 10:
 		_walk_to(Vector3i(4, 0, 7 - i))
-	_climb(1)
-	var centre: Vector3i = BuildSystem.cell_centre(_sites.cell_of(SITE, Vector3i(4, 1, -2)))
+	_climb_levels(GROUND)
+	var centre: Vector3i = BuildSystem.cell_centre(_sites.cell_of(SITE, Vector3i(4, GROUND, -2)))
 	_command(&"build.place", {"actor": _player, "piece": "floor_panel", "x": centre.x, "y": centre.y, "z": centre.z, "facing": "ny"})
-	_walk_to(Vector3i(4, 1, -4))
+	_walk_to(Vector3i(4, GROUND, -4))
 	_command(&"run.end", {"actor": _player})
 	_walk_to_the_fixer()
 	print("    turn in from %s, parcel %s, quest %s, progress %s" % [_actors.position_of(_player), SimAssembly.land_of(_sim).parcel_at(_actors.position_of(_player)), _quests.status_of(_player, &"cold_storage"), _quests.progress_of(_player, &"cold_storage")])
@@ -129,51 +142,59 @@ func _loud() -> void:
 			var shooter: int = last["shooter"]
 			print("    the player died at %s, shot by %d at %s" % [BuildSystem.cell_of(actors.position_of(player)), shooter, BuildSystem.cell_of(actors.position_of(shooter))]))
 	_command(&"run.begin", {"actor": _player})
-	_walk_to(Vector3i(2, 1, -1))
+	_walk_to(Vector3i(2, GROUND, -1))
 	# no token: the door will not open, so the wall beside it does
-	var panel: int = _piece_at(Vector3i(1, 1, 0), "nz")
-	_command(&"build.remove", {"actor": _player, "piece_id": panel})
+	# a body's height of it, two panels: one leaves a gap nobody fits through
+	for row: int in 2:
+		var panel: int = _piece_at(Vector3i(1, GROUND + row, 0), "nz")
+		_command(&"build.remove", {"actor": _player, "piece_id": panel})
 	# stay out in the street and fight through the hole: four armed guards in an open
 	# lobby is a losing hand, and a breach is a door only one of them fits through
 	# fight from the open street, three cells back: they have to come out through the
 	# hole one at a time and cross ground with nothing on it. Standing in the doorway
 	# means meeting all four at once, which is how the player died the last time this
 	# was authored.
-	_walk_to(Vector3i(1, 1, -3))
+	_walk_to(Vector3i(1, GROUND, -3))
 	_fight(1800)
-	_walk_to(Vector3i(1, 1, -1))
+	_debug_fight_status("loud fight 1")
+	_walk_to(Vector3i(1, GROUND, -1))
 	_fight(1800)
-	_walk_to(Vector3i(1, 1, 1))
+	_debug_fight_status("loud fight 2")
+	_walk_to(Vector3i(1, GROUND, 1))
 	_fight(1800)
-	_walk_to(Vector3i(2, 1, 2))
+	_debug_fight_status("loud fight 3")
+	_walk_to(Vector3i(2, GROUND, 2))
 	_fight(1200)
-	_walk_to(Vector3i(2, 1, 7))
+	_debug_fight_status("loud fight 4")
+	_walk_to(Vector3i(2, GROUND, 7))
 	_fight(1200)
-	_walk_to(Vector3i(2, 1, 8))
-	_walk_to(Vector3i(2, 1, 9))
-	_walk_to(Vector3i(2, 1, 10))
+	_debug_fight_status("loud fight 5")
+	_walk_to(Vector3i(2, GROUND, 8))
+	_walk_to(Vector3i(2, GROUND, 9))
+	_walk_to(Vector3i(2, GROUND, 10))
 	var terminal: int = _sites.terminals_of(SITE)[0]
 	_command(&"terminal.hack_start", {"actor": _player, "terminal": terminal})
 	_wait(_terminals.hack_ticks_of(terminal) + 2)
-	_walk_to(Vector3i(2, 1, 9))
-	_walk_to(Vector3i(2, 1, 8))
-	_walk_to(Vector3i(2, 1, 1))
-	_walk_to(Vector3i(1, 1, 1))
+	_walk_to(Vector3i(2, GROUND, 9))
+	_walk_to(Vector3i(2, GROUND, 8))
+	_walk_to(Vector3i(2, GROUND, 1))
+	_walk_to(Vector3i(1, GROUND, 1))
 	# out through the hole, because the door still wants a token nobody has
-	_walk_to(Vector3i(1, 1, 0))
-	_walk_to(Vector3i(1, 1, -3))
+	_walk_to(Vector3i(1, GROUND, 0))
+	_walk_to(Vector3i(1, GROUND, -3))
 	# M7 claim 10: the way home is round the building to the road now, not straight down
 	# the street, so whoever is still after the player is dealt with first, from the spot
 	# three cells back from the hole where they come through it one at a time
 	for k: int in 8:
 		_fight(1800)
+		_debug_fight_status("loud fight 6")
 		var after: bool = _anyone_after_the_player()
 		var clear: bool = not after and _wait_until_clear(45, 2000)
 		if _debug:
 			print("    loud exit round %d at tick %d: alive %s, anyone after %s, clear %s" % [k, _sim.get_tick(), _actors.is_alive(_player), after, clear])
 		if clear:
 			break
-	_walk_to(Vector3i(1, 1, -4))
+	_walk_to(Vector3i(1, GROUND, -4))
 	_command(&"run.end", {"actor": _player})
 	_walk_to_the_fixer()
 	print("    turn in from %s, parcel %s, quest %s, progress %s" % [_actors.position_of(_player), SimAssembly.land_of(_sim).parcel_at(_actors.position_of(_player)), _quests.status_of(_player, &"cold_storage"), _quests.progress_of(_player, &"cold_storage")])
@@ -187,16 +208,16 @@ func _loud() -> void:
 func _death() -> void:
 	_begin(true)
 	_command(&"run.begin", {"actor": _player})
-	_walk_to(Vector3i(4, 1, -2))
-	var grate: int = _piece_at(Vector3i(4, 1, -2), "ny")
+	_walk_to(Vector3i(4, GROUND, -2))
+	var grate: int = _piece_at(Vector3i(4, GROUND, -2), "ny")
 	_command(&"build.remove", {"actor": _player, "piece_id": grate})
-	_climb(-1)
+	_climb_levels(-GROUND)
 	for i: int in 10:
 		_walk_to(Vector3i(4, 0, -1 + i))
-	_climb(1)
-	_walk_to(Vector3i(3, 1, 8))
-	_walk_to(Vector3i(2, 1, 8))
-	_walk_to(Vector3i(2, 1, 9))
+	_climb_levels(GROUND)
+	_walk_to(Vector3i(3, GROUND, 8))
+	_walk_to(Vector3i(2, GROUND, 8))
+	_walk_to(Vector3i(2, GROUND, 9))
 	var terminal: int = _sites.terminals_of(SITE)[0]
 	_command(&"terminal.hack_start", {"actor": _player, "terminal": terminal})
 	_wait(40)
@@ -211,18 +232,18 @@ func _death() -> void:
 	# down. The fire stair and the maintenance window are still open to anyone.
 	_travel_out()
 	_walk_to_world(_street())
-	_climb(1)
-	_walk_to(Vector3i(4, 1, -4))
-	_walk_to(Vector3i(5, 1, -4))
-	_walk_to(Vector3i(5, 1, 7))
-	_climb(1)
-	_walk_to(Vector3i(4, 2, 7))
-	_walk_to(Vector3i(2, 2, 7))
-	_walk_to(Vector3i(2, 2, 4))
-	_climb(-1)
-	_walk_to(Vector3i(2, 1, 7))
-	_walk_to(Vector3i(2, 1, 8))
-	_walk_to(Vector3i(2, 1, 9))
+	_climb_levels(GROUND)
+	_walk_to(Vector3i(4, GROUND, -4))
+	_walk_to(Vector3i(5, GROUND, -4))
+	_walk_to(Vector3i(5, GROUND, 7))
+	_climb_levels(UPPER - GROUND)
+	_walk_to(Vector3i(4, UPPER, 7))
+	_walk_to(Vector3i(2, UPPER, 7))
+	_walk_to(Vector3i(2, UPPER, 4))
+	_climb_levels(-(UPPER - GROUND))
+	_walk_to(Vector3i(2, GROUND, 7))
+	_walk_to(Vector3i(2, GROUND, 8))
+	_walk_to(Vector3i(2, GROUND, 9))
 	_command(&"corpse.loot", {"actor": _player, "corpse": corpse})
 	print("    death: corpse %d held %d items, %d left on it, %d back in the pocket, alive %s" % [
 		corpse, on_the_body, _corpses.items_on(corpse).size(),
@@ -237,8 +258,8 @@ func _side() -> void:
 	_begin(false)
 	_watch_alerts()
 	_command(&"run.begin", {"actor": _player})
-	_walk_to(Vector3i(5, 1, 4))
-	_walk_to(Vector3i(5, 1, 7))
+	_walk_to(Vector3i(5, GROUND, 4))
+	_walk_to(Vector3i(5, GROUND, 7))
 	# M7 claim 10: the trip out means arriving whenever the road gets you there, not at
 	# the moment the upper patrol happened to be away. Two guards walk that floor in
 	# opposite directions and the way across takes a hundred ticks, so the moment is
@@ -286,6 +307,13 @@ func _begin(armed: bool) -> void:
 	# and the operator raises its building there
 	_command(&"quest.accept", {"actor": _player, "quest": "cold_storage"})
 	_command(&"site.raise", {"actor": _operator, "site": String(SITE), "quest": "cold_storage"})
+	if _debug:
+		var build: BuildSystem = SimAssembly.build_of(_sim)
+		var front: PackedStringArray = PackedStringArray()
+		for row: int in range(GROUND, GROUND + 3):
+			var key: String = BuildSystem.face_key(_sites.cell_of(SITE, Vector3i(3, row, 0)), "nz")
+			front.append("%d:%s" % [row, build.template_of(build.face_piece_at(key))])
+		print("    raised %d pieces at %s; the front wall at x 3: %s" % [_sites.pieces_of(SITE).size(), _sites.cell_of(SITE, Vector3i.ZERO), ", ".join(front)])
 	var inv: String = String(ItemSystem.inventory_of(_player))
 	_command(&"item.spawn", {"kind": "device_frame", "template": "handset", "container": inv, "seed": 1, "count": 1})
 	_command(&"item.spawn", {"kind": "device_module", "template": "daemon_coprocessor", "container": inv, "seed": 2, "count": 1})
@@ -309,8 +337,8 @@ func _begin(armed: bool) -> void:
 	# the first move after the climb has to be north onto the slab itself: step off it
 	# sideways and there is nothing under you.
 	_walk_to_world(_street())
-	_climb(1)
-	_walk_to(Vector3i(4, 1, -4))
+	_climb_levels(GROUND)
+	_walk_to(Vector3i(4, GROUND, -4))
 
 
 # ---------------------------------------------------------------- driving
@@ -333,11 +361,13 @@ func _command(kind: StringName, payload: Dictionary) -> void:
 	var err: Error = _sim.submit(SimCommand.new(_tick, kind, payload))
 	assert(err == OK, "submit %s for tick %d" % [kind, _tick])
 	_sim.step()
+	_debug_first_sight()
 
 
 func _wait(ticks: int) -> void:
 	for i: int in ticks:
 		_sim.step()
+	_debug_first_sight()
 
 
 ## Walks to the middle of a cell, one axis at a time, at the actor's own pace. Gives up
@@ -381,7 +411,7 @@ func _walk_to_world(target: Vector3i, budget: int = 600) -> void:
 ## how a stealth run is authored: the back hall is crossed while the roamer is down in
 ## the lobby, not hopefully. Returns false if patience runs out.
 func _wait_until_hall_is_clear(rel_z: int, patience: int) -> bool:
-	var floor_y: int = _sites.cell_of(SITE, Vector3i(0, 1, 0)).y
+	var floor_y: int = _sites.cell_of(SITE, Vector3i(0, GROUND, 0)).y
 	var line: int = _sites.cell_of(SITE, Vector3i(0, 0, rel_z)).z
 	for i: int in patience:
 		var clear: bool = true
@@ -394,8 +424,57 @@ func _wait_until_hall_is_clear(rel_z: int, patience: int) -> bool:
 				break
 		if clear:
 			return true
+		if _debug and i % 150 == 0:
+			_print_guards("waiting for the hall to clear (tick %d)" % _sim.get_tick())
 		_wait(1)
 	return false
+
+
+var _sighted: bool = false
+
+
+## For `--debug`: the first tick any guard sees the player, who, from where, and where
+## the player stands, all site-relative. An alert can arrive by radio; this is the eye.
+func _debug_first_sight() -> void:
+	if not _debug or _sighted:
+		return
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	var origin: Vector3i = _sites.cell_of(SITE, Vector3i.ZERO)
+	for id: int in _actors.actor_ids():
+		if id == _player or id == _operator or not _actors.is_alive(id):
+			continue
+		if perception.sees(id, _player):
+			_sighted = true
+			print("    first sight: tick %d, guard %d at rel %s sees the player at rel %s" % [_sim.get_tick(), id,
+				BuildSystem.cell_of(_actors.position_of(id)) - origin, BuildSystem.cell_of(_actors.position_of(_player)) - origin])
+			return
+
+
+## For `--debug`: after a fight, who is still standing and how the player is.
+func _debug_fight_status(label: String) -> void:
+	if not _debug:
+		return
+	var standing: int = 0
+	for id: int in _actors.actor_ids():
+		if id != _player and id != _operator and _actors.is_alive(id):
+			standing += 1
+	var origin: Vector3i = _sites.cell_of(SITE, Vector3i.ZERO)
+	print("    %s at tick %d: %d guards standing, player at rel %s, health %s, shots %d hits %d" % [label, _sim.get_tick(), standing,
+		BuildSystem.cell_of(_actors.position_of(_player)) - origin, _actors.health_of(_player),
+		SimAssembly.combat_of(_sim).shots(), SimAssembly.combat_of(_sim).hits()])
+	_print_guards(label)
+
+
+## Where every living guard is, site-relative, and what it is doing: for `--debug`.
+func _print_guards(why: String) -> void:
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	var parts: PackedStringArray = PackedStringArray()
+	for id: int in _actors.actor_ids():
+		if id == _player or id == _operator or not _actors.is_alive(id):
+			continue
+		var rel: Vector3i = BuildSystem.cell_of(_actors.position_of(id)) - _sites.cell_of(SITE, Vector3i.ZERO)
+		parts.append("%d at %s aware %d%s%s" % [id, rel, perception.awareness_of(id, _player), " sees" if perception.sees(id, _player) else "", " ALERTED" if perception.is_alerted(id, _player) else ""])
+	print("    %s: %s" % [why, ", ".join(parts)])
 
 
 ## True while any living guard has the player as an alerted contact.
@@ -410,12 +489,12 @@ func _anyone_after_the_player() -> bool:
 ## The side route from the foot of the fire stair: up, in at the maintenance window,
 ## across the upper floor and down the inside flight.
 func _side_inside() -> void:
-	_climb(1)
-	_walk_to(Vector3i(4, 2, 7))
-	_walk_to(Vector3i(2, 2, 7))
-	_walk_to(Vector3i(2, 2, 4))
-	_climb(-1)
-	_walk_to(Vector3i(2, 1, 7))
+	_climb_levels(UPPER - GROUND)
+	_walk_to(Vector3i(4, UPPER, 7))
+	_walk_to(Vector3i(2, UPPER, 7))
+	_walk_to(Vector3i(2, UPPER, 4))
+	_climb_levels(-(UPPER - GROUND))
+	_walk_to(Vector3i(2, GROUND, 7))
 
 
 ## The shortest wait, in steps of `step` up to `most`, after which `route` is played
@@ -491,6 +570,12 @@ func _wait_until_clear(metres: int, patience: int) -> bool:
 ## A level change, which is refused rather than fudged if there is nothing to climb.
 ## A fixture that silently failed to go upstairs would still replay; it just would not
 ## be the run its name claims.
+## Climbs `levels` levels, one at a time: a storey or the slab is several (M7.5 claim 6).
+func _climb_levels(levels: int) -> void:
+	for i: int in absi(levels):
+		_climb(signi(levels))
+
+
 func _climb(dy: int) -> void:
 	var before: Vector3i = _actors.position_of(_player)
 	_command(&"actor.move", {"actor": _player, "dx": 0, "dz": 0, "dy": dy})
@@ -514,8 +599,10 @@ func _fight(budget: int) -> void:
 			if id == _player or id == _operator or not _actors.is_alive(id):
 				continue
 			# only someone the player can see: a shot at a guard behind a wall is a round
-			# thrown away, and the walk home out of town is long enough to need them all
-			if perception.is_alerted(id, _player) and perception.line_of_sight(_actors.position_of(_player), _actors.position_of(id)):
+			# thrown away, and the walk home out of town is long enough to need them all.
+			# The game's own rule for a shot (eyes to centre, M7.5 claim 3), not a line of
+			# the script's: feet to feet was the same thing only while eyes were at the feet
+			if perception.is_alerted(id, _player) and perception.can_target(_player, id):
 				target = id
 				break
 		if target == 0:
@@ -555,9 +642,9 @@ func _kill_the_player() -> void:
 ## Down off the slab and across town to the fixer. Every step is a command, because a
 ## fixture that moved an actor any other way would not replay as the run it claims.
 func _walk_to_the_fixer() -> void:
-	_walk_to(Vector3i(4, 1, -4))
+	_walk_to(Vector3i(4, GROUND, -4))
 	_walk_to(STEP)
-	_climb(-1)
+	_climb_levels(-GROUND)
 	_travel_back()
 	_walk_to_world(FIXER)
 

@@ -67,7 +67,7 @@
 			"kind": "actor.equip_device",
 			"payload": {
 				"actor": 2,
-				"device": 443
+				"device": 776
 			},
 			"tick": 8
 		},
@@ -75,8 +75,8 @@
 			"kind": "item.attach",
 			"payload": {
 				"actor": 2,
-				"part": 444,
-				"weapon": 443
+				"part": 777,
+				"weapon": 776
 			},
 			"tick": 9
 		},
@@ -86873,8 +86873,8 @@
 			"payload": {
 				"actor": 2,
 				"dx": 0,
-				"dy": 0,
-				"dz": 150
+				"dy": 1,
+				"dz": 0
 			},
 			"tick": 8770
 		},
@@ -86934,24 +86934,24 @@
 				"actor": 2,
 				"dx": 0,
 				"dy": 0,
-				"dz": 100
+				"dz": 150
 			},
 			"tick": 8776
-		},
-		{
-			"kind": "run.begin",
-			"payload": {
-				"actor": 2
-			},
-			"tick": 8777
 		},
 		{
 			"kind": "actor.move",
 			"payload": {
 				"actor": 2,
-				"dx": 150,
+				"dx": 0,
 				"dy": 0,
-				"dz": 0
+				"dz": 100
+			},
+			"tick": 8777
+		},
+		{
+			"kind": "run.begin",
+			"payload": {
+				"actor": 2
 			},
 			"tick": 8778
 		},
@@ -87009,7 +87009,7 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 2,
-				"dx": 100,
+				"dx": 150,
 				"dy": 0,
 				"dz": 0
 			},
@@ -87019,9 +87019,9 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 2,
-				"dx": 0,
+				"dx": 100,
 				"dy": 0,
-				"dz": 150
+				"dz": 0
 			},
 			"tick": 8785
 		},
@@ -87551,7 +87551,7 @@
 				"actor": 2,
 				"dx": 0,
 				"dy": 0,
-				"dz": 50
+				"dz": 150
 			},
 			"tick": 8838
 		},
@@ -87561,7 +87561,7 @@
 				"actor": 2,
 				"dx": 0,
 				"dy": 0,
-				"dz": 150
+				"dz": 50
 			},
 			"tick": 8839
 		},
@@ -87760,10 +87760,40 @@
 			"payload": {
 				"actor": 2,
 				"dx": 0,
+				"dy": 0,
+				"dz": 150
+			},
+			"tick": 8859
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 2,
+				"dx": 0,
 				"dy": 1,
 				"dz": 0
 			},
-			"tick": 9259
+			"tick": 9640
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 2,
+				"dx": 0,
+				"dy": 1,
+				"dz": 0
+			},
+			"tick": 9641
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 2,
+				"dx": 0,
+				"dy": 1,
+				"dz": 0
+			},
+			"tick": 9642
 		},
 		{
 			"kind": "actor.move",
@@ -87773,7 +87803,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9260
+			"tick": 9643
 		},
 		{
 			"kind": "actor.move",
@@ -87783,7 +87813,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9261
+			"tick": 9644
 		},
 		{
 			"kind": "actor.move",
@@ -87793,7 +87823,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9262
+			"tick": 9645
 		},
 		{
 			"kind": "actor.move",
@@ -87803,7 +87833,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9263
+			"tick": 9646
 		},
 		{
 			"kind": "actor.move",
@@ -87813,7 +87843,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9264
+			"tick": 9647
 		},
 		{
 			"kind": "actor.move",
@@ -87823,7 +87853,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9265
+			"tick": 9648
 		},
 		{
 			"kind": "actor.move",
@@ -87833,7 +87863,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9266
+			"tick": 9649
 		},
 		{
 			"kind": "actor.move",
@@ -87843,7 +87873,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9267
+			"tick": 9650
 		},
 		{
 			"kind": "actor.move",
@@ -87853,7 +87883,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9268
+			"tick": 9651
 		},
 		{
 			"kind": "actor.move",
@@ -87863,7 +87893,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9269
+			"tick": 9652
 		},
 		{
 			"kind": "actor.move",
@@ -87873,7 +87903,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9270
+			"tick": 9653
 		},
 		{
 			"kind": "actor.move",
@@ -87883,7 +87913,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9271
+			"tick": 9654
 		},
 		{
 			"kind": "actor.move",
@@ -87893,7 +87923,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9272
+			"tick": 9655
 		},
 		{
 			"kind": "actor.move",
@@ -87903,7 +87933,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9273
+			"tick": 9656
 		},
 		{
 			"kind": "actor.move",
@@ -87913,7 +87943,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9274
+			"tick": 9657
 		},
 		{
 			"kind": "actor.move",
@@ -87923,7 +87953,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9275
+			"tick": 9658
 		},
 		{
 			"kind": "actor.move",
@@ -87933,7 +87963,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9276
+			"tick": 9659
 		},
 		{
 			"kind": "actor.move",
@@ -87943,7 +87973,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9277
+			"tick": 9660
 		},
 		{
 			"kind": "actor.move",
@@ -87953,7 +87983,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9278
+			"tick": 9661
 		},
 		{
 			"kind": "actor.move",
@@ -87963,7 +87993,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9279
+			"tick": 9662
 		},
 		{
 			"kind": "actor.move",
@@ -87973,7 +88003,7 @@
 				"dy": 0,
 				"dz": 0
 			},
-			"tick": 9280
+			"tick": 9663
 		},
 		{
 			"kind": "actor.move",
@@ -87983,7 +88013,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9281
+			"tick": 9664
 		},
 		{
 			"kind": "actor.move",
@@ -87993,7 +88023,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9282
+			"tick": 9665
 		},
 		{
 			"kind": "actor.move",
@@ -88003,7 +88033,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9283
+			"tick": 9666
 		},
 		{
 			"kind": "actor.move",
@@ -88013,7 +88043,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9284
+			"tick": 9667
 		},
 		{
 			"kind": "actor.move",
@@ -88023,7 +88053,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9285
+			"tick": 9668
 		},
 		{
 			"kind": "actor.move",
@@ -88033,7 +88063,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9286
+			"tick": 9669
 		},
 		{
 			"kind": "actor.move",
@@ -88043,7 +88073,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9287
+			"tick": 9670
 		},
 		{
 			"kind": "actor.move",
@@ -88053,7 +88083,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9288
+			"tick": 9671
 		},
 		{
 			"kind": "actor.move",
@@ -88063,7 +88093,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9289
+			"tick": 9672
 		},
 		{
 			"kind": "actor.move",
@@ -88073,7 +88103,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9290
+			"tick": 9673
 		},
 		{
 			"kind": "actor.move",
@@ -88083,7 +88113,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9291
+			"tick": 9674
 		},
 		{
 			"kind": "actor.move",
@@ -88093,7 +88123,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9292
+			"tick": 9675
 		},
 		{
 			"kind": "actor.move",
@@ -88103,7 +88133,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9293
+			"tick": 9676
 		},
 		{
 			"kind": "actor.move",
@@ -88113,7 +88143,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9294
+			"tick": 9677
 		},
 		{
 			"kind": "actor.move",
@@ -88123,7 +88153,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9295
+			"tick": 9678
 		},
 		{
 			"kind": "actor.move",
@@ -88133,7 +88163,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9296
+			"tick": 9679
 		},
 		{
 			"kind": "actor.move",
@@ -88143,7 +88173,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9297
+			"tick": 9680
 		},
 		{
 			"kind": "actor.move",
@@ -88153,7 +88183,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9298
+			"tick": 9681
 		},
 		{
 			"kind": "actor.move",
@@ -88163,7 +88193,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9299
+			"tick": 9682
 		},
 		{
 			"kind": "actor.move",
@@ -88173,7 +88203,7 @@
 				"dy": 0,
 				"dz": -150
 			},
-			"tick": 9300
+			"tick": 9683
 		},
 		{
 			"kind": "actor.move",
@@ -88183,7 +88213,27 @@
 				"dy": -1,
 				"dz": 0
 			},
-			"tick": 9301
+			"tick": 9684
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 2,
+				"dx": 0,
+				"dy": -1,
+				"dz": 0
+			},
+			"tick": 9685
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 2,
+				"dx": 0,
+				"dy": -1,
+				"dz": 0
+			},
+			"tick": 9686
 		},
 		{
 			"kind": "actor.move",
@@ -88193,7 +88243,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9302
+			"tick": 9687
 		},
 		{
 			"kind": "actor.move",
@@ -88203,7 +88253,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9303
+			"tick": 9688
 		},
 		{
 			"kind": "actor.move",
@@ -88213,7 +88263,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9304
+			"tick": 9689
 		},
 		{
 			"kind": "actor.move",
@@ -88223,7 +88273,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9305
+			"tick": 9690
 		},
 		{
 			"kind": "actor.move",
@@ -88233,7 +88283,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9306
+			"tick": 9691
 		},
 		{
 			"kind": "actor.move",
@@ -88243,7 +88293,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9307
+			"tick": 9692
 		},
 		{
 			"kind": "actor.move",
@@ -88253,7 +88303,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9308
+			"tick": 9693
 		},
 		{
 			"kind": "actor.move",
@@ -88263,7 +88313,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9309
+			"tick": 9694
 		},
 		{
 			"kind": "actor.move",
@@ -88273,7 +88323,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9310
+			"tick": 9695
 		},
 		{
 			"kind": "actor.move",
@@ -88283,7 +88333,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9311
+			"tick": 9696
 		},
 		{
 			"kind": "actor.move",
@@ -88293,7 +88343,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9312
+			"tick": 9697
 		},
 		{
 			"kind": "actor.move",
@@ -88303,7 +88353,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9313
+			"tick": 9698
 		},
 		{
 			"kind": "actor.move",
@@ -88313,7 +88363,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9314
+			"tick": 9699
 		},
 		{
 			"kind": "actor.move",
@@ -88323,7 +88373,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9315
+			"tick": 9700
 		},
 		{
 			"kind": "actor.move",
@@ -88333,7 +88383,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9316
+			"tick": 9701
 		},
 		{
 			"kind": "actor.move",
@@ -88343,7 +88393,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9317
+			"tick": 9702
 		},
 		{
 			"kind": "actor.move",
@@ -88353,7 +88403,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9318
+			"tick": 9703
 		},
 		{
 			"kind": "actor.move",
@@ -88363,7 +88413,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9319
+			"tick": 9704
 		},
 		{
 			"kind": "actor.move",
@@ -88373,7 +88423,7 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9320
+			"tick": 9705
 		},
 		{
 			"kind": "actor.move",
@@ -88383,19 +88433,19 @@
 				"dy": 0,
 				"dz": 150
 			},
-			"tick": 9321
+			"tick": 9706
 		},
 		{
 			"kind": "run.end",
 			"payload": {
 				"actor": 2
 			},
-			"tick": 9322
+			"tick": 9707
 		}
 	],
-	"expected_hash": "21851bb676c7a257a0f6dcf0fa1faefad197a12d7d28e26db09fdf7c5cceb9e2",
+	"expected_hash": "231eeb7a0c8d02953bb2656874ff58b6100775ab4cc263ec4107f6bd358ffbc4",
 	"name": "m6-side",
 	"schema_version": 1,
 	"seed": 20261230,
-	"ticks": 9327
+	"ticks": 9712
 }

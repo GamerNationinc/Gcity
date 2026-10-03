@@ -27,6 +27,25 @@ func _at(cx: int, cz: int) -> Vector3i:
 	return FAR + Vector3i(cx * M + 500, 0, cz * M + 500)
 
 
+## A column of faces a storey high on the face of the ground cell at `at` (M7.5 claim 6:
+## a person is two cells tall and sees from 1.6 m, so a wall that hides one is three faces
+## and an opening is a column), bottom row first. Returns the pieces placed.
+func _column(pieces: Array[StringName], at: Vector3i, facing: String) -> Array[int]:
+	var ids: Array[int] = []
+	for row: int in pieces.size():
+		var id: int = _build.place(_player, pieces[row], at + Vector3i(0, row * M, 0), facing)
+		assert_true(id > 0, "%s at row %d" % [pieces[row], row])
+		ids.append(id)
+	return ids
+
+
+## Takes a column down, every face of it.
+func _clear(ids: Array[int]) -> void:
+	for id: int in ids:
+		if _build.has_piece(id):
+			_build.breach(id)
+
+
 func _do(kind: StringName, payload: Dictionary) -> bool:
 	var before: int = _sim.dispatched_count()
 	assert_eq(_sim.submit(SimCommand.new(_sim.get_tick() + 1, kind, payload)), OK, "submit %s" % kind)
@@ -72,8 +91,8 @@ func test_a_player_shot_through_a_wall_is_a_no_los_miss_that_still_makes_noise()
 	_actors.set_position(dummy, _at(3, 4))
 	var guard: int = _perception.spawn(&"guard_sim", _cell(20, 3), 0, 1, "")  # 17 m off, facing away
 	_build.place(_player, &"foundation_block", _at(3, 5), "")
-	var wall: int = _build.place(_player, &"wall_panel", _at(3, 4), "nz")
-	assert_true(wall > 0, "a wall between the player and the dummy")
+	var wall: Array[int] = _column([&"wall_panel", &"wall_panel", &"wall_panel"], _at(3, 4), "nz")
+	assert_eq(wall.size(), 3, "a storey of wall between the player and the dummy")
 	assert_false(_perception.can_target(_player, dummy), "the player cannot see through it")
 	var rounds_before: int = _items.item_count()
 	assert_true(_do(&"weapon.fire", {"actor": _player, "target": dummy}), "the shot is accepted")
@@ -86,9 +105,9 @@ func test_a_player_shot_through_a_wall_is_a_no_los_miss_that_still_makes_noise()
 	assert_eq(_items.item_count(), rounds_before - 1, "the round is gone")
 	assert_eq(_actors.health_of(dummy)["body"], _actors.max_health(dummy, &"body"), "the dummy is untouched")
 	assert_eq(_perception.awareness_of(guard, _player), 500000, "the shot was heard all the same")
-	_build.breach(wall)
-	var door: int = _build.place(_player, &"door_frame", _at(3, 4), "nz")
-	assert_true(door > 0, "a door in its place")
+	_clear(wall)
+	var door: Array[int] = _column([&"door_frame", &"door_frame", &"wall_panel"], _at(3, 4), "nz")
+	assert_eq(door.size(), 3, "a 2 m door in its place")
 	_sim.step_n(10)
 	assert_true(_do(&"weapon.fire", {"actor": _player, "target": dummy}), "fires again")
 	last = _combat.last_shot()
@@ -121,7 +140,8 @@ func test_the_reason_survives_the_save_round_trip_and_is_validated() -> void:
 	var dummy: int = _actors.spawn(&"range_dummy", 0)
 	_actors.set_position(dummy, _at(3, 6))
 	_build.place(_player, &"foundation_block", _at(3, 5), "")
-	assert_true(_do(&"weapon.fire", {"actor": _player, "target": dummy}), "a shot into the foundation")
+	_build.place(_player, &"concrete_block", _at(3, 5) + Vector3i(0, M, 0), "")
+	assert_true(_do(&"weapon.fire", {"actor": _player, "target": dummy}), "a shot into the foundation and the block on it")
 	assert_eq(_combat.last_shot()["reason"], CombatSystem.REASON_NO_LOS, "no line through a solid cell")
 	var snap: Dictionary = _sim.snapshot()
 	var db := ContentDb.new()

@@ -82,8 +82,11 @@ func test_the_street_is_watched_and_the_rooms_are_not_seen_from_it() -> void:
 	var outside_a: Vector3i = BuildSystem.cell_centre(M4Building.BASE + Vector3i(-3, 0, 8))
 	var behind_window_a: Vector3i = BuildSystem.cell_centre(M4Building.BASE + Vector3i(1, 0, 8))
 	var beside_window_a: Vector3i = BuildSystem.cell_centre(M4Building.BASE + Vector3i(0, 0, 9))
-	assert_true(perception.line_of_sight(outside_a, behind_window_a), "room A's window is seen through from outside")
-	assert_false(perception.line_of_sight(outside_a, beside_window_a), "the wall beside the window is not")
+	# a window has a sill (M7.5 claim 6): a wall face at the feet, glass at the eyes
+	var eye: Vector3i = Vector3i(0, 1100, 0)
+	assert_true(perception.line_of_sight(outside_a + eye, behind_window_a + eye), "room A's window is seen through from outside, at eye height")
+	assert_false(perception.line_of_sight(outside_a + eye, beside_window_a + eye), "the wall beside the window is not")
+	assert_false(perception.line_of_sight(outside_a, behind_window_a), "and nor is the window's sill, at the feet")
 	var corridor_mouth: Vector3i = BuildSystem.cell_centre(M4Building.BASE + Vector3i(4, 0, 4))
 	assert_false(perception.line_of_sight(corridor_mouth, street), "the corridor mouth does not see the street in front of the door")
 	var far_street: Vector3i = Vector3i(20500, 0, 500)

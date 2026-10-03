@@ -77,13 +77,13 @@ func test_the_site_gained_a_second_machine_behind_its_own_door() -> void:
 	assert_true(archive != EntityIds.NONE, "the archive is one of them")
 	assert_eq(_terminals.hack_ticks_of(archive), 640, "twice the sit of the server outside it")
 	# the door reads the actor, exactly as the lobby's does
-	_actors.set_position(_player, _at(Vector3i(2, 1, 10)))
+	_actors.set_position(_player, _at(Vector3i(2, 2, 10)))
 	# a step is 150 mm and a cell is a metre, so one refused move proves nothing: walk
 	# at it until either the cell changes or it is plainly not going to
 	var got_in: bool = false
 	for i: int in 14:
 		_movement.move(_player, 0, 150, 0)
-		if BuildSystem.cell_of(_actors.position_of(_player)) == _sites.cell_of(SITE, Vector3i(2, 1, 11)):
+		if BuildSystem.cell_of(_actors.position_of(_player)) == _sites.cell_of(SITE, Vector3i(2, 2, 11)):
 			got_in = true
 			break
 	assert_false(got_in, "no token: the archive door is a wall")
@@ -93,10 +93,10 @@ func test_the_site_gained_a_second_machine_behind_its_own_door() -> void:
 	for i: int in 12:
 		if _movement.move(_player, 0, 150, 0):
 			walked = true
-		if BuildSystem.cell_of(_actors.position_of(_player)) == _sites.cell_of(SITE, Vector3i(2, 1, 11)):
+		if BuildSystem.cell_of(_actors.position_of(_player)) == _sites.cell_of(SITE, Vector3i(2, 2, 11)):
 			break
 	assert_true(walked, "with it, the door opens")
-	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(SITE, Vector3i(2, 1, 11)), "inside the archive")
+	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), _sites.cell_of(SITE, Vector3i(2, 2, 11)), "inside the archive")
 
 
 func test_the_second_contract_is_paid_by_its_own_sheet() -> void:

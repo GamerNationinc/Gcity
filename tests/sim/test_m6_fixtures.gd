@@ -90,10 +90,11 @@ func test_the_death_run_leaves_a_body_and_the_recovery_run_gets_the_kit_back() -
 func test_the_side_route_proves_vertical_movement_in_a_replay() -> void:
 	_replay("m6-side")
 	# the run goes up the outside fire stair, in at the maintenance window, across the
-	# upper floor and down the inside flight: four level changes, none of them faked
+	# upper floor and down the inside flight: a storey up and a storey down, a level at a
+	# time, none of them faked
 	assert_eq(_score.counters(_player), [0, 0, 0, 0] as Array[int], "nobody saw it")
 	var movement: MovementSystem = SimAssembly.movement_of(_sim)
 	assert_eq(movement.fall_count(), 0, "and nothing fell: every level change was climbed")
-	var ground_floor: int = SimAssembly.sites_of(_sim).cell_of(&"cold_storage", Vector3i(0, 1, 0)).y * BuildSystem.CELL
+	var ground_floor: int = SimAssembly.sites_of(_sim).cell_of(&"cold_storage", Vector3i(0, 2, 0)).y * BuildSystem.CELL
 	assert_eq(_actors.position_of(_player).y, ground_floor, "ending on the ground floor, inside")
 	assert_true(_actors.is_alive(_player), "unharmed")

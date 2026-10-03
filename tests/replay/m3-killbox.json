@@ -88,10 +88,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "px",
 				"piece": "wall_panel",
 				"x": 6500,
 				"y": 500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -112,10 +160,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "nz",
 				"piece": "wall_panel",
 				"x": 4500,
 				"y": 500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -136,10 +232,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 5500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
+				"z": 5500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "px",
 				"piece": "wall_panel",
 				"x": 6500,
 				"y": 500,
+				"z": 5500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 5500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
 				"z": 5500
 			},
 			"tick": 3
@@ -160,10 +304,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 5500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 5500,
+				"y": 2500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "nz",
 				"piece": "wall_panel",
 				"x": 5500,
 				"y": 500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 5500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 5500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -184,10 +376,58 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nx",
+				"piece": "wall_panel",
+				"x": 4500,
+				"y": 2500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "px",
 				"piece": "wall_panel",
 				"x": 6500,
 				"y": 500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "px",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -208,6 +448,30 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "pz",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
+				"z": 6500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
 				"facing": "nz",
 				"piece": "wall_panel",
 				"x": 6500,
@@ -220,10 +484,22 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
-				"facing": "py",
-				"piece": "floor_panel",
-				"x": 4500,
-				"y": 500,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -235,7 +511,19 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 4500,
-				"y": 500,
+				"y": 2500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "py",
+				"piece": "floor_panel",
+				"x": 4500,
+				"y": 2500,
 				"z": 5500
 			},
 			"tick": 3
@@ -247,7 +535,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 4500,
-				"y": 500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -259,7 +547,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 5500,
-				"y": 500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -271,7 +559,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 5500,
-				"y": 500,
+				"y": 2500,
 				"z": 5500
 			},
 			"tick": 3
@@ -283,7 +571,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 5500,
-				"y": 500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -295,7 +583,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 6500,
-				"y": 500,
+				"y": 2500,
 				"z": 4500
 			},
 			"tick": 3
@@ -307,7 +595,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 6500,
-				"y": 500,
+				"y": 2500,
 				"z": 5500
 			},
 			"tick": 3
@@ -319,7 +607,7 @@
 				"facing": "py",
 				"piece": "floor_panel",
 				"x": 6500,
-				"y": 500,
+				"y": 2500,
 				"z": 6500
 			},
 			"tick": 3
@@ -347,7 +635,15 @@
 			"kind": "build.remove",
 			"payload": {
 				"actor": 1,
-				"piece_id": 13
+				"piece_id": 27
+			},
+			"tick": 60
+		},
+		{
+			"kind": "build.remove",
+			"payload": {
+				"actor": 1,
+				"piece_id": 28
 			},
 			"tick": 60
 		},
@@ -362,9 +658,21 @@
 				"z": 4500
 			},
 			"tick": 61
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "nz",
+				"piece": "door_frame",
+				"x": 5500,
+				"y": 1500,
+				"z": 4500
+			},
+			"tick": 61
 		}
 	],
-	"expected_hash": "fcf34537b54138ae4b613df78ceace631fdef4dc83339ba006396db548a15143",
+	"expected_hash": "1f5835fa2cdbb6920732d0d34d04c493ba98501748c900a18fc3342c67ae9270",
 	"name": "m3-killbox",
 	"schema_version": 1,
 	"seed": 20261009,

@@ -11,7 +11,8 @@ const M: int = 1000
 ## stub south, so a guard walking up to where it last saw the player looks at blocks
 ## (the game's own answer to being seen); open to the north and west.
 const HIDE: Array[Vector3i] = [Vector3i(2, 0, 0), Vector3i(1, 0, 1), Vector3i(1, 0, 2), Vector3i(1, 0, 3), Vector3i(1, 0, 4), Vector3i(0, 0, -1), Vector3i(0, 0, -2)]
-## A closed one-cell pillbox round the origin: fire from it and nobody can look in.
+## A closed pillbox round the origin, a cell wide and a person tall: fire from it and
+## nobody can look in.
 const PILLBOX: Array[Vector3i] = [Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
 
 var _sim: SimRoot
@@ -51,9 +52,11 @@ func _write(name: String, profile: String, range_m: int, moves: Array, tail: int
 		_at(2, &"build.place", c)
 	for g: Dictionary in M4Building.guards(profile, db):
 		_at(2, &"agent.spawn", g)
+	# cover as tall as a person (M7.5 claim 6): a foundation and a block on it
 	for cell: Vector3i in cover:
 		var c: Vector3i = BuildSystem.cell_centre(cell)
 		_at(2, &"build.place", {"actor": player, "piece": "foundation_block", "x": c.x, "y": c.y, "z": c.z, "facing": ""})
+		_at(2, &"build.place", {"actor": player, "piece": "concrete_block", "x": c.x, "y": c.y + M, "z": c.z, "facing": ""})
 	_kit(2, player, 1, 2, 30)
 	_step()
 	var guards: Array[int] = []
