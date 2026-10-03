@@ -1,42 +1,38 @@
 {
-	"schema_version": 1,
-	"name": "m3-bunker",
-	"seed": 20261008,
-	"ticks": 200,
 	"commands": [
 		{
-			"tick": 1,
 			"kind": "actor.spawn",
 			"payload": {
 				"profile": "arcade",
 				"range_m": 0
-			}
+			},
+			"tick": 1
 		},
 		{
-			"tick": 2,
 			"kind": "land.identify",
 			"payload": {
 				"actor": 1,
 				"owner": "player"
-			}
+			},
+			"tick": 2
 		},
 		{
-			"tick": 2,
 			"kind": "land.transfer",
 			"payload": {
-				"parcel": "starter_plot",
-				"owner": "player"
-			}
+				"owner": "player",
+				"parcel": "starter_plot"
+			},
+			"tick": 2
 		},
 		{
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "",
 				"piece": "foundation_block",
 				"x": 3500,
 				"y": 500,
-				"z": 3500,
-				"facing": ""
+				"z": 3500
 			},
 			"tick": 3
 		},
@@ -44,11 +40,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "",
 				"piece": "foundation_block",
 				"x": 7500,
 				"y": 500,
-				"z": 3500,
-				"facing": ""
+				"z": 3500
 			},
 			"tick": 3
 		},
@@ -56,11 +52,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "",
 				"piece": "foundation_block",
 				"x": 3500,
 				"y": 500,
-				"z": 7500,
-				"facing": ""
+				"z": 7500
 			},
 			"tick": 3
 		},
@@ -68,11 +64,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "",
 				"piece": "foundation_block",
 				"x": 7500,
 				"y": 500,
-				"z": 7500,
-				"facing": ""
+				"z": 7500
 			},
 			"tick": 3
 		},
@@ -80,11 +76,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nx",
 				"piece": "wall_panel",
 				"x": 4500,
 				"y": 500,
-				"z": 4500,
-				"facing": "nx"
+				"z": 4500
 			},
 			"tick": 3
 		},
@@ -92,11 +88,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "px",
 				"piece": "wall_panel",
 				"x": 6500,
 				"y": 500,
-				"z": 4500,
-				"facing": "px"
+				"z": 4500
 			},
 			"tick": 3
 		},
@@ -104,11 +100,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "pz",
 				"piece": "wall_panel",
 				"x": 4500,
 				"y": 500,
-				"z": 6500,
-				"facing": "pz"
+				"z": 6500
 			},
 			"tick": 3
 		},
@@ -116,11 +112,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nz",
 				"piece": "wall_panel",
 				"x": 4500,
 				"y": 500,
-				"z": 4500,
-				"facing": "nz"
+				"z": 4500
 			},
 			"tick": 3
 		},
@@ -128,11 +124,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nx",
 				"piece": "wall_panel",
 				"x": 4500,
 				"y": 500,
-				"z": 5500,
-				"facing": "nx"
+				"z": 5500
 			},
 			"tick": 3
 		},
@@ -140,11 +136,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "px",
 				"piece": "wall_panel",
 				"x": 6500,
 				"y": 500,
-				"z": 5500,
-				"facing": "px"
+				"z": 5500
 			},
 			"tick": 3
 		},
@@ -152,11 +148,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "pz",
 				"piece": "wall_panel",
 				"x": 5500,
 				"y": 500,
-				"z": 6500,
-				"facing": "pz"
+				"z": 6500
 			},
 			"tick": 3
 		},
@@ -164,11 +160,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nz",
 				"piece": "door_frame",
 				"x": 5500,
 				"y": 500,
-				"z": 4500,
-				"facing": "nz"
+				"z": 4500
 			},
 			"tick": 3
 		},
@@ -176,11 +172,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nx",
 				"piece": "wall_panel",
 				"x": 4500,
 				"y": 500,
-				"z": 6500,
-				"facing": "nx"
+				"z": 6500
 			},
 			"tick": 3
 		},
@@ -188,23 +184,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
-				"piece": "wall_panel",
-				"x": 6500,
-				"y": 500,
-				"z": 6500,
-				"facing": "px"
-			},
-			"tick": 3
-		},
-		{
-			"kind": "build.place",
-			"payload": {
-				"actor": 1,
+				"facing": "px",
 				"piece": "wall_panel",
 				"x": 6500,
 				"y": 500,
-				"z": 6500,
-				"facing": "pz"
+				"z": 6500
 			},
 			"tick": 3
 		},
@@ -212,11 +196,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "pz",
 				"piece": "wall_panel",
 				"x": 6500,
 				"y": 500,
-				"z": 4500,
-				"facing": "nz"
+				"z": 6500
 			},
 			"tick": 3
 		},
@@ -224,11 +208,23 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "nz",
+				"piece": "wall_panel",
+				"x": 6500,
+				"y": 500,
+				"z": 4500
+			},
+			"tick": 3
+		},
+		{
+			"kind": "build.place",
+			"payload": {
+				"actor": 1,
+				"facing": "py",
 				"piece": "floor_panel",
 				"x": 4500,
 				"y": 500,
-				"z": 4500,
-				"facing": "py"
+				"z": 4500
 			},
 			"tick": 3
 		},
@@ -236,11 +232,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "py",
 				"piece": "floor_panel",
 				"x": 4500,
 				"y": 500,
-				"z": 5500,
-				"facing": "py"
+				"z": 5500
 			},
 			"tick": 3
 		},
@@ -248,11 +244,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "py",
 				"piece": "floor_panel",
 				"x": 4500,
 				"y": 500,
-				"z": 6500,
-				"facing": "py"
+				"z": 6500
 			},
 			"tick": 3
 		},
@@ -260,11 +256,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "py",
 				"piece": "floor_panel",
 				"x": 5500,
 				"y": 500,
-				"z": 4500,
-				"facing": "py"
+				"z": 4500
 			},
 			"tick": 3
 		},
@@ -272,11 +268,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "py",
 				"piece": "floor_panel",
 				"x": 5500,
 				"y": 500,
-				"z": 5500,
-				"facing": "py"
+				"z": 5500
 			},
 			"tick": 3
 		},
@@ -284,11 +280,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "py",
 				"piece": "floor_panel",
 				"x": 5500,
 				"y": 500,
-				"z": 6500,
-				"facing": "py"
+				"z": 6500
 			},
 			"tick": 3
 		},
@@ -296,11 +292,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "py",
 				"piece": "floor_panel",
 				"x": 6500,
 				"y": 500,
-				"z": 4500,
-				"facing": "py"
+				"z": 4500
 			},
 			"tick": 3
 		},
@@ -308,11 +304,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "py",
 				"piece": "floor_panel",
 				"x": 6500,
 				"y": 500,
-				"z": 5500,
-				"facing": "py"
+				"z": 5500
 			},
 			"tick": 3
 		},
@@ -320,11 +316,11 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "py",
 				"piece": "floor_panel",
 				"x": 6500,
 				"y": 500,
-				"z": 6500,
-				"facing": "py"
+				"z": 6500
 			},
 			"tick": 3
 		},
@@ -332,21 +328,25 @@
 			"kind": "build.place",
 			"payload": {
 				"actor": 1,
+				"facing": "",
 				"piece": "storage_crate",
 				"x": 6500,
 				"y": 500,
-				"z": 6500,
-				"facing": ""
+				"z": 6500
 			},
 			"tick": 3
 		},
 		{
-			"tick": 40,
 			"kind": "raid.spawn",
 			"payload": {
 				"tool": "cutter"
-			}
+			},
+			"tick": 40
 		}
 	],
-	"expected_hash": "ff2d37bd30a032e999f2ad787c792140ea23ad357c8abcf2d644bf5eb4e910ae"
+	"expected_hash": "ff2d37bd30a032e999f2ad787c792140ea23ad357c8abcf2d644bf5eb4e910ae",
+	"name": "m3-bunker",
+	"schema_version": 1,
+	"seed": 20261008,
+	"ticks": 200
 }

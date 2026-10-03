@@ -22,6 +22,7 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `make_m5_fixtures.gd` | Regenerates the three M5 replay fixtures; re-record their hashes afterwards. |
 | `bench_agents.gd` | The agent budget on the Deck (M4 claim 13): the M4 building with six armed guards for 12 000 ticks headless, per-tick sim time at the 99th and 99.9th percentiles, with and without agents, and the rebuild ticks, as JSON. |
 | `make_m7_fixtures.gd` | Regenerates the four M7 replay fixtures (claim 17): the world alone, a contract binding its place, a squad coming in and going out past the player, the gate there and back. Re-record their hashes afterwards. |
+| `make_m3_fixtures.gd` | Regenerates the three M3 replay fixtures (the bunker, the killbox, the walk), hand-written until M7.5 claim 9; re-record their hashes afterwards. |
 | `make_m4_fixtures.gd` | Regenerates the six M4 replay fixtures from `M4Building`; re-record their hashes afterwards. |
 | `test.sh` | The whole verification run, in the order CI uses it. Run this before presenting any work. `GCITY_JOBS` sets how many engine processes the unit and replay stages use (default: cores less two). |
 | `parallel_tests.py` | The unit and replay stages across several engine processes: one per test file, each with its own `user://`, longest first by the last run's times (`tests/out/durations.json`); files marked `## Runs alone:` (they assert wall-clock time) run by themselves afterwards. The joined log is `tests/out/unit.log`, as before. |
