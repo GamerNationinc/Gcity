@@ -3,14 +3,22 @@
 ## replanning from its own cell after every crossing (volumes renumber when the graph
 ## changes). No perception, no steering, no combat: it proves the plan end to end and
 ## is the skeleton the M8 raid resolution grows on.
+##
+## A token is raiders, and a raider is a person (M7.5 gate item 2, CEOGG 2026-10-03): it
+## crosses a wall-like face only where a person fits and can stand on both sides, and
+## through the whole of a person's height, so a door is both of its faces and a wall is
+## two panels to cut. The rules are the movement system's own, not a copy of them.
 class_name RaidTokenSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"raids"
 const COMMAND_SPAWN: StringName = &"raid.spawn"
 const EVENT_BREACHED: StringName = &"build.breached"
 const EVENT_ARRIVED: StringName = &"raid.arrived"
-## Cost units a token works through per tick: a 1 100 wall takes 110 ticks, a door 4.
+## Cost units a token works through per tick: a 1 100 wall panel takes 110 ticks, a
+## door face 4.
 const TOKEN_SPEED: int = 10
+## A raider's height in cells: a person (M7.5 decision 1).
+const BODY_CELLS: int = 2
 const STATE_MOVING: String = "moving"
 const STATE_ARRIVED: String = "arrived"
 const STATE_FAILED: String = "failed"
@@ -18,6 +26,7 @@ const STATE_FAILED: String = "failed"
 var _content: ContentDb
 var _build: BuildSystem
 var _portals: PortalGraph
+var _movement: MovementSystem
 var _events: EventBus
 ## token id (int, from 1 per run) -> {"cell": [x, y, z], "target": piece, "tool": StringName,
 ## "crossing": piece or 0, "progress": int, "state": String, "breached": int}
@@ -28,10 +37,11 @@ var _next_token: int = 1
 var _replan: bool = false
 
 
-func _init(content: ContentDb, build: BuildSystem, portals: PortalGraph, events: EventBus) -> void:
+func _init(content: ContentDb, build: BuildSystem, portals: PortalGraph, movement: MovementSystem, events: EventBus) -> void:
 	_content = content
 	_build = build
 	_portals = portals
+	_movement = movement
 	_events = events
 
 
@@ -97,17 +107,76 @@ func cell_of(id: int) -> Vector3i:
 func spawn(tool_class: StringName) -> int:
 	if not _content.has(BuildSystem.KIND_TOOL, tool_class):
 		return 0
-	var plan: Dictionary = _portals.raid_plan(tool_class)
-	var target: int = plan["target"]
+	var raid: Dictionary = plan(tool_class)
+	var target: int = raid["target"]
 	if target == EntityIds.NONE:
 		return 0
-	var pieces: Array[int] = plan["pieces"]
+	var pieces: Array[int] = raid["pieces"]
 	var start: Vector3i = _start_cell(pieces, target)
 	var id: int = _next_token
 	_next_token += 1
 	_tokens[id] = {"cell": [start.x, start.y, start.z] as Array[int], "target": target, "tool": tool_class,
 		"crossing": EntityIds.NONE, "progress": 0, "state": STATE_MOVING, "breached": 0}
 	return id
+
+
+## The raid plan a token of `tool_class` would follow: the portal graph's, priced by a
+## person's crossing ([method crossing_cost]). What the client shows as the raid route.
+func plan(tool_class: StringName) -> Dictionary:
+	return _portals.raid_plan(tool_class, crossing_cost.bind(tool_class))
+
+
+## What it costs a token to cross `piece` with `tool_class`, or -1 where it cannot. A
+## wall-like face is crossed only where a person fits and can stand on both sides, and
+## costs every face in a person's height there: an opening its open cost, anything else
+## its breach. A floor or a roof is crossed as a person crosses one, by an opening (a
+## hatch), never cut: a token does not climb, so a roof is nowhere it can stand. A solid
+## block is its own edge cost, as it always was.
+func crossing_cost(piece: int, tool_class: StringName) -> int:
+	if not _build.has_piece(piece):
+		return -1
+	var face: String = _column_face(piece)
+	if face.is_empty():
+		var rec: Dictionary = _build.piece(piece)
+		var own: String = rec["face"]
+		if not own.is_empty():
+			var k: Dictionary = _build.kind_data(piece)
+			var passable: bool = k["passable"]
+			if not passable:
+				return -1
+		return _portals.edge_cost(piece, tool_class)
+	for side: Vector3i in BuildSystem.face_cells(face):
+		if not _movement.body_fits(side, BODY_CELLS) or not _movement.is_standable(side):
+			return -1
+	var total: int = 0
+	for other: int in _column(face):
+		var cost: int = _portals.edge_cost(other, tool_class)
+		if cost < 0:
+			return -1
+		total += cost
+	return total
+
+
+## The face key of a wall-like (vertical) face piece, or "" for anything else.
+func _column_face(piece: int) -> String:
+	var rec: Dictionary = _build.piece(piece)
+	var face: String = rec["face"]
+	if face.is_empty() or face.ends_with("|y"):
+		return ""
+	return face
+
+
+## The pieces in a person's height up from a vertical face, bottom first.
+func _column(face: String) -> Array[int]:
+	var lower: Vector3i = BuildSystem.face_cells(face)[0]
+	var axis: String = face.get_slice("|", 1)
+	var out: Array[int] = []
+	for row: int in BODY_CELLS:
+		var key: String = "%s|%s" % [BuildSystem.cell_key(lower + Vector3i(0, row, 0)), axis]
+		var piece: int = _build.face_piece_at(key)
+		if piece != EntityIds.NONE:
+			out.append(piece)
+	return out
 
 
 ## The exterior side of the first crossing; beside the target if nothing is crossed.
@@ -186,7 +255,7 @@ func _advance(id: int, rec: Dictionary) -> void:
 		return
 	var crossing: int = rec["crossing"]
 	if crossing == EntityIds.NONE or not _build.has_piece(crossing):
-		var path: Dictionary = _portals.cheapest_path(here_node, target_node, tool)
+		var path: Dictionary = _portals.cheapest_path(here_node, target_node, tool, crossing_cost.bind(tool))
 		var cost: int = path["cost"]
 		if cost < 0:
 			rec["state"] = STATE_FAILED
@@ -200,19 +269,34 @@ func _advance(id: int, rec: Dictionary) -> void:
 		rec["progress"] = 0
 	var progress: int = rec["progress"] + TOKEN_SPEED
 	rec["progress"] = progress
-	var needed: int = _portals.edge_cost(crossing, tool)
+	var needed: int = crossing_cost(crossing, tool)
+	if needed < 0:
+		# the way closed under it (a body-sized gap became something else): plan again
+		rec["crossing"] = EntityIds.NONE
+		rec["progress"] = 0
+		return
 	if progress < needed:
 		return
-	# cross: step to the far side, breaching if the piece is not an opening
+	# cross: step to the far side, breaching whatever in a person's height is not an
+	# opening, bottom first
+	# the far side is the one in another volume from the token's: a token that switched
+	# to a new crossing mid-raid is not standing beside it, and "the side that is not
+	# here" would set it down on the near side of the piece it just crossed
 	var sides: Array[Vector3i] = _sides(crossing)
-	var far: Vector3i = sides[1] if sides[0] == here else sides[0]
-	var k: Dictionary = _build.kind_data(crossing)
-	var passable: bool = k["passable"]
-	if not passable:
-		var removed: Array[int] = _build.breach(crossing)
+	var far: Vector3i = sides[0] if _portals.node_at(sides[1]) == here_node else sides[1]
+	var face: String = _column_face(crossing)
+	var column: Array[int] = [crossing] as Array[int] if face.is_empty() else _column(face)
+	for piece: int in column:
+		if not _build.has_piece(piece):
+			continue
+		var k: Dictionary = _build.kind_data(piece)
+		var passable: bool = k["passable"]
+		if passable:
+			continue
+		var removed: Array[int] = _build.breach(piece)
 		var breached: int = rec["breached"]
 		rec["breached"] = breached + removed.size()
-		_events.emit(EVENT_BREACHED, {"token": id, "piece": crossing, "removed": removed})
+		_events.emit(EVENT_BREACHED, {"token": id, "piece": piece, "removed": removed})
 	rec["cell"] = [far.x, far.y, far.z] as Array[int]
 	rec["crossing"] = EntityIds.NONE
 	rec["progress"] = 0

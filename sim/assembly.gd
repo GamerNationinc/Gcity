@@ -50,7 +50,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var movement: MovementSystem = MovementSystem.new(content, actors, land, build, events, items, stats)
 	if movement.attach(sim) != OK:
 		return null
-	var raids: RaidTokenSystem = RaidTokenSystem.new(content, build, portals, events)
+	var raids: RaidTokenSystem = RaidTokenSystem.new(content, build, portals, movement, events)
 	if raids.attach(sim) != OK:
 		return null
 	var perception: PerceptionSystem = PerceptionSystem.new(content, stats, actors, build, events)

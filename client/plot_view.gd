@@ -374,7 +374,7 @@ func _draw_build(sim: SimRoot) -> void:
 				continue
 			var tl: Vector2 = _to_screen(x * BuildSystem.CELL, (z + 1) * BuildSystem.CELL)
 			draw_rect(Rect2(tl, Vector2(cell_px, cell_px)), Color.from_hsv(float(node * 47 % 360) / 360.0, 0.5, 0.8, 0.35))
-	var plan: Dictionary = portals.raid_plan(StringName("cutter"))
+	var plan: Dictionary = raids.plan(StringName("cutter"))
 	var plan_pieces: Array[int] = plan["pieces"]
 	for id: int in ids:
 		var rec: Dictionary = build.piece(id)

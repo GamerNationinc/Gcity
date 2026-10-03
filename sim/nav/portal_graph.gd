@@ -312,8 +312,11 @@ func edge_cost(piece: int, tool_class: StringName) -> int:
 ## Cheapest path between two nodes for a tool class: {"cost": int, "pieces": Array[int]
 ## in crossing order, "nodes": Array[int]}. cost -1 when unreachable. Uniform-cost
 ## search (A* with a zero heuristic: nodes have no metric); ties resolve to the lower
-## piece id, so the result is deterministic.
-func cheapest_path(from: int, to: int, tool_class: StringName) -> Dictionary:
+## piece id, so the result is deterministic. `cost`, when given, prices a crossing in
+## place of `edge_cost` (piece -> int, -1 where it cannot be crossed): the graph is
+## geometry, and whoever crosses it brings its own rule (a raid token's is a person's,
+## M7.5 gate item 2).
+func cheapest_path(from: int, to: int, tool_class: StringName, cost_of: Callable = Callable()) -> Dictionary:
 	var none: Dictionary = {"cost": -1, "pieces": [] as Array[int], "nodes": [] as Array[int]}
 	if not _content.has(BuildSystem.KIND_TOOL, tool_class):
 		return none
@@ -343,7 +346,7 @@ func cheapest_path(from: int, to: int, tool_class: StringName) -> Dictionary:
 		for e: Array in edges_of(current):
 			var piece: int = e[0]
 			var other: int = e[1]
-			var cost: int = edge_cost(piece, tool_class)
+			var cost: int = cost_of.call(piece) if cost_of.is_valid() else edge_cost(piece, tool_class)
 			if cost < 0:
 				continue
 			var total: int = current_cost + cost
@@ -373,8 +376,9 @@ func cheapest_path(from: int, to: int, tool_class: StringName) -> Dictionary:
 
 ## The raid plan from the exterior: the highest-value reachable target (ties: lower
 ## cost, then lower id) and its cheapest path to the volume it sits in.
-## {"target": piece id or 0, "value": int, "cost": int, "pieces": Array[int]}.
-func raid_plan(tool_class: StringName) -> Dictionary:
+## {"target": piece id or 0, "value": int, "cost": int, "pieces": Array[int]}. `cost_of`
+## as in [method cheapest_path].
+func raid_plan(tool_class: StringName, cost_of: Callable = Callable()) -> Dictionary:
 	var plan: Dictionary = {"target": EntityIds.NONE, "value": 0, "cost": -1, "pieces": [] as Array[int]}
 	var ids: Array = _targets.keys()
 	ids.sort()
@@ -383,7 +387,7 @@ func raid_plan(tool_class: StringName) -> Dictionary:
 		var node: int = _targets[target]
 		if node == SOLID:
 			continue
-		var path: Dictionary = cheapest_path(EXTERIOR, node, tool_class)
+		var path: Dictionary = cheapest_path(EXTERIOR, node, tool_class, cost_of)
 		var cost: int = path["cost"]
 		if cost < 0:
 			continue
