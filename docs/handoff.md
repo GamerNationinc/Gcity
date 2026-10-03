@@ -3,7 +3,65 @@
 Claude Code's memory lives on the machine it runs on, so this file is how the next
 session picks up. Read it first, then `CLAUDE.md`.
 
-## Update, 2026-10-02, on the laptop (WSL2): claims 3–5 verified — read this first
+## Update, 2026-10-03: moving from the laptop back to the Deck — read this first
+
+Claude Code's memory stays on the machine; this section is everything the laptop's memory
+knew that the repo did not. Everything is on GitHub: branch **`m7_5-human-scale`**.
+
+**Where M7.5 stands.** Claims 1–7 are done, verified and pushed (6 in three parts: 6a the M3
+fixture generator, 6b the sites, bodies and every fixture at human scale, 6c raid tokens as
+a person). Last full suite: 523 tests, 0 failed, 24 replays. CI is green on this branch.
+**Next: claim 8** (the wilds against a 2-cell body: road clearance, site levelling to the
+site's top plus a storey, the M7 connectivity property over 10 000 seeds with the body
+rule). Then 10 (saves at schema 3), 11 (the client at scale; gate item 17: the scripted
+demo has one rejected command), 14–16 (the creator tool), 9 and 12–13 to close the gate.
+Expect claim 8 to find low spots: eyes at 1.6 m already showed the wilds differ (item 15).
+
+**Also on this branch now** (merged 2026-10-03, docs only): the study-and-rebuild policy and
+its CLAUDE.md rule, `docs/references/` (study 1), and the approved **M7.6 sandbox spec**
+(it starts when G7.5 is signed; M8's empty-sim baseline is now G7.6).
+
+**Getting the Deck ready**
+1. `git fetch origin && git checkout m7_5-human-scale && git pull`.
+2. `tools/test.sh` now runs the unit and replay stages on several engine processes
+   (`GCITY_JOBS`, default: the cores less two, so 6 on the Deck; set `GCITY_JOBS=4` if it
+   runs hot or short of memory, `GCITY_JOBS=1` for the old one-process run). Expect well
+   under the old 80 minutes; the first run records each file's time in
+   `tests/out/durations.json` and splits slow files by test method after that.
+3. **Rust is required** now (CEOGG, 2026-10-02): `test.sh` stops with a message without
+   `cargo`, and installs the GodotSteam binaries and builds the native mesher by itself when
+   they are missing (no more `tools/godotsteam.sh` per worktree). Run it from a shell where
+   `cargo` is on `PATH`.
+4. A run that ends at `== headless tests` without `== all stages passed` failed; the
+   per-test results are in `tests/out/unit.log`.
+
+**How CEOGG wants answers** (the laptop's memory; carry it over)
+- End every answer with a **"Buddy recap"**: 3–5 lines in the voice of Ricky from Trailer Park
+  Boys — laid-back, earnest, mangled big words — with **no swearing and no references to the
+  show** (no characters, places, catchphrases). The facts in it as exact as the answer's.
+- **Include a screenshot** with answers (`tools/screenshot.sh`), not while a timing-sensitive
+  test run is in progress; say when nothing on screen changed.
+- Never read, fetch or clone reverse-engineered or decompiled source in a Gcity workspace
+  (CLAUDE.md §10); design notes only (`docs/policy/study-and-rebuild.md`).
+
+**Open decisions for CEOGG**
+- Where **crouching** goes (gate §4 item 13): the M7.5 spec excludes posture.
+- Two calls made in claim 6c, logged in gate item 2: a raid token never cuts a floor or a
+  roof, and the far-side fix.
+
+**Lessons from the laptop session** (gate items 14–16)
+- Sight follows `passable`: every opening a person fits through is an eye-height view.
+- Any tool or test that draws its own sight line or body check drifts from the game's: ask
+  `PerceptionSystem.can_target`/`can_see` and `MovementSystem.body_fits`/`is_standable`.
+- Tests of a rule bring their own profiles (`db.add` before `SimAssembly.build`) rather than
+  borrowing the shipped ones, which are now human scale.
+- Found, not fixed: an alerted squad in the wilds stands still (item 16, M9).
+
+**The laptop** keeps scratch worktrees `~/gc2`–`~/gc14` under WSL; everything in them is on
+GitHub (gc2–gc8 hold drafts of the M7 triage tests, committed under their final names).
+They can be removed with `git worktree remove` whenever convenient.
+
+## Update, 2026-10-02, on the laptop (WSL2): claims 3–5 verified
 
 - **The first full suite on `m7_5-wip` was not green**: 515 tests, 1 failed
   (`test_quest_system.gd::test_a_build_objective_credits_the_builder` built on its own
