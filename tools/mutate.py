@@ -86,14 +86,20 @@ EXTRA_TESTS = {
     "sim/core/json_numbers.gd": ["res://tests/sim/test_json_numbers.gd"],
     "sim/progression/stat_resolver.gd": ["res://tests/progression/test_stat_resolver.gd"],
     "sim/progression/progression_system.gd": ["res://tests/progression/test_progression_system.gd", "res://tests/agents/test_actor_system.gd"],
-    "sim/agents/corpse_system.gd": ["res://tests/agents/test_corpse.gd", "res://tests/agents/test_actor_system.gd"],
+    # M7.5: reach is measured from the body's centre (test_eyes)
+    "sim/agents/corpse_system.gd": ["res://tests/agents/test_corpse.gd", "res://tests/agents/test_actor_system.gd", "res://tests/agents/test_eyes.gd"],
+    "sim/agents/actor_system.gd": ["res://tests/agents/test_actor_system.gd", "res://tests/agents/test_eyes.gd"],
     "sim/agents/movement_system.gd": [
         "res://tests/agents/test_movement_system.gd",
         "res://tests/agents/test_vertical_movement.gd",
         # M7 claim 12: every agents system drops a removed actor's rows, and the one
         # test that removes an agent in the middle of everything is the actor test
         "res://tests/agents/test_actor_system.gd",
+        # M7.5 claims 1-2: the body rule and its invariant
+        "res://tests/agents/test_body.gd",
+        "res://tests/agents/test_body_invariant.gd",
     ],
+    "sim/land/build_system.gd": ["res://tests/land/test_build_system.gd", "res://tests/agents/test_body.gd", "res://tests/agents/test_body_invariant.gd"],
     "sim/agents/squad_system.gd": ["res://tests/agents/test_squad.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/quests/run_score_system.gd": ["res://tests/quests/test_run_score.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/quests/quest_system.gd": ["res://tests/quests/test_quest_system.gd", "res://tests/agents/test_actor_system.gd"],
@@ -102,15 +108,19 @@ EXTRA_TESTS = {
     "sim/threat/standing_system.gd": ["res://tests/threat/test_standing.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/agents/aim_system.gd": ["res://tests/agents/test_aim_and_stress.gd", "res://tests/agents/test_actor_system.gd"],
     "sim/agents/stress_system.gd": ["res://tests/agents/test_aim_and_stress.gd", "res://tests/agents/test_actor_system.gd"],
-    "sim/agents/pathing_system.gd": ["res://tests/agents/test_agent_pathing.gd", "res://tests/agents/test_actor_system.gd"],
-    "sim/agents/stance_system.gd": ["res://tests/agents/test_stance_scoring.gd", "res://tests/agents/test_actor_system.gd"],
-    "sim/agents/perception_system.gd": ["res://tests/agents/test_perception_system.gd", "res://tests/agents/test_actor_system.gd"],
+    "sim/agents/pathing_system.gd": ["res://tests/agents/test_agent_pathing.gd", "res://tests/agents/test_actor_system.gd", "res://tests/agents/test_body.gd"],
+    "sim/agents/stance_system.gd": ["res://tests/agents/test_stance_scoring.gd", "res://tests/agents/test_actor_system.gd", "res://tests/agents/test_eyes.gd"],
+    "sim/agents/perception_system.gd": ["res://tests/agents/test_perception_system.gd", "res://tests/agents/test_actor_system.gd",
+        "res://tests/agents/test_eyes.gd", "res://tests/agents/test_sight_check.gd"],
     "sim/core/replay_fixture.gd": ["res://tests/sim/test_replay_fixture.gd"],
     "sim/core/sim_command.gd": ["res://tests/sim/test_sim_root.gd"],
     "sim/assembly.gd": ["res://tests/sim/test_sim_assembly.gd"],
     # M7 claim 13: the region implementations are exercised through Regions, and walking
     # and seeing through the ground is where they matter
     "sim/world/region.gd": ["res://tests/world/test_regions.gd"],
+    # M7.5 claim 2: filling ground never closes on a head
+    "sim/world/regions.gd": ["res://tests/world/test_regions.gd", "res://tests/agents/test_body.gd"],
+    "sim/quests/terminal_system.gd": ["res://tests/quests/test_terminal_system.gd", "res://tests/agents/test_eyes.gd"],
     "sim/world/authored_region.gd": ["res://tests/world/test_regions.gd", "res://tests/agents/test_movement_system.gd"],
     "sim/world/wild_region.gd": ["res://tests/world/test_regions.gd", "res://tests/agents/test_movement_system.gd", "res://tests/agents/test_perception_system.gd"],
     # G7: the land authority's pause handler is what the pause tests drive
