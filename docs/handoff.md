@@ -3,6 +3,22 @@
 Claude Code's memory lives on the machine it runs on, so this file is how the next
 session picks up. Read it first, then `CLAUDE.md`.
 
+## Update, 2026-10-03 night, on the Deck: the creator tool (claims 14–16) done
+
+- `d9815e8` claims 14–15, `9ea4ac1` claim 16. Gate items 21–25. Full suite: 533 tests,
+  0 failed, 24 replays (no fixture moved: no content changed).
+- **Try it on the Deck:** in Steam, the Gcity shortcut's launch options `-- --create`
+  (instead of `-- --wilds`); the export in `build/linux` was rebuilt with it. Controller
+  only: D-pad cursor (relative to the camera), R1/L1 up/down a level, A place, B remove,
+  X turn, Y next piece, View the save/open menu. Saved sites land in
+  `~/.local/share/godot/app_userdata/Gcity/sites/`; bring one into the game with
+  `tools/import_site.py <file> <id> [title]`.
+- **For CEOGG:** item 21 (save/open is a creator menu, not a device app, to avoid moving
+  every fixture hash) is a deviation to keep or overrule; item 10 (support cost) is worth
+  watching while placing by hand on the Deck.
+- **Next:** 9 (close the fixture table), 12 (mutation ≥ 75 % on the changed `sim/`
+  files), the claim 11 screenshots with the screen awake, then 13 (CEOGG's Deck run).
+
 ## Update, 2026-10-03 evening, on the Deck: claims 8, 10 and 11 done
 
 - **Claim 8** (`25593f4`): the road property walks 10 000 worlds as a two-cell person
