@@ -17,7 +17,7 @@
 			"tick": 2
 		}
 	],
-	"expected_hash": "87e76779969e7cf29c45b0b7988be4c8c0be8cb85c68471077baff52704cc76f",
+	"expected_hash": "74d6059e49f31a739555ba6fc6e1213089fb092dc7ec1c40b66f85fb7b420dab",
 	"name": "m7-bind",
 	"schema_version": 1,
 	"seed": 20261300,

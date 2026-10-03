@@ -11,7 +11,8 @@
 ## a solid piece fills the cell beneath, or it is the ground level of a parcel. An
 ## actor over nothing falls one level a tick, landing on the tick it reaches
 ## something and taking the profile's `fall_damage_per_level` for every level beyond
-## the first. An actor on a climbable face stands on the stairs themselves.
+## its `fall_free_levels`. A level is a 1 m cell, so falls are measured in metres (M7.5
+## decision 5); every shipped profile frees one level until claim 6 sets a storey. An actor on a climbable face stands on the stairs themselves.
 ##
 ## The body (M7.5 spec claim 1): an actor is `body_cells` cells tall, read from its
 ## profile, its feet in the lowest. A step, a climb or a level change needs every one
@@ -62,7 +63,7 @@ func system_id() -> StringName:
 
 
 ## Gravity: every live actor over nothing descends a level, and lands with damage
-## for the levels beyond the first (spec claim 1).
+## for the levels beyond its profile's free drop (M6 spec claim 1, M7.5 claim 7).
 func tick(_sim: SimRoot) -> void:
 	for actor: int in _actors.actor_ids():
 		if not _actors.is_alive(actor):
@@ -92,10 +93,11 @@ func _land_from_fall(actor: int) -> void:
 	if levels == 0:
 		return
 	_falling.erase(actor)
-	var beyond: int = maxi(levels - 1, 0)
+	var profile: Dictionary = _actors.profile_data(actor)
+	var free: int = profile["fall_free_levels"]
+	var beyond: int = maxi(levels - free, 0)
 	if beyond == 0:
 		return
-	var profile: Dictionary = _actors.profile_data(actor)
 	var per_level: int = profile["fall_damage_per_level"]
 	var damage: int = beyond * per_level
 	if damage <= 0:

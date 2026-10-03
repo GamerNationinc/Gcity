@@ -98,6 +98,11 @@
 			"min": 0,
 			"max": 1000000000
 		},
+		"fall_free_levels": {
+			"type": "int",
+			"min": 0,
+			"max": 100
+		},
 		"body_cells": {
 			"type": "int",
 			"min": 1,
@@ -122,6 +127,7 @@
 		"speed_mm_per_tick",
 		"health",
 		"fall_damage_per_level",
+		"fall_free_levels",
 		"body_cells",
 		"eye_mm",
 		"centre_mm"

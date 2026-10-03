@@ -21,9 +21,11 @@ var _player: int = 0
 var _fell: Array[Dictionary] = []
 
 
-func _setup() -> void:
-	var db := ContentDb.new()
-	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+func _setup(given: ContentDb = null) -> void:
+	var db: ContentDb = given
+	if db == null:
+		db = ContentDb.new()
+		assert_eq(ContentLoader.load_all(db), OK, "content loads")
 	_sim = SimAssembly.build(SEED, db)
 	_actors = SimAssembly.actors_of(_sim)
 	_build = SimAssembly.build_of(_sim)
@@ -123,6 +125,46 @@ func test_an_actor_over_nothing_falls_and_takes_damage_beyond_the_first_level() 
 	assert_eq(_fell[0]["damage"], 2 * FALL_PER_LEVEL, "and its damage")
 	assert_eq(_movement.fall_count(), 4, "four descending ticks across both falls")
 	assert_false(_movement.is_falling(_player), "landed")
+
+
+## M7.5 claim 7 (decision 5): falls are measured in metres. A cell is a metre, so a level
+## is a metre, and a profile's `fall_free_levels` is the drop that costs nothing. Every
+## shipped profile holds 1 (the M6 rule) until claim 6 sets a storey, 3, with 4 000 a
+## metre beyond; this pins that tuning on a test profile: a storey is free, and a
+## two-storey drop does exactly what a two-level drop did at M6.
+func test_falls_in_metres_a_storey_is_free_and_two_storeys_cost_what_two_levels_did() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var storey: Dictionary = db.get_entry(ActorSystem.KIND_PROFILE, &"arcade").duplicate(true)
+	storey["fall_free_levels"] = 3
+	storey["fall_damage_per_level"] = 4000
+	assert_eq(db.add(ActorSystem.KIND_PROFILE, &"storey_faller", storey), OK, "a profile with a storey free")
+	_setup(db)
+	# M6's rule on a shipped profile: a two-level drop, the first level free
+	var m6_before: int = _actors.health_of(_player)[&"body"]
+	_actors.set_position(_player, _at(6, 2, 6))
+	_sim.step_n(3)
+	var m6_two_levels: int = m6_before - _actors.health_of(_player)[&"body"]
+	assert_eq(m6_two_levels, FALL_PER_LEVEL, "two levels under the M6 rule")
+	var faller: int = _actors.spawn(&"storey_faller", 0)
+	for drop: Array in [[1, 0], [3, 0], [4, 4000], [6, m6_two_levels]]:
+		var height: int = drop[0]
+		var expected: int = drop[1]
+		_fell = []
+		var before: int = _actors.health_of(faller)[&"body"]
+		_actors.set_position(faller, _at(4, height, 4))
+		_sim.step_n(height + 1)
+		assert_eq(_actors.position_of(faller), _at(4, 0, 4), "a %d m drop lands on the ground" % height)
+		assert_eq(before - _actors.health_of(faller)[&"body"], expected, "a %d m drop costs %d" % [height, expected])
+		assert_eq(_fell.size(), 1 if expected > 0 else 0, "an event only when it hurts (%d m)" % height)
+
+
+func test_every_shipped_profile_still_has_one_free_level_until_claim_6() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	for id: StringName in db.ids(ActorSystem.KIND_PROFILE):
+		var profile: Dictionary = db.get_entry(ActorSystem.KIND_PROFILE, id)
+		assert_eq(profile["fall_free_levels"], 1, "%s: one free level, the M6 rule, until the storeys are rebuilt" % id)
 
 
 func test_a_long_fall_can_kill_and_the_move_command_carries_dy() -> void:
