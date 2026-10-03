@@ -320,6 +320,32 @@ func test_a_site_raised_with_its_contract_stands_where_the_contract_bound_it() -
 	assert_eq(_sites.snapshot(), good, "and nothing changed")
 
 
+## M7.5 spec claim 8: a bound site's levelling clears from its base to a storey over its
+## top, where someone on the roof stands, and no further; under the base it fills. Set
+## into a hillside well below the ground, so every one of those rows had ground to take.
+func test_levelling_leaves_a_storey_of_air_over_the_roof_and_no_more() -> void:
+	_setup()
+	var regions: Regions = SimAssembly.regions_of(_sim)
+	var db: ContentDb = _sim.get_system(&"content")
+	var t: Dictionary = db.get_entry(SiteSystem.KIND_SITE, &"cold_storage")
+	var top: int = SiteSystem.top_of(t)
+	assert_eq(top, 8, "Cold Storage's roof is eight levels up: a slab and two storeys")
+	assert_eq(SiteSystem.top_of(db.get_entry(SiteSystem.KIND_SITE, &"m4_test_building")), 3, "the M4 building's is a storey up")
+	var column: Vector2i = Vector2i(300, -1500)
+	var ground: int = regions.standing_cell_y(column.x * M, column.y * M)
+	var base: Vector3i = Vector3i(column.x, ground - top - SiteSystem.LEVEL_HEADROOM - 4, column.y)
+	_sites._level(base, t)
+	var person: int = _movement.body_cells(_player)
+	for rel: Vector3i in [Vector3i(0, 0, 0), Vector3i(5, 0, 7), Vector3i(-SiteSystem.LEVEL_MARGIN, 0, 2)]:
+		var at: Vector3i = base + rel
+		for y: int in range(0, top + SiteSystem.LEVEL_HEADROOM):
+			assert_false(regions.is_solid(at + Vector3i(0, y, 0)), "air %d up at %s" % [y, at])
+		assert_true(regions.is_solid(at + Vector3i(0, top + SiteSystem.LEVEL_HEADROOM, 0)), "and the ground a storey over the roof is left (%s)" % at)
+		assert_true(regions.is_solid(at - Vector3i(0, 1, 0)), "with ground under the base")
+		assert_true(_movement.body_fits(at + Vector3i(0, top, 0), person), "a person fits on the roof")
+	assert_true(person >= 2 and SiteSystem.LEVEL_HEADROOM > person, "and a storey is more than a person (%d over %d)" % [SiteSystem.LEVEL_HEADROOM, person])
+
+
 ## Found by the G7 mutation run: no site file offered placed the same piece twice, and
 ## the terminals a raised site records were only ever counted by the terminal tests.
 func test_a_site_placing_two_pieces_in_one_spot_fails_assembly() -> void:

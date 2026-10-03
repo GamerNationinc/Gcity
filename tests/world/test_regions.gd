@@ -10,6 +10,10 @@ const PROPERTY_CASES: int = 10_000
 ## How much of one road each world's property case walks, a metre at a time.
 const STRETCH_M: int = 32
 const M: int = 1000
+const PERSON: StringName = &"test_person"
+## How far a hop across a cell face moves.
+const HOP_MM: int = 100
+const NOWHERE: Vector3i = Vector3i(-1_000_000, -1_000_000, -1_000_000)
 
 var _db: ContentDb
 var _sim: SimRoot
@@ -95,18 +99,31 @@ func test_the_wild_ground_is_the_terrain() -> void:
 ## climb, every surface cell carries you, and there is headroom above it. One stretch of
 ## one road per world: building every chunk of every road would take hours, and the
 ## claim is about the generator, not about any one road.
+## M7.5 spec claim 8: the property walks the road as a person, two cells tall, with the
+## movement rules themselves (a step, a climb onto the next level, a drop off it), so
+## there is no body check here for the game's own to drift from. A diagonal metre may be
+## taken either way round, as a player would.
 func test_property_every_road_can_be_walked_in_the_wild_ground() -> void:
 	var db := ContentDb.new()
 	assert_eq(ContentLoader.load_all(db), OK, "content loads")
-	var routes := RouteGraph.new()
-	routes.set_kits(SettlementKits.prepared(db))
-	var terrain := Terrain.new(routes)
-	var regions := Regions.new(routes, terrain)
+	var person: Dictionary = db.get_entry(ActorSystem.KIND_PROFILE, &"arcade").duplicate(true)
+	person["body_cells"] = 2
+	assert_eq(db.add(ActorSystem.KIND_PROFILE, PERSON, person), OK, "a two-cell profile")
+	var sim: SimRoot = SimAssembly.build(SEED_PROPERTY, db)
+	assert_true(sim != null, "assembly")
+	var routes: RouteGraph = SimAssembly.routes_of(sim)
+	var terrain: Terrain = SimAssembly.terrain_of(sim)
+	var regions: Regions = SimAssembly.regions_of(sim)
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var movement: MovementSystem = SimAssembly.movement_of(sim)
+	var walker: int = actors.spawn(PERSON, 0)
+	assert_eq(movement.body_cells(walker), 2, "the walker is a person")
 	var steep: int = 0
 	var unstandable: int = 0
-	var low: int = 0
+	var stuck: int = 0
 	var walked: int = 0
 	var climbed: int = 0
+	var roofed: int = 0
 	for i: int in PROPERTY_CASES:
 		var world: int = SEED_PROPERTY + i
 		routes.generate(world)
@@ -117,11 +134,12 @@ func test_property_every_road_can_be_walked_in_the_wild_ground() -> void:
 		var rec: Dictionary = routes.edge(edge)
 		var length: int = rec["length"]
 		var start: int = (length - STRETCH_M * M) * (world % 97) / 97 if length > STRETCH_M * M else 0
-		var previous: int = -1_000_000
+		var previous: Vector3i = NOWHERE
 		for step: int in STRETCH_M:
 			var along: int = mini(start + step * M, length)
 			var at: Vector2i = terrain.road_at(edge, along)
 			if regions.region_at(at.x, at.y).id() != &"wilds":
+				previous = NOWHERE
 				continue
 			var y: int = regions.standing_cell_y(at.x, at.y)
 			var cell: Vector3i = Vector3i(Terrain._floor_div(at.x, M), y, Terrain._floor_div(at.y, M))
@@ -130,23 +148,57 @@ func test_property_every_road_can_be_walked_in_the_wild_ground() -> void:
 				unstandable += 1
 				if unstandable <= 3:
 					fail("seed %d edge %d at %d mm: the road surface does not carry you" % [world, edge, along])
-			for up: int in range(1, 3):
-				if regions.is_solid(cell + Vector3i(0, up, 0)):
-					low += 1
-					if low <= 3:
-						fail("seed %d edge %d at %d mm: no headroom" % [world, edge, along])
-					break
-			if previous != -1_000_000 and absi(y - previous) > 1:
-				steep += 1
-				if steep <= 3:
-					fail("seed %d edge %d at %d mm: the surface jumps %d levels in a metre" % [world, edge, along, y - previous])
-			if previous != -1_000_000 and y != previous:
-				climbed += 1
-			previous = y
+			if regions.is_solid(cell + Vector3i(0, WildRegion.ROAD_CLEARANCE, 0)):
+				roofed += 1
+			if previous != NOWHERE and previous != cell:
+				if absi(y - previous.y) > 1:
+					steep += 1
+					if steep <= 3:
+						fail("seed %d edge %d at %d mm: the surface jumps %d levels in a metre" % [world, edge, along, y - previous.y])
+				elif not _walks(sim, actors, movement, walker, previous, cell):
+					stuck += 1
+					if stuck <= 3:
+						fail("seed %d edge %d at %d mm: a person cannot walk from %s to %s" % [world, edge, along, previous, cell])
+				if y != previous.y:
+					climbed += 1
+			previous = cell
 	assert_eq(unstandable, 0, "every metre of road carries you (%d metres over %d worlds)" % [walked, PROPERTY_CASES])
-	assert_eq(low, 0, "with headroom above it")
-	assert_eq(steep, 0, "and no step is more than a level")
+	assert_eq(steep, 0, "no step is more than a level")
+	assert_eq(stuck, 0, "and a person walks every metre of it")
 	assert_true(climbed > 0, "and the roads do go up and down (%d level changes)" % climbed)
+	assert_true(roofed > 0, "and some of it under a roof of ground, in a tunnel (%d metres)" % roofed)
+
+
+## Whether a person standing in `from` gets to `to`, a neighbouring column or a diagonal
+## one, by moving: straight there, or round either corner of a diagonal.
+func _walks(sim: SimRoot, actors: ActorSystem, movement: MovementSystem, walker: int, from: Vector3i, to: Vector3i) -> bool:
+	var d: Vector3i = to - from
+	if d.x == 0 or d.z == 0:
+		return _hop(sim, actors, movement, walker, from, Vector2i(d.x, d.z)) == to
+	for order: Array in [[Vector2i(d.x, 0), Vector2i(0, d.z)], [Vector2i(0, d.z), Vector2i(d.x, 0)]]:
+		var first: Vector2i = order[0]
+		var second: Vector2i = order[1]
+		var corner: Vector3i = _hop(sim, actors, movement, walker, from, first)
+		if corner != NOWHERE and _hop(sim, actors, movement, walker, corner, second) == to:
+			return true
+	return false
+
+
+## One move across a cell face, from just short of it, and the time to land if it went
+## off a level: the cell the walker ends up standing in, or NOWHERE.
+func _hop(sim: SimRoot, actors: ActorSystem, movement: MovementSystem, walker: int, from: Vector3i, dir: Vector2i) -> Vector3i:
+	var near: int = M / 2 - HOP_MM / 2
+	actors.set_position(walker, Vector3i(from.x * M + M / 2 + dir.x * near, from.y * M, from.z * M + M / 2 + dir.y * near))
+	if not movement.move(walker, dir.x * HOP_MM, dir.y * HOP_MM):
+		return NOWHERE
+	for _tick: int in 4:
+		if movement.is_standable(BuildSystem.cell_of(actors.position_of(walker))):
+			break
+		sim.step()
+	var there: Vector3i = BuildSystem.cell_of(actors.position_of(walker))
+	if there - from != Vector3i(dir.x, there.y - from.y, dir.y) or not actors.is_alive(walker):
+		return NOWHERE
+	return there
 
 
 ## The ground is derived, not stored: binding a site cuts its track into the ground the

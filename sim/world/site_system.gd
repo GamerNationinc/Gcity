@@ -32,6 +32,9 @@ var _slot_of: Callable = Callable()
 const LEVEL_MARGIN: int = 8
 ## How deep a bound site's lot is filled under it before the fill gives up, in cells.
 const FILL_DEPTH: int = 40
+## How much air a bound site's levelling leaves over its top, in cells: a storey
+## (M7.5 spec claim 8), so a person stands on the roof with a storey's room.
+const LEVEL_HEADROOM: int = 3
 
 
 func _init(content: ContentDb, build: BuildSystem, perception: PerceptionSystem, actors: ActorSystem, events: EventBus, terminals: TerminalSystem, items: ItemSystem) -> void:
@@ -269,8 +272,9 @@ func _hand_out_kit(agent: int, spawn: Dictionary) -> void:
 
 
 ## Levels the ground a bound site stands on: over its pieces and a street's width round
-## them, air from the base up and ground from the base down, filled as far as it has to
-## go. Where the region's ground is not the site's to change (the city), nothing is.
+## them, air from the base up to a storey over its top and ground from the base down,
+## filled as far as it has to go. Where the region's ground is not the site's to change
+## (the city), nothing is.
 func _level(base: Vector3i, t: Dictionary) -> void:
 	var lo: Vector3i = Vector3i(1 << 30, 1 << 30, 1 << 30)
 	var hi: Vector3i = -lo
@@ -279,9 +283,10 @@ func _level(base: Vector3i, t: Dictionary) -> void:
 		var rel: Vector3i = PathingSystem._vec(entry["rel"])
 		lo = Vector3i(mini(lo.x, rel.x), mini(lo.y, rel.y), mini(lo.z, rel.z))
 		hi = Vector3i(maxi(hi.x, rel.x), maxi(hi.y, rel.y), maxi(hi.z, rel.z))
+	var top: int = top_of(t)
 	for x: int in range(base.x + lo.x - LEVEL_MARGIN, base.x + hi.x + LEVEL_MARGIN + 1):
 		for z: int in range(base.z + lo.z - LEVEL_MARGIN, base.z + hi.z + LEVEL_MARGIN + 1):
-			for y: int in range(base.y, base.y + hi.y + 3):
+			for y: int in range(base.y, base.y + top + LEVEL_HEADROOM):
 				var cell: Vector3i = Vector3i(x, y, z)
 				if _regions.is_solid(cell):
 					_regions.set_ground(cell, false)
@@ -290,6 +295,18 @@ func _level(base: Vector3i, t: Dictionary) -> void:
 				if _regions.is_solid(cell):
 					break
 				_regions.set_ground(cell, true)
+
+
+## The level a site's top stands at, relative to its base: where someone on its roof
+## stands. A floor face lies under its own cell; anything else tops out at the cell above.
+static func top_of(t: Dictionary) -> int:
+	var top: int = 0
+	for p: Variant in t["pieces"]:
+		var entry: Dictionary = p
+		var rel: Vector3i = PathingSystem._vec(entry["rel"])
+		var facing: String = entry["facing"]
+		top = maxi(top, rel.y if facing == "ny" else rel.y + 1)
+	return top
 
 
 ## {"actor": int, "site": string} or {"actor": int, "site": string, "quest": string}: the
