@@ -9,6 +9,7 @@ Read alongside:
 - `docs/gcity-engineering-standards.md` — gates, verification, security, Steam, research
 - `docs/adr/` — decisions. **An open ADR is not yours to resolve.**
 - `docs/specs/` — the milestone specification that every changed line traces to
+- `docs/policy/study-and-rebuild.md` — studying other codebases: ideas in, never their code
 
 **Tradeoff:** these rules bias toward caution and evidence over speed. This project is
 verification-led by design. For trivial tasks, use judgment.
@@ -228,6 +229,8 @@ standards doc §4.1.
   with a capability-limited host API, or they don't ship.
 - Write a debug tool that needs a keyboard. This is a handheld-first project.
 - Claim something was tested when it wasn't. Present work without running `tools/test.sh`.
+- Read, fetch or clone reverse-engineered or decompiled source in a Gcity workspace. Work
+  from design notes in `docs/references/` (`docs/policy/study-and-rebuild.md` §3).
 
 ---
 
