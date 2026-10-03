@@ -113,7 +113,7 @@ func test_envelope_and_root_validation() -> void:
 	var sim: SimRoot = _populated()
 	var text: String = _save(sim)
 	var cases: Dictionary[String, Callable] = {
-		"a schema version from the future": func(e: Dictionary) -> void: e["save_schema_version"] = 3,
+		"a schema version from the future": func(e: Dictionary) -> void: e["save_schema_version"] = SaveFile.SCHEMA_VERSION + 1,
 		"a schema version from before there were saves": func(e: Dictionary) -> void: e["save_schema_version"] = 0,
 		"fractional schema version": func(e: Dictionary) -> void: e["save_schema_version"] = 1.5,
 		"missing digest": func(e: Dictionary) -> void: e.erase("content_digest"),
@@ -392,72 +392,6 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 ## M6 spec claim 14: the generated stream must actually reach every command kind the
 ## sim registers. A kind added to the registry and forgotten here would leave its
 ## system's state untested by the round trip, which is exactly the hole this closes.
-## M7 spec claim 15: the save went to version 2, and a version-1 save still loads. Each
-## case is a generated sim saved, then made into a version-1 file by taking out what
-## version 1 never had — the world's overlay — and loaded: every system version 1 had
-## comes back exactly as it was saved, and every system it predates starts as a new
-## world at the save's seed.
-func test_property_a_version_1_save_still_loads() -> void:
-	var rng := RandomNumberGenerator.new()
-	rng.seed = SEED_PROPERTY + 1
-	var db: ContentDb = _db()
-	var refused: int = 0
-	var changed: int = 0
-	var fresh_mismatch: int = 0
-	for case: int in PROPERTY_CASES:
-		var seed: int = rng.randi()
-		var sim: SimRoot = SimAssembly.build(seed, db)
-		_random_commands(sim, rng, rng.randi_range(0, 8))
-		sim.step_n(rng.randi_range(0, 6))
-		var json := JSON.new()
-		assert_eq(json.parse(SaveFile.serialize(sim, db.digest())), OK, "the save parses as JSON")
-		var envelope: Dictionary = json.data
-		envelope["save_schema_version"] = 1
-		var systems: Dictionary = envelope["snapshot"]["s:systems"]
-		for id: StringName in SimAssembly.SINCE_SCHEMA_2:
-			systems.erase("s:%s" % id)
-		# full precision: the default writer rounds large numbers, which would corrupt the
-		# save on the way to being a version-1 one, not in the migration
-		var file: SaveFile = SaveFile.parse(JSON.stringify(envelope, "", true, true))
-		var loaded: SimRoot = SimAssembly.load_save(file, db)
-		if loaded == null:
-			refused += 1
-			if refused <= 3:
-				fail("case %d: a version-1 save was refused: %s" % [case, file.error])
-			continue
-		var was: Dictionary = sim.snapshot()["systems"]
-		var now: Dictionary = loaded.snapshot()["systems"]
-		# a new world at this seed: the graph and the ground are the seed's, so they are
-		# the saved sim's own; everything else is empty, and the gate is known
-		var fresh: Dictionary = {
-			&"routes": was[&"routes"], &"terrain": was[&"terrain"],
-			&"regions": {"transits": {}, "edits": {}}, &"bindings": {"bound": []},
-			&"tokens": {"tokens": {}, "next_token": 1}, &"hydration": {"squads": {}},
-			&"discovery": {"found": {1: 0}},
-		}
-		for key: Variant in was:
-			var id: StringName = key
-			if SimAssembly.SINCE_SCHEMA_2.has(id):
-				if StateHash.of(now[id]) != StateHash.of(fresh[id]):
-					fresh_mismatch += 1
-					if fresh_mismatch <= 3:
-						fail("case %d: %s did not start as a new world" % [case, id])
-			elif StateHash.of(now[id]) != StateHash.of(was[id]):
-				changed += 1
-				if changed <= 3:
-					fail("case %d: %s did not come back as it was saved" % [case, id])
-	assert_eq(refused, 0, "every version-1 save loads (%d cases)" % PROPERTY_CASES)
-	assert_eq(changed, 0, "with everything version 1 had exactly as it was")
-	assert_eq(fresh_mismatch, 0, "and everything it predates as a new world")
-	# and a file that says version 1 but holds version 2's overlay is not a version-1 save
-	var sim: SimRoot = SimAssembly.build(SEED, db)
-	var json := JSON.new()
-	assert_eq(json.parse(SaveFile.serialize(sim, db.digest())), OK, "parses")
-	var envelope: Dictionary = json.data
-	envelope["save_schema_version"] = 1
-	assert_true(SimAssembly.load_save(SaveFile.parse(JSON.stringify(envelope, "", true, true)), db) == null, "a version-2 save relabelled 1 is refused")
-
-
 func test_the_generated_stream_covers_every_registered_command_kind() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = SEED_PROPERTY
@@ -478,6 +412,26 @@ func test_the_generated_stream_covers_every_registered_command_kind() -> void:
 	for kind: Variant in seen:
 		var generated: StringName = kind
 		assert_true(registered.has(generated), "the stream only generates kinds the sim knows: %s" % generated)
+
+
+## M7.5 spec claim 10 (decision 6): saves are version 3, and a save from before human
+## scale is refused with a message that names its version, not loaded at the wrong scale.
+## The rest of it is a good save of today's sim: only the version says it is old.
+func test_a_save_from_before_human_scale_is_refused_by_its_version() -> void:
+	assert_eq(SaveFile.SCHEMA_VERSION, 3, "saves are version 3")
+	var db: ContentDb = _db()
+	var sim: SimRoot = _populated()
+	var text: String = _save(sim)
+	assert_true(SimAssembly.load_save(SaveFile.parse(text), db) != null, "today's save loads")
+	for old: int in [1, 2]:
+		var envelope: Dictionary = JSON.parse_string(text)
+		envelope["save_schema_version"] = old
+		var file: SaveFile = SaveFile.parse(JSON.stringify(envelope, "", true, true))
+		assert_false(file.is_valid(), "a version-%d save is refused" % old)
+		assert_true(file.error.contains("save_schema_version %d " % old), "naming its version: %s" % file.error)
+		assert_true(file.error.contains("human scale"), "and why")
+		assert_true(file.error.contains("version 3"), "and what this build reads")
+		assert_true(SimAssembly.load_save(file, db) == null, "and the sim does not load it")
 
 
 func test_size_limit_boundary() -> void:

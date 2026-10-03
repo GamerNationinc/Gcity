@@ -12,12 +12,14 @@
 ## [method SimRoot.restore_root]. Nothing is applied unless the whole file is valid.
 class_name SaveFile extends RefCounted
 
-## Version 2 (M7 spec claim 15) is version 1 with the world's overlay in it: the route
-## graph's seed and hash, the terrain's, the regions' edits and gate transits, bound
-## sites, tokens, hydrated squads and what has been discovered. A version-1 save still
-## loads: SimAssembly starts every system it predates as a new world at its seed.
-const SCHEMA_VERSION: int = 2
-const OLDEST_VERSION: int = 1
+## Version 3 (M7.5 spec claim 10, decision 6) is version 2 at human scale: the same
+## shape, but every position, piece and fall in it means a two-cell person in
+## three-cell storeys. Versions 1 and 2 (the world's overlay arrived in 2, M7 spec claim
+## 15) were written at one cell a person and are refused, naming their version: no
+## player holds one, and a migration would be code for nobody.
+const SCHEMA_VERSION: int = 3
+## The first version of the save, for telling an old save from a broken one.
+const FIRST_VERSION: int = 1
 const MAX_BYTES: int = 16 * 1024 * 1024
 const MAX_DEPTH: int = 64
 ## Beyond this magnitude a double no longer represents every integer.
@@ -78,8 +80,10 @@ func _load(text: String) -> String:
 	if typeof(version_v) != TYPE_FLOAT and typeof(version_v) != TYPE_INT:
 		return "save_schema_version must be an integer"
 	var version_f: float = version_v
-	if version_f != floorf(version_f) or version_f < OLDEST_VERSION or version_f > SCHEMA_VERSION:
-		return "save_schema_version %s is not supported (expected %d to %d)" % [version_v, OLDEST_VERSION, SCHEMA_VERSION]
+	if version_f != floorf(version_f) or version_f < FIRST_VERSION or version_f > SCHEMA_VERSION:
+		return "save_schema_version %s is not supported (expected %d)" % [version_v, SCHEMA_VERSION]
+	if version_f < SCHEMA_VERSION:
+		return "save_schema_version %d is from before human scale (M7.5) and cannot be loaded; this build reads version %d" % [int(version_f), SCHEMA_VERSION]
 	version = int(version_f)
 	if typeof(envelope["content_digest"]) != TYPE_STRING:
 		return "content_digest must be a string"

@@ -145,40 +145,11 @@ static func load_save(file: SaveFile, content: ContentDb) -> SimRoot:
 	if sim == null:
 		return null
 	var snapshot: Dictionary = file.snapshot
-	if file.version == 1:
-		snapshot = migrate_from_1(file.snapshot, sim)
-		if snapshot.is_empty():
-			return null
 	if restore_systems(sim, snapshot) != OK:
 		return null
 	if sim.restore_root(snapshot) != OK:
 		return null
 	return sim
-
-
-## The systems save schema 2 added (M7 spec claim 15): the world's overlay.
-const SINCE_SCHEMA_2: Array[StringName] = [&"routes", &"terrain", &"regions", &"bindings", &"tokens", &"hydration", &"discovery"]
-
-
-## A version-1 snapshot brought up to version 2: every system version 1 did not have
-## starts as it does in a new world at the save's seed, which `fresh` is. Empty (after an
-## error) if the snapshot already holds one of them, since then it is not a version-1
-## save whatever its envelope says.
-static func migrate_from_1(snapshot: Dictionary, fresh: SimRoot) -> Dictionary:
-	var systems_v: Variant = snapshot.get("systems")
-	if typeof(systems_v) != TYPE_DICTIONARY:
-		push_error("SimAssembly.migrate_from_1: snapshot has no systems")
-		return {}
-	var systems: Dictionary = systems_v
-	var out: Dictionary = snapshot.duplicate(true)
-	var moved: Dictionary = out["systems"]
-	var defaults: Dictionary = fresh.snapshot()["systems"]
-	for id: StringName in SINCE_SCHEMA_2:
-		if systems.has(id) or systems.has(String(id)):
-			push_error("SimAssembly.migrate_from_1: a version-1 save cannot hold '%s'" % id)
-			return {}
-		moved[id] = defaults[id]
-	return out
 
 
 ## Restores every system of a freshly built sim from a full [method SimRoot.snapshot]
