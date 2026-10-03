@@ -128,6 +128,18 @@ var _operator: int = 0
 ## The run log (`RunLog`): one file per launch. The `_seen_*` fields are what it last
 ## wrote, so it writes changes rather than every frame.
 var _run_log: RunLog
+## `--create`: the creator tool (M7.5 spec claims 14–15) on Cold Storage's open lot.
+var _create: bool = false
+var _creator: SiteCreator
+var _creator_menu: bool = false
+var _creator_menu_index: int = 0
+var _creator_menu_entries: Array[String] = []
+var _creator_cursor_node: MeshInstance3D
+var _creator_face_node: MeshInstance3D
+var _creator_marker_nodes: Array[MeshInstance3D] = []
+var _creator_presses: Array[Dictionary] = []
+var _creator_press_next: int = 0
+var _creator_press_wait: int = 0
 var _seen: Dictionary = {}
 var _seen_rejected: int = 0
 var _seen_move: String = ""
@@ -157,6 +169,8 @@ func _ready() -> void:
 			_mission = true
 		elif arg == "--wilds":
 			_wilds = true
+		elif arg == "--create":
+			_create = true
 	_run_log = RunLog.open(OS.get_cmdline_user_args())
 	Input.joy_connection_changed.connect(_on_joy_changed)
 	_piece_templates = _host.content().ids(&"build_piece")
@@ -166,6 +180,10 @@ func _ready() -> void:
 	_build_device()
 	_demo_script = _build_demo_script()
 	_mission_steps = MissionDemo.steps()
+	if _create:
+		_creator = SiteCreator.new(_host.content())
+		_creator_presses = CreatorDemo.presses()
+		_build_creator_nodes()
 
 
 func _build_demo_script() -> Array:
@@ -400,6 +418,8 @@ func _capsule(colour: Color) -> MeshInstance3D:
 ## diff-based refresh is a G4 item if the profiler says so.
 func _sync_scene(sim: SimRoot) -> void:
 	_sync_pieces(SimAssembly.build_of(sim))
+	if _create:
+		_sync_creator()
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
 	_sync_ground(sim, actors)
 	var perception: PerceptionSystem = SimAssembly.perception_of(sim)
@@ -647,7 +667,7 @@ func _process(delta: float) -> void:
 		_frame_usec.append(int(delta * 1_000_000.0))
 	var sim: SimRoot = _host.sim()
 	_advance_setup(sim)
-	if _demo and not _mission:
+	if _demo and not _mission and not _create:
 		if _demo_next < _demo_script.size():
 			var step: Array = _demo_script[_demo_next]
 			var at: float = step[0]
@@ -669,7 +689,7 @@ func _process(delta: float) -> void:
 			_save_capture()
 			get_tree().quit()
 			return
-	elif _mission and _demo:
+	elif (_mission or _create) and _demo:
 		if not _screenshot_path.is_empty() and _demo_t >= _screenshot_at_s:
 			_sync_scene(sim)
 			_place_camera(sim)
@@ -699,6 +719,10 @@ func _physics_process(_delta: float) -> void:
 		# --mission --demo drives the route itself; --mission alone hands it to you
 		_mission_tick(sim)
 		return
+	if _create:
+		_creator_tick(sim)
+		if _demo:
+			return
 	var input: Vector2 = Vector2.ZERO
 	if _demo:
 		if _demo_walk_ticks > 0:
@@ -822,6 +846,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_echo():
 		return
 	# the device button: a short press raises or lowers, a long hold restarts
+	if event.is_action("world_device") and _create:
+		if event.is_pressed():
+			_creator_open_menu(not _creator_menu)
+		return
 	if event.is_action("world_device"):
 		if event.is_pressed():
 			_device_pressed_at = Time.get_ticks_msec() / 1000.0
@@ -834,6 +862,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				_raise_device(not _device_raised)
 		return
 	if not event.is_pressed():
+		return
+	if _create:
+		_creator_input(event)
 		return
 	if _device_raised:
 		for action: String in ["device_up", "device_down", "device_left", "device_right", "device_select", "device_secondary", "device_back", "device_prev_app", "device_next_app"]:
@@ -1022,6 +1053,9 @@ func _grate(sim: SimRoot) -> int:
 func _advance_setup(sim: SimRoot) -> void:
 	if _mission:
 		_advance_mission_setup(sim)
+		return
+	if _create:
+		_advance_create_setup(sim)
 		return
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
 	var items: ItemSystem = SimAssembly.items_of(sim)
@@ -1360,6 +1394,10 @@ func _restart() -> void:
 	_yaw = PI
 	_log.clear()
 	_demo_next = _demo_script.size()
+	if _create:
+		_creator = SiteCreator.new(_host.content())
+		_creator_menu = false
+		_creator_press_next = _creator_presses.size()
 
 
 # ---------------------------------------------------------------- save and load
@@ -1406,7 +1444,7 @@ func _load_game() -> void:
 
 func _render(sim: SimRoot) -> void:
 	var lines: PackedStringArray = PackedStringArray()
-	var title: String = "M6 mission" if _mission else "M5 world"
+	var title: String = "M6 mission" if _mission else ("creator" if _create else "M5 world")
 	lines.append("Gcity %s   tick %d   state %s%s" % [title, sim.get_tick(), _state_digest(sim), "   PAUSED" if sim.is_paused() else ""])
 	if _setup_stage < READY:
 		lines.append("setting up (stage %d)..." % _setup_stage)
@@ -1422,6 +1460,10 @@ func _render(sim: SimRoot) -> void:
 	var p: Vector3i = actors.position_of(_player)
 	if not actors.is_alive(_player):
 		lines.append("YOU ARE DOWN   [Esc / Back] restart   [F9] load")
+	if _create:
+		_render_creator(sim, lines)
+		_status.text = "\n".join(lines)
+		return
 	var regions: Regions = SimAssembly.regions_of(sim)
 	lines.append("region %s%s   ground: %d chunks drawn%s" % [regions.region_at(p.x, p.z).id(), "   IN THE GATE (load window)" if regions.in_transit(_player) else "",
 		_ground.shown_chunks().size(), "" if _ground.is_settled() else ", streaming"])
@@ -1617,3 +1659,249 @@ func _exit_tree() -> void:
 		_record("end", "the world view closed")
 		_run_log.close(_host.sim().get_tick() if _host.sim() != null else -1, "quit")
 		_run_log = null
+
+
+# ---------------------------------------------------------------- the creator tool
+
+## The creator's controls (M7.5 spec claim 14): the D-pad moves the cursor relative to
+## the camera, the bumpers raise and lower it a level, A places, B removes, X turns, Y
+## picks the next piece. Controller only: no keyboard binding (CLAUDE.md §10).
+const CREATOR_ACTIONS: Array[String] = ["create_up", "create_down", "create_left", "create_right", "create_raise", "create_lower",
+	"create_place", "create_remove", "create_turn", "create_next"]
+## Where the player stands on arriving: the street edge of Cold Storage's lot.
+const CREATOR_START: Vector3i = Vector3i(42500, 0, 41500)
+## Every guard post and terminal is drawn as one of these, a fresh set each time they change.
+var _creator_marker_sig: String = ""
+## A site to open once the lot is set up again (claim 15), or "".
+var _creator_open_path: String = ""
+
+
+## The player on Cold Storage's open lot, theirs with the plots beside it.
+func _advance_create_setup(sim: SimRoot) -> void:
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	match _setup_stage:
+		0:
+			_submit(sim, &"actor.spawn", {"profile": String(PROFILE), "range_m": 0})
+			_setup_stage = 1
+		1:
+			var ids: Array[int] = actors.actor_ids()
+			if ids.is_empty():
+				return
+			_player = ids[0]
+			actors.set_position(_player, CREATOR_START)
+			_submit(sim, &"land.identify", {"actor": _player, "owner": "player"})
+			for lot: String in SiteCreator.LOTS:
+				_submit(sim, &"land.transfer", {"parcel": lot, "owner": "player"})
+			_setup_stage = 2
+		2:
+			if SimAssembly.land_of(sim).owner_of(StringName(SiteCreator.LOTS[0])) != &"player":
+				return
+			_note("t%d creator: the lot is yours; %d build pieces and two markers to place" % [sim.get_tick(), _creator.palette().size() - 2])
+			if not _creator_open_path.is_empty():
+				_open_site(sim, _creator_open_path)
+				_creator_open_path = ""
+			_setup_stage = READY
+
+
+## Each tick: the guard posts a build change left without room go, said aloud; under
+## `--demo` the scripted presses play.
+func _creator_tick(sim: SimRoot) -> void:
+	if _setup_stage < READY:
+		return
+	for cell: Vector3i in _creator.prune(SimAssembly.movement_of(sim)):
+		_note("guard post at %s removed: no room for a guard there now" % cell)
+	if not _demo or _creator_press_next >= _creator_presses.size():
+		return
+	if _creator_press_wait > 0:
+		_creator_press_wait -= 1
+		return
+	_creator_press_wait = CreatorDemo.PACE
+	var press: Dictionary = _creator_presses[_creator_press_next]
+	_creator_press_next += 1
+	if press.has("save"):
+		_save_site(sim)
+		return
+	var at: Vector3i = press["at"]
+	var piece: StringName = press["piece"]
+	var turns: int = press["turns"]
+	_creator.set_cursor(at)
+	_creator.select(piece)
+	_creator.set_turn(turns)
+	_creator_press("create_place")
+
+
+func _creator_input(event: InputEvent) -> void:
+	if _setup_stage < READY:
+		return
+	if _creator_menu:
+		if event.is_action("create_up"):
+			_creator_menu_index = maxi(0, _creator_menu_index - 1)
+		elif event.is_action("create_down"):
+			_creator_menu_index = mini(_creator_menu_entries.size() - 1, _creator_menu_index + 1)
+		elif event.is_action("create_place"):
+			var entry: String = _creator_menu_entries[_creator_menu_index]
+			_creator_open_menu(false)
+			if entry == "save":
+				_save_site(_host.sim())
+			else:
+				_creator_open_path = entry
+				_restart()
+		elif event.is_action("create_remove"):
+			_creator_open_menu(false)
+		return
+	for action: String in CREATOR_ACTIONS:
+		if event.is_action(action):
+			_creator_press(action)
+			return
+	if event.is_action("world_camera"):
+		_perform("camera")
+
+
+func _creator_press(action: String) -> void:
+	var sim: SimRoot = _host.sim()
+	var steps: Dictionary = {"create_up": Vector2i(0, -1), "create_down": Vector2i(0, 1), "create_left": Vector2i(-1, 0), "create_right": Vector2i(1, 0)}
+	if steps.has(action):
+		var dpad: Vector2i = steps[action]
+		_creator.move(SiteCreator.camera_step(_yaw, dpad))
+		return
+	match action:
+		"create_raise":
+			_creator.rise(1)
+		"create_lower":
+			_creator.rise(-1)
+		"create_turn":
+			_creator.turn()
+		"create_next":
+			_creator.next_piece()
+		"create_place":
+			var name: StringName = _creator.selected()
+			var movement: MovementSystem = SimAssembly.movement_of(sim)
+			var payload: Dictionary = _creator.place(_player, _yaw, movement)
+			if not payload.is_empty():
+				_submit(sim, &"build.place", payload)
+			elif name == SiteCreator.GUARD_POST and not _creator.guard_fits(movement, _creator.cursor()):
+				_note("no room for a guard at %s" % _creator.cursor())
+			else:
+				_record("create", "%s at %s" % [name, _creator.cursor()])
+		"create_remove":
+			var payload: Dictionary = _creator.remove(SimAssembly.build_of(sim), _player, _yaw)
+			if payload.is_empty():
+				_record("create", "markers cleared at %s" % _creator.cursor())
+			else:
+				_submit(sim, &"build.remove", payload)
+
+
+func _creator_open_menu(open: bool) -> void:
+	if _setup_stage < READY:
+		return
+	_creator_menu = open
+	if open:
+		_creator_menu_entries = ["save"]
+		_creator_menu_entries.append_array(SiteCreator.openable())
+		_creator_menu_index = 0
+
+
+## Writes what stands on the lot to `user://sites/<id>.json` (claim 15).
+func _save_site(sim: SimRoot) -> void:
+	var now: Dictionary = Time.get_datetime_dict_from_system()
+	var id: String = SiteCreator.site_id(now)
+	var site: Dictionary = _creator.to_site(SimAssembly.build_of(sim), SimAssembly.movement_of(sim),
+		"Site %04d-%02d-%02d %02d:%02d" % [now["year"], now["month"], now["day"], now["hour"], now["minute"]],
+		"Built with the creator tool on %04d-%02d-%02d." % [now["year"], now["month"], now["day"]])
+	if site.is_empty():
+		_note("not saved: nothing built, or a guard post with no room")
+		return
+	var path: String = SiteCreator.save(site, id)
+	if path.is_empty():
+		_note("save failed: %s" % id)
+		return
+	var pieces: Array = site["pieces"]
+	var spawns: Array = site["spawns"]
+	var terminals: Array = site["terminals"]
+	_note("saved %s: %d pieces, %d guards, %d terminals" % [path, pieces.size(), spawns.size(), terminals.size()])
+
+
+## Raises a saved or shipped site's pieces on the lot, through the sim, to keep working.
+func _open_site(sim: SimRoot, path: String) -> void:
+	var site: Dictionary = SiteCreator.read(path)
+	var commands: Array[Dictionary] = _creator.open(site, _player) if not site.is_empty() else [] as Array[Dictionary]
+	if commands.is_empty():
+		_note("could not open %s: %s" % [path.get_file(), "unreadable" if site.is_empty() else SiteCreator.problem(site, _host.content())])
+		return
+	for command: Dictionary in commands:
+		_submit(sim, &"build.place", command)
+	_note("opened %s: %d pieces" % [path.get_file(), commands.size()])
+
+
+func _build_creator_nodes() -> void:
+	_creator_cursor_node = _box(Vector3(1.04, 1.04, 1.04), Color(1.0, 0.85, 0.2, 0.35))
+	var cursor_material: StandardMaterial3D = _creator_cursor_node.material_override
+	cursor_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	add_child(_creator_cursor_node)
+	_creator_face_node = _box(Vector3(1.0, 1.0, 1.0), Color(1.0, 0.6, 0.1))
+	add_child(_creator_face_node)
+
+
+## The cursor, the face the selected piece would take, and the markers.
+func _sync_creator() -> void:
+	var cell: Vector3i = _creator.cursor()
+	var centre: Vector3 = Vector3(cell) + Vector3(0.5, 0.5, 0.5)
+	_creator_cursor_node.visible = not _creator_menu
+	_creator_cursor_node.position = centre
+	var facing: String = _creator.facing_for(_creator.selected(), _yaw)
+	_creator_face_node.visible = not facing.is_empty() and not _creator_menu
+	if not facing.is_empty():
+		var axis: String = facing.substr(1, 1)
+		var sign: float = 1.0 if facing.begins_with("p") else -1.0
+		var normal: Vector3 = Vector3(1, 0, 0) if axis == "x" else (Vector3(0, 1, 0) if axis == "y" else Vector3(0, 0, 1))
+		_creator_face_node.position = centre + normal * 0.5 * sign
+		_creator_face_node.scale = Vector3.ONE - normal * 0.94
+	var sig: String = "%s|%s" % [_creator.guard_posts(), _creator.terminal_cells()]
+	if sig == _creator_marker_sig:
+		return
+	_creator_marker_sig = sig
+	for node: MeshInstance3D in _creator_marker_nodes:
+		node.queue_free()
+	_creator_marker_nodes = []
+	for post: Dictionary in _creator.guard_posts():
+		var at: Vector3i = post["cell"]
+		var facing_deg: int = post["facing"]
+		var pillar: MeshInstance3D = _box(Vector3(0.4, 1.8, 0.4), Color(0.85, 0.3, 0.25))
+		pillar.position = Vector3(at) + Vector3(0.5, 0.9, 0.5)
+		var nose: MeshInstance3D = _box(Vector3(0.5, 0.15, 0.15), Color(1.0, 0.85, 0.2))
+		nose.position = Vector3(0.35, 0.6, 0.0)
+		pillar.add_child(nose)
+		pillar.rotation.y = -deg_to_rad(float(facing_deg))
+		add_child(pillar)
+		_creator_marker_nodes.append(pillar)
+	for at: Vector3i in _creator.terminal_cells():
+		var box: MeshInstance3D = _box(Vector3(0.5, 1.0, 0.3), Color(0.2, 0.85, 0.9))
+		box.position = Vector3(at) + Vector3(0.5, 0.5, 0.5)
+		add_child(box)
+		_creator_marker_nodes.append(box)
+
+
+func _render_creator(sim: SimRoot, lines: PackedStringArray) -> void:
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var name: StringName = _creator.selected()
+	var facing: String = _creator.facing_for(name, _yaw)
+	if name == SiteCreator.GUARD_POST:
+		facing = "%d°" % _creator.post_facing(_yaw)
+	lines.append("CREATOR   pieces %d   guard posts %d   terminals %d   rejected %d" % [build.piece_ids().size(), _creator.guard_posts().size(),
+		_creator.terminal_cells().size(), sim.rejected_count()])
+	lines.append("piece: %s   cursor %s   facing %s" % [name, _creator.cursor(), "-" if facing.is_empty() else facing])
+	lines.append("")
+	if _creator_menu:
+		lines.append(_glyphs.line([[&"create_up", "up"], [&"create_down", "down"], [&"create_place", "choose"], [&"create_remove", "close"]]))
+		for i: int in _creator_menu_entries.size():
+			var entry: String = _creator_menu_entries[i]
+			lines.append("%s %s" % [">" if i == _creator_menu_index else " ", "Save this site" if entry == "save" else "Open %s" % entry.get_file().get_basename()])
+	else:
+		lines.append(_glyphs.line([[&"world_move_forward", "walk"], [&"world_look_left", "look"], [&"create_up", "cursor"], [&"create_raise", "up a level"], [&"create_lower", "down a level"]]))
+		lines.append(_glyphs.line([[&"create_place", "place"], [&"create_remove", "remove"], [&"create_turn", "turn"], [&"create_next", "next piece"], [&"world_device", "menu: save / open"]]))
+	if _run_log != null:
+		lines.append("run log: %s" % _run_log.path().get_file())
+	if _demo:
+		lines.append("DEMO %.1fs  press %d/%d" % [_demo_t, _creator_press_next, _creator_presses.size()])
+	for entry: String in _log:
+		lines.append(entry)
