@@ -49,7 +49,24 @@ session picks up. Read it first, then `CLAUDE.md`.
 - **Claim 7, falls in metres, is done** (same day, this session, at CEOGG's word): the
   `fall_free_levels` profile field, at 1 everywhere (gate item 11); claim 6's tuning is
   pinned by a test profile. All 24 hashes re-recorded for the content digest only.
-- **Next: claim 6, the sites at human scale** (spec claim 6, gate §4 items 1, 2, 6, 11):
+- **Update, 2026-10-03: claim 6 is done in two parts** (CEOGG chose the split and its three
+  decisions, gate §4 item 12). 6a `b46bc1a`: `tools/make_m3_fixtures.gd` (claim 9's tool).
+  6b `4cc50e7`: every profile at human scale, both sites rebuilt by `tools/make_sites.gd`
+  (two-cell slab, 2 m tunnel, storey walls, 2 m doors, sill windows, a tall maintenance
+  window, a caged fire stair), a `concrete_block` piece, all 24 fixtures regenerated and
+  re-proved, 19 tests that leaned on one-cell bodies fixed (gate items 14, 15). Full suite
+  green: 521 tests, 348 228 assertions, 24 replays (33 min). **Lessons:** sight follows
+  `passable`, so every opening a person fits is an eye-height view (item 14a); a generator
+  or test that draws its own sight line drifts from the game's: ask `can_target`/`can_see`.
+- **Next: claim 6c, raid tokens and stacked openings** (gate item 2, decided: a token
+  crosses an opening column only where both of its faces are open, breaching costs both).
+  It touches `sim/nav/portal_graph.gd` (edge cost of a column) and
+  `sim/agents/raid_token_system.gd` (crossing and breaching the face above), so plan it as
+  one change or two. Then claims 8 (wilds checked against a 2-cell body), 10 (saves at
+  schema 3), 11 (client at scale; gate item 17: the demo has one rejected command), 14–16
+  (the creator tool), 12–13 to close. **CEOGG still to place: crouching** (gate item 13).
+- *(Superseded by the update above.)* Claim 6 plan, as written before it was done
+  (spec claim 6, gate §4 items 1, 2, 6, 11):
   rebuild both sites in `tools/make_sites.gd` at 3-cell storeys with 2-cell doors and
   sill windows, and in the same change flip every profile to `body_cells` 2, `eye_mm`
   1600, `centre_mm` 1000, `fall_free_levels` 3, `fall_damage_per_level` 4000; update
