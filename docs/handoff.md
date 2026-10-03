@@ -3,6 +3,26 @@
 Claude Code's memory lives on the machine it runs on, so this file is how the next
 session picks up. Read it first, then `CLAUDE.md`.
 
+## Update, 2026-10-03 evening, on the Deck: claims 8, 10 and 11 done
+
+- **Claim 8** (`25593f4`): the road property walks 10 000 worlds as a two-cell person
+  through `MovementSystem.move`; levelling clears a storey over a bound site's top
+  (`SiteSystem.top_of`, `LEVEL_HEADROOM`). No fixture moved. Gate item 18.
+- **Claim 10** (`2224ab3`): saves are version 3; versions 1 and 2 are refused by name
+  (`migrate_from_1` removed). Gate item 19.
+- **Claim 11** (`1792e3b`): the mission demo walks Cold Storage at human scale and scores
+  seen 0 / alarms 0 / bodies 0 / traces 0 with 0 rejected (it stalled before); overlays
+  and the first-person eye come from the sim. Gate items 17, 20. **Still owed:** the gate
+  screenshots of the M4 building, Cold Storage and the wilds, taken with the Deck screen
+  awake (asleep it renders at 1 fps), and the Deck has no `xvfb-run`: run the client on
+  `DISPLAY=:0` with `--screenshot=... --screenshot-at=...` instead of `tools/screenshot.sh`.
+- Full suite on the Deck: 525 tests, 0 failed, 24 replays, ~25 min with 6 jobs once
+  `tests/out/durations.json` exists (the first run, without it, took ~45).
+- A fresh worktree needs `$(tools/godot.sh) --headless --path . --import` before
+  `tests/run_tests.gd` can find `GcityTest`, plus the built addons (test.sh does both).
+- **Next: claims 14–16, the creator tool**, then 9 (close the fixture table), 12
+  (mutation), 13 (CEOGG's Deck run). Crouching (item 13) is still CEOGG's to place.
+
 ## Update, 2026-10-03: moving from the laptop back to the Deck — read this first
 
 Claude Code's memory stays on the machine; this section is everything the laptop's memory
