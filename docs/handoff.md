@@ -58,7 +58,12 @@ session picks up. Read it first, then `CLAUDE.md`.
   green: 521 tests, 348 228 assertions, 24 replays (33 min). **Lessons:** sight follows
   `passable`, so every opening a person fits is an eye-height view (item 14a); a generator
   or test that draws its own sight line drifts from the game's: ask `can_target`/`can_see`.
-- **Next: claim 6c, raid tokens and stacked openings** (gate item 2, decided: a token
+- **Claim 6c is done** (2026-10-03, gate item 2): raid tokens cross as a person, priced by
+  `RaidTokenSystem.crossing_cost` with the movement system's rules; floors are never cut;
+  a far-side bug fixed. 523 tests green. **Next: claim 8** (the wilds against a 2-cell body:
+  road clearance, site levelling to the top plus a storey, the M7 connectivity property over
+  10 000 seeds with the body rule), then 10, 11, 14–16, 12–13.
+- *(Done; kept for the record.)* Claim 6c, raid tokens and stacked openings (gate item 2, decided: a token
   crosses an opening column only where both of its faces are open, breaching costs both).
   It touches `sim/nav/portal_graph.gd` (edge cost of a column) and
   `sim/agents/raid_token_system.gd` (crossing and breaching the face above), so plan it as
