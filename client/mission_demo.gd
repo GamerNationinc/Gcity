@@ -11,6 +11,10 @@
 class_name MissionDemo extends RefCounted
 
 const SITE: StringName = &"cold_storage"
+## The slab's level over the street, and the tunnel's depth under it: a two-cell slab.
+const GROUND: int = 2
+## The grate over the tunnel's head, in the slab.
+const GRATE: Vector3i = Vector3i(4, GROUND, -2)
 ## The cell south of the building the roamer must be past before the hall is crossed.
 const HALL_LINE: int = 4
 ## Long enough for the roamer's loop, short enough that the demo does not stall.
@@ -128,38 +132,49 @@ static func _centre_of(cell: Vector2i) -> Vector2i:
 	return Vector2i(cell.x * M + M / 2, cell.y * M + M / 2)
 
 
-## The run, in order. Cells are relative to the site's base.
+## The run, in order, as `tools/make_m6_fixtures.gd` walks `m6-stealth` at human scale
+## (M7.5 claim 11): the slab is GROUND levels up from the street and the tunnel GROUND
+## below it. Cells are relative to the site's base.
 static func steps() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	out.append({"do": Step.WALK, "rel": Vector3i(4, 0, -5), "ground": true})
-	out.append({"do": Step.CLIMB, "dy": 1})
-	out.append({"do": Step.WALK, "rel": Vector3i(4, 1, -4)})
-	out.append({"do": Step.WALK, "rel": Vector3i(4, 1, -2)})
+	_climb(out, GROUND)
+	out.append({"do": Step.WALK, "rel": Vector3i(4, GROUND, -4)})
+	out.append({"do": Step.WALK, "rel": GRATE})
 	out.append({"do": Step.CUT})
-	out.append({"do": Step.CLIMB, "dy": -1})
-	for i: int in 10:
+	_climb(out, -GROUND)
+	# wait two cells short of the hatch, under the solid floor: a hatch a person climbs
+	# through is one a guard looks down through
+	for i: int in 8:
 		out.append({"do": Step.WALK, "rel": Vector3i(4, 0, -1 + i)})
 	out.append({"do": Step.WAIT_CLEAR})
-	out.append({"do": Step.CLIMB, "dy": 1})
-	out.append({"do": Step.WALK, "rel": Vector3i(3, 1, 8)})
-	out.append({"do": Step.WALK, "rel": Vector3i(2, 1, 8)})
-	out.append({"do": Step.WALK, "rel": Vector3i(2, 1, 9)})
-	out.append({"do": Step.WALK, "rel": Vector3i(1, 1, 10)})
+	out.append({"do": Step.WALK, "rel": Vector3i(4, 0, 7)})
+	out.append({"do": Step.WALK, "rel": Vector3i(4, 0, 8)})
+	_climb(out, GROUND)
+	out.append({"do": Step.WALK, "rel": Vector3i(3, GROUND, 8)})
+	out.append({"do": Step.WALK, "rel": Vector3i(2, GROUND, 8)})
+	out.append({"do": Step.WALK, "rel": Vector3i(2, GROUND, 9)})
+	out.append({"do": Step.WALK, "rel": Vector3i(1, GROUND, 10)})
 	out.append({"do": Step.HACK})
 	out.append({"do": Step.WIPE})
 	out.append({"do": Step.WAIT_CLEAR})
-	out.append({"do": Step.WALK, "rel": Vector3i(2, 1, 9)})
-	out.append({"do": Step.WALK, "rel": Vector3i(2, 1, 8)})
-	out.append({"do": Step.WALK, "rel": Vector3i(3, 1, 8)})
-	out.append({"do": Step.WALK, "rel": Vector3i(4, 1, 8)})
-	out.append({"do": Step.CLIMB, "dy": -1})
+	out.append({"do": Step.WALK, "rel": Vector3i(2, GROUND, 9)})
+	out.append({"do": Step.WALK, "rel": Vector3i(2, GROUND, 8)})
+	out.append({"do": Step.WALK, "rel": Vector3i(3, GROUND, 8)})
+	out.append({"do": Step.WALK, "rel": Vector3i(4, GROUND, 8)})
+	_climb(out, -GROUND)
 	for i: int in 10:
 		out.append({"do": Step.WALK, "rel": Vector3i(4, 0, 7 - i)})
-	out.append({"do": Step.CLIMB, "dy": 1})
+	_climb(out, GROUND)
 	out.append({"do": Step.PATCH})
-	out.append({"do": Step.WALK, "rel": Vector3i(4, 1, -4)})
+	out.append({"do": Step.WALK, "rel": Vector3i(4, GROUND, -4)})
 	out.append({"do": Step.DONE})
 	return out
+
+
+static func _climb(out: Array[Dictionary], levels: int) -> void:
+	for i: int in absi(levels):
+		out.append({"do": Step.CLIMB, "dy": signi(levels)})
 
 
 ## True when every living guard on the building's ground floor is south of the hall
@@ -167,7 +182,7 @@ static func steps() -> Array[Dictionary]:
 static func hall_is_clear(sim: SimRoot, player: int, operator: int) -> bool:
 	var sites: SiteSystem = SimAssembly.sites_of(sim)
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
-	var floor_y: int = sites.cell_of(SITE, Vector3i(0, 1, 0)).y
+	var floor_y: int = sites.cell_of(SITE, Vector3i(0, GROUND, 0)).y
 	var line: int = sites.cell_of(SITE, Vector3i(0, 0, HALL_LINE)).z
 	for id: int in actors.actor_ids():
 		if id == player or id == operator or not actors.is_alive(id):

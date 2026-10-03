@@ -29,7 +29,7 @@ const READY: int = 6
 ## `--mission`: the player turns up 44 m out on the x axis and walks in from there.
 const MISSION_SPAWN_M: int = 44
 ## The street grate, relative to Cold Storage's base.
-const GRATE_REL: Vector3i = Vector3i(4, 1, -2)
+const GRATE_REL: Vector3i = MissionDemo.GRATE
 ## The four shapes a build piece is drawn as: a cell box and a wall on each axis.
 ## How often the HUD's state hash is recomputed. Hashing the world is not free.
 const DIGEST_EVERY_TICKS: int = 40
@@ -45,7 +45,10 @@ const STANCE_COLOURS: Dictionary = {
 	&"hold": Color(0.55, 0.65, 0.5), &"advance": Color(0.95, 0.5, 0.15), &"flank": Color(0.7, 0.35, 0.85),
 	&"retreat": Color(0.3, 0.55, 0.95), &"investigate": Color(0.95, 0.85, 0.25), &"surrender": Color(0.95, 0.95, 0.95),
 }
-const EYE_HEIGHT: float = 1.6
+## How far over a guard's floor its awareness bar hangs: clear of a 1.8 m capsule.
+const BAR_OVER_FLOOR: float = 2.1
+## How far over the floor a last-known marker sits: half its own height.
+const MARKER_OVER_FLOOR: float = 0.15
 ## Pulled back from 4 m and 2.2 m after the 2026-10-01 Deck run: from 4 m the capsule
 ## filled the middle of the screen. M8 claim 6 replaces this with a spring arm.
 const THIRD_PERSON_BACK: float = 6.0
@@ -480,13 +483,13 @@ func _sync_guard_overlay(guard: int, alive: bool, p: Vector3i, perception: Perce
 	if not show:
 		return
 	var fraction: float = float(perception.awareness_of(guard, _player)) / float(PerceptionSystem.AWARENESS_MAX)
-	bar.position = Vector3(float(p.x) / M, 2.1, float(p.z) / M)
+	bar.position = bar_position(p)
 	bar.scale = Vector3(maxf(fraction, 0.02), 1.0, 1.0)
 	bar.material_override = _material(Color(0.95, 0.2, 0.2) if perception.is_alerted(guard, _player) else Color(0.3, 0.9, 0.3).lerp(Color(0.95, 0.6, 0.1), fraction))
 	if perception.can_see(guard, _player):
-		var me: Vector3i = SimAssembly.actors_of(_host.sim()).position_of(_player)
-		var a: Vector3 = Vector3(float(p.x) / M, 1.5, float(p.z) / M)
-		var b: Vector3 = Vector3(float(me.x) / M, 1.2, float(me.z) / M)
+		var ends: PackedVector3Array = sight_ends(_host.sim(), guard, _player)
+		var a: Vector3 = ends[0]
+		var b: Vector3 = ends[1]
 		var length: float = a.distance_to(b)
 		if length > 0.05:
 			line.visible = true
@@ -496,7 +499,34 @@ func _sync_guard_overlay(guard: int, alive: bool, p: Vector3i, perception: Perce
 	elif perception.has_last_known(guard, _player):
 		var last: Vector3i = perception.last_known(guard, _player)
 		marker.visible = true
-		marker.position = Vector3(float(last.x) / M, 0.15, float(last.z) / M)
+		marker.position = marker_position(last)
+
+
+## Where the scene draws a sim position, in metres.
+static func view_of(mm: Vector3i) -> Vector3:
+	return Vector3(float(mm.x) / M, float(mm.y) / M, float(mm.z) / M)
+
+
+## An awareness bar hangs over the guard's head from the floor it stands on (M7.5 claim 11).
+static func bar_position(feet: Vector3i) -> Vector3:
+	return view_of(feet) + Vector3(0.0, BAR_OVER_FLOOR, 0.0)
+
+
+## A last-known marker sits on the floor where the player was remembered.
+static func marker_position(last: Vector3i) -> Vector3:
+	return view_of(last) + Vector3(0.0, MARKER_OVER_FLOOR, 0.0)
+
+
+## A sight line runs as the sim's does: from the guard's eyes to the target's centre.
+static func sight_ends(sim: SimRoot, guard: int, target: int) -> PackedVector3Array:
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var perception: PerceptionSystem = SimAssembly.perception_of(sim)
+	return PackedVector3Array([view_of(actors.position_of(guard) + perception.eye_of(guard)), view_of(actors.centre_of(target))])
+
+
+## The first-person camera stands at the sim's own eyes for the actor.
+static func eye_position(sim: SimRoot, actor: int) -> Vector3:
+	return view_of(SimAssembly.actors_of(sim).position_of(actor) + SimAssembly.perception_of(sim).eye_of(actor))
 
 
 ## Draws every standing piece as a handful of multimeshes rather than one node each.
@@ -723,7 +753,7 @@ func _place_camera(sim: SimRoot) -> void:
 	var feet: Vector3 = Vector3(float(p.x) / M, float(p.y) / M, float(p.z) / M)
 	var forward: Vector3 = Vector3(-sin(_yaw), 0.0, -cos(_yaw))
 	if _first_person:
-		_camera.position = feet + Vector3(0.0, EYE_HEIGHT, 0.0)
+		_camera.position = eye_position(sim, _player)
 		_camera.look_at(_camera.position + forward, Vector3.UP)
 	else:
 		var side: Vector3 = Vector3(-forward.z, 0.0, forward.x) * THIRD_PERSON_SIDE
