@@ -825,6 +825,13 @@ and the clock, and draw what the sim knows over the world. Every action is a com
 judges, and a session saves as a replay fixture. Not in the release export. Requested and
 its spec approved by CEOGG, 2026-10-02 (`docs/specs/M7.6-sandbox.md`).
 
+**M7.7 — Movement lockdown** *(proposed, not yet approved)*
+Every way a body moves, gone over once, decided, built, bound to its own Deck button and
+closed: walk, sprint, crouch, climb, fall. Crouch is a per-actor posture (one cell, lower
+eyes, half speed, less seen); climbing needs no button; steps become events M8 plays and
+M9 hears. Proposed 2026-10-04 from CEOGG's G7.5 answer on crouching
+(`docs/specs/M7.7-movement-lockdown.md`).
+
 **M8 — Look and feel**
 What the player sees and hears, over a sim that does not move: one art direction,
 characters and their motion, materials for the world and what is built in it, the HUD

@@ -31,7 +31,7 @@ func _setup() -> void:
 	_radio = _items.spawn(&"device_module", &"radio_module", inv, 2)
 	_shell = DeviceShell.new()
 	_shell.setup(db, _submit, InputGlyphs.new())
-	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking", "mission"]:
+	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking", "mission", "creator"]:
 		var scene: PackedScene = load("res://client/device/apps/%s_app.tscn" % app)
 		_shell.register_view(StringName(app), scene)
 	var tree: SceneTree = Engine.get_main_loop()
@@ -339,4 +339,43 @@ func test_the_map_has_a_world_page_with_the_graph_you_know() -> void:
 	assert_true(map._roads.size() >= 2, "and the roads out of them drawn")
 	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "select switches back")
 	assert_true(_shell.refresh(_sim, _player), "to the block")
+	_teardown()
+
+
+## Gate item 21 (CEOGG, 2026-10-04: the creator's save and open go in a device app): the
+## Creator app is offered only where the client grants `creator`, first in the strip; its
+## A asks the view to save or open (a file, never a sim command), and its list is "save"
+## then every site that can be opened.
+var _asked: Array[Dictionary] = []
+
+
+func _ask(kind: StringName, payload: Dictionary) -> void:
+	_asked.append({"kind": kind, "payload": payload})
+
+
+func test_the_creator_app_is_granted_in_the_creator_only_and_asks_the_view() -> void:
+	_setup()
+	_equip()
+	assert_false(_app_ids().has(&"creator"), "no module provides it: not in a normal game")
+	_shell.grant(&"creator")
+	assert_eq(_app_ids()[0], &"creator", "granted in --create, it comes first")
+	assert_true(_shell.refresh(_sim, _player), "and draws")
+	assert_eq(_shell.open_app(), &"creator", "open as the device comes up")
+	var scene: PackedScene = load("res://client/device/apps/creator_app.tscn")
+	var app: CreatorApp = scene.instantiate()
+	app.bind(_ask, Callable())
+	var list: Array[String] = CreatorApp.entries()
+	assert_eq(list[0], "save", "save comes first")
+	assert_eq(list.slice(1), SiteCreator.openable(), "then every site that opens")
+	assert_eq(CreatorApp.label_of("save"), "Save this site", "named for the player")
+	assert_eq(CreatorApp.label_of("user://sites/autosave.json"), "Open autosave", "the autosave too")
+	assert_true(app.refresh(_sim, _player), "the list draws")
+	assert_true(app.handle(&"device_select", _sim, _player), "A on save")
+	assert_eq(_asked, [{"kind": CreatorApp.KIND_SAVE, "payload": {}}], "asks the view to save")
+	assert_true(app.handle(&"device_down", _sim, _player), "down")
+	assert_true(app.handle(&"device_select", _sim, _player), "A on the next")
+	assert_eq(_asked[1], {"kind": CreatorApp.KIND_OPEN, "payload": {"path": list[1]}}, "asks the view to open it")
+	assert_true(app.handle(&"device_up", _sim, _player), "up")
+	assert_false(app.handle(&"device_back", _sim, _player), "B is the shell's: it lowers the device")
+	app.free()
 	_teardown()

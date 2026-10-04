@@ -24,6 +24,8 @@ var _last_prompts: String = ""
 var _note_text: String = ""
 var _note_shown: String = ""
 var _glyphs: InputGlyphs = null
+## A requirement the client grants without hardware, or &"": `creator` in `--create`.
+var _granted: StringName = &""
 
 var _strip: Label
 var _status: Label
@@ -36,6 +38,11 @@ func setup(content: ContentDb, submit: Callable, glyphs: InputGlyphs) -> void:
 	_content = content
 	_submit = submit
 	_glyphs = glyphs
+
+
+## Grants an app requirement no module provides: the creator app, in `--create` only.
+func grant(requirement: StringName) -> void:
+	_granted = requirement
 
 
 func register_view(app: StringName, scene: PackedScene) -> void:
@@ -84,7 +91,7 @@ func available_apps(sim: SimRoot, player: int) -> Array[Dictionary]:
 	for id: StringName in _content.ids(KIND_APP):
 		var t: Dictionary = _content.get_entry(KIND_APP, id)
 		var requires_s: String = t["requires"]
-		if not requires_s.is_empty() and not provides.has(StringName(requires_s)):
+		if not requires_s.is_empty() and not provides.has(StringName(requires_s)) and StringName(requires_s) != _granted:
 			continue
 		var order: int = t["order"]
 		entries.append([order, String(id)])

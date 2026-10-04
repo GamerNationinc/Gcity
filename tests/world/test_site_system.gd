@@ -89,7 +89,7 @@ func test_cold_storage_stands_with_its_three_routes_in() -> void:
 	_setup()
 	var site: StringName = &"cold_storage"
 	_raise(site)
-	assert_eq(_sites.pieces_of(site).size(), 705, "every piece of the site stands")
+	assert_eq(_sites.pieces_of(site).size(), 711, "every piece of the site stands")
 	assert_eq(_sites.agents_of(site).size(), 4, "four guards (design doc §15.3)")
 	var unsupported: int = 0
 	for id: int in _sites.pieces_of(site):
@@ -152,7 +152,7 @@ func test_a_site_raises_through_its_command_and_survives_the_round_trip() -> voi
 	assert_eq(other.restore_root(snap), OK, "root restored")
 	var sites: SiteSystem = SimAssembly.sites_of(other)
 	assert_true(sites.is_raised(&"cold_storage"), "still raised")
-	assert_eq(sites.pieces_of(&"cold_storage").size(), 705, "with its pieces")
+	assert_eq(sites.pieces_of(&"cold_storage").size(), 711, "with its pieces")
 	_sim.step()
 	other.step()
 	assert_eq(other.state_hash(), _sim.state_hash(), "hashes agree")
@@ -291,7 +291,7 @@ func test_a_site_raised_with_its_contract_stands_where_the_contract_bound_it() -
 	var base: Vector3i = _sites.base_of(&"cold_storage")
 	assert_eq(Vector2i(base.x, base.z), Vector2i(Terrain._floor_div(at.x, M), Terrain._floor_div(at.y, M)), "at the slot")
 	assert_eq(regions.region_at(at.x, at.y).id(), &"wilds", "out in the wilds")
-	assert_eq(_sites.pieces_of(&"cold_storage").size(), 705, "every piece of it")
+	assert_eq(_sites.pieces_of(&"cold_storage").size(), 711, "every piece of it")
 	# the lot moved with it
 	var authored: Vector3i = Vector3i(40, 0, 40)
 	var offset: Vector3i = (base - authored) * M
@@ -367,6 +367,29 @@ func test_cold_storage_is_closed_and_nobody_walks_in_at_the_back() -> void:
 		for i: int in 30:
 			_movement.move(_player, 0, -100)
 		assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), start, "walking in from the north at x %d goes nowhere" % x)
+
+
+## Gate item 36: the archive is entered by its door. From M6 until M7.5 the side passages
+## north of the hall opened into it, and a person in the hall walked round its
+## token-checked door. (They still open into the server room, which has no lock.)
+func test_the_archive_is_entered_only_by_its_door() -> void:
+	_setup()
+	_raise(&"cold_storage")
+	for walk: Array in [[Vector3i(0, 2, 11), 100], [Vector3i(4, 2, 11), -100]]:
+		var rel: Vector3i = walk[0]
+		var dx: int = walk[1]
+		var start: Vector3i = _sites.cell_of(&"cold_storage", rel)
+		_actors.set_position(_player, BuildSystem.cell_centre(start) - Vector3i(0, M / 2, 0))
+		_sim.step_n(3)
+		for i: int in 30:
+			_movement.move(_player, dx, 0)
+		assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), start, "from the passage at %s nobody walks into the archive" % rel)
+	var portals: PortalGraph = SimAssembly.portals_of(_sim)
+	var hall: int = portals.node_at(_sites.cell_of(&"cold_storage", Vector3i(2, 2, 9)))
+	var archive: int = portals.node_at(_sites.cell_of(&"cold_storage", Vector3i(2, 2, 11)))
+	assert_true(archive != hall and archive != PortalGraph.EXTERIOR and archive != PortalGraph.SOLID, "the archive is a room of its own")
+	var id: int = _build.face_piece_at(BuildSystem.face_key(_sites.cell_of(&"cold_storage", Vector3i(2, 2, 10)), "pz"))
+	assert_eq(_build.template_of(id), &"door_archive", "and its way in is its door")
 
 
 ## M7.5 Q4 (standards §11): a three-cell warehouse door on Cold Storage's loading side,

@@ -672,7 +672,7 @@
 			"tick": 61
 		}
 	],
-	"expected_hash": "03c2cade4a8962d462be028f64da99649967558a8c911e4ab97d41f5ea413115",
+	"expected_hash": "f594b710f55d27b4c3c8f5108337335d947be6251211521563c8e505619feed1",
 	"name": "m3-killbox",
 	"schema_version": 1,
 	"seed": 20261009,

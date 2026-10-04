@@ -67,7 +67,7 @@
 			"kind": "actor.equip_device",
 			"payload": {
 				"actor": 2,
-				"device": 782
+				"device": 788
 			},
 			"tick": 8
 		},
@@ -75,8 +75,8 @@
 			"kind": "item.attach",
 			"payload": {
 				"actor": 2,
-				"part": 783,
-				"weapon": 782
+				"part": 789,
+				"weapon": 788
 			},
 			"tick": 9
 		},
@@ -117,8 +117,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 786
+				"magazine": 791,
+				"round": 792
 			},
 			"tick": 13
 		},
@@ -126,8 +126,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 787
+				"magazine": 791,
+				"round": 793
 			},
 			"tick": 14
 		},
@@ -135,8 +135,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 788
+				"magazine": 791,
+				"round": 794
 			},
 			"tick": 15
 		},
@@ -144,8 +144,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 789
+				"magazine": 791,
+				"round": 795
 			},
 			"tick": 16
 		},
@@ -153,8 +153,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 790
+				"magazine": 791,
+				"round": 796
 			},
 			"tick": 17
 		},
@@ -162,8 +162,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 791
+				"magazine": 791,
+				"round": 797
 			},
 			"tick": 18
 		},
@@ -171,8 +171,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 792
+				"magazine": 791,
+				"round": 798
 			},
 			"tick": 19
 		},
@@ -180,8 +180,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 793
+				"magazine": 791,
+				"round": 799
 			},
 			"tick": 20
 		},
@@ -189,8 +189,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 794
+				"magazine": 791,
+				"round": 800
 			},
 			"tick": 21
 		},
@@ -198,8 +198,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 795
+				"magazine": 791,
+				"round": 801
 			},
 			"tick": 22
 		},
@@ -207,8 +207,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 796
+				"magazine": 791,
+				"round": 802
 			},
 			"tick": 23
 		},
@@ -216,8 +216,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 797
+				"magazine": 791,
+				"round": 803
 			},
 			"tick": 24
 		},
@@ -225,8 +225,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 798
+				"magazine": 791,
+				"round": 804
 			},
 			"tick": 25
 		},
@@ -234,8 +234,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 799
+				"magazine": 791,
+				"round": 805
 			},
 			"tick": 26
 		},
@@ -243,8 +243,8 @@
 			"kind": "magazine.load",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"round": 800
+				"magazine": 791,
+				"round": 806
 			},
 			"tick": 27
 		},
@@ -252,7 +252,7 @@
 			"kind": "actor.wield",
 			"payload": {
 				"actor": 2,
-				"weapon": 784
+				"weapon": 790
 			},
 			"tick": 28
 		},
@@ -260,8 +260,8 @@
 			"kind": "weapon.reload_tactical",
 			"payload": {
 				"actor": 2,
-				"magazine": 785,
-				"weapon": 784
+				"magazine": 791,
+				"weapon": 790
 			},
 			"tick": 29
 		},
@@ -88264,7 +88264,7 @@
 			"kind": "terminal.hack_start",
 			"payload": {
 				"actor": 2,
-				"terminal": 780
+				"terminal": 786
 			},
 			"tick": 12006
 		},
@@ -174587,12 +174587,12 @@
 			"kind": "corpse.loot",
 			"payload": {
 				"actor": 2,
-				"corpse": 809
+				"corpse": 815
 			},
 			"tick": 23851
 		}
 	],
-	"expected_hash": "70288399f44957711b7e1e11165f29d3fe0ff79ba6e53ebbec0834d1612a0c9e",
+	"expected_hash": "aef0282fd9587b3126fd5cd73eff3dc388b129026c5c22fd679c49ac112189a4",
 	"name": "m6-death",
 	"schema_version": 1,
 	"seed": 20261230,

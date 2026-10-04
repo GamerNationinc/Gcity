@@ -141,6 +141,13 @@ func _cold_storage() -> void:
 			_wall(Vector3i(x, ground, 8), "pz")
 	_wall(Vector3i(0, ground, 9), "px")
 	_wall(Vector3i(4, ground, 9), "nx")
+	# the side passages north of the hall are walled from the archive: from M6 to M7.5 they
+	# opened into it, and a person in the hall walked round its token-checked door (gate
+	# item 36). They still open into the server room beside its doorway, which has no lock;
+	# walled, the guards camp the room after a kill and the death run cannot get back in,
+	# because an alerted guard never stands down (G6 debt, M9's)
+	_wall(Vector3i(0, ground, 11), "px")
+	_wall(Vector3i(4, ground, 11), "nx")
 	# the back wall runs the building's full width: from M6 to M7.5 it stopped a cell short
 	# at both corners, and a person walked in from the north to the server room (gate item 27)
 	for x: int in 5:
@@ -194,8 +201,8 @@ func _cold_storage() -> void:
 	_armed_spawn("guard_sim", Vector3i(3, upper, 6), 270, 2, "cs_upper_patrol_reverse")
 	# --- the archive, behind its own door at the back of the server room (standards §11
 	# Q4, the M6 extension exercise): a second machine for a second contract, reached
-	# with a maintenance token or by the window on the fire stair and down the flight.
-	# It sits north of everything the first contract's routes touch.
+	# with a maintenance token or through a wall. It sits north of everything the first
+	# contract's routes touch.
 	for x: int in [1, 3]:
 		_wall(Vector3i(x, ground, 10), "pz")
 	_door("door_archive", Vector3i(2, ground, 10), "pz")

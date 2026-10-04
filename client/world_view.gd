@@ -133,9 +133,6 @@ var _run_log: RunLog
 ## `--create`: the creator tool (M7.5 spec claims 14–15) on Cold Storage's open lot.
 var _create: bool = false
 var _creator: SiteCreator
-var _creator_menu: bool = false
-var _creator_menu_index: int = 0
-var _creator_menu_entries: Array[String] = []
 var _creator_cursor_node: MeshInstance3D
 var _creator_face_node: MeshInstance3D
 var _creator_marker_nodes: Array[MeshInstance3D] = []
@@ -240,7 +237,9 @@ func _build_device() -> void:
 	add_child(_device_viewport)
 	_shell = DeviceShell.new()
 	_shell.setup(_host.content(), _submit_from_device, _glyphs)
-	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking", "mission"]:
+	if _create:
+		_shell.grant(&"creator")
+	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking", "mission", "creator"]:
 		var scene: PackedScene = load("res://client/device/apps/%s_app.tscn" % app)
 		_shell.register_view(StringName(app), scene)
 	_device_viewport.add_child(_shell)
@@ -253,6 +252,16 @@ func _build_device() -> void:
 
 
 func _submit_from_device(kind: StringName, payload: Dictionary) -> void:
+	# the creator app's save and open are files, not sim state: the view does them
+	if kind == CreatorApp.KIND_SAVE:
+		_shell.note(_save_site(_host.sim()))
+		return
+	if kind == CreatorApp.KIND_OPEN:
+		var path: String = payload["path"]
+		_record("create", "opening %s" % path)
+		_creator_open_path = path
+		_restart()
+		return
 	_submit(_host.sim(), kind, payload)
 
 
@@ -665,6 +674,7 @@ static func _piece_colour(kind: StringName) -> Color:
 
 func _process(delta: float) -> void:
 	_log_frame(delta)
+	_creator_feed_buttons()
 	if not _capture_path.is_empty():
 		_frame_usec.append(int(delta * 1_000_000.0))
 	var sim: SimRoot = _host.sim()
@@ -857,10 +867,11 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_echo():
 		return
 	# the device button: a short press raises or lowers, a long hold restarts
-	# in the creator, View or Start opens the menu: Start is where a player looks for one
-	if _create and (event.is_action("world_device") or event.is_action("create_menu")):
+	# in the creator, Start raises the device too (on the Creator app, first in its strip):
+	# Start is where a player looks for a menu
+	if _create and event.is_action("create_menu"):
 		if event.is_pressed():
-			_creator_open_menu(not _creator_menu)
+			_raise_device(not _device_raised)
 		return
 	if event.is_action("world_device"):
 		if event.is_pressed():
@@ -877,9 +888,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if _mission and _demo and not _handed_back():
 		return  # the scripted route has the controls until it is done
-	if _create:
-		_creator_input(event)
-		return
 	if _device_raised:
 		for action: String in ["device_up", "device_down", "device_left", "device_right", "device_select", "device_secondary", "device_back", "device_prev_app", "device_next_app"]:
 			if event.is_action(action):
@@ -889,6 +897,9 @@ func _unhandled_input(event: InputEvent) -> void:
 				else:
 					_device_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 				return
+		return
+	if _create:
+		_creator_input(event)
 		return
 	for action: String in ["fire", "reload", "wield", "camera", "build_place", "build_remove", "build_next", "raid", "save", "load", "profile", "overlay", "restart"]:
 		if event.is_action("world_" + action):
@@ -1411,7 +1422,6 @@ func _restart() -> void:
 	_demo_next = _demo_script.size()
 	if _create:
 		_creator = SiteCreator.new(_host.content())
-		_creator_menu = false
 		_creator_autosave_due = SiteCreator.AUTOSAVE_TICKS
 		_creator_press_next = _creator_presses.size()
 
@@ -1548,7 +1558,8 @@ func _log_input(event: InputEvent) -> void:
 	var named: bool = false
 	for action: StringName in InputMap.get_actions():
 		var a: String = String(action)
-		var ours: bool = (a.begins_with("create_") or a == "world_device" or a == "world_camera") if _create else (a.begins_with("world_") or a.begins_with("device_"))
+		# named for what the press does: the creator's controls, or the device's while it is up
+		var ours: bool = (a.begins_with("device_") or a == "world_device" or a == "create_menu") if _create and _device_raised else ((a.begins_with("create_") or a == "world_device" or a == "world_camera") if _create else (a.begins_with("world_") or a.begins_with("device_")))
 		if ours and event.is_action(action):
 			named = true
 			_record("input", "%s %s (%s)" % [a, "pressed" if event.is_pressed() else "released", event.as_text()])
@@ -1693,6 +1704,7 @@ func _exit_tree() -> void:
 const CREATOR_ACTIONS: Array[String] = ["create_up", "create_down", "create_left", "create_right", "create_raise", "create_lower",
 	"create_place", "create_remove", "create_turn", "create_next"]
 ## Where the player stands on arriving: the street edge of Cold Storage's lot.
+const CREATOR_BUTTON_FRAMES: int = 20
 const CREATOR_START: Vector3i = Vector3i(42500, 0, 41500)
 ## Every guard post and terminal is drawn as one of these, a fresh set each time they change.
 var _creator_marker_sig: String = ""
@@ -1704,6 +1716,11 @@ var _creator_pending: Dictionary = {}
 ## The tick the lot is next written to the autosave, and what was last written there.
 var _creator_autosave_due: int = SiteCreator.AUTOSAVE_TICKS
 var _creator_autosaved: String = ""
+## Deck buttons the `--demo` build presses through the input pipeline, as a player would:
+## its save goes Start, A, Start, the device and the Creator app's own path. A frame
+## counter paces them, because the device pauses the sim where the lot is safe.
+var _creator_buttons: Array[JoyButton] = []
+var _creator_button_wait: int = 0
 
 
 ## The player on Cold Storage's open lot, theirs with the plots beside it.
@@ -1722,9 +1739,17 @@ func _advance_create_setup(sim: SimRoot) -> void:
 			_submit(sim, &"land.identify", {"actor": _player, "owner": "player"})
 			for lot: String in SiteCreator.LOTS:
 				_submit(sim, &"land.transfer", {"parcel": lot, "owner": "player"})
+			# a handset to carry the Creator app: save and open live on the device (item 21)
+			_submit(sim, &"item.spawn", {"kind": "device_frame", "template": "handset", "container": String(ItemSystem.inventory_of(_player)), "seed": 1, "count": 1})
 			_setup_stage = 2
 		2:
 			if SimAssembly.land_of(sim).owner_of(StringName(SiteCreator.LOTS[0])) != &"player":
+				return
+			var handset: int = _kind_in(SimAssembly.items_of(sim), _player, ItemSystem.KIND_DEVICE_FRAME)
+			if handset == EntityIds.NONE:
+				return
+			if actors.device_of(_player) != handset:
+				_submit(sim, &"actor.equip_device", {"actor": _player, "device": handset})
 				return
 			_note("t%d creator: the lot is yours; %d build pieces and two markers to place" % [sim.get_tick(), _creator.palette().size() - 2])
 			if not _creator_open_path.is_empty():
@@ -1753,7 +1778,7 @@ func _creator_tick(sim: SimRoot) -> void:
 	var press: Dictionary = _creator_presses[_creator_press_next]
 	_creator_press_next += 1
 	if press.has("save"):
-		_save_site(sim)
+		_creator_buttons.append_array([JOY_BUTTON_START, JOY_BUTTON_A, JOY_BUTTON_START])
 		return
 	var at: Vector3i = press["at"]
 	var piece: StringName = press["piece"]
@@ -1762,6 +1787,22 @@ func _creator_tick(sim: SimRoot) -> void:
 	_creator.select(piece)
 	_creator.set_turn(turns)
 	_creator_press("create_place")
+
+
+## One queued demo button every `CREATOR_BUTTON_FRAMES` frames, pressed and released.
+func _creator_feed_buttons() -> void:
+	if _creator_buttons.is_empty():
+		return
+	if _creator_button_wait > 0:
+		_creator_button_wait -= 1
+		return
+	_creator_button_wait = CREATOR_BUTTON_FRAMES
+	var button: JoyButton = _creator_buttons.pop_front()
+	for pressed: bool in [true, false]:
+		var event := InputEventJoypadButton.new()
+		event.button_index = button
+		event.pressed = pressed
+		Input.parse_input_event(event)
 
 
 func _creator_check_pending(sim: SimRoot) -> void:
@@ -1791,22 +1832,6 @@ func _creator_slot_piece(sim: SimRoot, cell: Vector3i, facing: String) -> int:
 
 func _creator_input(event: InputEvent) -> void:
 	if _setup_stage < READY:
-		return
-	if _creator_menu:
-		if event.is_action("create_up"):
-			_creator_menu_index = maxi(0, _creator_menu_index - 1)
-		elif event.is_action("create_down"):
-			_creator_menu_index = mini(_creator_menu_entries.size() - 1, _creator_menu_index + 1)
-		elif event.is_action("create_place"):
-			var entry: String = _creator_menu_entries[_creator_menu_index]
-			_creator_open_menu(false)
-			if entry == "save":
-				_save_site(_host.sim())
-			else:
-				_creator_open_path = entry
-				_restart()
-		elif event.is_action("create_remove"):
-			_creator_open_menu(false)
 		return
 	for action: String in CREATOR_ACTIONS:
 		if event.is_action(action):
@@ -1853,45 +1878,33 @@ func _creator_press(action: String) -> void:
 				_submit(sim, &"build.remove", payload)
 
 
-func _creator_open_menu(open: bool) -> void:
-	if _setup_stage < READY:
-		return
-	_creator_menu = open
-	if open:
-		_creator_menu_entries = ["save"]
-		_creator_menu_entries.append_array(SiteCreator.openable())
-		_creator_menu_index = 0
-		_record("create", "menu opened: save, %d sites to open" % (_creator_menu_entries.size() - 1))
-	else:
-		_record("create", "menu closed")
-
-
 ## Writes what stands on the lot to `user://sites/<id>.json` (claim 15).
-func _save_site(sim: SimRoot) -> void:
+func _save_site(sim: SimRoot) -> String:
 	var now: Dictionary = Time.get_datetime_dict_from_system()
 	var id: String = SiteCreator.site_id(now)
 	var problem_: String = _creator.unsavable(SimAssembly.build_of(sim), SimAssembly.movement_of(sim))
 	if not problem_.is_empty():
-		_note("not saved: %s" % problem_)
-		return
+		return _said("not saved: %s" % problem_)
 	var site: Dictionary = _creator.to_site(SimAssembly.build_of(sim), SimAssembly.movement_of(sim),
 		"Site %04d-%02d-%02d %02d:%02d" % [now["year"], now["month"], now["day"], now["hour"], now["minute"]],
 		"Built with the creator tool on %04d-%02d-%02d." % [now["year"], now["month"], now["day"]])
-	if site.is_empty():
-		_note("not saved: nothing built, or a guard post with no room")
-		return
 	var path: String = SiteCreator.save(site, id, SiteCreator.DEMO_DIR if _demo else SiteCreator.SITE_DIR)
 	if path.is_empty():
-		_note("save failed: %s" % id)
-		return
+		return _said("save failed: %s" % id)
 	var pieces: Array = site["pieces"]
 	var spawns: Array = site["spawns"]
 	var terminals: Array = site["terminals"]
-	_note("saved %s: %d pieces, %d guards, %d terminals" % [path, pieces.size(), spawns.size(), terminals.size()])
+	return _said("saved %s: %d pieces, %d guards, %d terminals" % [path, pieces.size(), spawns.size(), terminals.size()])
+
+
+## Notes `text` and hands it back, for the device's note line as well.
+func _said(text: String) -> String:
+	_note(text)
+	return text
 
 
 ## Writes the lot to `user://sites/autosave.json` when it has changed since the last time,
-## said in the run log; the menu lists it first.
+## said in the run log; the Creator app lists it first.
 func _autosave_site(sim: SimRoot) -> void:
 	var build: BuildSystem = SimAssembly.build_of(sim)
 	var movement: MovementSystem = SimAssembly.movement_of(sim)
@@ -1936,10 +1949,10 @@ func _build_creator_nodes() -> void:
 func _sync_creator() -> void:
 	var cell: Vector3i = _creator.cursor()
 	var centre: Vector3 = Vector3(cell) + Vector3(0.5, 0.5, 0.5)
-	_creator_cursor_node.visible = not _creator_menu
+	_creator_cursor_node.visible = not _device_raised
 	_creator_cursor_node.position = centre
 	var facing: String = _creator.facing_for(_creator.selected(), _yaw)
-	_creator_face_node.visible = not facing.is_empty() and not _creator_menu
+	_creator_face_node.visible = not facing.is_empty() and not _device_raised
 	if not facing.is_empty():
 		var axis: String = facing.substr(1, 1)
 		var sign: float = 1.0 if facing.begins_with("p") else -1.0
@@ -1981,14 +1994,8 @@ func _render_creator(sim: SimRoot, lines: PackedStringArray) -> void:
 		_creator.terminal_cells().size(), sim.rejected_count()])
 	lines.append("piece: %s   cursor %s   facing %s" % [name, _creator.cursor(), "-" if facing.is_empty() else facing])
 	lines.append("")
-	if _creator_menu:
-		lines.append(_glyphs.line([[&"create_up", "up"], [&"create_down", "down"], [&"create_place", "choose"], [&"create_remove", "close"]]))
-		for i: int in _creator_menu_entries.size():
-			var entry: String = _creator_menu_entries[i]
-			lines.append("%s %s" % [">" if i == _creator_menu_index else " ", "Save this site" if entry == "save" else "Open %s" % entry.get_file().get_basename()])
-	else:
-		lines.append(_glyphs.line([[&"world_move_forward", "walk"], [&"world_look_left", "look"], [&"create_up", "cursor"], [&"create_raise", "up a level"], [&"create_lower", "down a level"]]))
-		lines.append(_glyphs.line([[&"create_place", "place"], [&"create_remove", "remove"], [&"create_turn", "turn"], [&"create_next", "next piece"], [&"create_menu", "menu: save / open"]]))
+	lines.append(_glyphs.line([[&"world_move_forward", "walk"], [&"world_look_left", "look"], [&"create_up", "cursor"], [&"create_raise", "up a level"], [&"create_lower", "down a level"]]))
+	lines.append(_glyphs.line([[&"create_place", "place"], [&"create_remove", "remove"], [&"create_turn", "turn"], [&"create_next", "next piece"], [&"create_menu", "device: save / open"]]))
 	if _run_log != null:
 		lines.append("run log: %s" % _run_log.path().get_file())
 	if _demo:

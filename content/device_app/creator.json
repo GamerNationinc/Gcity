@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "The creator tool's save and open (M7.5 spec claim 15; CEOGG chose a device app over a menu on View, 2026-10-04). Offered only in `--create`, where the client grants `creator`: no device module provides it.",
+	"title": "Creator",
+	"icon": "+",
+	"order": 1,
+	"requires": "creator"
+}

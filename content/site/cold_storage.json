@@ -4231,6 +4231,60 @@
 			]
 		},
 		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				2,
+				11
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				3,
+				11
+			]
+		},
+		{
+			"facing": "px",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				4,
+				11
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				11
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				3,
+				11
+			]
+		},
+		{
+			"facing": "nx",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				4,
+				11
+			]
+		},
+		{
 			"facing": "pz",
 			"piece": "wall_panel",
 			"rel": [

@@ -632,7 +632,7 @@
 			"tick": 40
 		}
 	],
-	"expected_hash": "717e340132f3d46e8e5b8ff1b74a1f20f512bdab1757ba2812f1c8c33eabb60d",
+	"expected_hash": "b55150043358e7229ca69e34457eb484fbfbf63e9b552e4fe47e8faaecd0ca10",
 	"name": "m3-bunker",
 	"schema_version": 1,
 	"seed": 20261008,
