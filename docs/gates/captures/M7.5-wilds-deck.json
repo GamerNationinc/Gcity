@@ -1,0 +1,29 @@
+{
+	"all_usec": {
+		"count": 2668,
+		"low_01pct_fps": 60.9533097647202,
+		"low_1pct_fps": 88.0049282759835,
+		"max": 224999,
+		"mean": 11255,
+		"p50": 11111,
+		"p99": 11363,
+		"p999": 16406
+	},
+	"cpu": "AMD Custom APU 0932",
+	"demo_loops": 0,
+	"engine": "4.6.1-stable (official)",
+	"final_5_min_usec": {
+		"count": 2668,
+		"low_01pct_fps": 60.9533097647202,
+		"low_1pct_fps": 88.0049282759835,
+		"max": 224999,
+		"mean": 11255,
+		"p50": 11111,
+		"p99": 11363,
+		"p999": 16406
+	},
+	"frames": 2668,
+	"gpu": "AMD Custom GPU 0932 (RADV VANGOGH)",
+	"os": "Linux",
+	"seconds": 30.029572
+}

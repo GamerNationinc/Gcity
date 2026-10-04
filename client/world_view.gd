@@ -31,8 +31,10 @@ const MISSION_SPAWN_M: int = 44
 ## The street grate, relative to Cold Storage's base.
 const GRATE_REL: Vector3i = MissionDemo.GRATE
 ## The four shapes a build piece is drawn as: a cell box and a wall on each axis.
-## How often the HUD's state hash is recomputed. Hashing the world is not free.
-const DIGEST_EVERY_TICKS: int = 40
+## How often the HUD's state hash is recomputed: every 30 s of sim time. Hashing the
+## world is not free: 62 ms on the Deck with Cold Storage raised in the wilds (M7.5 gate
+## item 30), so once a second it set the mission demo's 1 % low at 14 fps.
+const DIGEST_EVERY_TICKS: int = 1200
 const PIECE_SHAPES: Array[String] = ["cell", "x", "y", "z"]
 const PIECE_SIZES: Dictionary[String, Vector3] = {
 	"cell": Vector3(0.98, 0.98, 0.98),
