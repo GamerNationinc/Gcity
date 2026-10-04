@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "A1 Heavy Assault: settles fast to a loose 2 degree cone and holds it under swing - suppression, not marksmanship.",
+	"cone_start_mdeg": 9000,
+	"cone_settled_mdeg": 2000,
+	"settle_ticks": 32,
+	"swing_penalty_mdeg": 5000,
+	"swing_ticks": 16,
+	"penalty_per_mdeg": 50
+}

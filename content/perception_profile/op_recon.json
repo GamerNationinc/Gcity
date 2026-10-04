@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"description": "A1 Light Recon: 60 m sight in a narrow 90 degree cone, quicker to notice, longer memory, better ears.",
+	"sight_range_mm": 60000,
+	"fov_deg": 90,
+	"gain_per_tick": 40000,
+	"speed_gain_per_mm_per_tick": 80,
+	"decay_per_tick": 8000,
+	"alert_threshold": 1000000,
+	"memory_ticks": 600,
+	"hearing_range_mm": 70000,
+	"hearing_gain": 500000
+}

@@ -1,0 +1,36 @@
+{
+	"schema_version": 1,
+	"description": "A1 Light Recon (concept sheet variant 03): watches, flanks and withdraws; advancing is its last choice. Quick on the radio.",
+	"combat_profile": "op_recon",
+	"perception_profile": "op_recon",
+	"aim_profile": "op_recon",
+	"stress_profile": "op_recon",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 800
+		},
+		{
+			"stance": "advance",
+			"weight": 400
+		},
+		{
+			"stance": "flank",
+			"weight": 1400
+		},
+		{
+			"stance": "retreat",
+			"weight": 1400
+		},
+		{
+			"stance": "investigate",
+			"weight": 1500
+		},
+		{
+			"stance": "surrender",
+			"weight": 1000
+		}
+	],
+	"radio": true,
+	"radio_latency_ticks": 5
+}

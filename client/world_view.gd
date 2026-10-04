@@ -1,6 +1,7 @@
 ## The grey-box world (M3 spec claim set P; M4 spec claim 18): parcels as slabs, build
-## pieces as boxes, actors as capsules with a nose for their facing, a third-person
-## camera with a first-person toggle. The M4 building stands north of the start with
+## pieces as boxes, actors as capsules with a nose for their facing — or, for an agent
+## profile with a model at assets/models/agents/<id>.glb, that model (A1 spec claims
+## 6–8) — and a third-person camera with a first-person toggle. The M4 building stands north of the start with
 ## four armed guards in it, drawn in their stance's colour with an awareness bar, a
 ## last-known-position marker and a sight line to the player; D-pad up swaps every
 ## guard's profile, D-pad down hides the overlay, Back restarts. Every step, shot,
@@ -10,11 +11,14 @@
 ## `--demo` after `--` plays a scripted sequence through the same action path;
 ## `--demo-quit=<s>`, `--screenshot=<path>`, `--screenshot-at=<s>` as in the other views;
 ## `--demo-loop` repeats the demo until quit and `--capture=<path>` writes frame times.
+## `--guards=<profile>` starts the guards on that GUARD_PROFILES entry, so a capture
+## can show any roster variant without touching the demo script (A1 spec claim 6).
 class_name WorldView extends Node3D
 
 const M: float = 1000.0
 const PROFILE: StringName = &"arcade"
-const GUARD_PROFILES: Array[String] = ["guard_sim", "guard_arcade"]
+## The two M4 tuning fixtures, then the A1 operator roster (docs/operator-archetypes.md).
+const GUARD_PROFILES: Array[String] = ["guard_sim", "guard_arcade", "op_heavy", "op_medium", "op_recon", "op_drone_hunter"]
 const CUTTER: String = "cutter"
 const READY: int = 6
 const KIT_ITEMS: int = 17
@@ -58,6 +62,8 @@ var _log: Array[String] = []
 var _piece_nodes: Dictionary = {}
 var _token_nodes: Dictionary = {}
 var _actor_nodes: Dictionary = {}
+## actor -> the StanceChip mesh of its model; absent means the actor is a capsule.
+var _chip_nodes: Dictionary = {}
 var _bar_nodes: Dictionary = {}
 var _line_nodes: Dictionary = {}
 var _marker_nodes: Dictionary = {}
@@ -92,6 +98,13 @@ func _ready() -> void:
 			_capture_path = arg.trim_prefix("--capture=")
 		elif arg == "--demo-loop":
 			_demo_loop = true
+		elif arg.begins_with("--guards="):
+			var wanted: String = arg.trim_prefix("--guards=")
+			var at: int = GUARD_PROFILES.find(wanted)
+			if at >= 0:
+				_guard_profile = at
+			else:
+				push_error("--guards: unknown profile '%s'" % wanted)
 	_piece_templates = _host.content().ids(&"build_piece")
 	_glyphs.set_deck(_steam.is_deck())
 	_glyphs.set_controller_active(_steam.is_deck() or not Input.get_connected_joypads().is_empty())
@@ -265,6 +278,43 @@ func _capsule(colour: Color) -> MeshInstance3D:
 	return node
 
 
+## An agent body by convention (assets/README.md): the model at
+## assets/models/agents/<profile>.glb when one exists and carries its StanceChip mesh,
+## else the grey-box capsule (A1 spec claim 2). Records the chip for `_tint_body`.
+func _agent_body(actor: int, profile: String) -> Node3D:
+	var path: String = "res://assets/models/agents/%s.glb" % profile
+	if ResourceLoader.exists(path):
+		var scene: PackedScene = load(path)
+		var instance: Node = scene.instantiate()
+		var body := instance as Node3D
+		var chip := instance.find_child("StanceChip", true, false) as MeshInstance3D
+		if body != null and chip != null:
+			_chip_nodes[actor] = chip
+			return body
+		push_error("agent model %s lacks a 3D root or its StanceChip mesh" % path)
+		instance.queue_free()
+	return _capsule(Color(0.85, 0.3, 0.25))
+
+
+## Stance and down-state colour (A1 spec claims 7, 8): a modelled agent tints only its
+## StanceChip, unless `whole` (the down state) darkens every surface; a capsule keeps
+## the M4 whole-body tint either way.
+func _tint_body(actor: int, colour: Color, whole: bool) -> void:
+	var body: Node3D = _actor_nodes[actor]
+	if not _chip_nodes.has(actor):
+		var capsule := body as MeshInstance3D
+		if capsule != null:
+			capsule.material_override = _material(colour)
+		return
+	var chip: MeshInstance3D = _chip_nodes[actor]
+	chip.material_override = _material(colour)
+	if whole:
+		for child: Node in body.find_children("*", "MeshInstance3D", true, false):
+			var mesh := child as MeshInstance3D
+			if mesh != null:
+				mesh.material_override = _material(colour)
+
+
 ## Rebuilds piece, actor and token meshes to match the sim. Cheap at M3 sizes; a
 ## diff-based refresh is a G4 item if the profiler says so.
 func _sync_scene(sim: SimRoot) -> void:
@@ -287,27 +337,27 @@ func _sync_scene(sim: SimRoot) -> void:
 	var stances: StanceSystem = SimAssembly.stances_of(sim)
 	for actor: int in actors.actor_ids():
 		if not _actor_nodes.has(actor):
-			var node: MeshInstance3D = _capsule(Color(0.2, 0.6, 0.9) if actor == _player else Color(0.85, 0.3, 0.25))
+			var node: Node3D = _capsule(Color(0.2, 0.6, 0.9)) if actor == _player else _agent_body(actor, GUARD_PROFILES[_guard_profile])
 			_actor_nodes[actor] = node
 			add_child(node)
-		var capsule: MeshInstance3D = _actor_nodes[actor]
+		var body: Node3D = _actor_nodes[actor]
 		var p: Vector3i = actors.position_of(actor)
-		capsule.position = Vector3(float(p.x) / M, 0.9, float(p.z) / M)
+		body.position = Vector3(float(p.x) / M, 0.9, float(p.z) / M)
 		var alive: bool = actors.is_alive(actor)
-		capsule.visible = not (_first_person and actor == _player)
+		body.visible = not (_first_person and actor == _player)
 		if not alive:
 			# down: a dark slab where the body fell
-			capsule.position.y = 0.15
-			capsule.scale = Vector3(1.0, 0.15, 1.0)
-			capsule.material_override = _material(Color(0.15, 0.13, 0.13))
+			body.position.y = 0.15
+			body.scale = Vector3(1.0, 0.15, 1.0)
+			_tint_body(actor, Color(0.15, 0.13, 0.13), true)
 		if actor == _player:
-			capsule.rotation.y = _yaw + PI / 2.0
+			body.rotation.y = _yaw + PI / 2.0
 		elif perception.is_agent(actor):
-			capsule.rotation.y = -deg_to_rad(float(perception.facing_of(actor)))
+			body.rotation.y = -deg_to_rad(float(perception.facing_of(actor)))
 			if alive:
 				var stance: StringName = stances.stance_of(actor)
 				var colour: Color = STANCE_COLOURS[stance] if STANCE_COLOURS.has(stance) else Color(0.85, 0.3, 0.25)
-				capsule.material_override = _material(colour)
+				_tint_body(actor, colour, false)
 			_sync_guard_overlay(actor, alive, p, perception)
 	var raids: RaidTokenSystem = SimAssembly.raids_of(sim)
 	var tokens: Dictionary = {}
@@ -748,6 +798,12 @@ func _perform(action: String) -> void:
 			_guard_profile = (_guard_profile + 1) % GUARD_PROFILES.size()
 			for guard: int in _guards:
 				_submit(sim, &"agent.set_profile", {"agent": guard, "profile": GUARD_PROFILES[_guard_profile]})
+				# drop the body so _sync_scene rebuilds it with the new profile's model
+				if _actor_nodes.has(guard):
+					var body: Node3D = _actor_nodes[guard]
+					body.queue_free()
+					_actor_nodes.erase(guard)
+				_chip_nodes.erase(guard)
 			_note("guards now %s" % GUARD_PROFILES[_guard_profile])
 		"overlay":
 			_overlay = not _overlay
@@ -864,6 +920,7 @@ func _restart() -> void:
 		for node: Node in table.values():
 			node.queue_free()
 		table.clear()
+	_chip_nodes.clear()  # chips are children of the actor nodes just freed
 	if _device_raised:
 		_device_raised = false
 		_device_screen.visible = false

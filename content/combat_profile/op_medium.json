@@ -1,0 +1,26 @@
+{
+	"schema_version": 1,
+	"description": "A1 Medium Operator: the baseline body - the guard combat numbers restated so the roster has its own reference point.",
+	"stages": [
+		"hit_roll",
+		"damage",
+		"routing"
+	],
+	"range_falloff_per_m": 5000,
+	"speed_mm_per_tick": 60,
+	"health": {
+		"nodes": [
+			{
+				"id": "body",
+				"max": 100000,
+				"fatal": true
+			}
+		],
+		"routing": [
+			{
+				"node": "body",
+				"weight": 1
+			}
+		]
+	}
+}

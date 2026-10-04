@@ -1,0 +1,36 @@
+{
+	"schema_version": 1,
+	"description": "A1 Drone Hunter (concept sheet variant 04): pushes toward contacts and investigates everything it hears; reports instantly.",
+	"combat_profile": "op_drone_hunter",
+	"perception_profile": "op_drone_hunter",
+	"aim_profile": "op_drone_hunter",
+	"stress_profile": "op_drone_hunter",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 800
+		},
+		{
+			"stance": "advance",
+			"weight": 1400
+		},
+		{
+			"stance": "flank",
+			"weight": 1100
+		},
+		{
+			"stance": "retreat",
+			"weight": 500
+		},
+		{
+			"stance": "investigate",
+			"weight": 1400
+		},
+		{
+			"stance": "surrender",
+			"weight": 300
+		}
+	],
+	"radio": true,
+	"radio_latency_ticks": 1
+}
