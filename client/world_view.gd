@@ -1412,6 +1412,7 @@ func _restart() -> void:
 	if _create:
 		_creator = SiteCreator.new(_host.content())
 		_creator_menu = false
+		_creator_autosave_due = SiteCreator.AUTOSAVE_TICKS
 		_creator_press_next = _creator_presses.size()
 
 
@@ -1700,6 +1701,9 @@ var _creator_open_path: String = ""
 ## The last placement sent and the reason it would be refused, checked once its tick has
 ## run: a refused press is said aloud, never silent.
 var _creator_pending: Dictionary = {}
+## The tick the lot is next written to the autosave, and what was last written there.
+var _creator_autosave_due: int = SiteCreator.AUTOSAVE_TICKS
+var _creator_autosaved: String = ""
 
 
 ## The player on Cold Storage's open lot, theirs with the plots beside it.
@@ -1737,6 +1741,9 @@ func _creator_tick(sim: SimRoot) -> void:
 	for cell: Vector3i in _creator.prune(SimAssembly.movement_of(sim)):
 		_note("guard post at %s removed: no room for a guard there now" % cell)
 	_creator_check_pending(sim)
+	if sim.get_tick() >= _creator_autosave_due:
+		_creator_autosave_due = sim.get_tick() + SiteCreator.AUTOSAVE_TICKS
+		_autosave_site(sim)
 	if not _demo or _creator_press_next >= _creator_presses.size():
 		return
 	if _creator_press_wait > 0:
@@ -1854,19 +1861,26 @@ func _creator_open_menu(open: bool) -> void:
 		_creator_menu_entries = ["save"]
 		_creator_menu_entries.append_array(SiteCreator.openable())
 		_creator_menu_index = 0
+		_record("create", "menu opened: save, %d sites to open" % (_creator_menu_entries.size() - 1))
+	else:
+		_record("create", "menu closed")
 
 
 ## Writes what stands on the lot to `user://sites/<id>.json` (claim 15).
 func _save_site(sim: SimRoot) -> void:
 	var now: Dictionary = Time.get_datetime_dict_from_system()
 	var id: String = SiteCreator.site_id(now)
+	var problem_: String = _creator.unsavable(SimAssembly.build_of(sim), SimAssembly.movement_of(sim))
+	if not problem_.is_empty():
+		_note("not saved: %s" % problem_)
+		return
 	var site: Dictionary = _creator.to_site(SimAssembly.build_of(sim), SimAssembly.movement_of(sim),
 		"Site %04d-%02d-%02d %02d:%02d" % [now["year"], now["month"], now["day"], now["hour"], now["minute"]],
 		"Built with the creator tool on %04d-%02d-%02d." % [now["year"], now["month"], now["day"]])
 	if site.is_empty():
 		_note("not saved: nothing built, or a guard post with no room")
 		return
-	var path: String = SiteCreator.save(site, id)
+	var path: String = SiteCreator.save(site, id, SiteCreator.DEMO_DIR if _demo else SiteCreator.SITE_DIR)
 	if path.is_empty():
 		_note("save failed: %s" % id)
 		return
@@ -1874,6 +1888,27 @@ func _save_site(sim: SimRoot) -> void:
 	var spawns: Array = site["spawns"]
 	var terminals: Array = site["terminals"]
 	_note("saved %s: %d pieces, %d guards, %d terminals" % [path, pieces.size(), spawns.size(), terminals.size()])
+
+
+## Writes the lot to `user://sites/autosave.json` when it has changed since the last time,
+## said in the run log; the menu lists it first.
+func _autosave_site(sim: SimRoot) -> void:
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var movement: MovementSystem = SimAssembly.movement_of(sim)
+	if not _creator.unsavable(build, movement).is_empty():
+		return
+	var site: Dictionary = _creator.to_site(build, movement, "Autosave", "The creator's lot, written as it was built.")
+	var text: String = JSON.stringify(site)
+	if text == _creator_autosaved:
+		return
+	# a --demo build, run headless by the tests, keeps out of the player's sites
+	var path: String = SiteCreator.save(site, SiteCreator.AUTOSAVE_ID, SiteCreator.DEMO_DIR if _demo else SiteCreator.SITE_DIR)
+	if path.is_empty():
+		_note("autosave failed")
+		return
+	_creator_autosaved = text
+	var pieces: Array = site["pieces"]
+	_record("create", "autosaved %d pieces to %s" % [pieces.size(), path])
 
 
 ## Raises a saved or shipped site's pieces on the lot, through the sim, to keep working.

@@ -414,3 +414,37 @@ func test_every_creator_control_is_on_its_own_deck_button() -> void:
 			start.append(b.button_index)
 	assert_eq(start, [JOY_BUTTON_START] as Array[int], "the menu opens with Start too")
 	assert_false(used.has(JOY_BUTTON_START), "which no creator control uses")
+
+
+## Game Mode run, 2026-10-04: Steam ended the game without letting it quit and the build
+## was gone. The lot autosaves; a save is written whole or not at all; the menu lists the
+## autosave first; and what cannot be saved says why instead of failing quietly.
+func test_the_autosave_is_written_whole_and_listed_first() -> void:
+	var db: ContentDb = _db()
+	var made: Array = _lot(db)
+	var sim: SimRoot = made[0]
+	var player: int = made[1]
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var movement: MovementSystem = SimAssembly.movement_of(sim)
+	var creator := SiteCreator.new(db)
+	assert_eq(creator.unsavable(build, movement), "nothing built", "an empty lot says why it is not saved")
+	assert_true(_do(sim, &"build.place", creator.place(player, 0.0, movement)), "a foundation")
+	assert_eq(creator.unsavable(build, movement), "", "and now it can be")
+	var dir: String = "user://test_autosave"
+	var mine: String = SiteCreator.save(db.get_entry(SiteSystem.KIND_SITE, &"cold_storage"), "site_20991231_235959", dir)
+	var first: Dictionary = creator.to_site(build, movement, "Autosave", "one piece")
+	var path: String = SiteCreator.save(first, SiteCreator.AUTOSAVE_ID, dir)
+	assert_eq(path, dir.path_join("autosave.json"), "the autosave has the one file")
+	creator.rise(1)
+	creator.select(&"concrete_block")
+	assert_true(_do(sim, &"build.place", creator.place(player, 0.0, movement)), "a block on it")
+	var second: Dictionary = creator.to_site(build, movement, "Autosave", "two pieces")
+	assert_eq(SiteCreator.save(second, SiteCreator.AUTOSAVE_ID, dir), path, "written over")
+	assert_eq(StateHash.of(SiteCreator.read(path)), StateHash.of(second), "holding the newer lot")
+	assert_false(FileAccess.file_exists(path + ".part"), "with nothing half-written left beside it")
+	var listed: Array[String] = SiteCreator.openable(dir)
+	assert_eq(listed[0], path, "the menu lists the autosave first")
+	assert_eq(listed[1], mine, "then the player's own")
+	DirAccess.remove_absolute(path)
+	DirAccess.remove_absolute(mine)
+	DirAccess.remove_absolute(dir)

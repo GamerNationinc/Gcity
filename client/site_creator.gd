@@ -28,6 +28,13 @@ const MAX_SPAWNS: int = 64
 const MAX_TERMINALS: int = 16
 const MAX_REL: int = 100000
 const SITE_DIR: String = "user://sites"
+## The one file the creator keeps the lot in while you build: Steam ends a game without
+## letting it quit, and a build only saved from the menu was lost (Game Mode run, 2026-10-04).
+const AUTOSAVE_ID: String = "autosave"
+## How often the lot is written there when it has changed: 15 s.
+const AUTOSAVE_TICKS: int = 600
+## Where a `--demo` build saves and autosaves instead, out of the menu.
+const DEMO_DIR: String = "user://demo_sites"
 ## The piece the palette starts on.
 const FIRST_PIECE: StringName = &"foundation_block"
 ## The four facings round a cell, a quarter turn apart: 0°, 90°, 180°, 270° (the sim's
@@ -272,15 +279,11 @@ func _drop_marker_at(cell: Vector3i) -> void:
 ## cell of their face, which names the same face. {} (after an error) past the schema's
 ## limits, with nothing built, or with a guard post a guard no longer fits.
 func to_site(build: BuildSystem, movement: MovementSystem, title: String, description: String) -> Dictionary:
-	var order: Array = build.supported_set().keys()
-	if order.is_empty() or order.size() > MAX_PIECES:
-		push_error("SiteCreator: a site needs 1 to %d pieces, this has %d" % [MAX_PIECES, order.size()])
+	var problem_: String = unsavable(build, movement)
+	if not problem_.is_empty():
+		push_error("SiteCreator: %s" % problem_)
 		return {}
-	for post: Dictionary in _posts:
-		var at: Vector3i = post["cell"]
-		if not guard_fits(movement, at):
-			push_error("SiteCreator: the guard post at %s has no room for a guard" % at)
-			return {}
+	var order: Array = build.supported_set().keys()
 	var rows: Array[Array] = []
 	var low: Vector3i = Vector3i(1 << 30, 1 << 30, 1 << 30)
 	for v: Variant in order:
@@ -432,13 +435,33 @@ static func save(site: Dictionary, id: String, dir: String = SITE_DIR) -> String
 		push_error("SiteCreator: cannot make %s: %s" % [dir, error_string(err)])
 		return ""
 	var path: String = dir.path_join(id + ".json")
-	var handle: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	# written beside it and renamed over it: a game ended mid-write leaves the old file whole
+	var part: String = path + ".part"
+	var handle: FileAccess = FileAccess.open(part, FileAccess.WRITE)
 	if handle == null:
-		push_error("SiteCreator: cannot write %s: %s" % [path, error_string(FileAccess.get_open_error())])
+		push_error("SiteCreator: cannot write %s: %s" % [part, error_string(FileAccess.get_open_error())])
 		return ""
 	handle.store_string(JSON.stringify(site, "\t", true) + "\n")
 	handle.close()
+	err = DirAccess.rename_absolute(part, path)
+	if err != OK:
+		push_error("SiteCreator: cannot rename %s to %s: %s" % [part, path, error_string(err)])
+		return ""
 	return path
+
+
+## Why what stands on the lot cannot be saved as a site, or "" when it can.
+func unsavable(build: BuildSystem, movement: MovementSystem) -> String:
+	var count: int = build.supported_set().size()
+	if count == 0:
+		return "nothing built"
+	if count > MAX_PIECES:
+		return "%d pieces, a site holds %d at most" % [count, MAX_PIECES]
+	for post: Dictionary in _posts:
+		var at: Vector3i = post["cell"]
+		if not guard_fits(movement, at):
+			return "the guard post at %s has no room for a guard" % at
+	return ""
 
 
 ## Reads a site file: the entry with its numbers whole again, or {} after an error.
@@ -456,7 +479,8 @@ static func read(path: String) -> Dictionary:
 	return site
 
 
-## The sites the creator can open: the player's own, newest first, then the shipped ones.
+## The sites the creator can open: the autosave, the player's own newest first, then the
+## shipped ones.
 static func openable(dir: String = SITE_DIR) -> Array[String]:
 	var out: Array[String] = []
 	var own: PackedStringArray = DirAccess.get_files_at(dir) if DirAccess.dir_exists_absolute(dir) else PackedStringArray()
@@ -466,6 +490,10 @@ static func openable(dir: String = SITE_DIR) -> Array[String]:
 			mine.append(dir.path_join(file))
 	mine.sort()
 	mine.reverse()
+	var autosave: String = dir.path_join(AUTOSAVE_ID + ".json")
+	if mine.has(autosave):
+		mine.erase(autosave)
+		out.append(autosave)
 	out.append_array(mine)
 	for file: String in DirAccess.get_files_at(ContentLoader.CONTENT_ROOT.path_join(String(SiteSystem.KIND_SITE))):
 		if file.ends_with(".json"):
