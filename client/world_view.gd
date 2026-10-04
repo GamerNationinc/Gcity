@@ -132,6 +132,10 @@ var _operator: int = 0
 var _run_log: RunLog
 ## `--create`: the creator tool (M7.5 spec claims 14–15) on Cold Storage's open lot.
 var _create: bool = false
+## `--sandbox` (M7.6 spec claim 1): the creator's lot over the sandbox's assembly. Loaded
+## by path from `client/sandbox/`, which a release export leaves out (decision 1).
+var _sandbox: bool = false
+const SANDBOX_MODE: String = "res://client/sandbox/sandbox_mode.gd"
 var _creator: SiteCreator
 var _creator_cursor_node: MeshInstance3D
 var _creator_face_node: MeshInstance3D
@@ -170,7 +174,12 @@ func _ready() -> void:
 			_wilds = true
 		elif arg == "--create":
 			_create = true
+		elif arg == "--sandbox":
+			_sandbox = true
+			_create = true
 	_run_log = RunLog.open(OS.get_cmdline_user_args())
+	if _sandbox:
+		_sandbox = _install_sandbox()
 	Input.joy_connection_changed.connect(_on_joy_changed)
 	_piece_templates = _host.content().ids(&"build_piece")
 	_glyphs.set_deck(_steam.is_deck())
@@ -183,6 +192,21 @@ func _ready() -> void:
 		_creator = SiteCreator.new(_host.content())
 		_creator_presses = CreatorDemo.presses()
 		_build_creator_nodes()
+
+
+## Swaps the host to the sandbox's assembly and content. False, said aloud, in a build
+## without the sandbox or when its content does not load: the creator's lot instead.
+func _install_sandbox() -> bool:
+	var mode: Script = load(SANDBOX_MODE) if ResourceLoader.exists(SANDBOX_MODE) else null
+	if mode == null:
+		_note("--sandbox: this build has no sandbox (release export); the creator's lot instead")
+		return false
+	var installed: bool = mode.call(&"install", _host)
+	if not installed:
+		_note("--sandbox: the sandbox content did not load; the creator's lot instead")
+		return false
+	_record("sandbox", "the sandbox's assembly and content are in")
+	return true
 
 
 func _build_demo_script() -> Array:
@@ -1470,7 +1494,7 @@ func _load_game() -> void:
 
 func _render(sim: SimRoot) -> void:
 	var lines: PackedStringArray = PackedStringArray()
-	var title: String = "M6 mission" if _mission else ("creator" if _create else "M5 world")
+	var title: String = "M6 mission" if _mission else ("sandbox" if _sandbox else ("creator" if _create else "M5 world"))
 	lines.append("Gcity %s   tick %d   state %s%s" % [title, sim.get_tick(), _state_digest(sim), "   PAUSED" if sim.is_paused() else ""])
 	if _setup_stage < READY:
 		lines.append("setting up (stage %d)..." % _setup_stage)

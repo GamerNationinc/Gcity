@@ -15,6 +15,9 @@ const DEMO_SEED: int = 20261230
 
 var _sim: SimRoot
 var _content: ContentDb
+## What builds the sim: `SimAssembly.build`, or another assembly's `build` with the same
+## signature (the sandbox's, M7.6 decision 2, handed over by `client/sandbox/`).
+var _assemble: Callable = SimAssembly.build
 
 
 func _ready() -> void:
@@ -27,7 +30,7 @@ func _ready() -> void:
 	_content = ContentDb.new()
 	var load_err: Error = ContentLoader.load_all(_content)
 	assert(load_err == OK, "content failed to load: %s" % error_string(load_err))
-	_sim = SimAssembly.build(seed, _content)
+	_sim = _assemble.call(seed, _content)
 	assert(_sim != null, "sim assembly failed")
 
 
@@ -65,8 +68,16 @@ func adopt(loaded: SimRoot) -> void:
 ## restart on the Deck. The old sim is dropped.
 func restart() -> void:
 	var seed: int = seed_override if seed_override != 0 else randi()
-	_sim = SimAssembly.build(seed, _content)
+	_sim = _assemble.call(seed, _content)
 	assert(_sim != null, "sim assembly failed")
+
+
+## Builds the sim from now on with `assemble` over `content`, and starts a fresh one:
+## how `--sandbox` swaps in its own assembly and content without the game naming either.
+func use_assembly(assemble: Callable, content: ContentDb) -> void:
+	_assemble = assemble
+	_content = content
+	restart()
 
 
 func content() -> ContentDb:
