@@ -666,7 +666,6 @@ func _process(delta: float) -> void:
 	if not _capture_path.is_empty():
 		_frame_usec.append(int(delta * 1_000_000.0))
 	var sim: SimRoot = _host.sim()
-	_advance_setup(sim)
 	if _demo and not _mission and not _create:
 		if _demo_next < _demo_script.size():
 			var step: Array = _demo_script[_demo_next]
@@ -712,9 +711,12 @@ func _process(delta: float) -> void:
 func _physics_process(_delta: float) -> void:
 	if _demo or _mission:
 		_demo_t += 1.0 / SimRoot.TICK_HZ  # sim-driven demo clock, see plot_view
+	var sim: SimRoot = _host.sim()
+	# on the sim's clock, not the frame's: set up at a frame rate's pace, a demo started
+	# on a different tick on the Deck than headless and met the guards somewhere else
+	_advance_setup(sim)
 	if _setup_stage < READY:
 		return
-	var sim: SimRoot = _host.sim()
 	if _mission and _demo:
 		# --mission --demo drives the route itself; --mission alone hands it to you
 		_mission_tick(sim)
