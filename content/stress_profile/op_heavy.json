@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "A1 Heavy Assault: barely rattled by fire, recovers fast, breaks at 85 % and routs only at 98 %.",
+	"near_miss_mm": 1500,
+	"gain_fired_at": 80000,
+	"gain_hit": 200000,
+	"gain_squadmate_down": 150000,
+	"decay_per_tick": 4000,
+	"break_threshold": 850000,
+	"rout_threshold": 980000,
+	"hit_penalty_at_max": 200000
+}

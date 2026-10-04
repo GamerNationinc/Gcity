@@ -1,0 +1,26 @@
+{
+	"schema_version": 1,
+	"description": "A1 Drone Hunter: a fast responder - 2.8 m/s on slightly more than a guard's health.",
+	"stages": [
+		"hit_roll",
+		"damage",
+		"routing"
+	],
+	"range_falloff_per_m": 5000,
+	"speed_mm_per_tick": 70,
+	"health": {
+		"nodes": [
+			{
+				"id": "body",
+				"max": 110000,
+				"fatal": true
+			}
+		],
+		"routing": [
+			{
+				"node": "body",
+				"weight": 1
+			}
+		]
+	}
+}

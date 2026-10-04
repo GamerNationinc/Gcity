@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "A1 Drone Hunter: close-quarters habits - snaps settled in 0.6 s to a loose 1.5 degree cone and shrugs off swings.",
+	"cone_start_mdeg": 7000,
+	"cone_settled_mdeg": 1500,
+	"settle_ticks": 24,
+	"swing_penalty_mdeg": 3000,
+	"swing_ticks": 8,
+	"penalty_per_mdeg": 50
+}

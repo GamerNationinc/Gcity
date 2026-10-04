@@ -1,0 +1,36 @@
+{
+	"schema_version": 1,
+	"description": "A1 Medium Operator (concept sheet variant 02): the general-purpose baseline, every stance at neutral weight.",
+	"combat_profile": "op_medium",
+	"perception_profile": "op_medium",
+	"aim_profile": "op_medium",
+	"stress_profile": "op_medium",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 1000
+		},
+		{
+			"stance": "advance",
+			"weight": 1000
+		},
+		{
+			"stance": "flank",
+			"weight": 1000
+		},
+		{
+			"stance": "retreat",
+			"weight": 1000
+		},
+		{
+			"stance": "investigate",
+			"weight": 1000
+		},
+		{
+			"stance": "surrender",
+			"weight": 1000
+		}
+	],
+	"radio": true,
+	"radio_latency_ticks": 20
+}

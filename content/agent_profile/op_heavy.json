@@ -1,0 +1,36 @@
+{
+	"schema_version": 1,
+	"description": "A1 Heavy Assault (concept sheet variant 01): holds and advances, almost never retreats or surrenders. Radio as a guard.",
+	"combat_profile": "op_heavy",
+	"perception_profile": "op_heavy",
+	"aim_profile": "op_heavy",
+	"stress_profile": "op_heavy",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 1400
+		},
+		{
+			"stance": "advance",
+			"weight": 1400
+		},
+		{
+			"stance": "flank",
+			"weight": 600
+		},
+		{
+			"stance": "retreat",
+			"weight": 400
+		},
+		{
+			"stance": "investigate",
+			"weight": 800
+		},
+		{
+			"stance": "surrender",
+			"weight": 100
+		}
+	],
+	"radio": true,
+	"radio_latency_ticks": 20
+}

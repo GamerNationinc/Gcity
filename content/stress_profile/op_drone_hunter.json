@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "A1 Drone Hunter: steady under fire, breaks at 70 % and routs at 92 %, recovering quickly.",
+	"near_miss_mm": 1500,
+	"gain_fired_at": 120000,
+	"gain_hit": 250000,
+	"gain_squadmate_down": 200000,
+	"decay_per_tick": 3000,
+	"break_threshold": 700000,
+	"rout_threshold": 920000,
+	"hit_penalty_at_max": 250000
+}

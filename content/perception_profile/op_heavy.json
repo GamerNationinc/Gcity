@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"description": "A1 Heavy Assault: a guard's eyes at slightly shorter range and a narrower cone; the helmet costs a little hearing.",
+	"sight_range_mm": 35000,
+	"fov_deg": 110,
+	"gain_per_tick": 31250,
+	"speed_gain_per_mm_per_tick": 60,
+	"decay_per_tick": 10000,
+	"alert_threshold": 1000000,
+	"memory_ticks": 400,
+	"hearing_range_mm": 50000,
+	"hearing_gain": 400000
+}

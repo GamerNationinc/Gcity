@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "A1 Light Recon: feels every shot, breaks first at 45 % and routs at 70 % - it leaves early by design.",
+	"near_miss_mm": 2000,
+	"gain_fired_at": 200000,
+	"gain_hit": 350000,
+	"gain_squadmate_down": 300000,
+	"decay_per_tick": 2000,
+	"break_threshold": 450000,
+	"rout_threshold": 700000,
+	"hit_penalty_at_max": 350000
+}

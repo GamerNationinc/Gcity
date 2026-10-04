@@ -1,0 +1,26 @@
+{
+	"schema_version": 1,
+	"description": "A1 Light Recon: fast and thin - 3.0 m/s on 80 % of a guard's health.",
+	"stages": [
+		"hit_roll",
+		"damage",
+		"routing"
+	],
+	"range_falloff_per_m": 5000,
+	"speed_mm_per_tick": 75,
+	"health": {
+		"nodes": [
+			{
+				"id": "body",
+				"max": 80000,
+				"fatal": true
+			}
+		],
+		"routing": [
+			{
+				"node": "body",
+				"weight": 1
+			}
+		]
+	}
+}

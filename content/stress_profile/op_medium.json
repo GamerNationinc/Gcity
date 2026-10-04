@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "A1 Medium Operator: the guard_sim stress numbers restated - breaks at 60 %, routs at 90 %.",
+	"near_miss_mm": 1500,
+	"gain_fired_at": 150000,
+	"gain_hit": 300000,
+	"gain_squadmate_down": 250000,
+	"decay_per_tick": 2500,
+	"break_threshold": 600000,
+	"rout_threshold": 900000,
+	"hit_penalty_at_max": 300000
+}

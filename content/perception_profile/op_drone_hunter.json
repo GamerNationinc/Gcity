@@ -1,0 +1,13 @@
+{
+	"schema_version": 1,
+	"description": "A1 Drone Hunter: a wide 140 degree cone at short range, but the EW suite hears 90 m with the sharpest gain on the roster.",
+	"sight_range_mm": 35000,
+	"fov_deg": 140,
+	"gain_per_tick": 31250,
+	"speed_gain_per_mm_per_tick": 70,
+	"decay_per_tick": 10000,
+	"alert_threshold": 1000000,
+	"memory_ticks": 400,
+	"hearing_range_mm": 90000,
+	"hearing_gain": 800000
+}

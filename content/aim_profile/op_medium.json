@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "A1 Medium Operator: the guard_sim aim numbers restated - an 8 degree cone settling to 1 degree over 1.2 s.",
+	"cone_start_mdeg": 8000,
+	"cone_settled_mdeg": 1000,
+	"settle_ticks": 48,
+	"swing_penalty_mdeg": 4000,
+	"swing_ticks": 12,
+	"penalty_per_mdeg": 50
+}
