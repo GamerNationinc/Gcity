@@ -12,6 +12,9 @@ const BODY_PX: int = 22
 const SECONDARY_PX: int = 18
 const WIDTH: int = 896
 const HEIGHT: int = 560
+## The most characters the app strip shows at BODY_PX across the shell before it would run
+## off the edge: past it, the strip names only the open app and shows the rest by icon.
+const STRIP_CHARS: int = 66
 
 var _views: Dictionary[StringName, PackedScene] = {}
 var _content: ContentDb
@@ -103,6 +106,24 @@ func available_apps(sim: SimRoot, player: int) -> Array[Dictionary]:
 	return out
 
 
+## The app strip: every app by icon and title, the open one bracketed; `compact` names only
+## the open one, the rest by icon (the sandbox's Creator and Spawn apps ran it off the edge).
+static func strip_line(apps: Array[Dictionary], open: StringName, compact: bool) -> String:
+	if apps.is_empty():
+		return "no device carried"
+	var strip: PackedStringArray = PackedStringArray()
+	for a: Dictionary in apps:
+		var id: StringName = a["id"]
+		if id == open:
+			strip.append("[ %s %s ]" % [a["icon"], a["title"]])
+		elif compact:
+			var icon: String = a["icon"]
+			strip.append(icon)
+		else:
+			strip.append("  %s %s  " % [a["icon"], a["title"]])
+	return "  ".join(strip)
+
+
 func open_app() -> StringName:
 	return _open_app
 
@@ -122,11 +143,9 @@ func refresh(sim: SimRoot, player: int) -> bool:
 		_open_app = &""
 	elif not ids.has(_open_app):
 		_open_app = ids[0]
-	var strip: PackedStringArray = PackedStringArray()
-	for a: Dictionary in apps:
-		var id: StringName = a["id"]
-		strip.append(("[ %s %s ]" if id == _open_app else "  %s %s  ") % [a["icon"], a["title"]])
-	var strip_text: String = "  ".join(strip) if not apps.is_empty() else "no device carried"
+	var strip_text: String = strip_line(apps, _open_app, false)
+	if strip_text.length() > STRIP_CHARS:
+		strip_text = strip_line(apps, _open_app, true)
 	if strip_text != _last_strip:
 		_last_strip = strip_text
 		_strip.text = strip_text

@@ -21,6 +21,12 @@
 ## - `sandbox.set_health {actor, node, value}`: through `ActorSystem.set_health`, within the
 ##   node's range. Bringing the dead back is the game's own `actor.respawn`.
 ##
+## Claim 6, hold the AI:
+## - `sandbox.ai {actor, agent, effect, on}`: `frozen`, `blind` or `deaf` on or off for one
+##   agent (an id) or every living agent now (`"all"`), each a perception rule at its
+##   neutral value: `awake`, `sight`, `hearing` to 0. A frozen agent neither perceives nor
+##   acts (perception, stances and pathing skip it); a blind one hears; a deaf one sees.
+##
 ## Claim 3, remove and reset:
 ## - `sandbox.despawn {actor, cell: [x, y, z], facing}`: removes the living actor whose body
 ##   is in the cell, its kit moved into the world container the way a squad member going
@@ -39,12 +45,18 @@ const KIT_KEYS: Array[String] = ["ammo", "frame", "magazine", "rounds"]
 const COMMAND_TRAINER: StringName = &"sandbox.trainer"
 const COMMAND_TELEPORT: StringName = &"sandbox.teleport"
 const COMMAND_SET_HEALTH: StringName = &"sandbox.set_health"
+const COMMAND_AI: StringName = &"sandbox.ai"
+const TRAINER_EFFECTS: Array[String] = ["ammo", "fly", "god"]
+const AI_EFFECTS: Array[String] = ["blind", "deaf", "frozen"]
 const MODIFIER_SOURCE: StringName = &"sandbox"
 ## effect -> [stat, the modifier that takes the stat from its base to "off"]
 const EFFECTS: Dictionary = {
 	"ammo": [CombatSystem.STAT_ROUNDS_PER_SHOT, -1],
 	"fly": [MovementSystem.STAT_GRAVITY, -1],
 	"god": [ActorSystem.STAT_DAMAGE_TAKEN, -ActorSystem.PER_MILLE],
+	"blind": [PerceptionSystem.STAT_SIGHT, -1],
+	"deaf": [PerceptionSystem.STAT_HEARING, -1],
+	"frozen": [PerceptionSystem.STAT_AWAKE, -1],
 }
 const FACINGS: Array[String] = ["", "px", "nx", "py", "ny", "pz", "nz"]
 
@@ -90,7 +102,8 @@ func attach(sim: SimRoot) -> Error:
 	if err != OK:
 		return err
 	for pair: Array in [[COMMAND_DESPAWN, _on_despawn], [COMMAND_CLEAR, _on_clear], [COMMAND_SPAWN_AGENT, _on_spawn_agent],
-			[COMMAND_TRAINER, _on_trainer], [COMMAND_TELEPORT, _on_teleport], [COMMAND_SET_HEALTH, _on_set_health]]:
+			[COMMAND_TRAINER, _on_trainer], [COMMAND_TELEPORT, _on_teleport], [COMMAND_SET_HEALTH, _on_set_health],
+			[COMMAND_AI, _on_ai]]:
 		var kind: StringName = pair[0]
 		var handler: Callable = pair[1]
 		err = sim.commands().register(kind, handler)
@@ -123,8 +136,49 @@ func _on_trainer(_sim: SimRoot, payload: Dictionary) -> bool:
 	var actor: int = payload["actor"]
 	var effect: String = payload["effect"]
 	var on: bool = payload["on"]
-	if not EFFECTS.has(effect) or not _actors.is_alive(actor):
+	if not TRAINER_EFFECTS.has(effect) or not _actors.is_alive(actor):
 		return false
+	return _set_effect(actor, effect, on)
+
+
+func _on_ai(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 4 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("effect")) != TYPE_STRING or typeof(payload.get("on")) != TYPE_BOOL:
+		return false
+	var actor: int = payload["actor"]
+	var effect: String = payload["effect"]
+	var on: bool = payload["on"]
+	if not AI_EFFECTS.has(effect) or not _actors.is_alive(actor):
+		return false
+	var agent_v: Variant = payload.get("agent")
+	var targets: Array[int] = []
+	var all: bool = false
+	if typeof(agent_v) == TYPE_STRING:
+		var word: String = agent_v
+		all = word == "all"
+		if not all:
+			return false
+	if all:
+		for agent: int in _perception.agent_ids():
+			if _actors.is_alive(agent) and trainer_on(agent, effect) != on:
+				targets.append(agent)
+		if targets.is_empty():
+			return false
+	elif typeof(agent_v) == TYPE_INT:
+		var one: int = agent_v
+		if not _perception.agent_ids().has(one) or not _actors.is_alive(one):
+			return false
+		targets.append(one)
+	else:
+		return false
+	var changed: bool = false
+	for agent: int in targets:
+		if _set_effect(agent, effect, on):
+			changed = true
+	return changed
+
+
+## Turns `effect` on or off for `actor`: the stat modifier added or taken away.
+func _set_effect(actor: int, effect: String, on: bool) -> bool:
 	var rule: Array = EFFECTS[effect]
 	var stat: StringName = rule[0]
 	var value: int = rule[1]

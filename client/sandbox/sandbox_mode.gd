@@ -78,4 +78,26 @@ static func request(view: WorldView, kind: StringName, payload: Dictionary) -> S
 			return "not teleported to %s: your body does not fit there" % cell
 		view.submit_command(SandboxSystem.COMMAND_TELEPORT, {"actor": player, "cell": [cell.x, cell.y, cell.z]})
 		return "teleported to %s" % cell
+	if spawn == "ai":
+		var held: String = payload["effect"]
+		var hold: bool = payload["on"]
+		var changes: int = 0
+		for agent: int in SimAssembly.perception_of(sim).agent_ids():
+			if SimAssembly.actors_of(sim).is_alive(agent) and SandboxAssembly.sandbox_of(sim).trainer_on(agent, held) != hold:
+				changes += 1
+		if changes == 0:
+			return "nothing to change: every guard is already %s%s" % ["" if hold else "not ", held]
+		view.submit_command(SandboxSystem.COMMAND_AI, {"actor": player, "agent": "all", "effect": held, "on": hold})
+		return "every guard %s%s" % ["" if hold else "no longer ", held]
+	if spawn == "time":
+		var host: LocalHost = view.host()
+		var step: bool = payload["step"]
+		if step:
+			if not host.step_once():
+				return "not stepped: hold the clock first"
+			return "stepped to tick %d" % host.sim().get_tick()
+		var num: int = payload["num"]
+		var den: int = payload["den"]
+		host.set_rate(num, den)
+		return "time %s" % host.rate_label()
 	return "the spawn menu sent something it cannot spawn"

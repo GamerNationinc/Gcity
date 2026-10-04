@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 1,
+	"description": "Whether an agent perceives and acts at all (above 0); read by the perception, stance and pathing systems. The sandbox's frozen adds -1. (M7.6 spec claim 6; in sandbox_content until a game rule wants it, so the game registers no new stat and no fixture moves)"
+}

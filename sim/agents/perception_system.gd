@@ -16,6 +16,12 @@ const COMMAND_SPAWN: StringName = &"agent.spawn"
 const COMMAND_SET_PROFILE: StringName = &"agent.set_profile"
 const EVENT_ALERTED: StringName = &"perception.alerted"
 const STAT_NOISE: StringName = &"noise"
+## Whether an agent sees, hears, and is awake at all (M7.6 spec claim 6, decision 3's
+## form): each base 1, and above 0 means yes. Read only where registered: the game
+## registers none, the sandbox's content does (blind, deaf, frozen set them to 0).
+const STAT_SIGHT: StringName = &"sight"
+const STAT_HEARING: StringName = &"hearing"
+const STAT_AWAKE: StringName = &"awake"
 const AWARENESS_MAX: int = 1_000_000
 ## The longest line walk accepted, in cells; sight ranges are at most 100 m.
 const MAX_WALK: int = 4096
@@ -122,6 +128,17 @@ func _content_fail(reason: String) -> Error:
 
 func is_agent(actor: int) -> bool:
 	return _agents.has(actor)
+
+
+## Whether the agent is awake (`awake` where registered, else always): a frozen agent
+## neither perceives nor acts; the stance and pathing systems ask this too.
+func is_awake(agent: int) -> bool:
+	return _sense(agent, STAT_AWAKE)
+
+
+## A yes-or-no rule at its neutral value where its stat is not registered.
+func _sense(actor: int, stat: StringName) -> bool:
+	return not _stats.has_stat(stat) or _stats.resolve(actor, stat) > 0
 
 
 func agent_ids() -> Array[int]:
@@ -245,7 +262,7 @@ func sees(observer: int, contact: int) -> bool:
 ## clear line over the build grid. Computed live; `sees` is the per-tick cache.
 func can_see(observer: int, contact: int) -> bool:
 	var p: Dictionary = perception_of(observer)
-	if p.is_empty() or not _actors.has_actor(contact) or observer == contact:
+	if p.is_empty() or not _actors.has_actor(contact) or observer == contact or not _sense(observer, STAT_SIGHT):
 		return false
 	var a: Vector3i = _actors.position_of(observer)
 	var b: Vector3i = _actors.position_of(contact)
@@ -414,6 +431,8 @@ func tick(sim: SimRoot) -> void:
 		if not _actors.is_alive(observer):
 			_contacts.erase(observer)
 			continue
+		if not is_awake(observer):
+			continue  # frozen: what it knew, it still knows, and nothing new reaches it
 		var p: Dictionary = perception_of(observer)
 		var stored: Variant = _contacts.get(observer)
 		var table: Dictionary = stored if typeof(stored) == TYPE_DICTIONARY else {}
@@ -524,7 +543,7 @@ func _on_fire(payload: Dictionary) -> void:
 	var loudness: int = _stats.resolve(weapon, STAT_NOISE)
 	var origin: Vector3i = _actors.position_of(shooter)
 	for observer: int in agent_ids():
-		if observer == shooter or not _actors.is_alive(observer) or same_side(observer, shooter):
+		if observer == shooter or not _actors.is_alive(observer) or same_side(observer, shooter) or not _sense(observer, STAT_HEARING) or not is_awake(observer):
 			continue
 		var p: Dictionary = perception_of(observer)
 		var hearing: int = p["hearing_range_mm"]

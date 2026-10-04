@@ -1532,7 +1532,8 @@ func _load_game() -> void:
 func _render(sim: SimRoot) -> void:
 	var lines: PackedStringArray = PackedStringArray()
 	var title: String = "M6 mission" if _mission else ("sandbox" if _sandbox else ("creator" if _create else "M5 world"))
-	lines.append("Gcity %s   tick %d   state %s%s" % [title, sim.get_tick(), _state_digest(sim), "   PAUSED" if sim.is_paused() else ""])
+	lines.append("Gcity %s   tick %d   state %s%s%s" % [title, sim.get_tick(), _state_digest(sim), "   PAUSED" if sim.is_paused() else "",
+		"   time %s" % _host.rate_label() if _sandbox else ""])
 	if _setup_stage < READY:
 		lines.append("setting up (stage %d)..." % _setup_stage)
 		_status.text = "\n".join(lines)
@@ -1983,6 +1984,10 @@ func player_id() -> int:
 
 func host_sim() -> SimRoot:
 	return _host.sim()
+
+
+func host() -> LocalHost:
+	return _host
 
 
 func creator_cursor() -> Vector3i:

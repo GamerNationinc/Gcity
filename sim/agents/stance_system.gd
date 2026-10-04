@@ -376,6 +376,8 @@ func tick(sim: SimRoot) -> void:
 		if not _actors.is_alive(agent):
 			_stances.erase(agent)
 			continue
+		if not _perception.is_awake(agent):
+			continue  # frozen (M7.6 claim 6): no choice and no action, its stance kept
 		var rec: Dictionary = _record(agent)
 		if rec.is_empty():
 			rec = {"stance": _first_stance(agent), "since": tick_now, "score": 0, "waypoint": 0, "goal": [] as Array[int]}

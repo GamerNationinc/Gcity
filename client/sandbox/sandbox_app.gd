@@ -8,7 +8,7 @@
 class_name SandboxApp extends DeviceApp
 
 const KIND_SPAWN: StringName = &"sandbox_ui.spawn"
-const PAGES: Array[String] = ["agents", "items", "sites", "trainer"]
+const PAGES: Array[String] = ["agents", "items", "sites", "trainer", "ai", "time"]
 const EFFECTS: Array[String] = ["god", "ammo", "fly"]
 const EFFECT_NAMES: Dictionary = {"god": "god mode", "ammo": "infinite ammo", "fly": "fly (right trigger up, left down)"}
 const ITEM_KINDS: Array[StringName] = [&"weapon_frame", &"weapon_part", &"ammo", &"device_frame", &"device_module"]
@@ -60,7 +60,16 @@ static func _is_round(content: ContentDb, ammo: StringName, calibre: String) -> 
 ## page shows each effect's state for `player`, read from `sim` (null: all off).
 static func entries(content: ContentDb, page: String, sim: SimRoot = null, player: int = 0) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if page == "trainer":
+	if page == "ai":
+		for effect: String in SandboxSystem.AI_EFFECTS:
+			for on: bool in [true, false]:
+				out.append({"spawn": "ai", "effect": effect, "on": on, "label": "every guard %s%s" % ["" if on else "not ", effect]})
+	elif page == "time":
+		out.append({"spawn": "time", "step": true, "label": "step one tick (while held)"})
+		for rate: Vector2i in LocalHost.RATES:
+			var name: String = "hold" if rate.x == 0 else ("x%d" % rate.x if rate.y == 1 else "x1/%d" % rate.y)
+			out.append({"spawn": "time", "step": false, "num": rate.x, "den": rate.y, "label": name})
+	elif page == "trainer":
 		for effect: String in EFFECTS:
 			var on: bool = sim != null and SandboxAssembly.sandbox_of(sim).trainer_on(player, effect)
 			out.append({"spawn": "trainer", "effect": effect, "on": not on, "label": "%s: %s" % [EFFECT_NAMES[effect], "ON" if on else "off"]})

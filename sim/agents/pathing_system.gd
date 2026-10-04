@@ -162,6 +162,8 @@ func tick(_sim: SimRoot) -> void:
 		if not _actors.is_alive(agent):
 			_routes.erase(agent)
 			continue
+		if not _perception.is_awake(agent):
+			continue  # frozen (M7.6 claim 6): the route kept, not walked
 		var rec: Dictionary = _routes[agent]
 		var goal: Vector3i = _vec(rec["goal"])
 		var here: Vector3i = BuildSystem.cell_of(_actors.position_of(agent))

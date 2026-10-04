@@ -85,7 +85,7 @@ EXTRA_TESTS = {
     "sim/core/command_registry.gd": ["res://tests/sim/test_command_registry.gd"],
     "sim/core/json_numbers.gd": ["res://tests/sim/test_json_numbers.gd"],
     # M7.6: the sandbox's commands are tested with the assembly that registers them
-    "sim/sandbox/sandbox_system.gd": ["res://tests/sandbox/test_sandbox_assembly.gd", "res://tests/sandbox/test_sandbox_trainer.gd"],
+    "sim/sandbox/sandbox_system.gd": ["res://tests/sandbox/test_sandbox_assembly.gd", "res://tests/sandbox/test_sandbox_trainer.gd", "res://tests/sandbox/test_sandbox_ai.gd"],
     "sim/progression/stat_resolver.gd": ["res://tests/progression/test_stat_resolver.gd"],
     "sim/progression/progression_system.gd": ["res://tests/progression/test_progression_system.gd", "res://tests/agents/test_actor_system.gd"],
     # M7.5: reach is measured from the body's centre (test_eyes)

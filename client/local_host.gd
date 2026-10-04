@@ -18,6 +18,13 @@ var _content: ContentDb
 ## What builds the sim: `SimAssembly.build`, or another assembly's `build` with the same
 ## signature (the sandbox's, M7.6 decision 2, handed over by `client/sandbox/`).
 var _assemble: Callable = SimAssembly.build
+## How many sim ticks each physics tick steps, as a fraction (M7.6 spec decision 4, the
+## sandbox's clock): 1/1 normally; 0/1 held, 1/4 and 1/2 slow, 2/1 and 4/1 fast. The sim's
+## own tick is untouched, so every rule and fixture means what it did.
+var _rate_num: int = 1
+var _rate_den: int = 1
+var _rate_acc: int = 0
+const RATES: Array[Vector2i] = [Vector2i(0, 1), Vector2i(1, 4), Vector2i(1, 2), Vector2i(1, 1), Vector2i(2, 1), Vector2i(4, 1)]
 
 
 func _ready() -> void:
@@ -35,7 +42,35 @@ func _ready() -> void:
 
 
 func _physics_process(_delta: float) -> void:
+	_rate_acc += _rate_num
+	while _rate_acc >= _rate_den:
+		_rate_acc -= _rate_den
+		_sim.step()
+
+
+## Sets the clock's rate to `num`/`den`, one of `RATES`. False for any other.
+func set_rate(num: int, den: int) -> bool:
+	if not RATES.has(Vector2i(num, den)):
+		return false
+	_rate_num = num
+	_rate_den = den
+	_rate_acc = 0
+	return true
+
+
+## One sim tick, only while the clock is held. False when it is running.
+func step_once() -> bool:
+	if _rate_num != 0:
+		return false
 	_sim.step()
+	return true
+
+
+## "held", "x1/4", "x1", "x2" …
+func rate_label() -> String:
+	if _rate_num == 0:
+		return "held"
+	return "x%d" % _rate_num if _rate_den == 1 else "x1/%d" % _rate_den
 
 
 ## The seed the command line asks for: `--seed=N`, else the demo seed under `--demo`,

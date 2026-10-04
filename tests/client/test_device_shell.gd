@@ -379,3 +379,17 @@ func test_the_creator_app_is_granted_in_the_creator_only_and_asks_the_view() -> 
 	assert_false(app.handle(&"device_back", _sim, _player), "B is the shell's: it lowers the device")
 	app.free()
 	_teardown()
+
+
+## The sandbox's apps ran the strip off the shell's edge: past `STRIP_CHARS` it names only
+## the open app and shows the rest by icon, so every app is still on screen.
+func test_a_full_strip_fits_the_shell() -> void:
+	var apps: Array[Dictionary] = []
+	for i: int in 10:
+		apps.append({"id": StringName("app%d" % i), "title": "Application %d" % i, "icon": "#"})
+	var full: String = DeviceShell.strip_line(apps, &"app3", false)
+	assert_true(full.length() > DeviceShell.STRIP_CHARS, "ten long titles do not fit")
+	var compact: String = DeviceShell.strip_line(apps, &"app3", true)
+	assert_true(compact.length() <= DeviceShell.STRIP_CHARS, "compact, they do")
+	assert_true(compact.contains("[ # Application 3 ]"), "the open app still named")
+	assert_eq(compact.count("#"), 10, "and every app there by its icon")
