@@ -4,7 +4,7 @@
 		0,
 		40
 	],
-	"description": "The first contract's site (design doc §15) at human scale: a two-cell slab, a lobby door that checks for a token, a stair well to an upper floor with a tall window off a caged fire stair, and a 2 m tunnel under the slab, entered by cutting a street grate. Three routes in, one server room.",
+	"description": "The first contract's site (design doc §15) at human scale: a two-cell slab, a token-checked lobby door, a 3 m loading door off the west street, a stair well up to a tall window off a caged fire stair, and a 2 m tunnel under the slab, entered by cutting a street grate. One server room.",
 	"parcels": [
 		"cold_storage_lot"
 	],
@@ -3395,7 +3395,7 @@
 		},
 		{
 			"facing": "nx",
-			"piece": "wall_panel",
+			"piece": "door_warehouse",
 			"rel": [
 				0,
 				2,
@@ -3404,7 +3404,7 @@
 		},
 		{
 			"facing": "nx",
-			"piece": "wall_panel",
+			"piece": "door_warehouse",
 			"rel": [
 				0,
 				3,
@@ -3413,7 +3413,7 @@
 		},
 		{
 			"facing": "nx",
-			"piece": "wall_panel",
+			"piece": "door_warehouse",
 			"rel": [
 				0,
 				4,
@@ -4234,6 +4234,33 @@
 			"facing": "pz",
 			"piece": "wall_panel",
 			"rel": [
+				0,
+				2,
+				11
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				3,
+				11
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				0,
+				4,
+				11
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
 				1,
 				2,
 				11
@@ -4307,6 +4334,33 @@
 			"piece": "wall_panel",
 			"rel": [
 				3,
+				4,
+				11
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				2,
+				11
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				4,
+				3,
+				11
+			]
+		},
+		{
+			"facing": "pz",
+			"piece": "wall_panel",
+			"rel": [
+				4,
 				4,
 				11
 			]

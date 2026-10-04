@@ -67,7 +67,7 @@
 			"kind": "actor.equip_device",
 			"payload": {
 				"actor": 2,
-				"device": 776
+				"device": 782
 			},
 			"tick": 8
 		},
@@ -75,8 +75,8 @@
 			"kind": "item.attach",
 			"payload": {
 				"actor": 2,
-				"part": 777,
-				"weapon": 776
+				"part": 783,
+				"weapon": 782
 			},
 			"tick": 9
 		},
@@ -88443,7 +88443,7 @@
 			"tick": 9707
 		}
 	],
-	"expected_hash": "231eeb7a0c8d02953bb2656874ff58b6100775ab4cc263ec4107f6bd358ffbc4",
+	"expected_hash": "1b5c8a9eec10702bd3d3cfcdebf97bb538591fc5be1d0008f5f8829f8e923d5e",
 	"name": "m6-side",
 	"schema_version": 1,
 	"seed": 20261230,

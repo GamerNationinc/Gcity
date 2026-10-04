@@ -67,7 +67,7 @@
 			"kind": "actor.equip_device",
 			"payload": {
 				"actor": 2,
-				"device": 776
+				"device": 782
 			},
 			"tick": 8
 		},
@@ -75,8 +75,8 @@
 			"kind": "item.attach",
 			"payload": {
 				"actor": 2,
-				"part": 777,
-				"weapon": 776
+				"part": 783,
+				"weapon": 782
 			},
 			"tick": 9
 		},
@@ -88197,7 +88197,7 @@
 			"kind": "terminal.hack_start",
 			"payload": {
 				"actor": 2,
-				"terminal": 774
+				"terminal": 780
 			},
 			"tick": 8985
 		},
@@ -88205,7 +88205,7 @@
 			"kind": "terminal.wipe",
 			"payload": {
 				"actor": 2,
-				"terminal": 774
+				"terminal": 780
 			},
 			"tick": 9308
 		},
@@ -173685,7 +173685,7 @@
 			"tick": 18040
 		}
 	],
-	"expected_hash": "8071ad0fd1ef710a0b1bdccef5425282b2f8c5b5f420cb61caece9e80dca9afd",
+	"expected_hash": "fccac7562a7f2f4a0ecd84a49a0807e1ccc6fe165e654b37d4495c6641c53c55",
 	"name": "m6-stealth",
 	"schema_version": 1,
 	"seed": 20261230,

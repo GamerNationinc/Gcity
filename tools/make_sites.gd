@@ -127,7 +127,10 @@ func _cold_storage() -> void:
 		else:
 			_wall(Vector3i(x, ground, 0), "nz")
 	for z: int in range(0, 12):
-		_wall(Vector3i(0, ground, z), "nx")
+		if z == 1:
+			_warehouse_door(Vector3i(0, ground, z), "nx")
+		else:
+			_wall(Vector3i(0, ground, z), "nx")
 		_wall(Vector3i(4, ground, z), "px")
 	for x: int in [0, 1, 3, 4]:
 		_wall(Vector3i(x, ground, 3), "pz")
@@ -138,7 +141,9 @@ func _cold_storage() -> void:
 			_wall(Vector3i(x, ground, 8), "pz")
 	_wall(Vector3i(0, ground, 9), "px")
 	_wall(Vector3i(4, ground, 9), "nx")
-	for x: int in range(1, 4):
+	# the back wall runs the building's full width: from M6 to M7.5 it stopped a cell short
+	# at both corners, and a person walked in from the north to the server room (gate item 27)
+	for x: int in 5:
 		_wall(Vector3i(x, ground, 11), "pz")
 	# --- the inside flight, lobby to upper floor, up the stair well: a flight face on
 	# every cell from the ground floor to the upper one, so each level is climbed onto
@@ -198,7 +203,7 @@ func _cold_storage() -> void:
 	_terminal("cs_server", Vector3i(2, ground, 10))
 	_terminal("cs_archive", Vector3i(2, ground, 11))
 	_write("cold_storage", "Cold Storage", Vector3i(40, 0, 40), ["cold_storage_lot"],
-		"The first contract's site (design doc §15) at human scale: a two-cell slab, a lobby door that checks for a token, a stair well to an upper floor with a tall window off a caged fire stair, and a 2 m tunnel under the slab, entered by cutting a street grate. Three routes in, one server room.")
+		"The first contract's site (design doc §15) at human scale: a two-cell slab, a token-checked lobby door, a 3 m loading door off the west street, a stair well up to a tall window off a caged fire stair, and a 2 m tunnel under the slab, entered by cutting a street grate. One server room.")
 
 
 # ---------------------------------------------------------------- openings
@@ -214,6 +219,12 @@ func _door(piece: String, rel: Vector3i, facing: String) -> void:
 	_place(piece, rel, facing)
 	_place(piece, rel + Vector3i(0, 1, 0), facing)
 	_place("wall_panel", rel + Vector3i(0, 2, 0), facing)
+
+
+## A loading door the height of the storey (M7.5 Q4): three warehouse door faces.
+func _warehouse_door(rel: Vector3i, facing: String) -> void:
+	for row: int in STOREY:
+		_place("door_warehouse", rel + Vector3i(0, row, 0), facing)
 
 
 ## A window with a sill: a wall face, a window face, a wall face.

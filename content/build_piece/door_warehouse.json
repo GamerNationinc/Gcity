@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "A warehouse door in a scrap steel frame, one face of a roller door three faces high (M7.5 Q4): passing costs 60.",
+	"kind": "door",
+	"material": "scrap_steel",
+	"open_cost": 60,
+	"value": 0,
+	"access": ""
+}

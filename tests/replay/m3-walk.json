@@ -1417,7 +1417,7 @@
 			"tick": 97
 		}
 	],
-	"expected_hash": "c1d2894b024fbd1025b7e75283f549f766b038b5f6d27a9f9f5b6b8f4061f265",
+	"expected_hash": "faf1d807e298a3039c63d7cfd6e319db8e037270813943bdad1e925444ba3d1b",
 	"name": "m3-walk",
 	"schema_version": 1,
 	"seed": 20261010,

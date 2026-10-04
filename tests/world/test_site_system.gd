@@ -89,7 +89,7 @@ func test_cold_storage_stands_with_its_three_routes_in() -> void:
 	_setup()
 	var site: StringName = &"cold_storage"
 	_raise(site)
-	assert_eq(_sites.pieces_of(site).size(), 699, "every piece of the site stands")
+	assert_eq(_sites.pieces_of(site).size(), 705, "every piece of the site stands")
 	assert_eq(_sites.agents_of(site).size(), 4, "four guards (design doc §15.3)")
 	var unsupported: int = 0
 	for id: int in _sites.pieces_of(site):
@@ -152,7 +152,7 @@ func test_a_site_raises_through_its_command_and_survives_the_round_trip() -> voi
 	assert_eq(other.restore_root(snap), OK, "root restored")
 	var sites: SiteSystem = SimAssembly.sites_of(other)
 	assert_true(sites.is_raised(&"cold_storage"), "still raised")
-	assert_eq(sites.pieces_of(&"cold_storage").size(), 699, "with its pieces")
+	assert_eq(sites.pieces_of(&"cold_storage").size(), 705, "with its pieces")
 	_sim.step()
 	other.step()
 	assert_eq(other.state_hash(), _sim.state_hash(), "hashes agree")
@@ -291,7 +291,7 @@ func test_a_site_raised_with_its_contract_stands_where_the_contract_bound_it() -
 	var base: Vector3i = _sites.base_of(&"cold_storage")
 	assert_eq(Vector2i(base.x, base.z), Vector2i(Terrain._floor_div(at.x, M), Terrain._floor_div(at.y, M)), "at the slot")
 	assert_eq(regions.region_at(at.x, at.y).id(), &"wilds", "out in the wilds")
-	assert_eq(_sites.pieces_of(&"cold_storage").size(), 699, "every piece of it")
+	assert_eq(_sites.pieces_of(&"cold_storage").size(), 705, "every piece of it")
 	# the lot moved with it
 	var authored: Vector3i = Vector3i(40, 0, 40)
 	var offset: Vector3i = (base - authored) * M
@@ -331,6 +331,8 @@ func test_levelling_leaves_a_storey_of_air_over_the_roof_and_no_more() -> void:
 	var top: int = SiteSystem.top_of(t)
 	assert_eq(top, 8, "Cold Storage's roof is eight levels up: a slab and two storeys")
 	assert_eq(SiteSystem.top_of(db.get_entry(SiteSystem.KIND_SITE, &"m4_test_building")), 3, "the M4 building's is a storey up")
+	# M7.5 mutation pass 1: a site that is only a floor on the ground tops out at the ground
+	assert_eq(SiteSystem.top_of({"pieces": [{"piece": "floor_panel", "rel": [0, 0, 0], "facing": "ny"}]}), 0, "a ground floor alone is at 0")
 	var column: Vector2i = Vector2i(300, -1500)
 	var ground: int = regions.standing_cell_y(column.x * M, column.y * M)
 	var base: Vector3i = Vector3i(column.x, ground - top - SiteSystem.LEVEL_HEADROOM - 4, column.y)
@@ -344,6 +346,70 @@ func test_levelling_leaves_a_storey_of_air_over_the_roof_and_no_more() -> void:
 		assert_true(regions.is_solid(at - Vector3i(0, 1, 0)), "with ground under the base")
 		assert_true(_movement.body_fits(at + Vector3i(0, top, 0), person), "a person fits on the roof")
 	assert_true(person >= 2 and SiteSystem.LEVEL_HEADROOM > person, "and a storey is more than a person (%d over %d)" % [SiteSystem.LEVEL_HEADROOM, person])
+
+
+## Gate item 27: Cold Storage is a closed building. Its inside is one volume of the
+## portal graph, not the outside, and nobody walks in at the back: from M6 until M7.5 the
+## back wall stopped a cell short at both corners and the server room was open from the
+## north, so the squad planner never saw an inside to plan entries into either.
+func test_cold_storage_is_closed_and_nobody_walks_in_at_the_back() -> void:
+	_setup()
+	_raise(&"cold_storage")
+	var portals: PortalGraph = SimAssembly.portals_of(_sim)
+	var inside: int = portals.node_at(_sites.cell_of(&"cold_storage", Vector3i(1, 2, 1)))
+	assert_true(inside != PortalGraph.EXTERIOR and inside != PortalGraph.SOLID, "the lobby is inside something")
+	for rel: Vector3i in [Vector3i(2, 2, 6), Vector3i(2, 2, 9), Vector3i(0, 2, 11), Vector3i(4, 2, 11), Vector3i(1, 5, 2)]:
+		assert_eq(portals.node_at(_sites.cell_of(&"cold_storage", rel)), inside, "and so is %s" % rel)
+	for x: int in [0, 4]:
+		var start: Vector3i = _sites.cell_of(&"cold_storage", Vector3i(x, 2, 12))
+		_actors.set_position(_player, BuildSystem.cell_centre(start) - Vector3i(0, M / 2, 0))
+		_sim.step_n(3)
+		for i: int in 30:
+			_movement.move(_player, 0, -100)
+		assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), start, "walking in from the north at x %d goes nowhere" % x)
+
+
+## M7.5 Q4 (standards §11): a three-cell warehouse door on Cold Storage's loading side,
+## added with content and `tools/make_sites.gd` only, zero `sim/` diff. It stands as three
+## stacked faces of `door_warehouse`, it is an edge from the lobby to the outside, and a
+## squad outside with the player in the lobby is offered it as an entry.
+func test_the_warehouse_door_is_offered_to_a_squad_as_an_entry() -> void:
+	_setup()
+	_raise(&"cold_storage")
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	var squads: SquadSystem = SimAssembly.squads_of(_sim)
+	var portals: PortalGraph = SimAssembly.portals_of(_sim)
+	var doors: Array[int] = []
+	for row: int in 3:
+		var id: int = _build.face_piece_at(BuildSystem.face_key(_sites.cell_of(&"cold_storage", Vector3i(0, 2 + row, 1)), "nx"))
+		assert_eq(_build.template_of(id), &"door_warehouse", "a warehouse door face, row %d" % row)
+		doors.append(id)
+	var lobby: int = portals.node_at(_sites.cell_of(&"cold_storage", Vector3i(1, 2, 1)))
+	var outward: int = 0
+	for e: Array in portals.edges_of(lobby):
+		var piece: int = e[0]
+		var other: int = e[1]
+		if doors.has(piece) and other == PortalGraph.EXTERIOR:
+			outward += 1
+	assert_eq(outward, 3, "all three are edges from the lobby to the outside")
+	_actors.set_position(_player, BuildSystem.cell_centre(_sites.cell_of(&"cold_storage", Vector3i(1, 2, 1))) - Vector3i(0, M / 2, 0))
+	var members: Array[int] = []
+	for rel: Vector3i in [Vector3i(-2, 2, 1), Vector3i(-2, 2, 4), Vector3i(1, 2, -3)]:
+		var member: int = perception.spawn(&"guard_sim", _sites.cell_of(&"cold_storage", rel), 0, 9, "")
+		assert_true(member != EntityIds.NONE, "a squad member outside at %s" % rel)
+		members.append(member)
+	_sim.step()
+	for member: int in members:
+		perception.receive_report(member, _player, _actors.position_of(_player), _sim.get_tick())
+	_sim.step_n(30)
+	for member: int in members:
+		assert_true(perception.has_last_known(member, _player) or perception.is_alerted(member, _player), "%d knows where the player is" % member)
+	var outside: Vector3i = _sites.cell_of(&"cold_storage", Vector3i(-1, 2, 1))
+	var offered: int = 0
+	for member: int in members:
+		if squads.has_assignment(member) and squads.assignment_of(member) == outside:
+			offered += 1
+	assert_eq(offered, 1, "one member is sent to the warehouse door, at the street outside it")
 
 
 ## Found by the G7 mutation run: no site file offered placed the same piece twice, and
