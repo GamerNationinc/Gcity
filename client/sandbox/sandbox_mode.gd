@@ -2,7 +2,7 @@
 ## `SandboxAssembly`. The world view loads this script by path, never by name, so a
 ## release export that leaves `client/sandbox/` and `sim/sandbox/` out still runs, and
 ## `--sandbox` there says so instead of failing to parse (decision 1).
-extends RefCounted
+class_name SandboxMode extends RefCounted
 
 const CONTENT_ROOT: String = "res://sandbox_content"
 
@@ -24,6 +24,31 @@ static func install(host: LocalHost) -> bool:
 		return false
 	host.use_assembly(SandboxAssembly.build, db)
 	return true
+
+
+## Where a saved session goes (claim 9).
+const FIXTURE_DIR: String = "user://fixtures"
+## Where a `--demo` session saves instead, out of the player's fixtures.
+const DEMO_FIXTURE_DIR: String = "user://demo_fixtures"
+
+
+## A session as a replay fixture's text (the existing schema, `assembly` "sandbox"), or ""
+## with the reason in `why[0]` when it cannot be one yet: a command still due after the
+## current tick would replay into a different inbox than the hash was taken over.
+static func fixture_text(sim: SimRoot, commands: Array[Dictionary], name: String, why: Array[String]) -> String:
+	# every step the session took, the paused ones too: a replay steps as often
+	var ticks: int = sim.get_tick() + sim.paused_steps()
+	if ticks < 1:
+		why.append("nothing has run yet")
+		return ""
+	for c: Dictionary in commands:
+		var tick: int = c["tick"]
+		if tick > sim.get_tick():
+			why.append("a command is still due at tick %d: let the clock run (or step it) a moment and save again" % tick)
+			return ""
+	var fixture: Dictionary = {"schema_version": ReplayFixture.SCHEMA_VERSION, "name": name, "seed": sim.get_seed(), "ticks": ticks,
+		"commands": commands, "expected_hash": sim.state_hash(), "assembly": "sandbox"}
+	return JSON.stringify(fixture, "\t", true) + "\n"
 
 
 ## The inspector's node, for the world view to add and sync (claim 8).
@@ -116,4 +141,28 @@ static func request(view: WorldView, kind: StringName, payload: Dictionary) -> S
 			return "no overlay called %s" % overlay
 		var on: bool = inspector.call(&"is_on", overlay)
 		return "%s %s" % [SandboxInspector.NAMES[overlay], "on" if on else "off"]
+	if spawn == "record":
+		var now: Dictionary = Time.get_datetime_dict_from_system()
+		var name: String = "sandbox-%04d%02d%02d-%02d%02d%02d" % [now["year"], now["month"], now["day"], now["hour"], now["minute"], now["second"]]
+		var why: Array[String] = []
+		var text: String = fixture_text(sim, view.session(), name, why)
+		if text.is_empty():
+			return "not saved: %s" % why[0]
+		var path: String = write_fixture(text, name, DEMO_FIXTURE_DIR if view.is_demo() else FIXTURE_DIR)
+		if path.is_empty():
+			return "not saved: could not write %s" % FIXTURE_DIR
+		return "saved %s: %d ticks, %d commands" % [path, sim.get_tick(), view.session().size()]
 	return "the spawn menu sent something it cannot spawn"
+
+
+## Writes a fixture's text to `<dir>/<name>.json`. The path, or "" after an error.
+static func write_fixture(text: String, name: String, dir: String = FIXTURE_DIR) -> String:
+	if DirAccess.make_dir_recursive_absolute(dir) != OK:
+		return ""
+	var path: String = dir.path_join(name + ".json")
+	var handle: FileAccess = FileAccess.open(path, FileAccess.WRITE)
+	if handle == null:
+		return ""
+	handle.store_string(text)
+	handle.close()
+	return path

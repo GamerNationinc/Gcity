@@ -11,6 +11,11 @@ var tick: int
 var kind: StringName
 ## Handler-specific data. Treated as untrusted by the handler.
 var payload: Dictionary
+## Submitted by the sim's own systems (an agent's shot), not from outside. Within a
+## tick these dispatch after every outside command, so a run played live dispatches in
+## the order its replay does, where every outside command was queued at the start
+## (M7.6 claim 9). Not state: the order it puts the inbox in is.
+var own: bool = false
 
 
 func _init(p_tick: int, p_kind: StringName, p_payload: Dictionary) -> void:

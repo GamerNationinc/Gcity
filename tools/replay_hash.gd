@@ -32,7 +32,15 @@ func _initialize() -> void:
 		printerr("content failed to load: %s" % error_string(load_err))
 		quit(1)
 		return
-	var sim: SimRoot = SimAssembly.build(fixture.seed, content)
+	# a session saved in the sandbox replays on the sandbox's assembly and content (M7.6
+	# decision 2); every other fixture on the game's
+	if fixture.assembly == "sandbox":
+		load_err = ContentLoader.load_all(content, "res://sandbox_content")
+		if load_err != OK:
+			printerr("sandbox content failed to load: %s" % error_string(load_err))
+			quit(1)
+			return
+	var sim: SimRoot = SandboxAssembly.build(fixture.seed, content) if fixture.assembly == "sandbox" else SimAssembly.build(fixture.seed, content)
 	if sim == null:
 		printerr("sim assembly failed")
 		quit(1)

@@ -415,7 +415,7 @@ func _execute(sim: SimRoot, agent: int, rec: Dictionary) -> void:
 		var d: Vector3i = _actors.position_of(target) - _actors.position_of(agent)
 		_perception.set_facing(agent, facing_toward(Vector2i(d.x, d.z)))
 		if FIRING_STANCES.has(stance) and _perception.is_alerted(agent, target) and _weapon_ready(agent, sim.get_tick()):
-			var err: Error = sim.submit(SimCommand.new(sim.get_tick() + 1, CombatSystem.COMMAND_FIRE, {"actor": agent, "target": target}))
+			var err: Error = sim.submit_own(SimCommand.new(sim.get_tick() + 1, CombatSystem.COMMAND_FIRE, {"actor": agent, "target": target}))
 			assert(err == OK, "the next tick is never late")
 			_fires += 1
 	var here: Vector3i = BuildSystem.cell_of(_actors.position_of(agent))

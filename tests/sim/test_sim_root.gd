@@ -139,3 +139,22 @@ func test_a_sim_that_has_not_ticked_restores() -> void:
 	var other := SimRoot.new(SEED_A)
 	assert_eq(other.restore_root(fresh.snapshot()), OK, "tick 0 is a tick")
 	assert_eq(other.state_hash(), fresh.state_hash(), "and restores to the same state")
+
+
+## M7.6 claim 9: within a tick, every outside command dispatches before the sim's own
+## (an agent's shot), however late in the tick before it was submitted; so a run played
+## live dispatches in the order its replay does.
+func test_outside_commands_go_ahead_of_the_sims_own() -> void:
+	var sim := SimRoot.new(1)
+	var order: Array[String] = []
+	var record := func(_s: SimRoot, payload: Dictionary) -> bool:
+		var name: String = payload["name"]
+		order.append(name)
+		return true
+	assert_eq(sim.commands().register(&"test.note", record), OK, "a kind")
+	assert_eq(sim.submit_own(SimCommand.new(1, &"test.note", {"name": "own a"})), OK, "the sim's own first")
+	assert_eq(sim.submit(SimCommand.new(1, &"test.note", {"name": "outside 1"})), OK, "then one from outside")
+	assert_eq(sim.submit_own(SimCommand.new(1, &"test.note", {"name": "own b"})), OK, "another of its own")
+	assert_eq(sim.submit(SimCommand.new(1, &"test.note", {"name": "outside 2"})), OK, "another from outside")
+	sim.step()
+	assert_eq(order, ["outside 1", "outside 2", "own a", "own b"] as Array[String], "outside first, each kind in its order")

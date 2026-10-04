@@ -106,8 +106,25 @@ func submit(command: SimCommand) -> Error:
 	if not _inbox.has(command.tick):
 		_inbox[command.tick] = []
 	var queue: Array = _inbox[command.tick]
-	queue.append(command)
+	if command.own:
+		queue.append(command)
+		return OK
+	# an outside command goes ahead of the sim's own for its tick (`SimCommand.own`)
+	var at: int = queue.size()
+	while at > 0:
+		var before: SimCommand = queue[at - 1]
+		if not before.own:
+			break
+		at -= 1
+	queue.insert(at, command)
 	return OK
+
+
+## Queues a command from one of the sim's own systems: after every outside command due
+## on the same tick, however late in the tick before it was submitted.
+func submit_own(command: SimCommand) -> Error:
+	command.own = true
+	return submit(command)
 
 
 func is_paused() -> bool:

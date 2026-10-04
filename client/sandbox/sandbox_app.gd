@@ -8,7 +8,7 @@
 class_name SandboxApp extends DeviceApp
 
 const KIND_SPAWN: StringName = &"sandbox_ui.spawn"
-const PAGES: Array[String] = ["agents", "items", "sites", "trainer", "ai", "time", "inspect"]
+const PAGES: Array[String] = ["agents", "items", "sites", "trainer", "ai", "time", "inspect", "record"]
 const EFFECTS: Array[String] = ["god", "ammo", "fly"]
 const EFFECT_NAMES: Dictionary = {"god": "god mode", "ammo": "infinite ammo", "fly": "fly (right trigger up, left down)"}
 const ITEM_KINDS: Array[StringName] = [&"weapon_frame", &"weapon_part", &"ammo", &"device_frame", &"device_module"]
@@ -60,7 +60,9 @@ static func _is_round(content: ContentDb, ammo: StringName, calibre: String) -> 
 ## page shows each effect's state for `player`, read from `sim` (null: all off).
 static func entries(content: ContentDb, page: String, sim: SimRoot = null, player: int = 0) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if page == "inspect":
+	if page == "record":
+		out.append({"spawn": "record", "label": "save this session as a replay fixture (user://fixtures)"})
+	elif page == "inspect":
 		for overlay: String in SandboxInspector.OVERLAYS:
 			out.append({"spawn": "inspect", "overlay": overlay, "label": "%s (on/off; the HUD lists what is on)" % SandboxInspector.NAMES[overlay]})
 		out.append({"spawn": "inspect", "overlay": "all", "label": "every overlay on"})

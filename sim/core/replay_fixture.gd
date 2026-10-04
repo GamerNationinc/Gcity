@@ -19,6 +19,11 @@ const _REQUIRED_KEYS: Array[String] = [
 	"schema_version", "name", "seed", "ticks", "commands", "expected_hash",
 ]
 const _COMMAND_KEYS: Array[String] = ["tick", "kind", "payload"]
+## Optional: which assembly built the sim the fixture was recorded on (M7.6 spec decision
+## 2). "game" when absent; "sandbox" for a session saved in `--sandbox`, which the replay
+## tools build with `SandboxAssembly` over the game's and the sandbox's content.
+const _OPTIONAL_KEYS: Array[String] = ["assembly"]
+const ASSEMBLIES: Array[String] = ["game", "sandbox"]
 
 var name: String = ""
 var seed: int = 0
@@ -26,6 +31,7 @@ var ticks: int = 0
 var commands: Array[SimCommand] = []
 ## 64 lowercase hex characters, or empty while a new fixture is being recorded.
 var expected_hash: String = ""
+var assembly: String = "game"
 ## Empty when the fixture is valid; otherwise the first validation failure found.
 var error: String = ""
 
@@ -51,9 +57,16 @@ func _load(text: String) -> String:
 	if typeof(data) != TYPE_DICTIONARY:
 		return "top level must be an object"
 	var root: Dictionary = data
-	var key_err: String = _check_keys(root, _REQUIRED_KEYS, "fixture")
+	var key_err: String = _check_keys(root, _REQUIRED_KEYS, "fixture", _OPTIONAL_KEYS)
 	if not key_err.is_empty():
 		return key_err
+	if root.has("assembly"):
+		if typeof(root["assembly"]) != TYPE_STRING:
+			return "assembly must be a string"
+		var named: String = root["assembly"]
+		if not ASSEMBLIES.has(named):
+			return "assembly must be one of %s" % [ASSEMBLIES]
+		assembly = named
 
 	var version: int = 0
 	var err: String = _read_int(root, "schema_version", 1, SCHEMA_VERSION)
@@ -121,13 +134,13 @@ func _load_command(raw: Variant, index: int) -> String:
 	return ""
 
 
-static func _check_keys(dict: Dictionary, required: Array[String], what: String) -> String:
+static func _check_keys(dict: Dictionary, required: Array[String], what: String, optional: Array[String] = []) -> String:
 	for key: String in required:
 		if not dict.has(key):
 			return "%s: missing key '%s'" % [what, key]
 	for key: Variant in dict.keys():
 		var key_text: String = str(key)
-		if not required.has(key_text):
+		if not required.has(key_text) and not optional.has(key_text):
 			return "%s: unknown key '%s'" % [what, key_text]
 	return ""
 

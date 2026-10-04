@@ -106,7 +106,8 @@ func attach(sim: SimRoot) -> Error:
 			[COMMAND_AI, _on_ai]]:
 		var kind: StringName = pair[0]
 		var handler: Callable = pair[1]
-		err = sim.commands().register(kind, handler)
+		# pause-safe: the sandbox works with the device up, which pauses the world on the lot
+		err = sim.commands().register(kind, handler, true)
 		if err != OK:
 			return err
 	return OK

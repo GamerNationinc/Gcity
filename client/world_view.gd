@@ -138,6 +138,9 @@ var _sandbox: bool = false
 const SANDBOX_MODE: String = "res://client/sandbox/sandbox_mode.gd"
 ## The sandbox mode's script once installed: its views and its requests (claim 2).
 var _sandbox_mode: Script = null
+## Every command this `--sandbox` session has sent since the lot was last set up, as a
+## fixture's commands (claim 9): {"tick", "kind", "payload"}.
+var _session: Array[Dictionary] = []
 ## The sandbox's inspector overlays (claim 8), a node from `client/sandbox/`, or null.
 var _inspector: Node3D = null
 ## `--sandbox` fly (claim 4): the right trigger lifts a level, the left drops one, a level
@@ -318,6 +321,13 @@ func _raise_device(raise: bool) -> void:
 	_device_raised = raise
 	_device_screen.visible = raise
 	_steam.activate_action_set(raise)
+	if _sandbox:
+		# the device does not stop time in the sandbox: a sim pause cannot be replayed from
+		# a fixture's ticks (claim 9), and the time page holds the clock when you want it
+		if raise:
+			_shell.note("")
+			_device_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
+		return
 	if raise:
 		var rights: Dictionary = SimAssembly.land_of(sim).rights_at(SimAssembly.actors_of(sim).position_of(_player), _player)
 		var safe: bool = rights[&"safe"]
@@ -1434,6 +1444,8 @@ static func room_commands(base: Vector3i, actor: int) -> Array[Dictionary]:
 
 func _submit(sim: SimRoot, kind: StringName, payload: Dictionary) -> void:
 	var err: Error = sim.submit(SimCommand.new(sim.get_tick() + 1, kind, payload))
+	if err == OK and _sandbox:
+		_session.append({"tick": sim.get_tick() + 1, "kind": String(kind), "payload": payload.duplicate(true)})
 	if err != OK:
 		_note("submit %s failed: %s" % [kind, error_string(err)])
 	elif _run_log != null:
@@ -1472,6 +1484,7 @@ func _note(text: String) -> void:
 ## A fresh sim and a fresh scene, for the Deck: no relaunch after a death.
 func _restart() -> void:
 	_host.restart()
+	_session.clear()  # a fresh sim: a saved session starts from its tick 0
 	for table: Dictionary in [_token_nodes, _actor_nodes, _bar_nodes, _line_nodes, _marker_nodes]:
 		for node: Node in table.values():
 			node.queue_free()
@@ -1806,7 +1819,12 @@ func _advance_create_setup(sim: SimRoot) -> void:
 			if ids.is_empty():
 				return
 			_player = ids[0]
-			actors.set_position(_player, CREATOR_START)
+			if _sandbox:
+				# by command, not by hand: a saved session replays only what was submitted
+				var start: Vector3i = BuildSystem.cell_of(CREATOR_START)
+				_submit(sim, &"sandbox.teleport", {"actor": _player, "cell": [start.x, start.y, start.z]})
+			else:
+				actors.set_position(_player, CREATOR_START)
 			_submit(sim, &"land.identify", {"actor": _player, "owner": "player"})
 			for lot: String in SiteCreator.LOTS:
 				_submit(sim, &"land.transfer", {"parcel": lot, "owner": "player"})
@@ -1861,6 +1879,8 @@ func _creator_tick(sim: SimRoot) -> void:
 			for i: int in overlays:
 				buttons.append(JOY_BUTTON_DPAD_DOWN)
 			buttons.append(JOY_BUTTON_A)
+			# and the record page, next right: the session saved as a fixture
+			buttons.append_array([JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_A])
 		buttons.append(JOY_BUTTON_START)
 		for button: JoyButton in buttons:
 			for pressed: bool in [true, false]:
@@ -2007,6 +2027,15 @@ func host() -> LocalHost:
 
 func inspector() -> Node3D:
 	return _inspector
+
+
+func session() -> Array[Dictionary]:
+	return _session
+
+
+## Whether this is a scripted `--demo` run: its saves go out of the player's folders.
+func is_demo() -> bool:
+	return _demo
 
 
 func creator_cursor() -> Vector3i:
