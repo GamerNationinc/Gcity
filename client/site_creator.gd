@@ -28,6 +28,8 @@ const MAX_SPAWNS: int = 64
 const MAX_TERMINALS: int = 16
 const MAX_REL: int = 100000
 const SITE_DIR: String = "user://sites"
+## The piece the palette starts on.
+const FIRST_PIECE: StringName = &"foundation_block"
 ## The four facings round a cell, a quarter turn apart: 0°, 90°, 180°, 270° (the sim's
 ## facing degrees run from +x towards +z).
 const AROUND: Array[String] = ["px", "pz", "nx", "nz"]
@@ -48,6 +50,9 @@ func _init(content: ContentDb) -> void:
 	_palette = content.ids(BuildSystem.KIND_PIECE)
 	_palette.append(GUARD_POST)
 	_palette.append(TERMINAL)
+	# start on what goes on bare ground: anything else placed first is refused (Deck test,
+	# 2026-10-04: the first A on a concrete block did nothing a player could see)
+	select(FIRST_PIECE)
 
 
 func palette() -> Array[StringName]:
@@ -185,6 +190,29 @@ func place(actor: int, yaw: float, movement: MovementSystem) -> Dictionary:
 		return {}
 	var centre: Vector3i = BuildSystem.cell_centre(_cursor)
 	return {"actor": actor, "piece": String(name), "x": centre.x, "y": centre.y, "z": centre.z, "facing": facing_for(name, yaw)}
+
+
+## Why the sim would refuse to place `name` at the cursor with `facing`, in a few words
+## a player can act on, or "" if nothing here says it would. Asked before the press is
+## sent, so that when the piece does not appear the view can say why rather than leave
+## a button that seems to do nothing (Deck test, 2026-10-04). Read-only: the sim alone
+## decides; this only explains.
+func why_not(sim: SimRoot, actor: int, name: StringName, facing: String) -> String:
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var slot: String = BuildSystem.cell_key(_cursor) if facing.is_empty() else BuildSystem.face_key(_cursor, facing)
+	var taken: int = build.cell_piece_at(_cursor) if facing.is_empty() else build.face_piece_at(slot)
+	if taken != EntityIds.NONE:
+		return "that spot already has a %s" % build.template_of(taken)
+	var rights: Dictionary = SimAssembly.land_of(sim).rights_at(BuildSystem.cell_centre(_cursor), actor)
+	var may_build: bool = rights[&"build"]
+	if not may_build:
+		return "this is not your land to build on"
+	var t: Dictionary = _content.get_entry(BuildSystem.KIND_PIECE, name)
+	if LandSystem._as_name(t["kind"]) == &"foundation" and not build._on_ground(_cursor):
+		return "a foundation goes on the ground: lower the cursor (L1)"
+	if build.would_enclose_a_body(name, _cursor, facing):
+		return "somebody is standing there"
+	return "nothing holds it up there: build up from a foundation"
 
 
 ## A press of B: the `build.remove` payload for what is under the cursor — a piece in

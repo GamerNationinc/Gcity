@@ -347,3 +347,61 @@ func _slot(base: Vector3i, entry: Dictionary) -> String:
 	var cell: Vector3i = base + SiteCreator._vec(entry["rel"])
 	var facing: String = entry["facing"]
 	return "%s@%s" % [entry["piece"], BuildSystem.cell_key(cell) if facing.is_empty() else BuildSystem.face_key(cell, facing)]
+
+
+## Deck test, 2026-10-04: the first press of A did nothing anyone could see. The palette
+## starts on the piece that goes on bare ground, and a press the sim would refuse comes
+## with a reason a player can act on.
+func test_the_palette_starts_on_a_foundation_and_a_refusal_has_a_reason() -> void:
+	var db: ContentDb = _db()
+	var made: Array = _lot(db)
+	var sim: SimRoot = made[0]
+	var player: int = made[1]
+	var movement: MovementSystem = SimAssembly.movement_of(sim)
+	var creator := SiteCreator.new(db)
+	assert_eq(creator.selected(), &"foundation_block", "the palette starts on a foundation")
+	assert_eq(creator.why_not(sim, player, &"foundation_block", ""), "nothing holds it up there: build up from a foundation", "the fallback, asked of a fine spot")
+	assert_true(_do(sim, &"build.place", creator.place(player, 0.0, movement)), "and the first A places it")
+	assert_true(creator.why_not(sim, player, &"foundation_block", "").contains("already has a foundation_block"), "the same spot again: taken")
+	creator.rise(2)
+	assert_true(creator.why_not(sim, player, &"foundation_block", "").contains("goes on the ground"), "a foundation up in the air")
+	assert_true(creator.why_not(sim, player, &"wall_panel", "pz").contains("nothing holds it up"), "a wall two levels over nothing")
+	# the fixer's office is somebody else's
+	creator.set_cursor(Vector3i(6, 0, 30))
+	assert_true(creator.why_not(sim, player, &"foundation_block", "").contains("not your land"), "somebody else's lot")
+	assert_false(_do(sim, &"build.place", creator.place(player, 0.0, movement)), "and the sim agrees")
+
+
+## Deck test, 2026-10-04 ("always ensure buttons are functioning correctly"): every
+## control the creator prompts for is bound to exactly the Deck button the spec gives
+## it (claim 14), each to a different button, with no keyboard key (CLAUDE.md §10).
+func test_every_creator_control_is_on_its_own_deck_button() -> void:
+	var expected: Dictionary = {
+		&"create_up": JOY_BUTTON_DPAD_UP, &"create_down": JOY_BUTTON_DPAD_DOWN,
+		&"create_left": JOY_BUTTON_DPAD_LEFT, &"create_right": JOY_BUTTON_DPAD_RIGHT,
+		&"create_raise": JOY_BUTTON_RIGHT_SHOULDER, &"create_lower": JOY_BUTTON_LEFT_SHOULDER,
+		&"create_place": JOY_BUTTON_A, &"create_remove": JOY_BUTTON_B,
+		&"create_turn": JOY_BUTTON_X, &"create_next": JOY_BUTTON_Y,
+	}
+	var used: Dictionary = {}
+	for action: StringName in expected:
+		assert_true(InputMap.has_action(action), "%s exists" % action)
+		var buttons: Array[int] = []
+		for event: InputEvent in InputMap.action_get_events(action):
+			assert_false(event is InputEventKey, "%s has no keyboard key" % action)
+			if event is InputEventJoypadButton:
+				var b: InputEventJoypadButton = event
+				buttons.append(b.button_index)
+		assert_eq(buttons, [expected[action]] as Array[int], "%s is on its one button" % action)
+		assert_false(used.has(expected[action]), "and no other creator control shares it")
+		used[expected[action]] = action
+	for action: String in WorldView.CREATOR_ACTIONS:
+		assert_true(expected.has(StringName(action)), "%s, handled by the view, is pinned here" % action)
+	# the menu is the device button, the same View the rest of the game raises the device with
+	var view: Array[int] = []
+	for event: InputEvent in InputMap.action_get_events(&"world_device"):
+		if event is InputEventJoypadButton:
+			var b: InputEventJoypadButton = event
+			view.append(b.button_index)
+	assert_eq(view, [JOY_BUTTON_BACK] as Array[int], "the menu opens with View")
+	assert_false(used.has(JOY_BUTTON_BACK), "which no creator control uses")

@@ -701,7 +701,7 @@ func _process(delta: float) -> void:
 			_save_capture()
 			get_tree().quit()
 			return
-	elif not _device_raised:
+	if not _device_raised and (not _demo or _handed_back()):
 		var look: float = Input.get_action_strength("world_look_right") - Input.get_action_strength("world_look_left")
 		_yaw -= look * LOOK_SPEED * delta
 	_sync_scene(sim)
@@ -719,8 +719,9 @@ func _physics_process(_delta: float) -> void:
 	_advance_setup(sim)
 	if _setup_stage < READY:
 		return
-	if _mission and _demo:
-		# --mission --demo drives the route itself; --mission alone hands it to you
+	if _mission and _demo and _mission_index < _mission_steps.size():
+		# --mission --demo drives the route itself; --mission alone hands it to you, and so
+		# does the demo once its route is done (Deck test, 2026-10-04: the buttons stayed dead)
 		_mission_tick(sim)
 		return
 	if _create:
@@ -728,7 +729,7 @@ func _physics_process(_delta: float) -> void:
 		if _demo:
 			return
 	var input: Vector2 = Vector2.ZERO
-	if _demo:
+	if _demo and not _handed_back():
 		if _demo_walk_ticks > 0:
 			_demo_walk_ticks -= 1
 			input = _demo_walk_dir
@@ -746,6 +747,12 @@ func _physics_process(_delta: float) -> void:
 	if _take_gate(sim, dx, dz):
 		return
 	_submit(sim, &"actor.move", {"actor": _player, "dx": dx, "dz": dz})
+
+
+## Whether a scripted mission demo has finished its route and handed the controls to
+## whoever holds the Deck.
+func _handed_back() -> bool:
+	return _mission and _demo and _setup_stage >= READY and _mission_index >= _mission_steps.size()
 
 
 ## The stick, seen from a camera at `yaw`, as a direction on the ground (x, z): up is
@@ -867,6 +874,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not event.is_pressed():
 		return
+	if _mission and _demo and not _handed_back():
+		return  # the scripted route has the controls until it is done
 	if _create:
 		_creator_input(event)
 		return
@@ -1044,6 +1053,7 @@ func _mission_tick(sim: SimRoot) -> void:
 				sim.get_tick(), score.times_detected(_player), score.alarms_raised(_player),
 				score.bodies(_player), score.traces_left(_player)])
 			_mission_index += 1
+			_note("t%d the route is done: the controls are yours" % sim.get_tick())
 
 
 func _grate(sim: SimRoot) -> int:
@@ -1524,12 +1534,20 @@ func _on_joy_changed(device: int, connected: bool) -> void:
 
 ## Every action pressed or released, and any controller button that is not bound to one.
 func _log_input(event: InputEvent) -> void:
-	if _run_log == null or event.is_echo() or event is InputEventMouseMotion or event is InputEventJoypadMotion:
+	if _run_log != null and event is InputEventJoypadMotion:
+		# the sticks and triggers are logged as the stick; anything else that moves is a
+		# control the game does not read (a D-pad reported as a hat, say): say so
+		var motion: InputEventJoypadMotion = event
+		if motion.axis >= JOY_AXIS_SDL_MAX and absf(motion.axis_value) > 0.5:
+			_record("input", "unbound axis %d at %.1f" % [motion.axis, motion.axis_value])
+		return
+	if _run_log == null or event.is_echo() or event is InputEventMouseMotion:
 		return
 	var named: bool = false
 	for action: StringName in InputMap.get_actions():
 		var a: String = String(action)
-		if (a.begins_with("world_") or a.begins_with("device_")) and event.is_action(action):
+		var ours: bool = (a.begins_with("create_") or a == "world_device" or a == "world_camera") if _create else (a.begins_with("world_") or a.begins_with("device_"))
+		if ours and event.is_action(action):
 			named = true
 			_record("input", "%s %s (%s)" % [a, "pressed" if event.is_pressed() else "released", event.as_text()])
 	if not named and event.is_pressed() and (event is InputEventJoypadButton or event is InputEventKey):
@@ -1678,6 +1696,9 @@ const CREATOR_START: Vector3i = Vector3i(42500, 0, 41500)
 var _creator_marker_sig: String = ""
 ## A site to open once the lot is set up again (claim 15), or "".
 var _creator_open_path: String = ""
+## The last placement sent and the reason it would be refused, checked once its tick has
+## run: a refused press is said aloud, never silent.
+var _creator_pending: Dictionary = {}
 
 
 ## The player on Cold Storage's open lot, theirs with the plots beside it.
@@ -1714,6 +1735,7 @@ func _creator_tick(sim: SimRoot) -> void:
 		return
 	for cell: Vector3i in _creator.prune(SimAssembly.movement_of(sim)):
 		_note("guard post at %s removed: no room for a guard there now" % cell)
+	_creator_check_pending(sim)
 	if not _demo or _creator_press_next >= _creator_presses.size():
 		return
 	if _creator_press_wait > 0:
@@ -1732,6 +1754,23 @@ func _creator_tick(sim: SimRoot) -> void:
 	_creator.select(piece)
 	_creator.set_turn(turns)
 	_creator_press("create_place")
+
+
+func _creator_check_pending(sim: SimRoot) -> void:
+	if _creator_pending.is_empty():
+		return
+	var due: int = _creator_pending["due"]
+	if sim.get_tick() < due:
+		return
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var cell: Vector3i = _creator_pending["cell"]
+	var facing: String = _creator_pending["facing"]
+	var piece: StringName = _creator_pending["piece"]
+	var id: int = build.cell_piece_at(cell) if facing.is_empty() else build.face_piece_at(BuildSystem.face_key(cell, facing))
+	if id == EntityIds.NONE or build.template_of(id) != piece:
+		var why: String = _creator_pending["why"]
+		_note("%s not placed at %s: %s" % [piece, cell, why])
+	_creator_pending = {}
 
 
 func _creator_input(event: InputEvent) -> void:
@@ -1782,6 +1821,9 @@ func _creator_press(action: String) -> void:
 			var movement: MovementSystem = SimAssembly.movement_of(sim)
 			var payload: Dictionary = _creator.place(_player, _yaw, movement)
 			if not payload.is_empty():
+				var facing: String = payload["facing"]
+				_creator_pending = {"due": sim.get_tick() + 1, "piece": name, "cell": _creator.cursor(), "facing": facing,
+					"why": _creator.why_not(sim, _player, name, facing)}
 				_submit(sim, &"build.place", payload)
 			elif name == SiteCreator.GUARD_POST and not _creator.guard_fits(movement, _creator.cursor()):
 				_note("no room for a guard at %s" % _creator.cursor())
