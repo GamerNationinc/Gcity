@@ -21,7 +21,8 @@ only one mission to dress.
 
 **Preconditions.** G7.5 is signed (M7.5, human scale, inserted ahead of this milestone
 by CEOGG on 2026-10-01; before that, G7), and so is G7.6 (the sandbox, approved
-2026-10-02). **ADR-011** (art direction and asset sourcing,
+2026-10-02), and so is G7.7 (movement lockdown, approved 2026-10-04: amendment below
+claim 5 and in claims 11 and 13). **ADR-011** (art direction and asset sourcing,
 proposed with this spec) is accepted: claims 3–13 depend on it, and CLAUDE.md does not
 let an open ADR be guessed around. The reorder in §16 below is approved.
 
@@ -82,7 +83,10 @@ lost time in M7); **the Deck remains the only machine whose numbers count** (sta
    death — driven by an `AnimationTree` from sim state that already exists (stance,
    position change per tick, wielded weapon, aim, health events). Factions are
    distinguishable at 20 m on the Deck's screen by silhouette and colour, not by a label
-   (pillar 3, legibility). The capsule stays as a debug view.
+   (pillar 3, legibility). The capsule stays as a debug view. **Amended with M7.7
+   (approved 2026-10-04):** the set is M7.7's closed list: idle, walk, sprint, crouch
+   (idle and moving), climb, fall, plus aim, fire, reload, hit and death; "run" is sprint,
+   and the posture comes from the sim's per-actor posture.
 6. **Motion is smooth.** The client interpolates every actor's transform between sim
    ticks (the sim stays at its fixed tick, ADR-002); the camera is a third-person spring
    arm with collision, a shoulder swap, and the first-person toggle the design doc names
@@ -114,7 +118,7 @@ lost time in M7); **the Deck remains the only machine whose numbers count** (sta
     presentation of a combat event the sim already emits (`combat.fire`, `combat.hit`).
     `time_to_first_shot` (G4) is re-checked unchanged: feel is added on top, never by
     retuning the sim.
-11. **Sound.** Footsteps by surface, gunshots with distance falloff and a
+11. **Sound.** Footsteps by surface (played from M7.7's `actor.stepped` events), gunshots with distance falloff and a
     region-appropriate reverb, city and wilds ambience, the gate, the device's UI, the
     hack in progress. Audio buses with a budget. Sound tells the truth about the sim: a gunshot or a
     breach is audible to the player at least as far as the sim's hearing carries it
@@ -129,10 +133,11 @@ lost time in M7); **the Deck remains the only machine whose numbers count** (sta
 
 ### Verification
 
-13. **The sim did not move.** All 24 replay fixtures reproduce their G7.5 hashes
-    unchanged; `git diff --stat <G7.6 sign-off>..HEAD -- sim/` is empty (G7.6, not G7.5:
-    the M7.6 sandbox adds `sim/` code; amendment approved with `docs/specs/M7.6-sandbox.md`,
-    2026-10-02). A claim that
+13. **The sim did not move.** All 24 replay fixtures reproduce their G7.7 hashes
+    unchanged; `git diff --stat <G7.7 sign-off>..HEAD -- sim/` is empty (G7.7, not G7.5:
+    the M7.6 sandbox and M7.7's movement add `sim/` code; amendments approved with
+    `docs/specs/M7.6-sandbox.md`, 2026-10-02, and `docs/specs/M7.7-movement-lockdown.md`,
+    2026-10-04). A claim that
     needs a sim change is not an M8 claim: it goes to the debt log with the reason.
 14. **It holds 40 fps on the Deck with the look on.** `--mission --demo` and a `--wilds`
     walk captured on the Deck, plugged and on battery: 1 % low ≥ 40 fps; 0.1 % low

@@ -825,12 +825,12 @@ and the clock, and draw what the sim knows over the world. Every action is a com
 judges, and a session saves as a replay fixture. Not in the release export. Requested and
 its spec approved by CEOGG, 2026-10-02 (`docs/specs/M7.6-sandbox.md`).
 
-**M7.7 — Movement lockdown** *(proposed, not yet approved)*
+**M7.7 — Movement lockdown**
 Every way a body moves, gone over once, decided, built, bound to its own Deck button and
 closed: walk, sprint, crouch, climb, fall. Crouch is a per-actor posture (one cell, lower
 eyes, half speed, less seen); climbing needs no button; steps become events M8 plays and
-M9 hears. Proposed 2026-10-04 from CEOGG's G7.5 answer on crouching
-(`docs/specs/M7.7-movement-lockdown.md`).
+M9 hears. Inserted ahead of look and feel by CEOGG, 2026-10-04, from the G7.5 answer on crouching;
+its spec approved the same day (`docs/specs/M7.7-movement-lockdown.md`).
 
 **M8 — Look and feel**
 What the player sees and hears, over a sim that does not move: one art direction,
@@ -842,6 +842,8 @@ CEOGG, 2026-09-30 (`docs/specs/M8-look-and-feel.md`).
 Signals, suspicion, investigation phase, base state machine, absent resolution.
 Written before the reorder, earlier specs, gates, ADR-004 and comments in `sim/` call this
 M8; they mean this milestone, and debt they scheduled for the threat director's M8 is M9's.
+Also M9's (CEOGG, 2026-10-04): wall Cold Storage's side passages from the server room
+(G7.5 item 36), once an alerted guard can stand down and the death run can recover.
 
 Everything else — drone control, hacking depth, additional weapons, perk breadth, economy —
 is content on top of finished systems.
