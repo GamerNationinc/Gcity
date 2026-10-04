@@ -3,6 +3,24 @@
 Claude Code's memory lives on the machine it runs on, so this file is how the next
 session picks up. Read it first, then `CLAUDE.md`.
 
+## Update, 2026-10-03 late, on the Deck: G7.5 submitted
+
+- **`docs/gates/M7.5-gate.md` is submitted.** Every claim but 13's hand-played part is in;
+  §6 lists the five decisions for CEOGG, §7 waits for the Deck run. Final suite 545 tests,
+  0 failed, 24 replays.
+- **Mutation (claim 12):** 81.8 % pass 1 on the 15 changed `sim/` files, a deeper sample on
+  build and movement, 12 holes given tests, pass 2 91.2 % (`5301925`). Run it in four
+  detached worktrees at once (symlink `.cache`, copy the built addons, `--import`); the
+  map in `tools/mutate.py` now includes the M7.5 test files.
+- **Found and fixed:** Cold Storage was open at the back since M6 (item 27); the mission
+  demo played a random world (item 26: `--demo` now uses `LocalHost.DEMO_SEED`, `--seed=N`
+  for any); the HUD's state hash cost 62 ms a second (item 30).
+- **Q4 done:** `door_warehouse` (item 28). Every fixture hash moved again with it.
+- **Deck screen tricks:** captures and screenshots need `--display-driver wayland`, the
+  screen awake (`kscreen-doctor --dpms on`) and kept awake (qdbus ScreenSaver
+  SimulateUserActivity every 20 s). See the scratch `capture.sh` pattern in item 29.
+- **Next:** CEOGG's Deck run and sign-off; then M7.6 (the sandbox, approved), then M8.
+
 ## Update, 2026-10-03 night, on the Deck: the creator tool (claims 14–16) done
 
 - `d9815e8` claims 14–15, `9ea4ac1` claim 16. Gate items 21–25. Full suite: 533 tests,
