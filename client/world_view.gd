@@ -138,6 +138,8 @@ var _sandbox: bool = false
 const SANDBOX_MODE: String = "res://client/sandbox/sandbox_mode.gd"
 ## The sandbox mode's script once installed: its views and its requests (claim 2).
 var _sandbox_mode: Script = null
+## The sandbox's inspector overlays (claim 8), a node from `client/sandbox/`, or null.
+var _inspector: Node3D = null
 ## `--sandbox` fly (claim 4): the right trigger lifts a level, the left drops one, a level
 ## every `FLY_TICKS` while held. The tick the next level change may be sent on.
 var _fly_next: int = 0
@@ -213,6 +215,8 @@ func _install_sandbox() -> bool:
 		return false
 	_record("sandbox", "the sandbox's assembly and content are in")
 	_sandbox_mode = mode
+	_inspector = mode.call(&"inspector")
+	add_child(_inspector)
 	return true
 
 
@@ -759,6 +763,8 @@ func _process(delta: float) -> void:
 	_sync_scene(sim)
 	_place_camera(sim)
 	_render(sim)
+	if _inspector != null:
+		_inspector.call(&"sync", sim, _player)
 	_refresh_device()
 
 
@@ -1534,6 +1540,9 @@ func _render(sim: SimRoot) -> void:
 	var title: String = "M6 mission" if _mission else ("sandbox" if _sandbox else ("creator" if _create else "M5 world"))
 	lines.append("Gcity %s   tick %d   state %s%s%s" % [title, sim.get_tick(), _state_digest(sim), "   PAUSED" if sim.is_paused() else "",
 		"   time %s" % _host.rate_label() if _sandbox else ""])
+	if _inspector != null:
+		var shown: PackedStringArray = _inspector.call(&"on_list")
+		lines.append("inspect: %s" % (", ".join(shown) if not shown.is_empty() else "off (the Spawn app's inspect page)"))
 	if _setup_stage < READY:
 		lines.append("setting up (stage %d)..." % _setup_stage)
 		_status.text = "\n".join(lines)
@@ -1846,6 +1855,12 @@ func _creator_tick(sim: SimRoot) -> void:
 			# trainer page, three to the right: god mode, and fly two below it
 			buttons.append_array([JOY_BUTTON_RIGHT_SHOULDER, JOY_BUTTON_A, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_RIGHT,
 				JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_A, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_A])
+			# and the inspect page, three further right: "every overlay on", below the eight
+			buttons.append_array([JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_RIGHT])
+			var overlays: int = _inspector.call(&"overlay_count")
+			for i: int in overlays:
+				buttons.append(JOY_BUTTON_DPAD_DOWN)
+			buttons.append(JOY_BUTTON_A)
 		buttons.append(JOY_BUTTON_START)
 		for button: JoyButton in buttons:
 			for pressed: bool in [true, false]:
@@ -1988,6 +2003,10 @@ func host_sim() -> SimRoot:
 
 func host() -> LocalHost:
 	return _host
+
+
+func inspector() -> Node3D:
+	return _inspector
 
 
 func creator_cursor() -> Vector3i:

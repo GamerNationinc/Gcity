@@ -8,7 +8,7 @@
 class_name SandboxApp extends DeviceApp
 
 const KIND_SPAWN: StringName = &"sandbox_ui.spawn"
-const PAGES: Array[String] = ["agents", "items", "sites", "trainer", "ai", "time"]
+const PAGES: Array[String] = ["agents", "items", "sites", "trainer", "ai", "time", "inspect"]
 const EFFECTS: Array[String] = ["god", "ammo", "fly"]
 const EFFECT_NAMES: Dictionary = {"god": "god mode", "ammo": "infinite ammo", "fly": "fly (right trigger up, left down)"}
 const ITEM_KINDS: Array[StringName] = [&"weapon_frame", &"weapon_part", &"ammo", &"device_frame", &"device_module"]
@@ -60,7 +60,12 @@ static func _is_round(content: ContentDb, ammo: StringName, calibre: String) -> 
 ## page shows each effect's state for `player`, read from `sim` (null: all off).
 static func entries(content: ContentDb, page: String, sim: SimRoot = null, player: int = 0) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if page == "ai":
+	if page == "inspect":
+		for overlay: String in SandboxInspector.OVERLAYS:
+			out.append({"spawn": "inspect", "overlay": overlay, "label": "%s (on/off; the HUD lists what is on)" % SandboxInspector.NAMES[overlay]})
+		out.append({"spawn": "inspect", "overlay": "all", "label": "every overlay on"})
+		out.append({"spawn": "inspect", "overlay": "none", "label": "every overlay off"})
+	elif page == "ai":
 		for effect: String in SandboxSystem.AI_EFFECTS:
 			for on: bool in [true, false]:
 				out.append({"spawn": "ai", "effect": effect, "on": on, "label": "every guard %s%s" % ["" if on else "not ", effect]})

@@ -26,6 +26,11 @@ static func install(host: LocalHost) -> bool:
 	return true
 
 
+## The inspector's node, for the world view to add and sync (claim 8).
+static func inspector() -> Node3D:
+	return SandboxInspector.new()
+
+
 ## The apps only the sandbox has, and their scenes: registered by the world view.
 static func views() -> Dictionary:
 	return {"sandbox": "res://client/sandbox/sandbox_app.tscn"}
@@ -100,4 +105,15 @@ static func request(view: WorldView, kind: StringName, payload: Dictionary) -> S
 		var den: int = payload["den"]
 		host.set_rate(num, den)
 		return "time %s" % host.rate_label()
+	if spawn == "inspect":
+		var inspector: Node3D = view.inspector()
+		var overlay: String = payload["overlay"]
+		if overlay == "all" or overlay == "none":
+			inspector.call(&"set_all", overlay == "all")
+			return "every overlay %s" % ("on" if overlay == "all" else "off")
+		var known: bool = inspector.call(&"toggle", overlay)
+		if not known:
+			return "no overlay called %s" % overlay
+		var on: bool = inspector.call(&"is_on", overlay)
+		return "%s %s" % [SandboxInspector.NAMES[overlay], "on" if on else "off"]
 	return "the spawn menu sent something it cannot spawn"
