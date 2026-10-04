@@ -64,13 +64,15 @@ func test_the_game_has_no_sandbox_and_the_sandbox_is_the_game_plus_one_system_la
 		assert_true(sim.commands().has(kind), "the sandbox registers %s" % kind)
 
 
-## Decision 1: the shipped game has no sandbox code to reach.
+## Decision 1: the shipped game has no sandbox code to reach. Only a preset named for
+## development ("Linux dev", for the Deck run) may keep it.
 func test_the_release_export_leaves_every_sandbox_folder_out() -> void:
 	var cfg := ConfigFile.new()
 	assert_eq(cfg.load("res://export_presets.cfg"), OK, "the export presets read")
 	var found: bool = false
 	for section: String in cfg.get_sections():
-		if not section.ends_with(".options") and cfg.has_section_key(section, "exclude_filter"):
+		var name: String = cfg.get_value(section, "name", "")
+		if not section.ends_with(".options") and cfg.has_section_key(section, "exclude_filter") and not name.ends_with(" dev"):
 			found = true
 			var filters: PackedStringArray = PackedStringArray()
 			var text: String = cfg.get_value(section, "exclude_filter")

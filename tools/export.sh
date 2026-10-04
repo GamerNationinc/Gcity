@@ -9,6 +9,8 @@ cd "$root"
 source tools/godot.pin
 godot="$(tools/godot.sh)"
 out="${1:-build/linux/gcity.x86_64}"
+# the release preset by default; "Linux dev" keeps the M7.6 sandbox (decision 1)
+preset="${2:-Linux}"
 
 cache="${GODOT_CACHE_DIR:-$root/.cache/godot}"
 # The engine names the templates folder with dots: 4.6.1-stable -> 4.6.1.stable
@@ -30,5 +32,5 @@ fi
 
 mkdir -p "$(dirname "$out")"
 "$godot" --headless --path . --import >/dev/null 2>&1 || true
-"$godot" --headless --path . --export-release Linux "$out"
+"$godot" --headless --path . --export-release "$preset" "$out"
 ls -la "$out"
