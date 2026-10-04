@@ -126,7 +126,7 @@ func test_clear_empties_the_lot_but_the_player() -> void:
 	assert_true(_do(sim, SandboxSystem.COMMAND_CLEAR, {"actor": player}), "clear")
 	assert_eq(actors.actor_ids(), [player] as Array[int], "only the player is left")
 	assert_eq(build.piece_ids(), [] as Array[int], "and nothing built")
-	assert_eq(SandboxAssembly.sandbox_of(sim).snapshot(), {"removed_actors": 2, "removed_pieces": 2}, "counted")
+	assert_eq(SandboxAssembly.sandbox_of(sim).snapshot(), {"removed_actors": 2, "removed_pieces": 2, "spawned": 0}, "counted")
 
 
 ## Claim 10's boundary for these two: exact payloads only.
@@ -144,3 +144,43 @@ func test_a_malformed_payload_is_refused() -> void:
 	for payload: Dictionary in [{}, {"actor": "1"}, {"actor": 999}, {"actor": player, "extra": 1}]:
 		assert_false(_do(sim, SandboxSystem.COMMAND_CLEAR, payload), "clear refuses %s" % payload)
 	assert_eq(SimAssembly.actors_of(sim).actor_ids().size(), 2, "and nothing changed")
+
+
+## Claim 2: an agent of any profile, armed with a kit, facing where it is told; refused
+## where its body does not fit, and for a kit that is not one.
+func test_spawn_agent_arms_a_guard_where_its_body_fits() -> void:
+	var sim: SimRoot = _sandbox()
+	var player: int = _scene(sim)[0]
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var items: ItemSystem = SimAssembly.items_of(sim)
+	var kit: Dictionary = {"frame": "g19", "magazine": "g19_mag_15", "ammo": "9x19_fmj", "rounds": 15}
+	var before: Array[int] = actors.actor_ids()
+	assert_true(_do(sim, SandboxSystem.COMMAND_SPAWN_AGENT, {"actor": player, "profile": "guard_sim", "cell": _cell(Vector3i(0, 0, 4)), "facing": 90, "kit": kit}), "a guard with a pistol")
+	var agent: int = actors.actor_ids().back()
+	assert_false(before.has(agent), "a new actor")
+	var weapon: int = actors.wielded(agent)
+	assert_true(weapon != EntityIds.NONE, "holding a weapon")
+	assert_eq(items.item_template(weapon), &"g19", "the kit's frame")
+	assert_eq(SimAssembly.perception_of(sim).facing_of(agent), 90, "facing where it was told")
+	assert_true(_do(sim, SandboxSystem.COMMAND_SPAWN_AGENT, {"actor": player, "profile": "sentry_drone", "cell": _cell(Vector3i(2, 0, 4)), "facing": 0, "kit": {}}), "any profile, unarmed")
+	var drone: int = actors.actor_ids().back()
+	assert_eq(actors.wielded(drone), EntityIds.NONE, "holding nothing")
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	build.place(player, &"foundation_block", BuildSystem.cell_centre(BuildSystem.cell_of(_at(Vector3i(4, 0, 4)))), "")
+	var count: int = actors.actor_ids().size()
+	assert_false(_do(sim, SandboxSystem.COMMAND_SPAWN_AGENT, {"actor": player, "profile": "guard_sim", "cell": _cell(Vector3i(4, 0, 4)), "facing": 0, "kit": {}}), "inside a foundation: refused")
+	for bad: Dictionary in [
+		{"frame": "g19", "magazine": "g19_mag_15", "ammo": "9x19_fmj"},
+		{"frame": "nope", "magazine": "g19_mag_15", "ammo": "9x19_fmj", "rounds": 15},
+		{"frame": "g19", "magazine": "g19_mag_15", "ammo": "9x19_fmj", "rounds": 101},
+		{"frame": "g19", "magazine": "g19_mag_15", "ammo": "9x19_fmj", "rounds": "15"},
+	]:
+		assert_false(_do(sim, SandboxSystem.COMMAND_SPAWN_AGENT, {"actor": player, "profile": "guard_sim", "cell": _cell(Vector3i(0, 0, 6)), "facing": 0, "kit": bad}), "kit refused: %s" % bad)
+	for payload: Dictionary in [
+		{"actor": player, "profile": "nobody", "cell": _cell(Vector3i(0, 0, 6)), "facing": 0, "kit": {}},
+		{"actor": player, "profile": "guard_sim", "cell": _cell(Vector3i(0, 0, 6)), "facing": 360, "kit": {}},
+		{"actor": 999, "profile": "guard_sim", "cell": _cell(Vector3i(0, 0, 6)), "facing": 0, "kit": {}},
+		{"actor": player, "profile": "guard_sim", "cell": _cell(Vector3i(0, 0, 6)), "facing": 0},
+	]:
+		assert_false(_do(sim, SandboxSystem.COMMAND_SPAWN_AGENT, payload), "refused: %s" % payload)
+	assert_eq(actors.actor_ids().size(), count, "and nobody else appeared")

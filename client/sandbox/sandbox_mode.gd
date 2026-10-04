@@ -24,3 +24,39 @@ static func install(host: LocalHost) -> bool:
 		return false
 	host.use_assembly(SandboxAssembly.build, db)
 	return true
+
+
+## The apps only the sandbox has, and their scenes: registered by the world view.
+static func views() -> Dictionary:
+	return {"sandbox": "res://client/sandbox/sandbox_app.tscn"}
+
+
+## A request from a sandbox app, turned into sim commands (claim 2). Returns what to tell
+## the player: what was sent, or why nothing was (never a silent press).
+static func request(view: WorldView, kind: StringName, payload: Dictionary) -> String:
+	if kind != SandboxApp.KIND_SPAWN:
+		return "the sandbox does not know %s" % kind
+	var sim: SimRoot = view.host_sim()
+	var cell: Vector3i = view.creator_cursor()
+	var spawn: String = payload.get("spawn", "")
+	if spawn == "agent":
+		var profile: String = payload["profile"]
+		var kit: Dictionary = payload["kit"]
+		if not SimAssembly.movement_of(sim).body_fits(cell, 2):
+			return "%s not spawned at %s: no room for a body there (two cells, nothing built in them)" % [profile, cell]
+		view.submit_command(SandboxSystem.COMMAND_SPAWN_AGENT, {"actor": view.player_id(), "profile": profile,
+			"cell": [cell.x, cell.y, cell.z], "facing": view.spawn_facing(), "kit": kit})
+		return "spawning %s at %s%s" % [profile, cell, ", unarmed" if kit.is_empty() else ", with %s" % kit["frame"]]
+	if spawn == "item":
+		var template: String = payload["template"]
+		var count: int = payload["count"]
+		view.submit_command(&"item.spawn", {"kind": payload["kind"], "template": template,
+			"container": String(ItemSystem.inventory_of(view.player_id())), "seed": sim.get_tick(), "count": count})
+		return "%s x%d into your pockets" % [template, count]
+	if spawn == "site":
+		var site: String = payload["site"]
+		if SimAssembly.sites_of(sim).is_raised(StringName(site)):
+			return "%s not raised: it already stands (clear the lot, or restart, to raise it again)" % site
+		view.submit_command(SiteSystem.COMMAND_RAISE, {"actor": view.player_id(), "site": site, "at": [cell.x, cell.y, cell.z]})
+		return "raising %s with its base at %s" % [site, cell]
+	return "the spawn menu sent something it cannot spawn"

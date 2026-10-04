@@ -190,13 +190,18 @@ func cell_of(site: StringName, rel: Vector3i) -> Vector3i:
 ## and its lot all move together to the slot, on the ground there, and the ground round
 ## it is levelled first so the slab sits on something. Nothing in the site's content
 ## changes; only where it goes.
-func raise_site(actor: int, site: StringName, quest: StringName = &"") -> bool:
+func raise_site(actor: int, site: StringName, quest: StringName = &"", stand_at: Variant = null) -> bool:
 	if not _content.has(KIND_SITE, site) or _raised.has(site) or not _actors.has_actor(actor):
 		return false
 	var t: Dictionary = _content.get_entry(KIND_SITE, site)
 	var authored: Vector3i = PathingSystem._vec(t["base"])
 	var base: Vector3i = authored
-	if not quest.is_empty():
+	if stand_at != null:
+		# raised where somebody stands it (the M7.6 sandbox's cursor): its pieces, guards and
+		# terminals as anywhere else, under the raiser's rights there; its lots stay put
+		var cell: Vector3i = stand_at
+		base = cell
+	elif not quest.is_empty():
 		if not _slot_of.is_valid():
 			return false
 		var slot: int = _slot_of.call(quest)
@@ -310,8 +315,11 @@ static func top_of(t: Dictionary) -> int:
 
 
 ## {"actor": int, "site": string} or {"actor": int, "site": string, "quest": string}: the
-## second raises it where that contract's handle is bound (M7 spec claim 10)
+## second raises it where that contract's handle is bound (M7 spec claim 10); a third
+## form, with `at`, where somebody stands it (`_on_raise_at`)
 func _on_raise(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() == 3 and payload.has("at"):
+		return _on_raise_at(payload)
 	var sized: bool = payload.size() == 2 or (payload.size() == 3 and typeof(payload.get("quest")) == TYPE_STRING)
 	if not sized or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("site")) != TYPE_STRING:
 		return false
@@ -321,6 +329,26 @@ func _on_raise(_sim: SimRoot, payload: Dictionary) -> bool:
 	if payload.size() == 3 and quest_s.is_empty():
 		return false
 	return raise_site(actor, StringName(site_s), StringName(quest_s))
+
+
+## {"actor": int, "site": string, "at": [x, y, z]}: raised with its base in that cell.
+func _on_raise_at(payload: Dictionary) -> bool:
+	if typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("site")) != TYPE_STRING or typeof(payload.get("at")) != TYPE_ARRAY:
+		return false
+	var at_a: Array = payload["at"]
+	if at_a.size() != 3:
+		return false
+	for v: Variant in at_a:
+		if typeof(v) != TYPE_INT:
+			return false
+	var x: int = at_a[0]
+	var y: int = at_a[1]
+	var z: int = at_a[2]
+	if absi(x) > BuildSystem.MAX_CELL or absi(y) > BuildSystem.MAX_CELL or absi(z) > BuildSystem.MAX_CELL:
+		return false
+	var actor: int = payload["actor"]
+	var site_s: String = payload["site"]
+	return raise_site(actor, StringName(site_s), &"", Vector3i(x, y, z))
 
 
 ## A site's guard who is removed is no longer the site's (M7 spec claim 12).

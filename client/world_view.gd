@@ -136,6 +136,8 @@ var _create: bool = false
 ## by path from `client/sandbox/`, which a release export leaves out (decision 1).
 var _sandbox: bool = false
 const SANDBOX_MODE: String = "res://client/sandbox/sandbox_mode.gd"
+## The sandbox mode's script once installed: its views and its requests (claim 2).
+var _sandbox_mode: Script = null
 var _creator: SiteCreator
 var _creator_cursor_node: MeshInstance3D
 var _creator_face_node: MeshInstance3D
@@ -206,6 +208,7 @@ func _install_sandbox() -> bool:
 		_note("--sandbox: the sandbox content did not load; the creator's lot instead")
 		return false
 	_record("sandbox", "the sandbox's assembly and content are in")
+	_sandbox_mode = mode
 	return true
 
 
@@ -266,6 +269,13 @@ func _build_device() -> void:
 	for app: String in ["inventory", "map", "quests", "comms", "notes", "drone", "hacking", "mission", "creator"]:
 		var scene: PackedScene = load("res://client/device/apps/%s_app.tscn" % app)
 		_shell.register_view(StringName(app), scene)
+	if _sandbox:
+		var views: Dictionary = _sandbox_mode.call(&"views")
+		for app: Variant in views:
+			var app_s: String = app
+			var path: String = views[app]
+			var scene: PackedScene = load(path)
+			_shell.register_view(StringName(app_s), scene)
 	_device_viewport.add_child(_shell)
 	_device_screen = TextureRect.new()
 	_device_screen.texture = _device_viewport.get_texture()
@@ -279,6 +289,10 @@ func _submit_from_device(kind: StringName, payload: Dictionary) -> void:
 	# the creator app's save and open are files, not sim state: the view does them
 	if kind == CreatorApp.KIND_SAVE:
 		_shell.note(_save_site(_host.sim()))
+		return
+	if _sandbox and String(kind).begins_with("sandbox_ui."):
+		var said: String = _sandbox_mode.call(&"request", self, kind, payload)
+		_shell.note(_said(said))
 		return
 	if kind == CreatorApp.KIND_OPEN:
 		var path: String = payload["path"]
@@ -1802,7 +1816,11 @@ func _creator_tick(sim: SimRoot) -> void:
 	var press: Dictionary = _creator_presses[_creator_press_next]
 	_creator_press_next += 1
 	if press.has("save"):
-		_creator_buttons.append_array([JOY_BUTTON_START, JOY_BUTTON_A, JOY_BUTTON_START])
+		_creator_buttons.append_array([JOY_BUTTON_START, JOY_BUTTON_A])
+		if _sandbox:
+			# and on to the Spawn app, next in the strip: its first entry at the cursor
+			_creator_buttons.append_array([JOY_BUTTON_RIGHT_SHOULDER, JOY_BUTTON_A])
+		_creator_buttons.append(JOY_BUTTON_START)
 		return
 	var at: Vector3i = press["at"]
 	var piece: StringName = press["piece"]
@@ -1919,6 +1937,29 @@ func _save_site(sim: SimRoot) -> String:
 	var spawns: Array = site["spawns"]
 	var terminals: Array = site["terminals"]
 	return _said("saved %s: %d pieces, %d guards, %d terminals" % [path, pieces.size(), spawns.size(), terminals.size()])
+
+
+## What `client/sandbox/` asks of the view: who the player is, where the cursor is, which
+## way a spawn faces (towards the camera, as a guard post does), and a command sent the
+## way every other command is, logged and judged by the sim.
+func player_id() -> int:
+	return _player
+
+
+func host_sim() -> SimRoot:
+	return _host.sim()
+
+
+func creator_cursor() -> Vector3i:
+	return _creator.cursor()
+
+
+func spawn_facing() -> int:
+	return _creator.post_facing(_yaw)
+
+
+func submit_command(kind: StringName, payload: Dictionary) -> void:
+	_submit(_host.sim(), kind, payload)
 
 
 ## Notes `text` and hands it back, for the device's note line as well.

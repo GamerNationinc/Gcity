@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "The sandbox's spawn menu (M7.6 spec decision 5): every agent profile with every kit the content makes, and every item template, listed from the content database. Only in `--sandbox`, where this file is loaded; it asks for `creator`, the requirement the client grants on the creator's lot.",
+	"title": "Spawn",
+	"icon": "@",
+	"order": 2,
+	"requires": "creator"
+}

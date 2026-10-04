@@ -455,3 +455,28 @@ func test_a_raised_site_records_the_terminals_it_placed() -> void:
 	_setup()
 	_raise(&"cold_storage")
 	assert_eq(_sites.terminals_of(&"cold_storage").size(), 2, "the server and the archive")
+
+
+## M7.6 claim 2: `site.raise` with `at` stands the site with its base in that cell, under
+## the raiser's rights there; the two older forms are unchanged (every fixture replays).
+func test_a_site_raises_with_its_base_where_it_is_put() -> void:
+	_setup()
+	# the creator's lots, the player's: a site goes up under its raiser's rights where it is put
+	assert_true(_do(&"land.identify", {"actor": _player, "owner": "player"}), "the player is somebody")
+	for lot: String in SiteCreator.LOTS:
+		assert_true(_do(&"land.transfer", {"parcel": lot, "owner": "player"}), "and owns %s" % lot)
+	var at: Vector3i = Vector3i(41, 0, 41)
+	assert_false(_do(&"site.raise", {"actor": _player, "site": "m4_test_building", "at": [3, 0]}), "two numbers: refused")
+	assert_false(_do(&"site.raise", {"actor": _player, "site": "m4_test_building", "at": [3, 0, 3.5]}), "a fraction: refused")
+	assert_false(_do(&"site.raise", {"actor": _player, "site": "m4_test_building", "at": [3, 0, BuildSystem.MAX_CELL + 1]}), "out of the world: refused")
+	assert_true(_do(&"site.raise", {"actor": _player, "site": "m4_test_building", "at": [at.x, at.y, at.z]}), "raised at the cell")
+	var db: ContentDb = _sim.get_system(&"content")
+	var t: Dictionary = db.get_entry(SiteSystem.KIND_SITE, &"m4_test_building")
+	var pieces: Array = t["pieces"]
+	assert_eq(_sites.pieces_of(&"m4_test_building").size(), pieces.size(), "every piece stands")
+	assert_eq(_sites.cell_of(&"m4_test_building", Vector3i.ZERO), at, "with its base where it was put")
+	var first: Dictionary = pieces[0]
+	var rel: Vector3i = PathingSystem._vec(first["rel"])
+	var facing: String = first["facing"]
+	var id: int = _build.cell_piece_at(at + rel) if facing.is_empty() else _build.face_piece_at(BuildSystem.face_key(at + rel, facing))
+	assert_true(id != EntityIds.NONE, "its first piece is at base + rel")
