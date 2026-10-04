@@ -857,7 +857,8 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_echo():
 		return
 	# the device button: a short press raises or lowers, a long hold restarts
-	if event.is_action("world_device") and _create:
+	# in the creator, View or Start opens the menu: Start is where a player looks for one
+	if _create and (event.is_action("world_device") or event.is_action("create_menu")):
 		if event.is_pressed():
 			_creator_open_menu(not _creator_menu)
 		return
@@ -1762,15 +1763,23 @@ func _creator_check_pending(sim: SimRoot) -> void:
 	var due: int = _creator_pending["due"]
 	if sim.get_tick() < due:
 		return
-	var build: BuildSystem = SimAssembly.build_of(sim)
 	var cell: Vector3i = _creator_pending["cell"]
 	var facing: String = _creator_pending["facing"]
 	var piece: StringName = _creator_pending["piece"]
-	var id: int = build.cell_piece_at(cell) if facing.is_empty() else build.face_piece_at(BuildSystem.face_key(cell, facing))
-	if id == EntityIds.NONE or build.template_of(id) != piece:
+	var before: int = _creator_pending["before"]
+	var id: int = _creator_slot_piece(sim, cell, facing)
+	# a new piece, not the one already there: a stair flight reaching into the cell
+	# looked placed while the sim refused the press (Deck run, 2026-10-04)
+	if id == EntityIds.NONE or id == before or SimAssembly.build_of(sim).template_of(id) != piece:
 		var why: String = _creator_pending["why"]
 		_note("%s not placed at %s: %s" % [piece, cell, why])
 	_creator_pending = {}
+
+
+## The piece in a cell, or on its face when `facing` names one.
+func _creator_slot_piece(sim: SimRoot, cell: Vector3i, facing: String) -> int:
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	return build.cell_piece_at(cell) if facing.is_empty() else build.face_piece_at(BuildSystem.face_key(cell, facing))
 
 
 func _creator_input(event: InputEvent) -> void:
@@ -1823,7 +1832,7 @@ func _creator_press(action: String) -> void:
 			if not payload.is_empty():
 				var facing: String = payload["facing"]
 				_creator_pending = {"due": sim.get_tick() + 1, "piece": name, "cell": _creator.cursor(), "facing": facing,
-					"why": _creator.why_not(sim, _player, name, facing)}
+					"before": _creator_slot_piece(sim, _creator.cursor(), facing), "why": _creator.why_not(sim, _player, name, facing)}
 				_submit(sim, &"build.place", payload)
 			elif name == SiteCreator.GUARD_POST and not _creator.guard_fits(movement, _creator.cursor()):
 				_note("no room for a guard at %s" % _creator.cursor())
@@ -1944,7 +1953,7 @@ func _render_creator(sim: SimRoot, lines: PackedStringArray) -> void:
 			lines.append("%s %s" % [">" if i == _creator_menu_index else " ", "Save this site" if entry == "save" else "Open %s" % entry.get_file().get_basename()])
 	else:
 		lines.append(_glyphs.line([[&"world_move_forward", "walk"], [&"world_look_left", "look"], [&"create_up", "cursor"], [&"create_raise", "up a level"], [&"create_lower", "down a level"]]))
-		lines.append(_glyphs.line([[&"create_place", "place"], [&"create_remove", "remove"], [&"create_turn", "turn"], [&"create_next", "next piece"], [&"world_device", "menu: save / open"]]))
+		lines.append(_glyphs.line([[&"create_place", "place"], [&"create_remove", "remove"], [&"create_turn", "turn"], [&"create_next", "next piece"], [&"create_menu", "menu: save / open"]]))
 	if _run_log != null:
 		lines.append("run log: %s" % _run_log.path().get_file())
 	if _demo:

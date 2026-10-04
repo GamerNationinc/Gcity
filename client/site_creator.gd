@@ -212,7 +212,7 @@ func why_not(sim: SimRoot, actor: int, name: StringName, facing: String) -> Stri
 		return "a foundation goes on the ground: lower the cursor (L1)"
 	if build.would_enclose_a_body(name, _cursor, facing):
 		return "somebody is standing there"
-	return "nothing holds it up there: build up from a foundation"
+	return "nothing holds it up there: too far from a foundation, build one closer"
 
 
 ## A press of B: the `build.remove` payload for what is under the cursor — a piece in

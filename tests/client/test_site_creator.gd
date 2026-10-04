@@ -360,7 +360,7 @@ func test_the_palette_starts_on_a_foundation_and_a_refusal_has_a_reason() -> voi
 	var movement: MovementSystem = SimAssembly.movement_of(sim)
 	var creator := SiteCreator.new(db)
 	assert_eq(creator.selected(), &"foundation_block", "the palette starts on a foundation")
-	assert_eq(creator.why_not(sim, player, &"foundation_block", ""), "nothing holds it up there: build up from a foundation", "the fallback, asked of a fine spot")
+	assert_eq(creator.why_not(sim, player, &"foundation_block", ""), "nothing holds it up there: too far from a foundation, build one closer", "the fallback, asked of a fine spot")
 	assert_true(_do(sim, &"build.place", creator.place(player, 0.0, movement)), "and the first A places it")
 	assert_true(creator.why_not(sim, player, &"foundation_block", "").contains("already has a foundation_block"), "the same spot again: taken")
 	creator.rise(2)
@@ -405,3 +405,12 @@ func test_every_creator_control_is_on_its_own_deck_button() -> void:
 			view.append(b.button_index)
 	assert_eq(view, [JOY_BUTTON_BACK] as Array[int], "the menu opens with View")
 	assert_false(used.has(JOY_BUTTON_BACK), "which no creator control uses")
+	# and with Start, where a player looks for a menu (Deck run, 2026-10-04: Start did nothing)
+	var start: Array[int] = []
+	for event: InputEvent in InputMap.action_get_events(&"create_menu"):
+		assert_false(event is InputEventKey, "create_menu has no keyboard key")
+		if event is InputEventJoypadButton:
+			var b: InputEventJoypadButton = event
+			start.append(b.button_index)
+	assert_eq(start, [JOY_BUTTON_START] as Array[int], "the menu opens with Start too")
+	assert_false(used.has(JOY_BUTTON_START), "which no creator control uses")
