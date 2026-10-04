@@ -93,7 +93,11 @@ func test_token_walks_through_the_door_in_eight_ticks_and_arrives() -> void:
 	assert_eq(_raids.plan(CUTTER)["cost"], 80, "a 2 m door: two door faces at 40")
 	_sim.step_n(7)
 	assert_eq(_raids.state_of(token), "moving", "not through after 7 ticks (70)")
-	_sim.step_n(2)
+	_sim.step()
+	# M7.5 mutation pass 1: across, and nothing of that crossing carried into the next
+	assert_eq(_raids.token(token)["crossing"], EntityIds.NONE, "across after 8: no crossing in hand")
+	assert_eq(_raids.token(token)["progress"], 0, "and no progress left over from it")
+	_sim.step()
 	assert_eq(_raids.state_of(token), "arrived", "through the door and in the crate's volume")
 	assert_eq(_raids.cell_of(token), BuildSystem.cell_of(_at(1, 0, 0)), "inside")
 	for door: int in r["doors"]:

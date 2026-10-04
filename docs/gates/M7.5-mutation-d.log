@@ -1,0 +1,58 @@
+invalid  sim/world/regions.gd:18 statement deleted  (4.5s)
+invalid  sim/world/regions.gd:24 statement deleted  (0.5s)
+killed   sim/world/regions.gd:61 statement deleted  (163.7s)
+killed   sim/world/regions.gd:125 != -> ==  (160.3s)
+SURVIVED sim/world/regions.gd:337 == -> !=  (161.4s)
+killed   sim/world/regions.gd:95 statement deleted  (160.9s)
+killed   sim/agents/pathing_system.gd:195 0 -> 1  (201.7s)
+killed   sim/agents/pathing_system.gd:171 statement deleted  (221.1s)
+killed   sim/agents/pathing_system.gd:287 == -> !=  (186.1s)
+killed   sim/agents/pathing_system.gd:139 return false -> true  (225.8s)
+killed   sim/agents/pathing_system.gd:172 == -> !=  (612.1s)
+killed   sim/agents/pathing_system.gd:258 1 -> 2  (211.4s)
+SURVIVED sim/agents/movement_system.gd:303 > -> >=  (144.4s)
+killed   sim/agents/movement_system.gd:93 0 -> 1  (162.6s)
+killed   sim/agents/movement_system.gd:365 return false -> true  (129.4s)
+killed   sim/agents/movement_system.gd:423 != -> ==  (157.6s)
+killed   sim/agents/movement_system.gd:326 statement deleted  (135.7s)
+killed   sim/agents/movement_system.gd:318 statement deleted  (135.2s)
+SURVIVED sim/agents/perception_system.gd:40 0 -> 1  (195.8s)
+killed   sim/agents/perception_system.gd:322 180 -> 181  (227.7s)
+invalid  sim/agents/perception_system.gd:15 statement deleted  (0.5s)
+killed   sim/agents/perception_system.gd:403 statement deleted  (661.1s)
+killed   sim/agents/perception_system.gd:631 statement deleted  (183.9s)
+killed   sim/agents/perception_system.gd:374 1 -> 2  (661.0s)
+killed   sim/agents/squad_system.gd:170 statement deleted  (71.1s)
+killed   sim/agents/squad_system.gd:244 == -> !=  (76.5s)
+killed   sim/agents/squad_system.gd:216 == -> !=  (76.6s)
+killed   sim/agents/squad_system.gd:174 statement deleted  (124.3s)
+killed   sim/agents/squad_system.gd:181 statement deleted  (75.8s)
+SURVIVED sim/agents/squad_system.gd:281 statement deleted  (76.2s)
+killed   sim/nav/portal_graph.gd:100 == -> !=  (42.2s)
+killed   sim/nav/portal_graph.gd:79 statement deleted  (34.0s)
+killed   sim/nav/portal_graph.gd:204 statement deleted  (22.5s)
+killed   sim/nav/portal_graph.gd:194 1 -> 2  (34.7s)
+SURVIVED sim/nav/portal_graph.gd:162 < -> <=  (45.3s)
+killed   sim/nav/portal_graph.gd:281 == -> !=  (22.6s)
+killed   sim/agents/corpse_system.gd:41 statement deleted  (89.0s)
+killed   sim/agents/corpse_system.gd:190 return false -> true  (106.9s)
+killed   sim/agents/corpse_system.gd:258 > -> >=  (107.2s)
+SURVIVED sim/agents/corpse_system.gd:225 > -> >=  (106.7s)
+killed   sim/agents/corpse_system.gd:187 return false -> true  (106.5s)
+killed   sim/agents/corpse_system.gd:192 == -> !=  (106.2s)
+
+39 mutants, 33 killed, score 84.6%  (3 did not compile and are not counted)
+
+survived:
+  sim/world/regions.gd:337  == -> !=
+      var into_x: int = at.x + half if region.contains(at.x + half, at.y) == inward else at.x - half
+  sim/agents/movement_system.gd:303  > -> >=
+      if not _floor_open(here + Vector3i(0, row if dy > 0 else row - 1, 0)):
+  sim/agents/perception_system.gd:40  0 -> 1
+      var _alerts: int = 0
+  sim/agents/squad_system.gd:281  statement deleted
+      cell = BuildSystem.cell_of(_perception.last_known(member, contact))
+  sim/nav/portal_graph.gd:162  < -> <=
+      return px < py
+  sim/agents/corpse_system.gd:225  > -> >=
+      if affordable > 0:

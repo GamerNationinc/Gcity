@@ -1,0 +1,14 @@
+killed   sim/core/save_file.gd:90 statement deleted  (305.7s)
+SURVIVED sim/core/save_file.gd:149 1 -> 2  (1058.7s)
+SURVIVED sim/core/save_file.gd:120 statement deleted  (1015.6s)
+killed   sim/core/save_file.gd:24 64 -> 65  (1055.1s)
+killed   sim/core/save_file.gd:196 == -> !=  (419.6s)
+killed   sim/core/save_file.gd:247 10 -> 11  (421.2s)
+
+6 mutants, 4 killed, score 66.7%  (0 did not compile and are not counted)
+
+survived:
+  sim/core/save_file.gd:149  1 -> 2
+      var e: Variant = _encode(dict[key], depth + 1)
+  sim/core/save_file.gd:120  statement deleted
+      push_error("SaveFile: floats are not save state")

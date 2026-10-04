@@ -1,0 +1,22 @@
+killed   sim/land/build_system.gd:128 != -> ==  (6.6s)
+killed   sim/land/build_system.gd:213 1 -> 2  (33.7s)
+killed   sim/land/build_system.gd:268 != -> ==  (50.1s)
+killed   sim/land/build_system.gd:488 statement deleted  (35.9s)
+SURVIVED sim/land/build_system.gd:383 statement deleted  (36.3s)
+killed   sim/land/build_system.gd:78 statement deleted  (19.7s)
+invalid  sim/land/build_system.gd:27 statement deleted  (0.4s)
+invalid  sim/land/build_system.gd:550 statement deleted  (0.4s)
+killed   sim/land/build_system.gd:483 statement deleted  (35.5s)
+killed   sim/land/build_system.gd:384 return true -> false  (22.7s)
+SURVIVED sim/land/build_system.gd:527 statement deleted  (36.3s)
+killed   sim/land/build_system.gd:342 != -> ==  (16.8s)
+killed   sim/land/build_system.gd:134 != -> ==  (35.9s)
+killed   sim/land/build_system.gd:490 statement deleted  (24.0s)
+
+12 mutants, 10 killed, score 83.3%  (2 did not compile and are not counted)
+
+survived:
+  sim/land/build_system.gd:383  statement deleted
+      queued[id] = to
+  sim/land/build_system.gd:527  statement deleted
+      removed.sort()

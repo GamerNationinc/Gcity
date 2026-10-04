@@ -501,3 +501,22 @@ func test_the_change_event_names_the_slot_a_removed_piece_left() -> void:
 	assert_true(collapse.has(slot), "including the wall's slot")
 	assert_true(_build.slot_is_empty(slot), "which is open once more")
 	assert_eq(_build.key_of_piece(9999), "", "and a piece that never stood has no slot")
+
+
+## M7.5 mutation, the deeper build sample: what a removal takes down is reported in
+## ascending id order even when something it carried was placed before it. A wall on one
+## foundation is held up through a second, later one; removing the first leaves it
+## standing on the second, and removing the second then takes the earlier wall with it.
+func test_a_removal_reports_what_fell_in_ascending_order() -> void:
+	_setup()
+	var f1: int = _build.place(_player, &"foundation_block", _at(0, 0, 0), "")
+	var wall_a: int = _build.place(_player, &"wall_panel", _at(0, 1, 0), "px")
+	var f2: int = _build.place(_player, &"foundation_block", _at(0, 0, 1), "")
+	var wall_b: int = _build.place(_player, &"wall_panel", _at(0, 1, 1), "px")
+	for id: int in [f1, wall_a, f2, wall_b]:
+		assert_true(id != EntityIds.NONE, "placed %d" % id)
+	assert_eq(_build.remove(_player, f1), [f1] as Array[int], "the first foundation goes alone")
+	assert_true(_build.has_piece(wall_a), "its wall stands on through the second")
+	var removed: Array[int] = _build.remove(_player, f2)
+	assert_eq(removed, [wall_a, f2, wall_b] as Array[int], "the second takes both walls, listed in id order")
+	assert_true(wall_a < f2, "and the first of them was placed before it")

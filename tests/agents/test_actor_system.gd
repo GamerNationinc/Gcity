@@ -327,3 +327,22 @@ func test_putting_away_a_device_you_do_not_carry_is_refused() -> void:
 	_build()
 	var actor: int = _actors.spawn(&"arcade", 0)
 	assert_false(_do(ActorSystem.COMMAND_EQUIP_DEVICE, {"actor": actor, "device": EntityIds.NONE}), "nothing to put away")
+
+
+## M7.5 mutation pass 1 (G7 triage had it as worth a boundary test): the integer square
+## root is exact even where a double cannot hold the squared distance (past 2^53 mm²),
+## up to the farthest two positions can be apart, corner to corner of MAX_COORD.
+func test_the_integer_square_root_is_exact_at_the_largest_distances() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20261420
+	var span: int = 2 * ActorSystem.MAX_COORD
+	var farthest: int = ActorSystem._isqrt(3 * span * span)
+	assert_eq(ActorSystem.metres_between(Vector3i(-ActorSystem.MAX_COORD, -ActorSystem.MAX_COORD, -ActorSystem.MAX_COORD),
+		Vector3i(ActorSystem.MAX_COORD, ActorSystem.MAX_COORD, ActorSystem.MAX_COORD)), farthest / 1000, "corner to corner")
+	var cases: Array[int] = [farthest, farthest - 1, 94906265, 94906266]
+	for i: int in 4000:
+		cases.append(rng.randi_range(94906265, farthest))
+	for k: int in cases:
+		assert_eq(ActorSystem._isqrt(k * k), k, "the root of %d squared" % k)
+		assert_eq(ActorSystem._isqrt(k * k - 1), k - 1, "and of one less")
+		assert_eq(ActorSystem._isqrt(k * k + 2 * k), k, "and of the last number before the next square")

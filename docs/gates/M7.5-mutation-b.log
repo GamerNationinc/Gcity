@@ -1,0 +1,36 @@
+killed   sim/agents/hydration_system.gd:262 return true -> false  (430.0s)
+invalid  sim/agents/hydration_system.gd:31 statement deleted  (3.5s)
+killed   sim/agents/hydration_system.gd:426 statement deleted  (827.3s)
+killed   sim/agents/hydration_system.gd:65 statement deleted  (460.0s)
+killed   sim/agents/hydration_system.gd:94 != -> ==  (973.4s)
+killed   sim/agents/hydration_system.gd:350 0 -> 1  (912.4s)
+killed   sim/assembly.gd:204 statement deleted  (7.1s)
+killed   sim/assembly.gd:200 statement deleted  (10.2s)
+killed   sim/assembly.gd:184 statement deleted  (7.2s)
+killed   sim/assembly.gd:196 statement deleted  (7.0s)
+killed   sim/assembly.gd:180 statement deleted  (9.2s)
+killed   sim/assembly.gd:254 statement deleted  (10.1s)
+invalid  sim/agents/actor_system.gd:22 statement deleted  (2.8s)
+SURVIVED sim/agents/actor_system.gd:235 1 -> 2  (149.3s)
+SURVIVED sim/agents/actor_system.gd:87 statement deleted  (137.0s)
+killed   sim/agents/actor_system.gd:264 statement deleted  (126.0s)
+killed   sim/agents/actor_system.gd:308 statement deleted  (119.9s)
+killed   sim/agents/actor_system.gd:64 != -> ==  (120.3s)
+killed   sim/agents/raid_token_system.gd:344 0 -> 1  (13.6s)
+killed   sim/agents/raid_token_system.gd:286 == -> !=  (9.5s)
+killed   sim/agents/raid_token_system.gd:327 1 -> 2  (9.7s)
+SURVIVED sim/agents/raid_token_system.gd:234 statement deleted  (12.8s)
+SURVIVED sim/agents/raid_token_system.gd:302 statement deleted  (9.6s)
+invalid  sim/agents/raid_token_system.gd:22 statement deleted  (2.9s)
+
+21 mutants, 17 killed, score 81.0%  (3 did not compile and are not counted)
+
+survived:
+  sim/agents/actor_system.gd:235  1 -> 2
+      x += 1
+  sim/agents/actor_system.gd:87  statement deleted
+      push_error("ActorSystem: combat_profile/%s declares node '%s' twice" % [profile, id])
+  sim/agents/raid_token_system.gd:234  statement deleted
+      rec["progress"] = 0
+  sim/agents/raid_token_system.gd:302  statement deleted
+      rec["progress"] = 0

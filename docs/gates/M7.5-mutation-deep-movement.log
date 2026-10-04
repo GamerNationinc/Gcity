@@ -1,0 +1,26 @@
+SURVIVED sim/agents/movement_system.gd:128 statement deleted  (119.6s)
+SURVIVED sim/agents/movement_system.gd:445 statement deleted  (119.1s)
+killed   sim/agents/movement_system.gd:223 return true -> false  (117.7s)
+killed   sim/agents/movement_system.gd:107 statement deleted  (32.9s)
+SURVIVED sim/agents/movement_system.gd:92 0 -> 1  (116.6s)
+killed   sim/agents/movement_system.gd:304 1 -> 2  (116.5s)
+killed   sim/agents/movement_system.gd:93 0 -> 1  (127.9s)
+killed   sim/agents/movement_system.gd:294 != -> ==  (119.3s)
+killed   sim/agents/movement_system.gd:322 return false -> true  (118.4s)
+killed   sim/agents/movement_system.gd:308 == -> !=  (117.6s)
+killed   sim/agents/movement_system.gd:367 < -> <=  (103.1s)
+SURVIVED sim/agents/movement_system.gd:372 != -> ==  (119.2s)
+killed   sim/agents/movement_system.gd:42 0 -> 1  (118.2s)
+killed   sim/agents/movement_system.gd:370 != -> ==  (115.6s)
+
+14 mutants, 10 killed, score 71.4%  (0 did not compile and are not counted)
+
+survived:
+  sim/agents/movement_system.gd:128  statement deleted
+      _falling.erase(actor)
+  sim/agents/movement_system.gd:445  statement deleted
+      _blocked = blocked
+  sim/agents/movement_system.gd:92  0 -> 1
+      var levels: int = _falling.get(actor, 0)
+  sim/agents/movement_system.gd:372  != -> ==
+      if _land.parcel_at(to) != _land.parcel_at(from):

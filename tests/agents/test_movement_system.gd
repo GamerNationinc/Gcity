@@ -18,9 +18,11 @@ var _land: LandSystem
 var _player: int = 0
 
 
-func _setup() -> void:
-	var db := ContentDb.new()
-	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+func _setup(given: ContentDb = null) -> void:
+	var db: ContentDb = given
+	if db == null:
+		db = ContentDb.new()
+		assert_eq(ContentLoader.load_all(db), OK, "content loads")
 	_sim = SimAssembly.build(SEED, db)
 	assert_true(_sim != null, "assembly")
 	_actors = SimAssembly.actors_of(_sim)
@@ -99,6 +101,31 @@ func test_entering_a_parcel_needs_enter_rights() -> void:
 	assert_eq(_land.violation_count(), violations, "no violation")
 	var enter: bool = _land.rights_at(_actors.position_of(_player), _player)[&"enter"]
 	assert_true(enter, "enter held")
+
+
+## M7.5 mutation, the deeper movement sample: with a district that does forbid entry
+## (a test district, since none of the shipped ones do), stepping into its lot is
+## refused and counted, while walking about inside it, once there, is not checked again.
+func test_a_lot_that_forbids_entry_turns_you_away_at_its_edge() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var gated: Dictionary = db.get_entry(LandSystem.KIND_DISTRICT, &"starter_ghetto").duplicate(true)
+	var rights: Dictionary = gated["rights"]
+	var other: Dictionary = rights["other"]
+	other["enter"] = false
+	assert_eq(db.add(LandSystem.KIND_DISTRICT, &"gated_test", gated), OK, "a district that keeps strangers out")
+	var lot: Dictionary = db.get_entry(LandSystem.KIND_PARCEL, &"starter_plot").duplicate(true)
+	lot["district"] = "gated_test"
+	lot["owner"] = "corp.gate"
+	lot["footprint"] = [[FAR.x, FAR.z], [FAR.x + 10 * M, FAR.z], [FAR.x + 10 * M, FAR.z + 10 * M], [FAR.x, FAR.z + 10 * M]]
+	assert_eq(db.add(LandSystem.KIND_PARCEL, &"gated_lot_test", lot), OK, "a lot in it, somebody else's")
+	_setup(db)
+	var violations: int = _land.violation_count()
+	_actors.set_position(_player, FAR + Vector3i(-50, 0, 5 * M))
+	assert_false(_movement.move(_player, 100, 0), "stepping in from the street is refused")
+	assert_eq(_land.violation_count(), violations + 1, "and counted as a violation")
+	_actors.set_position(_player, FAR + Vector3i(5 * M, 0, 5 * M))
+	assert_true(_movement.move(_player, 100, 0), "inside it already, walking about is not checked again")
 
 
 func test_move_command_contract() -> void:

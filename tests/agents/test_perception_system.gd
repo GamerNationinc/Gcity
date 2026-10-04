@@ -539,3 +539,12 @@ func test_the_ground_hides_what_is_behind_it() -> void:
 	var open_b: Vector3i = Vector3i(10_500, 0, -40_000)
 	assert_true(perception.line_of_sight(open_a, open_b), "on the level apron outside the gate they see each other")
 
+
+
+## M7.5 mutation pass 1: nobody has been alerted in a new world.
+func test_a_new_world_has_counted_no_alerts() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var sim: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.perception_of(sim).alert_count(), 0, "no alerts yet")
+	assert_eq(SimAssembly.perception_of(sim).snapshot()["alerts"], 0, "and none in the save")

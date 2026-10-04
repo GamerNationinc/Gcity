@@ -336,6 +336,14 @@ func test_restore_round_trip_and_rejections() -> void:
 	records[_player] = records[guard]
 	assert_eq(stances.restore(bad), ERR_INVALID_DATA, "a record for a non-agent")
 	assert_eq(stances.snapshot(), state, "rejections leave the state untouched")
+	# M7.5 mutation pass 1: zero is a value, not a rejection, for each counter
+	for key: String in ["since", "score", "waypoint"]:
+		var zeroed: Dictionary = state.duplicate(true)
+		var zrecords: Dictionary = zeroed["stances"]
+		var zrec: Dictionary = zrecords[guard]
+		zrec[key] = 0
+		assert_eq(stances.restore(zeroed), OK, "%s at 0 restores" % key)
+		assert_eq(stances.restore(state), OK, "and back")
 
 
 ## Found by the G7 mutation run: the flank and retreat directions were only ever taken
@@ -364,3 +372,23 @@ func test_an_agent_that_is_not_alerted_scores_no_advance() -> void:
 func test_facing_toward_nothing_is_north() -> void:
 	assert_eq(StanceSystem.facing_toward(Vector2i.ZERO), 0, "no direction, no turn")
 
+
+
+## M7.5 mutation pass 1: a retreating agent backs off only while the contact is within
+## twice RETREAT_CELLS; farther than that it has already got away, and stays put.
+func test_a_retreat_stops_once_the_contact_is_twice_the_retreat_away() -> void:
+	_setup()
+	var guard: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 1, "")
+	_actors.set_position(_player, _at(6, 0))
+	_sim.step_n(96)
+	_hit_event(guard)
+	_hit_event(guard)
+	_combat.events().emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": 0, "target": guard, "round": 0, "tags": []})
+	_sim.step_n(StanceSystem.SCORE_EVERY)
+	assert_eq(_stances.stance_of(guard), &"retreat", "broken: retreat")
+	var here: Vector3i = BuildSystem.cell_of(_actors.position_of(guard))
+	# the player 2 x RETREAT_CELLS + 2 cells off along +x, in sight: far enough
+	_actors.set_position(_player, BuildSystem.cell_centre(here + Vector3i(StanceSystem.RETREAT_CELLS * 2 + 2, 0, 0)) - Vector3i(0, M / 2, 0))
+	_sim.step_n(20)
+	assert_eq(_stances.stance_of(guard), &"retreat", "still retreating")
+	assert_eq(BuildSystem.cell_of(_actors.position_of(guard)), here, "but no farther: it has got away")

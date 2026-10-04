@@ -328,3 +328,21 @@ func test_a_dead_member_keeps_no_entry() -> void:
 	assert_false(_actors.is_alive(a), "down")
 	_sim.step()
 	assert_false(_squads.has_assignment(a), "and the entry goes with it")
+
+
+## M7.5 mutation pass 1: where the squad believes the contact is, when nobody sees it, is
+## the freshest last-known position (the member with the most memory left), whichever
+## order the members come in.
+func test_the_squad_goes_by_the_freshest_memory() -> void:
+	_setup()
+	var a: int = _perception.spawn(&"guard_sim", _cell(0, 0), 0, 4, "")
+	var b: int = _perception.spawn(&"guard_sim", _cell(3, 0), 0, 4, "")
+	_sim.step()
+	_perception.receive_report(a, _player, _at(-30, 5), _sim.get_tick())
+	_sim.step_n(5)
+	_perception.receive_report(b, _player, _at(-30, -5), _sim.get_tick())
+	assert_true(_perception.has_last_known(a, _player) and _perception.has_last_known(b, _player), "both remember a place")
+	assert_false(_perception.sees(a, _player) or _perception.sees(b, _player), "nobody sees the player")
+	assert_true(_perception.memory_of(b, _player) > _perception.memory_of(a, _player), "b heard more recently")
+	for order: Array[int] in [[a, b] as Array[int], [b, a] as Array[int]]:
+		assert_eq(_squads._contact_cell(order, _player), BuildSystem.cell_of(_at(-30, -5)), "b's report, members %s" % [order])

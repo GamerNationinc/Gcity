@@ -321,3 +321,46 @@ func test_a_fall_that_does_no_damage_is_not_an_event() -> void:
 	assert_eq(_actors.position_of(dummy), _at(4, 0, 4), "fell all the way")
 	assert_eq(_actors.health_of(dummy)[&"body"], full, "unhurt")
 	assert_eq(_fell.size(), 0, "and no actor.fell")
+
+
+## M7.5 mutation, the deeper movement sample: standing still is not a fall. A body with
+## no drop free (a content value the schema allows) standing on the ground for a while
+## takes no fall damage and reports no fall.
+func test_standing_still_is_never_a_fall_even_with_no_drop_free() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var brittle: Dictionary = db.get_entry(ActorSystem.KIND_PROFILE, &"arcade").duplicate(true)
+	brittle.merge({"fall_free_levels": 0, "fall_damage_per_level": 5000}, true)
+	assert_eq(db.add(ActorSystem.KIND_PROFILE, &"brittle_test", brittle), OK, "a body with no drop free")
+	_setup(db)
+	var body: int = _actors.spawn(&"brittle_test", 0)
+	_actors.set_position(body, _at(-8, 0, -8))
+	var before: Dictionary = _actors.health_of(body)
+	_sim.step_n(20)
+	assert_eq(_actors.health_of(body), before, "unhurt after twenty ticks on the ground")
+	assert_eq(_fell.size(), 0, "and no fall reported")
+
+
+## M7.5 mutation, the deeper movement sample: the blocked counter survives a save, and
+## a body removed while it falls leaves no falling row behind (a save holding one would
+## not load: the restore refuses a falling row for an actor that is not there).
+func test_a_save_keeps_the_blocked_count_and_no_row_for_a_removed_faller() -> void:
+	_setup()
+	assert_false(_movement.move(_player, 0, 0, 1), "a climb with nothing to climb")
+	assert_true(_movement.blocked_count() > 0, "counted as blocked")
+	var faller: int = _actors.spawn(M6_SCALE, 0)
+	_actors.set_position(faller, _at(-12, 6, -12))
+	_sim.step()
+	assert_true(_movement.is_falling(faller), "falling")
+	assert_true(_actors.remove(faller, ItemSystem.token_container(1)), "removed mid-fall")
+	var falling: Dictionary = _movement.snapshot()["falling"]
+	assert_false(falling.has(faller), "and its falling row went with it")
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var m6: Dictionary = db.get_entry(ActorSystem.KIND_PROFILE, &"arcade").duplicate(true)
+	m6.merge({"body_cells": 1, "eye_mm": 0, "centre_mm": 0, "fall_free_levels": 1, "fall_damage_per_level": FALL_PER_LEVEL}, true)
+	assert_eq(db.add(ActorSystem.KIND_PROFILE, M6_SCALE, m6), OK, "the same profiles")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	var snap: Dictionary = _sim.snapshot()
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "the save loads")
+	assert_eq(SimAssembly.movement_of(other).blocked_count(), _movement.blocked_count(), "with the blocked count")

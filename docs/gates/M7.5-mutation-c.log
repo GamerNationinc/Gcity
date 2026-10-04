@@ -1,0 +1,36 @@
+killed   sim/world/site_system.gd:368 statement deleted  (289.1s)
+killed   sim/world/site_system.gd:236 statement deleted  (287.8s)
+killed   sim/world/site_system.gd:69 statement deleted  (339.7s)
+SURVIVED sim/world/site_system.gd:303 0 -> 1  (301.7s)
+killed   sim/world/site_system.gd:223 != -> ==  (338.0s)
+killed   sim/world/site_system.gd:279 1 -> 2  (961.6s)
+killed   sim/quests/terminal_system.gd:283 statement deleted  (459.7s)
+killed   sim/quests/terminal_system.gd:59 != -> ==  (393.6s)
+killed   sim/quests/terminal_system.gd:354 statement deleted  (387.2s)
+killed   sim/quests/terminal_system.gd:168 != -> ==  (410.6s)
+killed   sim/quests/terminal_system.gd:203 statement deleted  (388.1s)
+killed   sim/quests/terminal_system.gd:194 return false -> true  (309.8s)
+killed   sim/agents/stance_system.gd:71 statement deleted  (88.9s)
+killed   sim/agents/stance_system.gd:531 0 -> 1  (89.8s)
+SURVIVED sim/agents/stance_system.gd:295 0 -> 1  (89.8s)
+killed   sim/agents/stance_system.gd:552 0 -> 1  (89.9s)
+SURVIVED sim/agents/stance_system.gd:460 2 -> 3  (89.8s)
+SURVIVED sim/agents/stance_system.gd:589 0 -> 1  (89.2s)
+killed   sim/land/build_system.gd:209 statement deleted  (38.0s)
+killed   sim/land/build_system.gd:108 statement deleted  (15.9s)
+invalid  sim/land/build_system.gd:35 statement deleted  (2.9s)
+killed   sim/land/build_system.gd:197 1 -> 2  (35.0s)
+invalid  sim/land/build_system.gd:34 statement deleted  (2.8s)
+killed   sim/land/build_system.gd:366 1 -> 2  (34.0s)
+
+22 mutants, 18 killed, score 81.8%  (2 did not compile and are not counted)
+
+survived:
+  sim/world/site_system.gd:303  0 -> 1
+      var top: int = 0
+  sim/agents/stance_system.gd:295  0 -> 1
+      return maxi(300_000 + (400_000 if not known else 0) - stress / 4, 0)
+  sim/agents/stance_system.gd:460  2 -> 3
+      wants_goal = PathingSystem._manhattan(here, there) < RETREAT_CELLS * 2
+  sim/agents/stance_system.gd:589  0 -> 1
+      if since < 0 or score < 0 or waypoint < 0 or (not goal_in.is_empty() and not PathingSystem._is_cell(goal_in)):

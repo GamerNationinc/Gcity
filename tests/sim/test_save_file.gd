@@ -450,3 +450,9 @@ func test_nesting_limit_boundary() -> void:
 		deepest = [deepest]
 	assert_true(typeof(SaveFile._encode(deepest, 0)) != TYPE_NIL, "a value exactly at the limit is saved")
 	assert_true(typeof(SaveFile._encode([deepest], 0)) == TYPE_NIL, "one array deeper is refused")
+	# M7.5 mutation pass 1: dictionaries count their depth on their own path
+	var deepest_dict: Variant = 1
+	for _i: int in SaveFile.MAX_DEPTH:
+		deepest_dict = {"d": deepest_dict}
+	assert_true(typeof(SaveFile._encode(deepest_dict, 0)) != TYPE_NIL, "a dictionary exactly at the limit is saved")
+	assert_true(typeof(SaveFile._encode({"d": deepest_dict}, 0)) == TYPE_NIL, "one dictionary deeper is refused")
