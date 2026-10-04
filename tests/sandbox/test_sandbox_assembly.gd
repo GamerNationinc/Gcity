@@ -128,7 +128,7 @@ func test_clear_empties_the_lot_but_the_player() -> void:
 	assert_true(_do(sim, SandboxSystem.COMMAND_CLEAR, {"actor": player}), "clear")
 	assert_eq(actors.actor_ids(), [player] as Array[int], "only the player is left")
 	assert_eq(build.piece_ids(), [] as Array[int], "and nothing built")
-	assert_eq(SandboxAssembly.sandbox_of(sim).snapshot(), {"removed_actors": 2, "removed_pieces": 2, "spawned": 0}, "counted")
+	assert_eq(SandboxAssembly.sandbox_of(sim).snapshot(), {"removed_actors": 2, "removed_pieces": 2, "spawned": 0, "trainer": {}}, "counted")
 
 
 ## Claim 10's boundary for these two: exact payloads only.

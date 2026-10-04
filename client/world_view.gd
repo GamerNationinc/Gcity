@@ -138,6 +138,10 @@ var _sandbox: bool = false
 const SANDBOX_MODE: String = "res://client/sandbox/sandbox_mode.gd"
 ## The sandbox mode's script once installed: its views and its requests (claim 2).
 var _sandbox_mode: Script = null
+## `--sandbox` fly (claim 4): the right trigger lifts a level, the left drops one, a level
+## every `FLY_TICKS` while held. The tick the next level change may be sent on.
+var _fly_next: int = 0
+const FLY_TICKS: int = 8
 var _creator: SiteCreator
 var _creator_cursor_node: MeshInstance3D
 var _creator_face_node: MeshInstance3D
@@ -774,6 +778,8 @@ func _physics_process(_delta: float) -> void:
 		return
 	if _create:
 		_creator_tick(sim)
+		if _sandbox and not _device_raised:
+			_sandbox_fly(sim)  # before the demo's return: the demo flies on the trigger too
 		if _demo:
 			return
 	var input: Vector2 = Vector2.ZERO
@@ -795,6 +801,23 @@ func _physics_process(_delta: float) -> void:
 	if _take_gate(sim, dx, dz):
 		return
 	_submit(sim, &"actor.move", {"actor": _player, "dx": dx, "dz": dz})
+
+
+## The triggers while flying: a level up or down, through `actor.move`'s `dy`, which the
+## sim allows without a flight only where gravity has let the body go. Without fly the
+## press is said aloud, never silent.
+func _sandbox_fly(sim: SimRoot) -> void:
+	var lift: float = Input.get_action_strength("sandbox_fly_up") - Input.get_action_strength("sandbox_fly_down")
+	if absf(lift) < 0.5 or sim.get_tick() < _fly_next:
+		return
+	_fly_next = sim.get_tick() + FLY_TICKS
+	if SimAssembly.movement_of(sim).has_gravity(_player):
+		_fly_next = sim.get_tick() + 80  # said once every two seconds while held, not forty times
+		_note("fly is off: turn it on in the Spawn app's trainer page")
+		return
+	var dy: int = 1 if lift > 0.0 else -1
+	_record("sandbox", "fly %s" % ("up" if dy > 0 else "down"))
+	_submit(sim, &"actor.move", {"actor": _player, "dx": 0, "dz": 0, "dy": dy})
 
 
 ## Whether a scripted mission demo has finished its route and handed the controls to
@@ -1757,7 +1780,7 @@ var _creator_autosaved: String = ""
 ## Deck buttons the `--demo` build presses through the input pipeline, as a player would:
 ## its save goes Start, A, Start, the device and the Creator app's own path. A frame
 ## counter paces them, because the device pauses the sim where the lot is safe.
-var _creator_buttons: Array[JoyButton] = []
+var _creator_buttons: Array[InputEvent] = []
 var _creator_button_wait: int = 0
 
 
@@ -1816,11 +1839,26 @@ func _creator_tick(sim: SimRoot) -> void:
 	var press: Dictionary = _creator_presses[_creator_press_next]
 	_creator_press_next += 1
 	if press.has("save"):
-		_creator_buttons.append_array([JOY_BUTTON_START, JOY_BUTTON_A])
+		var buttons: Array[JoyButton] = [JOY_BUTTON_START, JOY_BUTTON_A]
 		if _sandbox:
-			# and on to the Spawn app, next in the strip: its first entry at the cursor
-			_creator_buttons.append_array([JOY_BUTTON_RIGHT_SHOULDER, JOY_BUTTON_A])
-		_creator_buttons.append(JOY_BUTTON_START)
+			# on to the Spawn app, next in the strip: its first entry at the cursor; then its
+			# trainer page, three to the right: god mode, and fly two below it
+			buttons.append_array([JOY_BUTTON_RIGHT_SHOULDER, JOY_BUTTON_A, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_RIGHT,
+				JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_A, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_A])
+		buttons.append(JOY_BUTTON_START)
+		for button: JoyButton in buttons:
+			for pressed: bool in [true, false]:
+				var event := InputEventJoypadButton.new()
+				event.button_index = button
+				event.pressed = pressed
+				_creator_buttons.append(event)
+		if _sandbox:
+			# and up on the right trigger, held for a while
+			for value: float in [1.0, 1.0, 1.0, 1.0, 0.0]:
+				var lift := InputEventJoypadMotion.new()
+				lift.axis = JOY_AXIS_TRIGGER_RIGHT
+				lift.axis_value = value
+				_creator_buttons.append(lift)
 		return
 	var at: Vector3i = press["at"]
 	var piece: StringName = press["piece"]
@@ -1831,7 +1869,8 @@ func _creator_tick(sim: SimRoot) -> void:
 	_creator_press("create_place")
 
 
-## One queued demo button every `CREATOR_BUTTON_FRAMES` frames, pressed and released.
+## One queued demo input every `CREATOR_BUTTON_FRAMES` frames: a press, a release, a
+## trigger's travel.
 func _creator_feed_buttons() -> void:
 	if _creator_buttons.is_empty():
 		return
@@ -1839,12 +1878,8 @@ func _creator_feed_buttons() -> void:
 		_creator_button_wait -= 1
 		return
 	_creator_button_wait = CREATOR_BUTTON_FRAMES
-	var button: JoyButton = _creator_buttons.pop_front()
-	for pressed: bool in [true, false]:
-		var event := InputEventJoypadButton.new()
-		event.button_index = button
-		event.pressed = pressed
-		Input.parse_input_event(event)
+	var event: InputEvent = _creator_buttons.pop_front()
+	Input.parse_input_event(event)
 
 
 func _creator_check_pending(sim: SimRoot) -> void:

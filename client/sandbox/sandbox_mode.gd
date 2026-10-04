@@ -59,4 +59,23 @@ static func request(view: WorldView, kind: StringName, payload: Dictionary) -> S
 			return "%s not raised: it already stands (clear the lot, or restart, to raise it again)" % site
 		view.submit_command(SiteSystem.COMMAND_RAISE, {"actor": view.player_id(), "site": site, "at": [cell.x, cell.y, cell.z]})
 		return "raising %s with its base at %s" % [site, cell]
+	var player: int = view.player_id()
+	if spawn == "trainer":
+		var effect: String = payload["effect"]
+		var on: bool = payload["on"]
+		view.submit_command(SandboxSystem.COMMAND_TRAINER, {"actor": player, "effect": effect, "on": on})
+		return "%s %s" % [SandboxApp.EFFECT_NAMES[effect], "on" if on else "off"]
+	if spawn == "heal":
+		var actors: ActorSystem = SimAssembly.actors_of(sim)
+		if not actors.is_alive(player):
+			return "not healed: you are dead (the death screen brings you back)"
+		var health: Dictionary = actors.health_of(player)
+		for node: StringName in health:
+			view.submit_command(SandboxSystem.COMMAND_SET_HEALTH, {"actor": player, "node": String(node), "value": actors.max_health(player, node)})
+		return "full health"
+	if spawn == "teleport":
+		if not SimAssembly.movement_of(sim).actor_fits(player, cell):
+			return "not teleported to %s: your body does not fit there" % cell
+		view.submit_command(SandboxSystem.COMMAND_TELEPORT, {"actor": player, "cell": [cell.x, cell.y, cell.z]})
+		return "teleported to %s" % cell
 	return "the spawn menu sent something it cannot spawn"

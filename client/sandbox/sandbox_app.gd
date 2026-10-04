@@ -1,13 +1,16 @@
 ## The sandbox's spawn menu (M7.6 spec claim 2, decision 5): pages of what the content
 ## holds, listed from the content database, so a new weapon file appears here with no
-## code: agents with every kit, items, and sites raised with their base at the cursor.
+## code: agents with every kit, items, and sites raised with their base at the cursor; and
+## the trainer (claims 4–5): god mode, infinite ammo, fly, full health, teleport.
 ## D-pad left and right change the page, up and down choose, A spawns at the cursor.
 ## The pane asks the view through the shell's submit with `sandbox_ui.spawn`, which
 ## `client/sandbox/sandbox_mode.gd` turns into sim commands; it keeps nothing of the sim's.
 class_name SandboxApp extends DeviceApp
 
 const KIND_SPAWN: StringName = &"sandbox_ui.spawn"
-const PAGES: Array[String] = ["agents", "items", "sites"]
+const PAGES: Array[String] = ["agents", "items", "sites", "trainer"]
+const EFFECTS: Array[String] = ["god", "ammo", "fly"]
+const EFFECT_NAMES: Dictionary = {"god": "god mode", "ammo": "infinite ammo", "fly": "fly (right trigger up, left down)"}
 const ITEM_KINDS: Array[StringName] = [&"weapon_frame", &"weapon_part", &"ammo", &"device_frame", &"device_module"]
 ## Lines of the list shown at once, round the cursor.
 const WINDOW: int = 12
@@ -53,10 +56,17 @@ static func _is_round(content: ContentDb, ammo: StringName, calibre: String) -> 
 	return own == calibre and tags.has("ammo")
 
 
-## One page's entries: what A spawns, each with the label it is listed by.
-static func entries(content: ContentDb, page: String) -> Array[Dictionary]:
+## One page's entries: what A spawns, each with the label it is listed by. The trainer
+## page shows each effect's state for `player`, read from `sim` (null: all off).
+static func entries(content: ContentDb, page: String, sim: SimRoot = null, player: int = 0) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if page == "agents":
+	if page == "trainer":
+		for effect: String in EFFECTS:
+			var on: bool = sim != null and SandboxAssembly.sandbox_of(sim).trainer_on(player, effect)
+			out.append({"spawn": "trainer", "effect": effect, "on": not on, "label": "%s: %s" % [EFFECT_NAMES[effect], "ON" if on else "off"]})
+		out.append({"spawn": "heal", "label": "full health"})
+		out.append({"spawn": "teleport", "label": "teleport to the cursor"})
+	elif page == "agents":
 		var all_kits: Array[Dictionary] = kits(content)
 		for profile: StringName in content.ids(PerceptionSystem.KIND_AGENT):
 			out.append({"spawn": "agent", "profile": String(profile), "kit": {}, "label": "%s, unarmed" % profile})
@@ -77,8 +87,8 @@ static func entries(content: ContentDb, page: String) -> Array[Dictionary]:
 	return out
 
 
-func refresh(sim: SimRoot, _player: int) -> bool:
-	var list: Array[Dictionary] = entries(SimAssembly.content_of(sim), PAGES[_page])
+func refresh(sim: SimRoot, player: int) -> bool:
+	var list: Array[Dictionary] = entries(SimAssembly.content_of(sim), PAGES[_page], sim, player)
 	_cursor = clampi(_cursor, 0, maxi(0, list.size() - 1))
 	var lines: PackedStringArray = PackedStringArray()
 	var tabs: PackedStringArray = PackedStringArray()
@@ -93,7 +103,7 @@ func refresh(sim: SimRoot, _player: int) -> bool:
 	return _set_text(_label, "\n".join(lines))
 
 
-func handle(action: StringName, sim: SimRoot, _player: int) -> bool:
+func handle(action: StringName, sim: SimRoot, player: int) -> bool:
 	match action:
 		&"device_left", &"device_right":
 			_page = posmod(_page + (1 if action == &"device_right" else -1), PAGES.size())
@@ -103,7 +113,7 @@ func handle(action: StringName, sim: SimRoot, _player: int) -> bool:
 		&"device_down":
 			_cursor += 1  # refresh clamps it to the list
 		&"device_select":
-			var list: Array[Dictionary] = entries(SimAssembly.content_of(sim), PAGES[_page])
+			var list: Array[Dictionary] = entries(SimAssembly.content_of(sim), PAGES[_page], sim, player)
 			if list.is_empty():
 				return true
 			var entry: Dictionary = list[clampi(_cursor, 0, list.size() - 1)].duplicate(true)

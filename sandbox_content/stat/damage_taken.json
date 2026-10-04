@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 1000,
+	"description": "Per mille of every hit an actor takes; read by ActorSystem.damage_node. The sandbox's god mode adds -1000. (M7.6 spec decision 3; in sandbox_content until a game rule wants it, so the game registers no new stat and no fixture moves)"
+}

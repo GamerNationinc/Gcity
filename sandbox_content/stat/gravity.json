@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"default_base": 1,
+	"description": "Whether gravity holds a body (above 0); read by MovementSystem. The sandbox's fly adds -1. (M7.6 spec decision 3; in sandbox_content until a game rule wants it, so the game registers no new stat and no fixture moves)"
+}

@@ -19,6 +19,11 @@ const EVENT_DIED: StringName = &"actor.died"
 ## off-screen), before anything about it is erased, so every system that keeps a table
 ## by actor drops its rows while the actor's modifiers still exist to be released.
 const EVENT_REMOVED: StringName = &"actor.removed"
+## Per mille of every hit an actor takes (M7.6 spec decision 3): base 1 000, so nothing
+## changes. Read only where the stat is registered; the game registers none yet, the
+## sandbox's content does (god mode, 0), and a later armour can (standards §6).
+const STAT_DAMAGE_TAKEN: StringName = &"damage_taken"
+const PER_MILLE: int = 1000
 const MAX_RANGE_M: int = 10_000
 const MAX_COORD: int = 100_000_000
 
@@ -302,6 +307,9 @@ func remove(actor: int, stash: StringName) -> bool:
 func damage_node(actor: int, node: StringName, amount: int) -> int:
 	if not _actors.has(actor) or amount <= 0:
 		return 0
+	amount = amount * damage_taken(actor) / PER_MILLE
+	if amount <= 0:
+		return 0
 	var rec: Dictionary = _actors[actor]
 	var health: Dictionary = rec["health"]
 	if not health.has(node):
@@ -317,6 +325,31 @@ func damage_node(actor: int, node: StringName, amount: int) -> int:
 		var pos: Array = rec["pos"]
 		_events.emit(EVENT_DIED, {"actor": actor, "x": pos[0], "y": pos[1], "z": pos[2]})
 	return applied
+
+
+## Per mille of a hit the actor takes: `damage_taken` where it is registered, else all of it.
+func damage_taken(actor: int) -> int:
+	if not _stats.has_stat(STAT_DAMAGE_TAKEN):
+		return PER_MILLE
+	return maxi(0, _stats.resolve(actor, STAT_DAMAGE_TAKEN))
+
+
+## Sets a living actor's node to `value`, from 0 to the node's most (M7.6 claim 5). A
+## fatal node set to 0 kills, as damage would; bringing the dead back is `respawn`'s.
+func set_health(actor: int, node: StringName, value: int) -> bool:
+	if not is_alive(actor):
+		return false
+	var rec: Dictionary = _actors[actor]
+	var health: Dictionary = rec["health"]
+	if not health.has(node) or value < 0 or value > max_health(actor, node):
+		return false
+	health[node] = value
+	var profile: StringName = rec["profile"]
+	if value == 0 and _is_fatal(profile, node):
+		rec["alive"] = false
+		var pos: Array = rec["pos"]
+		_events.emit(EVENT_DIED, {"actor": actor, "x": pos[0], "y": pos[1], "z": pos[2]})
+	return true
 
 
 ## Brings a dead actor back with a full health graph. Who decides an actor comes back,

@@ -11,6 +11,16 @@
 ##   a spawn is whole or refused, never a guard left half armed. Items go through
 ##   `item.spawn` and build pieces through the creator tool's `build.place`.
 ##
+## Claims 4–5, the trainer:
+## - `sandbox.trainer {actor, effect, on}`: `god`, `ammo` or `fly` on or off for `actor`, as
+##   a modifier on a rule the owning system already reads at its neutral value (decision
+##   3): `damage_taken` to 0 (ActorSystem), `rounds_per_shot` to 0 (CombatSystem),
+##   `gravity` to 0 (MovementSystem). Refused where the stat is not registered.
+## - `sandbox.teleport {actor, cell}`: the actor's feet into `cell`, refused where its body
+##   does not fit.
+## - `sandbox.set_health {actor, node, value}`: through `ActorSystem.set_health`, within the
+##   node's range. Bringing the dead back is the game's own `actor.respawn`.
+##
 ## Claim 3, remove and reset:
 ## - `sandbox.despawn {actor, cell: [x, y, z], facing}`: removes the living actor whose body
 ##   is in the cell, its kit moved into the world container the way a squad member going
@@ -26,6 +36,16 @@ const COMMAND_DESPAWN: StringName = &"sandbox.despawn"
 const COMMAND_CLEAR: StringName = &"sandbox.clear"
 const COMMAND_SPAWN_AGENT: StringName = &"sandbox.spawn_agent"
 const KIT_KEYS: Array[String] = ["ammo", "frame", "magazine", "rounds"]
+const COMMAND_TRAINER: StringName = &"sandbox.trainer"
+const COMMAND_TELEPORT: StringName = &"sandbox.teleport"
+const COMMAND_SET_HEALTH: StringName = &"sandbox.set_health"
+const MODIFIER_SOURCE: StringName = &"sandbox"
+## effect -> [stat, the modifier that takes the stat from its base to "off"]
+const EFFECTS: Dictionary = {
+	"ammo": [CombatSystem.STAT_ROUNDS_PER_SHOT, -1],
+	"fly": [MovementSystem.STAT_GRAVITY, -1],
+	"god": [ActorSystem.STAT_DAMAGE_TAKEN, -ActorSystem.PER_MILLE],
+}
 const FACINGS: Array[String] = ["", "px", "nx", "py", "ny", "pz", "nz"]
 
 var _content: ContentDb
@@ -34,13 +54,17 @@ var _build: BuildSystem
 var _movement: MovementSystem
 var _perception: PerceptionSystem
 var _items: ItemSystem
+var _stats: StatResolver
+## actor -> effect -> the stat modifier's handle, for each trainer effect that is on
+var _trainer: Dictionary = {}
 ## Actors and pieces the sandbox has removed, for the state hash.
 var _removed_actors: int = 0
 var _removed_pieces: int = 0
 var _spawned: int = 0
 
 
-func _init(content: ContentDb, actors: ActorSystem, build: BuildSystem, movement: MovementSystem, perception: PerceptionSystem, items: ItemSystem) -> void:
+func _init(content: ContentDb, actors: ActorSystem, build: BuildSystem, movement: MovementSystem, perception: PerceptionSystem, items: ItemSystem, stats: StatResolver) -> void:
+	_stats = stats
 	_content = content
 	_actors = actors
 	_build = build
@@ -58,20 +82,28 @@ func tick(_sim: SimRoot) -> void:
 
 
 func snapshot() -> Dictionary:
-	return {"removed_actors": _removed_actors, "removed_pieces": _removed_pieces, "spawned": _spawned}
+	return {"removed_actors": _removed_actors, "removed_pieces": _removed_pieces, "spawned": _spawned, "trainer": _trainer.duplicate(true)}
 
 
 func attach(sim: SimRoot) -> Error:
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
-	for pair: Array in [[COMMAND_DESPAWN, _on_despawn], [COMMAND_CLEAR, _on_clear], [COMMAND_SPAWN_AGENT, _on_spawn_agent]]:
+	for pair: Array in [[COMMAND_DESPAWN, _on_despawn], [COMMAND_CLEAR, _on_clear], [COMMAND_SPAWN_AGENT, _on_spawn_agent],
+			[COMMAND_TRAINER, _on_trainer], [COMMAND_TELEPORT, _on_teleport], [COMMAND_SET_HEALTH, _on_set_health]]:
 		var kind: StringName = pair[0]
 		var handler: Callable = pair[1]
 		err = sim.commands().register(kind, handler)
 		if err != OK:
 			return err
 	return OK
+
+
+## Whether `effect` is on for `actor`.
+func trainer_on(actor: int, effect: String) -> bool:
+	var on: Dictionary = _trainer.get(actor, {})
+	var handle: int = on.get(effect, -1)
+	return handle >= 0 and _stats.has_modifier(handle)
 
 
 ## The living actor whose body takes up `cell`, or NONE.
@@ -83,6 +115,61 @@ func actor_in(cell: Vector3i) -> int:
 		if cell.x == feet.x and cell.z == feet.z and cell.y >= feet.y and cell.y < feet.y + _movement.body_cells(actor):
 			return actor
 	return EntityIds.NONE
+
+
+func _on_trainer(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 3 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("effect")) != TYPE_STRING or typeof(payload.get("on")) != TYPE_BOOL:
+		return false
+	var actor: int = payload["actor"]
+	var effect: String = payload["effect"]
+	var on: bool = payload["on"]
+	if not EFFECTS.has(effect) or not _actors.is_alive(actor):
+		return false
+	var rule: Array = EFFECTS[effect]
+	var stat: StringName = rule[0]
+	var value: int = rule[1]
+	if not _stats.has_stat(stat) or on == trainer_on(actor, effect):
+		return false
+	var mine: Dictionary = _trainer.get(actor, {})
+	if on:
+		var handle: int = _stats.add_modifier(actor, {"stat": stat, "class": StatResolver.CLASS_ADD, "value": value, "source": MODIFIER_SOURCE})
+		if handle < 0:
+			return false
+		mine[effect] = handle
+		_trainer[actor] = mine
+	else:
+		var handle_off: int = mine[effect]
+		if _stats.remove_modifier(handle_off) != OK:
+			return false
+		mine.erase(effect)
+		if mine.is_empty():
+			_trainer.erase(actor)
+	return true
+
+
+func _on_teleport(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	var cell_v: Variant = _cell(payload.get("cell"))
+	if cell_v == null or not _actors.is_alive(actor):
+		return false
+	var cell: Vector3i = cell_v
+	if absi(cell.x) > BuildSystem.MAX_CELL or absi(cell.y) > BuildSystem.MAX_CELL or absi(cell.z) > BuildSystem.MAX_CELL:
+		return false
+	if not _movement.actor_fits(actor, cell):
+		return false
+	var c: int = BuildSystem.CELL
+	return _actors.set_position(actor, Vector3i(cell.x * c + c / 2, cell.y * c, cell.z * c + c / 2)) == OK
+
+
+func _on_set_health(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 3 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("node")) != TYPE_STRING or typeof(payload.get("value")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	var node_s: String = payload["node"]
+	var value: int = payload["value"]
+	return _actors.set_health(actor, StringName(node_s), value)
 
 
 func _on_spawn_agent(_sim: SimRoot, payload: Dictionary) -> bool:

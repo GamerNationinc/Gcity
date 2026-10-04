@@ -19,6 +19,10 @@ const STAGE_ROUTING: StringName = &"routing"
 const STAT_HIT_CHANCE: StringName = &"hit_chance"
 const STAT_DAMAGE: StringName = &"damage"
 const STAT_CYCLE_TICKS: StringName = &"cycle_ticks"
+## Rounds a shot takes from the weapon (M7.6 spec decision 3): base 1. Read only where the
+## stat is registered (the sandbox's content: infinite ammo, 0); the shot is resolved
+## either way, and at 0 the chambered round stays.
+const STAT_ROUNDS_PER_SHOT: StringName = &"rounds_per_shot"
 ## The reason recorded on a shot that ran no stages: the shooter could not see the
 ## target (M4 spec claim 7). "" on any other shot.
 const REASON_NO_LOS: String = "no_los"
@@ -162,6 +166,13 @@ func hit_chance_at(shooter: int, weapon: int, range_m: int) -> int:
 	return clampi(_stats.resolve(weapon, STAT_HIT_CHANCE) - range_m * falloff, 0, CHANCE_ONE)
 
 
+## Rounds a shot by `shooter` takes: `rounds_per_shot` where it is registered, else one.
+func rounds_per_shot(shooter: int) -> int:
+	if not _stats.has_stat(STAT_ROUNDS_PER_SHOT):
+		return 1
+	return maxi(0, _stats.resolve(shooter, STAT_ROUNDS_PER_SHOT))
+
+
 # ---------------------------------------------------------------- the command
 
 ## {"actor": int, "target": int}: fire the wielded weapon at another living actor.
@@ -200,9 +211,10 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 	var tags: Array[String] = []
 	for t: StringName in weapon_tags:
 		tags.append(String(t))
-	var consumed: int = _items.consume_chambered(weapon)
-	assert(consumed == round, "the chambered round is the one that was fired")
-	_items.chamber_next(weapon)
+	if rounds_per_shot(shooter) > 0:
+		var consumed: int = _items.consume_chambered(weapon)
+		assert(consumed == round, "the chambered round is the one that was fired")
+		_items.chamber_next(weapon)
 	var cycle: int = maxi(1, _stats.resolve(weapon, STAT_CYCLE_TICKS) / 1000)
 	_items.set_busy(weapon, sim.get_tick() + cycle)
 	_shots += 1

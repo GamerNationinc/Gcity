@@ -57,3 +57,21 @@ func test_a_spawns_the_entry_under_the_cursor() -> void:
 	assert_true(app.handle(&"device_left", sim, 0), "back a page")
 	assert_false(app.handle(&"device_back", sim, 0), "B is the shell's")
 	app.free()
+
+
+## Claims 4–5: the trainer page shows each effect's state and asks for the other one.
+func test_the_trainer_page_toggles_what_is_on() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	assert_eq(ContentLoader.load_all(db, "res://sandbox_content"), OK, "and the sandbox's")
+	var sim: SimRoot = SandboxAssembly.build(1, db)
+	var player: int = SimAssembly.actors_of(sim).spawn(&"arcade", 0)
+	var page: Array[Dictionary] = SandboxApp.entries(db, "trainer", sim, player)
+	assert_eq(page[0]["label"], "god mode: off", "god mode starts off")
+	assert_eq(page[0]["on"], true, "and A asks for it on")
+	assert_eq(sim.submit(SimCommand.new(sim.get_tick() + 1, SandboxSystem.COMMAND_TRAINER, {"actor": player, "effect": "god", "on": true})), OK, "turned on")
+	sim.step()
+	page = SandboxApp.entries(db, "trainer", sim, player)
+	assert_eq(page[0]["label"], "god mode: ON", "shows on")
+	assert_eq(page[0]["on"], false, "and A asks for it off")
+	assert_eq(page.size(), SandboxApp.EFFECTS.size() + 2, "the three effects, full health, teleport")

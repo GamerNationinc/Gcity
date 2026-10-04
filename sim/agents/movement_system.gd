@@ -31,6 +31,8 @@ const EVENT_FELL: StringName = &"actor.fell"
 const EVENT_LEFT_PARCEL: StringName = &"actor.left_parcel"
 const KIND_DOOR_CHECK: StringName = &"door_check"
 
+## The stat behind `has_gravity`.
+const STAT_GRAVITY: StringName = &"gravity"
 var _content: ContentDb
 var _actors: ActorSystem
 var _land: LandSystem
@@ -68,6 +70,9 @@ func tick(_sim: SimRoot) -> void:
 	for actor: int in _actors.actor_ids():
 		if not _actors.is_alive(actor):
 			_falling.erase(actor)
+			continue
+		if not has_gravity(actor):
+			_falling.erase(actor)  # a body gravity has let go of does not fall, nor land
 			continue
 		var pos: Vector3i = _actors.position_of(actor)
 		if is_standable(BuildSystem.cell_of(pos)) or _in_ground(BuildSystem.cell_of(pos)):
@@ -273,6 +278,15 @@ func speed_of(actor: int) -> int:
 ## Applies the move if every rule allows it. Each axis is stepped separately so a
 ## diagonal move cannot cut a corner through a wall; the level change, if any, is
 ## applied first and needs a climbable face on the cell left or entered.
+## Whether gravity holds the actor (M7.6 spec decision 3): `gravity`, base 1, where it is
+## registered (the sandbox's content: fly, 0), else always. Without it a body neither
+## falls nor needs a flight to change level; it still fits wherever it is.
+func has_gravity(actor: int) -> bool:
+	if not _stats.has_stat(STAT_GRAVITY):
+		return true
+	return _stats.resolve(actor, STAT_GRAVITY) > 0
+
+
 func move(actor: int, dx: int, dz: int, dy: int = 0) -> bool:
 	if not _actors.is_alive(actor):
 		return false
@@ -287,7 +301,8 @@ func move(actor: int, dx: int, dz: int, dy: int = 0) -> bool:
 	if dy != 0:
 		var here: Vector3i = BuildSystem.cell_of(from)
 		var there: Vector3i = here + Vector3i(0, dy, 0)
-		if not has_any_climb(here) and not has_any_climb(there):
+		var flying: bool = not has_gravity(actor)
+		if not flying and not has_any_climb(here) and not has_any_climb(there):
 			_blocked += 1
 			return false
 		var height: int = body_cells(actor)
@@ -295,7 +310,7 @@ func move(actor: int, dx: int, dz: int, dy: int = 0) -> bool:
 			_blocked += 1
 			return false
 		# you climb onto something, never into the air: the top of a flight is the top
-		if not is_standable(there):
+		if not flying and not is_standable(there):
 			_blocked += 1
 			return false
 		# every floor a row of the body passes through must be passable or absent
