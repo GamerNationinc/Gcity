@@ -1,6 +1,7 @@
 ## The inventory app (design doc §12; M5 spec claim 3): every row is read from the
 ## item system this frame; every button is an item command. Select on a weapon
-## wields or holsters it, on a device carries it (never puts away the one whose screen
+## holsters it, or takes it in hand and loads it from what you carry (`WeaponReady`;
+## CEOGG's 2026-10-05 sandbox run: "can't load and fire"), on a device carries it (never puts away the one whose screen
 ## this is: nothing would be left to carry it again with), on a magazine swaps
 ## it into the wielded weapon, on loose rounds fills the first loose magazine, on a
 ## part or module fits it to the wielded weapon or carried device; secondary on a
@@ -8,6 +9,9 @@
 class_name InventoryApp extends DeviceApp
 
 var _cursor: int = 0
+## What A does on the row under the cursor, for the prompt line: the buttons were all
+## there but nothing said loose rounds load a magazine (the same run).
+var _select_hint: String = "use"
 var _label: RichTextLabel
 
 
@@ -35,10 +39,10 @@ func _rows(sim: SimRoot, player: int) -> Array[Dictionary]:
 		if kind == ItemSystem.KIND_FRAME:
 			var mag: int = items.magazine_of(id)
 			var mag_text: String = "no magazine" if mag == EntityIds.NONE else "%d rounds in the magazine" % items.rounds_in(mag).size()
-			out.append({"text": "%s%s   chamber %s   %s   hit %d %%" % [template, "   [wielded]" if id == wielded else "", "loaded" if items.chambered(id) != EntityIds.NONE else "empty", mag_text, stats.resolve(id, &"hit_chance") / 10000], "kind": "weapon", "id": id})
+			out.append({"text": "%s%s   chamber %s   %s   hit %d %%" % [template, "   (in hand)" if id == wielded else "", "loaded" if items.chambered(id) != EntityIds.NONE else "empty", mag_text, stats.resolve(id, &"hit_chance") / 10000], "kind": "weapon", "id": id})
 			out.append_array(_socket_rows(sim, id, ItemSystem.KIND_SOCKET))
 		elif kind == ItemSystem.KIND_DEVICE_FRAME:
-			out.append({"text": "%s%s   antenna %d m   memory %d" % [template, "   [carried]" if id == device else "", stats.resolve(id, &"antenna_gain") / 1000, stats.resolve(id, &"memory_capacity") / 1000], "kind": "device", "id": id})
+			out.append({"text": "%s%s   antenna %d m   memory %d" % [template, "   (carried)" if id == device else "", stats.resolve(id, &"antenna_gain") / 1000, stats.resolve(id, &"memory_capacity") / 1000], "kind": "device", "id": id})
 			out.append_array(_socket_rows(sim, id, ItemSystem.KIND_DEVICE_SOCKET))
 		elif kind == ItemSystem.KIND_PART:
 			if items.capacity_of(ItemSystem.magazine_container(id)) > 0:
@@ -79,6 +83,7 @@ func refresh(sim: SimRoot, player: int) -> bool:
 	if rows.is_empty():
 		return _set_text(_label, "Nothing carried.")
 	_cursor = clampi(_cursor, 0, rows.size() - 1)
+	_select_hint = _hint(rows[_cursor], sim, player)
 	var lines: PackedStringArray = PackedStringArray()
 	for i: int in rows.size():
 		var text: String = rows[i]["text"]
@@ -113,7 +118,19 @@ func _primary(row: Dictionary, sim: SimRoot, player: int) -> void:
 	var row_kind: String = row["kind"]
 	match row_kind:
 		"weapon":
-			submit(&"actor.wield", {"actor": player, "weapon": 0 if actors.wielded(player) == id else id})
+			if actors.wielded(player) == id:
+				submit(&"actor.wield", {"actor": player, "weapon": 0})
+				note("%s put away" % items.item_template(id))
+				return
+			submit(&"actor.wield", {"actor": player, "weapon": id})
+			var plan: Dictionary = WeaponReady.plan(sim, player, id)
+			var commands: Array = plan["commands"]
+			for command: Array in commands:
+				var kind: StringName = command[0]
+				var payload: Dictionary = command[1]
+				submit(kind, payload)
+			var said: String = plan["say"]
+			note("%s in hand. %s" % [items.item_template(id), said])
 		"device":
 			if actors.device_of(player) == id:
 				note("this %s is the screen you are on: putting it away would leave no way back" % items.item_template(id))
@@ -186,4 +203,30 @@ static func _loose_magazine_with_room(items: ItemSystem, player: int) -> int:
 
 
 func prompts(glyphs: InputGlyphs) -> String:
-	return glyphs.line([[&"device_up", "up"], [&"device_down", "down"], [&"device_select", "use"], [&"device_secondary", "undo"]])
+	return glyphs.line([[&"device_up", "up"], [&"device_down", "down"], [&"device_select", _select_hint], [&"device_secondary", "undo"]])
+
+
+## What A will do on `row`, in a few words.
+static func _hint(row: Dictionary, sim: SimRoot, player: int) -> String:
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var items: ItemSystem = SimAssembly.items_of(sim)
+	var id: int = row["id"]
+	var row_kind: String = row["kind"]
+	var wielded: int = actors.wielded(player)
+	match row_kind:
+		"weapon":
+			return "put it away" if wielded == id else "take in hand and load"
+		"device":
+			return "carrying it" if actors.device_of(player) == id else "carry this one"
+		"magazine":
+			return "put in the %s" % items.item_template(wielded) if wielded != EntityIds.NONE else "(take a gun in hand first)"
+		"rounds":
+			return "load into a magazine"
+		"part":
+			return "fit to the %s" % items.item_template(wielded) if wielded != EntityIds.NONE else "(take a gun in hand first)"
+		"module":
+			return "fit to the device"
+		"socket":
+			var part: int = row["part"]
+			return "take it off" if part != EntityIds.NONE else "(empty)"
+	return "use"

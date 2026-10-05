@@ -126,12 +126,14 @@ func test_the_inventory_app_fits_loads_wields_and_swaps_through_commands() -> vo
 	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "select the pistol")
 	_step()
 	assert_eq(_actors.wielded(_player), pistol, "wielded through actor.wield")
-	_go(9)
-	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "select the magazine")
-	_step()
+	# and loaded in the same press (CEOGG's 2026-10-05 sandbox run): the magazine filled
+	# from the loose rounds, swapped in through weapon.reload_tactical, a round chambered
 	assert_eq(_items.magazine_of(pistol), mag, "swapped in through weapon.reload_tactical")
+	assert_ne(_items.chambered(pistol), EntityIds.NONE, "a round chambered")
+	assert_eq(_items.rounds_in(mag).size(), 14, "fifteen loaded, one in the chamber")
+	assert_true(_shell.note_text().contains("chambered"), "and it says so")
 	_sim.step_n(90)
-	# the magazine moved into the pistol's socket, so it left the list: the rounds are row 10
+	# the magazine moved into the pistol's socket, so it left the list: 9 barrel, 10 rounds
 	_go(10)
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
@@ -141,9 +143,14 @@ func test_the_inventory_app_fits_loads_wields_and_swaps_through_commands() -> vo
 	_go(11)  # the new magazine took row 10; the rounds moved to 11
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
-	assert_eq(_submitted.size(), 15, "fifteen magazine.load commands: a full magazine in one press")
+	assert_eq(_submitted.size(), 5, "the five loose rounds left, in one press")
 	_step()
-	assert_eq(_items.rounds_in(mag2).size(), 15, "loaded")
+	assert_eq(_items.rounds_in(mag2).size(), 5, "loaded")
+	_go(10)
+	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "select the new magazine")
+	_step()
+	assert_eq(_items.magazine_of(pistol), mag2, "a loose magazine swaps into the gun in hand")
+	_sim.step_n(90)
 	_go(9)  # the barrel
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)

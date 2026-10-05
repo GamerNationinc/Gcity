@@ -870,14 +870,20 @@ func _physics_process(_delta: float) -> void:
 ## sim allows without a flight only where gravity has let the body go. Without fly the
 ## press is said aloud, never silent.
 func _sandbox_fly(sim: SimRoot) -> void:
+	if SimAssembly.movement_of(sim).has_gravity(_player):
+		# fly off, the triggers are the gun's: right fires, left reloads, a pull at a time
+		# (CEOGG's 2026-10-05 sandbox run: "can't load and fire")
+		if Input.is_action_just_pressed("sandbox_fly_up"):
+			_record("sandbox", "right trigger: fire")
+			_perform("fire")
+		elif Input.is_action_just_pressed("sandbox_fly_down"):
+			_record("sandbox", "left trigger: reload")
+			_perform("reload")
+		return
 	var lift: float = Input.get_action_strength("sandbox_fly_up") - Input.get_action_strength("sandbox_fly_down")
 	if absf(lift) < 0.5 or sim.get_tick() < _fly_next:
 		return
 	_fly_next = sim.get_tick() + FLY_TICKS
-	if SimAssembly.movement_of(sim).has_gravity(_player):
-		_fly_next = sim.get_tick() + 80  # said once every two seconds while held, not forty times
-		_note("fly is off: turn it on in the Spawn app's trainer page")
-		return
 	var dy: int = 1 if lift > 0.0 else -1
 	_record("sandbox", "fly %s" % ("up" if dy > 0 else "down"))
 	_submit(sim, &"actor.move", {"actor": _player, "dx": 0, "dz": 0, "dy": dy})
@@ -1578,11 +1584,10 @@ func _perform(action: String) -> void:
 			# fire whenever: at whoever is in the aim cone nearer than the first wall, else
 			# at the wall, the ground or the air (CEOGG, 2026-10-05)
 			var weapon: int = actors.wielded(_player)
-			if weapon == EntityIds.NONE:
-				_note("nothing in hand: %s" % _glyphs.prompt(&"world_wield", "wield"))
-				return
-			if items.chambered(weapon) == EntityIds.NONE:
-				_note("click: nothing chambered: %s" % _glyphs.prompt(&"world_reload", "reload"))
+			if weapon == EntityIds.NONE or items.chambered(weapon) == EntityIds.NONE:
+				# nothing in hand, or nothing chambered: this press draws and loads instead
+				# (CEOGG's 2026-10-05 sandbox run: "can't load and fire")
+				_ready_weapon(sim)
 				return
 			var impact: Dictionary = _shot_impact(sim, look_direction(_yaw, _pitch))
 			var target: int = _aimed_target(sim)
@@ -1600,13 +1605,14 @@ func _perform(action: String) -> void:
 			if target == 0:
 				_mark_impact(impact)
 		"reload":
-			var mags: Array[int] = _loose_mags(items)
-			if mags.is_empty():
-				_note("no loose magazine")
-				return
-			_submit(sim, &"weapon.reload_tactical", {"actor": _player, "weapon": _pistol, "magazine": mags[0]})
+			_ready_weapon(sim)
 		"wield":
-			var weapon: int = 0 if actors.wielded(_player) == _pistol else _pistol
+			var weapon: int = _pistol if _pistol != EntityIds.NONE else WeaponReady.first_firearm(items, _player)
+			if actors.wielded(_player) != EntityIds.NONE:
+				weapon = EntityIds.NONE
+			elif weapon == EntityIds.NONE:
+				_note("no firearm in your pockets")
+				return
 			_submit(sim, &"actor.wield", {"actor": _player, "weapon": weapon})
 		"camera":
 			_first_person = not _first_person
@@ -1663,6 +1669,44 @@ func _perform(action: String) -> void:
 				_yaw += deg_to_rad(float(action.trim_prefix("look:")))
 			else:
 				_note("unknown action " + action)
+
+
+## What is in your hand and how loaded it is, or what you could draw.
+func _weapon_line(sim: SimRoot) -> String:
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var items: ItemSystem = SimAssembly.items_of(sim)
+	var weapon: int = actors.wielded(_player)
+	if weapon == EntityIds.NONE:
+		var carried: int = _pistol if _pistol != EntityIds.NONE else WeaponReady.first_firearm(items, _player)
+		return "in hand: nothing" + ("" if carried == EntityIds.NONE else "   (%s in your pockets: %s)" % [items.item_template(carried), _glyphs.prompt(&"sandbox_fly_down" if _create else &"world_reload", "draw and load")])
+	var mag: int = items.magazine_of(weapon)
+	return "in hand: %s   chamber %s   mag %s" % [items.item_template(weapon), "loaded" if items.chambered(weapon) != EntityIds.NONE else "EMPTY",
+		"%d/%d" % [items.rounds_in(mag).size(), items.capacity_of(ItemSystem.magazine_container(mag))] if mag != EntityIds.NONE else "none"]
+
+
+## Reload, and whatever it takes first: the first firearm you carry taken in hand if
+## nothing is, a magazine filled from your loose rounds, swapped in, a round chambered
+## (`WeaponReady`). Says what it did or why it could not.
+func _ready_weapon(sim: SimRoot) -> void:
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var items: ItemSystem = SimAssembly.items_of(sim)
+	var weapon: int = actors.wielded(_player)
+	var drew: String = ""
+	if weapon == EntityIds.NONE:
+		weapon = _pistol if _pistol != EntityIds.NONE else WeaponReady.first_firearm(items, _player)
+		if weapon == EntityIds.NONE:
+			_note("no firearm in your pockets (the Spawn app's items page has one)")
+			return
+		_submit(sim, &"actor.wield", {"actor": _player, "weapon": weapon})
+		drew = "%s in hand. " % items.item_template(weapon)
+	var plan: Dictionary = WeaponReady.plan(sim, _player, weapon)
+	var commands: Array = plan["commands"]
+	for command: Array in commands:
+		var kind: StringName = command[0]
+		var payload: Dictionary = command[1]
+		_submit(sim, kind, payload)
+	var said: String = plan["say"]
+	_note(drew + said)
 
 
 ## The nearest living actor other than the player within the aim cone of the camera's
@@ -1886,9 +1930,7 @@ func _render(sim: SimRoot) -> void:
 	lines.append("player at (%d, %d) mm   yaw %d°   pitch %d°   hp %d   %s" % [p.x, p.z, roundi(rad_to_deg(_yaw)), roundi(rad_to_deg(_pitch)), actors.health_of(_player)["body"] / 1000, "first person" if _first_person else "third person"])
 	var target: int = _aimed_target(sim)
 	var range_m: int = ActorSystem.metres_between(p, actors.position_of(target)) if target != 0 else -1
-	var mag: int = items.magazine_of(_pistol)
-	lines.append("pistol %s   chamber %s   mag %s" % ["wielded" if actors.wielded(_player) == _pistol else "holstered",
-		"loaded" if items.chambered(_pistol) != 0 else "EMPTY", "%d/15" % items.rounds_in(mag).size() if mag != 0 else "none"])
+	lines.append(_weapon_line(sim))
 	var last: Dictionary = combat.last_shot()
 	var last_text: String = ""
 	if not last.is_empty():
@@ -2076,7 +2118,7 @@ func _log_changes(sim: SimRoot) -> void:
 		"paused": sim.is_paused(),
 		"camera": "first person" if _first_person else "third person",
 		"device": "raised" if _device_raised else "lowered",
-		"wielded": actors.wielded(_player) == _pistol,
+		"wielded": actors.wielded(_player) != EntityIds.NONE,
 	}
 	var alerted: Array[String] = []
 	for guard: int in _guards:
@@ -2472,6 +2514,9 @@ func _render_creator(sim: SimRoot, lines: PackedStringArray) -> void:
 	lines.append("CREATOR   pieces %d   guard posts %d   terminals %d   rejected %d" % [build.piece_ids().size(), _creator.guard_posts().size(),
 		_creator.terminal_cells().size(), sim.rejected_count()])
 	lines.append("piece: %s   cursor %s   facing %s" % [name, _creator.cursor(), "-" if facing.is_empty() else facing])
+	if _sandbox:
+		lines.append(_weapon_line(sim))
+		lines.append(_glyphs.line([[&"sandbox_fly_up", "fire"], [&"sandbox_fly_down", "reload"]]) + "   (with fly off; fly on, they fly)")
 	lines.append("")
 	lines.append(_glyphs.line([[&"world_move_forward", "walk"], [&"world_look_left", "look"], [&"create_up", "cursor"], [&"create_raise", "up a level"], [&"create_lower", "down a level"]]))
 	lines.append(_glyphs.line([[&"create_place", "place"], [&"create_remove", "remove"], [&"create_turn", "turn"], [&"create_next", "next piece"], [&"create_menu", "device: save / open"]]))
