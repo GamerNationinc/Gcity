@@ -34,6 +34,17 @@ func prompts(_glyphs: InputGlyphs) -> String:
 	return ""
 
 
+## What the pane has in focus, in words, for the run log: the selected row by default
+## (the line its cursor marks with ">"), "" when it has none. A drawn pane says its own.
+func focus() -> String:
+	var bbcode := RegEx.create_from_string("\\[/?[a-z_]+(=[^\\]]*)?\\]")
+	for line: String in _last_text.split("\n"):
+		var plain: String = bbcode.sub(line, "", true).strip_edges()
+		if plain.begins_with(">"):
+			return plain.trim_prefix(">").strip_edges()
+	return ""
+
+
 ## Sets the pane's text and reports whether it changed: the redraw-on-change signal
 ## for the text panes.
 func _set_text(label: RichTextLabel, text: String) -> bool:

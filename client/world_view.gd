@@ -970,8 +970,11 @@ func _unhandled_input(event: InputEvent) -> void:
 			if event.is_action(action):
 				var noted: String = _shell.note_text()
 				var outcome: String = _shell.handle(StringName(action), _host.sim(), _player)
-				if _shell.note_text() != noted and not _shell.note_text().is_empty():
-					_record("device", _shell.note_text())  # a refusal on the device is in the log too
+				if outcome != "lower":
+					# every press's result is in the log, so a Deck run is also a button audit
+					_shell.refresh(_host.sim(), _player)
+					var said: String = _shell.note_text() if _shell.note_text() != noted else ""
+					_record("device", "%s -> %s%s" % [action, _shell.describe(), "" if said.is_empty() else "  (%s)" % said])
 				if outcome == "lower":
 					_raise_device(false)
 				else:
@@ -1963,16 +1966,21 @@ func _creator_press(action: String) -> void:
 	if steps.has(action):
 		var dpad: Vector2i = steps[action]
 		_creator.move(SiteCreator.camera_step(_yaw, dpad))
+		_record("create", "%s -> cursor %s" % [action, _creator.cursor()])
 		return
 	match action:
 		"create_raise":
 			_creator.rise(1)
+			_record("create", "%s -> cursor %s" % [action, _creator.cursor()])
 		"create_lower":
 			_creator.rise(-1)
+			_record("create", "%s -> cursor %s" % [action, _creator.cursor()])
 		"create_turn":
 			_creator.turn()
+			_record("create", "%s -> %s facing %s" % [action, _creator.selected(), _creator.facing_for(_creator.selected(), _yaw)])
 		"create_next":
 			_creator.next_piece()
+			_record("create", "%s -> piece %s" % [action, _creator.selected()])
 		"create_place":
 			var name: StringName = _creator.selected()
 			var movement: MovementSystem = SimAssembly.movement_of(sim)

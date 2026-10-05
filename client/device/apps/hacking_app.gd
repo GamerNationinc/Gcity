@@ -82,6 +82,9 @@ func handle(action: StringName, sim: SimRoot, player: int) -> bool:
 		&"device_secondary":
 			if terminals.hacker_of(terminal) == player:
 				submit(&"terminal.hack_cancel", {"actor": player, "terminal": terminal})
+				note("cancelled; the progress is gone")
+			else:
+				note("no hack running here to cancel")
 			return true
 	return false
 

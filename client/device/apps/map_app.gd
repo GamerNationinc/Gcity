@@ -39,6 +39,10 @@ func handle(action: StringName, _sim: SimRoot, _player: int) -> bool:
 	return true
 
 
+func focus() -> String:
+	return "world page" if _page == PAGE_WORLD else "local page"
+
+
 func refresh(sim: SimRoot, player: int) -> bool:
 	if _page == PAGE_WORLD:
 		return _refresh_world(sim, player)

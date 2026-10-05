@@ -132,6 +132,15 @@ func note(text: String) -> void:
 	_note_text = text
 
 
+## The open app and what it has in focus, for the run log: "Inventory: handset [carried]".
+func describe() -> String:
+	if _open_app.is_empty():
+		return "no device carried"
+	var title: String = _content.get_entry(KIND_APP, _open_app)["title"]
+	var focus: String = _pane.focus() if _pane != null else ""
+	return title if focus.is_empty() else "%s: %s" % [title, focus]
+
+
 ## The note line as it stands, for the run log.
 func note_text() -> String:
 	return _note_text
@@ -192,8 +201,8 @@ func refresh(sim: SimRoot, player: int) -> bool:
 	return changed
 
 
-## A device action. Returns "lower" when the shell wants the device lowered,
-## "handled" when used, "" otherwise.
+## A device action. Returns "lower" when the shell wants the device lowered, else
+## "handled": a button the open app does not use notes so rather than doing nothing.
 func handle(action: StringName, sim: SimRoot, player: int) -> String:
 	var apps: Array[Dictionary] = available_apps(sim, player)
 	if apps.is_empty() and action != &"device_back":
@@ -214,4 +223,11 @@ func handle(action: StringName, sim: SimRoot, player: int) -> String:
 		return "handled"
 	if action == &"device_back":
 		return "lower"
-	return ""
+	# a button the open app does not use says so: on the Deck a silent press reads as broken
+	var title: String = String(_open_app)
+	for a: Dictionary in apps:
+		if a["id"] == _open_app:
+			title = a["title"]
+	var button: String = _glyphs.glyph(action) if _glyphs != null else ""
+	_note_text = "%s does nothing in %s" % [button if not button.is_empty() else String(action).trim_prefix("device_"), title]
+	return "handled"

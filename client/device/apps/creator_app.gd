@@ -42,10 +42,11 @@ func refresh(_sim: SimRoot, _player: int) -> bool:
 func handle(action: StringName, _sim: SimRoot, _player: int) -> bool:
 	var list: Array[String] = entries()
 	match action:
-		&"device_up":
-			_cursor = maxi(0, _cursor - 1)
-		&"device_down":
-			_cursor = mini(list.size() - 1, _cursor + 1)
+		&"device_up", &"device_down":
+			if list.size() < 2:
+				note("nothing else to choose: save first")
+			# wraps, as the inventory does: at either end a press still moves
+			_cursor = posmod(_cursor + (1 if action == &"device_down" else -1), list.size())
 		&"device_select":
 			var entry: String = list[clampi(_cursor, 0, list.size() - 1)]
 			if entry == "save":

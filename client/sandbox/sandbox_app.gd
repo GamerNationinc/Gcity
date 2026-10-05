@@ -119,18 +119,26 @@ func refresh(sim: SimRoot, player: int) -> bool:
 	return _set_text(_label, "\n".join(lines))
 
 
+func focus() -> String:
+	return "%s page: %s" % [PAGES[_page], super.focus()]
+
+
 func handle(action: StringName, sim: SimRoot, player: int) -> bool:
 	match action:
 		&"device_left", &"device_right":
 			_page = posmod(_page + (1 if action == &"device_right" else -1), PAGES.size())
 			_cursor = 0
-		&"device_up":
-			_cursor = maxi(0, _cursor - 1)
-		&"device_down":
-			_cursor += 1  # refresh clamps it to the list
+		&"device_up", &"device_down":
+			var size: int = entries(SimAssembly.content_of(sim), PAGES[_page], sim, player).size()
+			if size < 2:
+				note("nothing else on this page")
+				return true
+			# wraps: at either end a press still moves
+			_cursor = posmod(_cursor + (1 if action == &"device_down" else -1), size)
 		&"device_select":
 			var list: Array[Dictionary] = entries(SimAssembly.content_of(sim), PAGES[_page], sim, player)
 			if list.is_empty():
+				note("nothing on this page to spawn")
 				return true
 			var entry: Dictionary = list[clampi(_cursor, 0, list.size() - 1)].duplicate(true)
 			entry.erase("label")

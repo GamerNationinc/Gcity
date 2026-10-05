@@ -203,6 +203,74 @@ func test_a_press_with_no_device_carried_says_so() -> void:
 	_teardown()
 
 
+func test_a_button_the_open_app_does_not_use_says_so() -> void:
+	_setup()
+	_equip()
+	_shell.grant(&"creator")
+	_shell.refresh(_sim, _player)
+	assert_eq(_shell.open_app(), &"creator", "the creator first")
+	# CEOGG pressed Y in the creator twice on 2026-10-05 and nothing happened
+	assert_eq(_shell.handle(&"device_secondary", _sim, _player), "handled", "Y in the creator")
+	assert_true(_shell.note_text().contains("does nothing in"), "says so: %s" % _shell.note_text())
+	while _shell.open_app() != &"notes":
+		_shell.handle(&"device_next_app", _sim, _player)
+	_shell.refresh(_sim, _player)
+	for action: StringName in [&"device_up", &"device_down", &"device_left", &"device_right", &"device_select", &"device_secondary"]:
+		_shell.note("")
+		assert_eq(_shell.handle(action, _sim, _player), "handled", "%s in notes" % action)
+		assert_true(_shell.note_text().contains("Notes"), "%s names the app: %s" % [action, _shell.note_text()])
+	assert_eq(_shell.handle(&"device_back", _sim, _player), "lower", "B still lowers")
+	_teardown()
+
+
+## The full button map (CEOGG, 2026-10-05: "schedule a full button mapping test"): in every
+## app, every device button either changes what the pane shows or puts a note up; none is
+## silent. Rows and pages are view state, so `describe` (what the run log records) or the
+## note must move.
+func test_every_device_button_in_every_app_shows_a_result() -> void:
+	_setup()
+	_equip()
+	_shell.grant(&"creator")
+	var inv: StringName = ItemSystem.inventory_of(_player)
+	_items.spawn(&"weapon_frame", &"g19", inv, 3)
+	_items.spawn(&"weapon_part", &"g19_mag_15", inv, 4)
+	_shell.refresh(_sim, _player)
+	var buttons: Array[StringName] = [&"device_up", &"device_down", &"device_left", &"device_right", &"device_select", &"device_secondary", &"device_prev_app", &"device_next_app"]
+	var apps: Array[StringName] = _app_ids()
+	assert_true(apps.size() >= 7, "the creator's apps: %s" % [apps])
+	for app: StringName in apps:
+		for button: StringName in buttons:
+			while _shell.open_app() != app:
+				_shell.handle(&"device_next_app", _sim, _player)
+				_shell.refresh(_sim, _player)
+			_shell.note("")
+			_shell.refresh(_sim, _player)
+			var before: String = _shell.describe()
+			if button == &"device_select" and app == &"creator":
+				continue  # A in the creator saves or reopens the lot: the view's (test_site_creator)
+			if button == &"device_select" and app == &"inventory":
+				_shell.handle(&"device_down", _sim, _player)  # off the handset: A there is the refusal tested above
+				_shell.refresh(_sim, _player)
+				before = _shell.describe()
+			_seen = _submitted.size()
+			var outcome: String = _shell.handle(button, _sim, _player)
+			_step()
+			_shell.refresh(_sim, _player)
+			assert_eq(outcome, "handled", "%s in %s" % [button, app])
+			var shown: bool = _shell.describe() != before or not _shell.note_text().is_empty() or _submitted_since(app, button)
+			assert_true(shown, "%s in %s shows nothing: still '%s'" % [button, app, before])
+	_teardown()
+
+
+var _seen: int = 0
+
+
+func _submitted_since(_app: StringName, _button: StringName) -> bool:
+	var grew: bool = _submitted.size() > _seen
+	_seen = _submitted.size()
+	return grew
+
+
 ## Leaving an app and coming back rebuilds its pane with the cursor at the top (the
 ## shell frees a pane whose app is no longer open), which is how a row is addressed
 ## now that the cursor wraps.
