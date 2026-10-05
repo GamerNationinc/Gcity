@@ -77,6 +77,8 @@ const WALL_MARGIN: float = 0.25
 const SHOT_RANGE_M: float = 60.0
 const IMPACT_MARKS: int = 12
 const FLASH_MS: int = 60
+## Longer than any reload in the content: only which word a busy gun gets.
+const RELOAD_SAY_TICKS: int = 400
 ## How finely the third-person camera's line is walked for walls: well under a cell.
 const WALL_PROBE_STEP: float = 0.1
 const FACING_STEP: Dictionary[String, Vector3i] = {
@@ -133,6 +135,8 @@ var _fp_weapon_shape: String = ""
 ## last fired, for the muzzle flash.
 var _impacts: Array[MeshInstance3D] = []
 var _flash_until_ms: int = 0
+## Until when a busy gun is said to be reloading rather than cycling.
+var _reloaded_until: int = 0
 var _bar_nodes: Dictionary = {}
 var _line_nodes: Dictionary = {}
 var _marker_nodes: Dictionary = {}
@@ -1589,6 +1593,10 @@ func _perform(action: String) -> void:
 				# (CEOGG's 2026-10-05 sandbox run: "can't load and fire")
 				_ready_weapon(sim)
 				return
+			var busy: String = WeaponReady.busy_reason(items, weapon, sim.get_tick() + 1, sim.get_tick() < _reloaded_until)
+			if not busy.is_empty():
+				_note(busy)
+				return
 			var impact: Dictionary = _shot_impact(sim, look_direction(_yaw, _pitch))
 			var target: int = _aimed_target(sim)
 			if target != 0:
@@ -1680,8 +1688,9 @@ func _weapon_line(sim: SimRoot) -> String:
 		var carried: int = _pistol if _pistol != EntityIds.NONE else WeaponReady.first_firearm(items, _player)
 		return "in hand: nothing" + ("" if carried == EntityIds.NONE else "   (%s in your pockets: %s)" % [items.item_template(carried), _glyphs.prompt(&"sandbox_fly_down" if _create else &"world_reload", "draw and load")])
 	var mag: int = items.magazine_of(weapon)
-	return "in hand: %s   chamber %s   mag %s" % [items.item_template(weapon), "loaded" if items.chambered(weapon) != EntityIds.NONE else "EMPTY",
-		"%d/%d" % [items.rounds_in(mag).size(), items.capacity_of(ItemSystem.magazine_container(mag))] if mag != EntityIds.NONE else "none"]
+	var busy: String = "   (reloading)" if items.is_busy(weapon, sim.get_tick()) and sim.get_tick() < _reloaded_until else ""
+	return "in hand: %s   chamber %s   mag %s%s" % [items.item_template(weapon), "loaded" if items.chambered(weapon) != EntityIds.NONE else "EMPTY",
+		"%d/%d" % [items.rounds_in(mag).size(), items.capacity_of(ItemSystem.magazine_container(mag))] if mag != EntityIds.NONE else "none", busy]
 
 
 ## Reload, and whatever it takes first: the first firearm you carry taken in hand if
@@ -1705,6 +1714,8 @@ func _ready_weapon(sim: SimRoot) -> void:
 		var kind: StringName = command[0]
 		var payload: Dictionary = command[1]
 		_submit(sim, kind, payload)
+		if kind == &"weapon.reload_tactical":
+			_reloaded_until = sim.get_tick() + RELOAD_SAY_TICKS
 	var said: String = plan["say"]
 	_note(drew + said)
 

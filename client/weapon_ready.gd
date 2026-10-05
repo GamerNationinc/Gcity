@@ -58,3 +58,13 @@ static func plan(sim: SimRoot, actor: int, weapon: int) -> Dictionary:
 		return {"commands": [], "say": "%s is loaded" % name}
 	commands.append([&"weapon.reload_tactical", {"actor": actor, "weapon": weapon, "magazine": best}])
 	return {"commands": commands, "say": "%s: %s%d-round magazine in, round chambered" % [name, "loaded %d rounds, " % loading if loading > 0 else "", total]}
+
+
+## Why a pull of the trigger at `tick` would be refused while the gun is busy, or "":
+## after the 18:18 run four pulls during a reload were refused with nothing said.
+static func busy_reason(items: ItemSystem, weapon: int, tick: int, reloading: bool) -> String:
+	if not items.is_busy(weapon, tick):
+		return ""
+	var left: float = float(items.busy_until(weapon) - tick) / float(SimRoot.TICK_HZ)
+	return "%s: %s, %.1f s" % [items.item_template(weapon), "reloading" if reloading else "cycling", left]
+

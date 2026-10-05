@@ -73,7 +73,9 @@ static func request(view: WorldView, kind: StringName, payload: Dictionary) -> S
 		var profile: String = payload["profile"]
 		var kit: Dictionary = payload["kit"]
 		if not SimAssembly.movement_of(sim).body_fits(cell, 2):
-			return "%s not spawned at %s: no room for a body there (two cells, nothing built in them)" % [profile, cell]
+			# the 18:18 run: the cursor sat in the foundation just built; say where it would fit
+			var up: String = "; one level up fits: R1 raises the cursor" if SimAssembly.movement_of(sim).body_fits(cell + Vector3i(0, 1, 0), 2) else "; move the cursor (D-pad) to open floor"
+			return "%s not spawned at %s: no room for a body there (two cells, nothing built in them)%s" % [profile, cell, up]
 		view.submit_command(SandboxSystem.COMMAND_SPAWN_AGENT, {"actor": view.player_id(), "profile": profile,
 			"cell": [cell.x, cell.y, cell.z], "facing": view.spawn_facing(), "kit": kit})
 		return "spawning %s at %s%s" % [profile, cell, ", unarmed" if kit.is_empty() else ", with %s" % kit["frame"]]

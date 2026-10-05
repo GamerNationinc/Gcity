@@ -75,3 +75,19 @@ func test_an_m9_magazine_is_not_put_in_a_g19() -> void:
 	var plan: Dictionary = WeaponReady.plan(_sim, _player, pistol)
 	var commands: Array = plan["commands"]
 	assert_eq(commands.size(), 0, "the m9's magazine does not fit")
+
+
+## CEOGG's 18:18 sandbox run: four pulls during a reload were refused with nothing said.
+func test_a_pull_during_the_reload_says_so() -> void:
+	_build()
+	var inv: StringName = ItemSystem.inventory_of(_player)
+	var pistol: int = _items.spawn(&"weapon_frame", &"g19", inv, 1)
+	_items.spawn(&"weapon_part", &"g19_mag_15", inv, 2)
+	for i: int in 15:
+		_items.spawn(&"ammo", &"9x19_fmj", inv, 100 + i)
+	assert_eq(WeaponReady.busy_reason(_items, pistol, _sim.get_tick(), false), "", "a gun at rest is not busy")
+	_run(WeaponReady.plan(_sim, _player, pistol))
+	var said: String = WeaponReady.busy_reason(_items, pistol, _sim.get_tick() + 1, true)
+	assert_true(said.contains("reloading") and said.contains("s"), "mid-reload it says so and how long (%s)" % said)
+	_sim.step_n(90)
+	assert_eq(WeaponReady.busy_reason(_items, pistol, _sim.get_tick() + 1, true), "", "and after the reload, nothing")
