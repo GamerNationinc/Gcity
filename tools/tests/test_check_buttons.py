@@ -34,6 +34,21 @@ class CheckButtonsTest(unittest.TestCase):
         _, silent = cb.audit(LOG[:4] + LOG[9:])
         self.assertEqual(silent, [])
 
+    def test_one_press_logged_under_two_names_is_one_press(self) -> None:
+        log = """\
+    7.037  t134    input    world_build_place pressed (Joypad Button 0)
+    7.038  t134    input    device_select pressed (Joypad Button 0)
+    7.038  t134    action   build_place
+    7.050  t135    command  build.place {"actor":1}
+    8.000  t174    input    device_right pressed (Joypad Button 14)
+    8.500  t190    beat     90 fps
+""".splitlines()
+        table, silent = cb.audit(log)
+        self.assertEqual(table["world_build_place"], [1, 1])
+        self.assertNotIn("device_select", table)
+        self.assertEqual(len(silent), 1)
+        self.assertIn("device_right", silent[0])
+
 
 if __name__ == "__main__":
     unittest.main()

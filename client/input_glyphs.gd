@@ -83,6 +83,12 @@ func line(pairs: Array) -> String:
 	return "  ".join(out)
 
 
+## A press's button as the player knows it (the glyph's name), or its raw text.
+func name_of(event: InputEvent) -> String:
+	var n: String = _name_of(event)
+	return n if not n.is_empty() else event.as_text()
+
+
 func _name_of(event: InputEvent) -> String:
 	if _controller_active:
 		if event is InputEventJoypadButton:

@@ -15,16 +15,24 @@ import re
 import sys
 
 RUNS = pathlib.Path.home() / ".local/share/godot/app_userdata/Gcity/logs/runs"
-PRESS = re.compile(r"^\s*([\d.]+)\s+t-?\d+\s+input\s+(\S+) pressed")
+PRESS = re.compile(r"^\s*([\d.]+)\s+(t-?\d+)\s+input\s+(\S+) pressed")
 RESULT = re.compile(r"^\s*[\d.]+\s+t-?\d+\s+(command|create|device|note|world|rejected)\s")
 
 
 def audit(lines: list[str]) -> tuple[dict[str, list[int]], list[str]]:
     table: dict[str, list[int]] = {}
     silent: list[str] = []
-    presses = [(i, m) for i, l in enumerate(lines) if (m := PRESS.match(l))]
+    presses = []
+    for i, l in enumerate(lines):
+        m = PRESS.match(l)
+        # logs before 2026-10-05 16:30 name one press twice outside the creator (A as
+        # world_build_place and device_select, on the same line pair): one press, the first name
+        if m and presses and lines[i - 1].strip() and PRESS.match(lines[i - 1]) and PRESS.match(lines[i - 1]).group(2) == m.group(2):
+            continue
+        if m:
+            presses.append((i, m))
     for n, (i, m) in enumerate(presses):
-        action = m.group(2)
+        action = m.group(3)
         end = presses[n + 1][0] if n + 1 < len(presses) else len(lines)
         shown = any(RESULT.match(l) for l in lines[i + 1:end])
         row = table.setdefault(action, [0, 0])

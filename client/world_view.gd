@@ -68,6 +68,21 @@ const PITCH_MIN_THIRD: float = -deg_to_rad(55.0)
 ## The third-person camera's rest angle: a little down onto the player, as before pitch.
 const THIRD_PERSON_TILT: float = -deg_to_rad(10.0)
 const THIRD_PERSON_PIVOT: float = 1.6
+## How far the eye and the camera keep off a wall, a floor or a ceiling: a hand's width
+## past the near plane. Before CEOGG's 2026-10-05 sandbox run the eye could stand on a
+## wall's face (the sim lets the body reach it), so the view sat inside the wall and saw
+## through it; the third-person camera slid behind walls the same way. View only.
+const WALL_MARGIN: float = 0.25
+## How far a shot that hits no one is followed, and how many of its marks stay up.
+const SHOT_RANGE_M: float = 60.0
+const IMPACT_MARKS: int = 12
+const FLASH_MS: int = 60
+## How finely the third-person camera's line is walked for walls: well under a cell.
+const WALL_PROBE_STEP: float = 0.1
+const FACING_STEP: Dictionary[String, Vector3i] = {
+	"px": Vector3i(1, 0, 0), "nx": Vector3i(-1, 0, 0), "py": Vector3i(0, 1, 0),
+	"ny": Vector3i(0, -1, 0), "pz": Vector3i(0, 0, 1), "nz": Vector3i(0, 0, -1),
+}
 const AIM_CONE_DEG: float = 15.0
 const SAVE_DIR: String = "user://saves/world"
 
@@ -107,6 +122,17 @@ var _digest: String = ""
 var _digest_tick: int = -1000
 var _token_nodes: Dictionary = {}
 var _actor_nodes: Dictionary = {}
+## Each actor's weapon placeholder and what shape it was built as (CEOGG, 2026-10-05:
+## "there should be a weapon model placeholder now"); the player's first-person one
+## hangs off the camera.
+var _weapon_nodes: Dictionary = {}
+var _weapon_shapes: Dictionary = {}
+var _fp_weapon: Node3D = null
+var _fp_weapon_shape: String = ""
+## Where the last few shots that hit no one struck, oldest first; and when the player
+## last fired, for the muzzle flash.
+var _impacts: Array[MeshInstance3D] = []
+var _flash_until_ms: int = 0
 var _bar_nodes: Dictionary = {}
 var _line_nodes: Dictionary = {}
 var _marker_nodes: Dictionary = {}
@@ -196,6 +222,8 @@ func _ready() -> void:
 			_mission = true
 		elif arg == "--wilds":
 			_wilds = true
+		elif arg == "--first-person":
+			_first_person = true  # starts in first person: for screenshots of the held weapon
 		elif arg == "--create":
 			_create = true
 		elif arg == "--sandbox":
@@ -521,6 +549,7 @@ func _sync_scene(sim: SimRoot) -> void:
 			capsule.position.y = float(p.y) / M + 0.15
 			capsule.scale = Vector3(1.0, 0.15, 1.0)
 			capsule.material_override = _material(Color(0.15, 0.13, 0.13))
+		_sync_weapon(capsule, actor, actors, alive)
 		if actor == _player:
 			capsule.rotation.y = _yaw + PI / 2.0
 		elif perception.is_agent(actor):
@@ -808,6 +837,8 @@ func _physics_process(_delta: float) -> void:
 		# does the demo once its route is done (Deck test, 2026-10-04: the buttons stayed dead)
 		_mission_tick(sim)
 		return
+	if not _create:
+		_creator_check_pending(sim)  # a refused build button says why here too
 	if _create:
 		_creator_tick(sim)
 		if _sandbox and not _device_raised:
@@ -890,13 +921,217 @@ func _place_camera(sim: SimRoot) -> void:
 	var p: Vector3i = SimAssembly.actors_of(sim).position_of(_player)
 	var feet: Vector3 = Vector3(float(p.x) / M, float(p.y) / M, float(p.z) / M)
 	var forward: Vector3 = Vector3(-sin(_yaw), 0.0, -cos(_yaw))
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var closed: Callable = func(cell: Vector3i, facing: String) -> bool:
+		return build.face_piece_at(BuildSystem.face_key(cell, facing)) != EntityIds.NONE or build.cell_piece_at(cell + FACING_STEP[facing]) != EntityIds.NONE
+	_sync_fp_weapon(sim)
 	if _first_person:
-		_camera.position = eye_position(sim, _player)
+		_camera.position = keep_off_walls(eye_position(sim, _player), closed)
 		_camera.look_at(_camera.position + look_direction(_yaw, _pitch), Vector3.UP)
 	else:
-		_camera.position = third_person_position(feet, _yaw, _pitch)
+		# from the head out to the shoulder pivot, then back to the camera: it stops on
+		# the near side of the first wall either line meets
+		var head: Vector3 = feet + Vector3(0.0, THIRD_PERSON_PIVOT, 0.0)
 		var side: Vector3 = Vector3(-forward.z, 0.0, forward.x) * THIRD_PERSON_SIDE
-		_camera.look_at(feet + side + Vector3(0.0, THIRD_PERSON_PIVOT, 0.0) + look_direction(_yaw, _pitch + THIRD_PERSON_TILT) * 4.0, Vector3.UP)
+		var pivot: Vector3 = walk_to_wall(head, head + side, closed)
+		_camera.position = walk_to_wall(pivot, third_person_position(feet, _yaw, _pitch), closed)
+		var target: Vector3 = feet + side + Vector3(0.0, THIRD_PERSON_PIVOT, 0.0) + look_direction(_yaw, _pitch + THIRD_PERSON_TILT) * 4.0
+		if not _camera.position.is_equal_approx(target):
+			_camera.look_at(target, Vector3.UP)
+
+
+static func view_cell(at: Vector3) -> Vector3i:
+	return Vector3i(floori(at.x), floori(at.y), floori(at.z))
+
+
+## `at` kept WALL_MARGIN inside its cell on every side that `closed` (cell, facing) says
+## is shut, so the view is never in or on a wall, floor or ceiling.
+static func keep_off_walls(at: Vector3, closed: Callable) -> Vector3:
+	var cell: Vector3i = view_cell(at)
+	var out: Vector3 = at
+	for axis: int in 3:
+		var name: String = "xyz"[axis]
+		if closed.call(cell, "n" + name) and out[axis] < float(cell[axis]) + WALL_MARGIN:
+			out[axis] = float(cell[axis]) + WALL_MARGIN
+		if closed.call(cell, "p" + name) and out[axis] > float(cell[axis] + 1) - WALL_MARGIN:
+			out[axis] = float(cell[axis] + 1) - WALL_MARGIN
+	return out
+
+
+## Where a shot from `from` along `dir` first meets a shut face or solid ground, within
+## `range_m`: {"point", "cell" (the cell it was in), "facing" (the face it met),
+## "distance"}; with no "facing" when it meets nothing.
+static func shot_impact(from: Vector3, dir: Vector3, range_m: float, closed: Callable) -> Dictionary:
+	var steps: int = maxi(1, ceili(range_m / WALL_PROBE_STEP))
+	var cell: Vector3i = view_cell(from)
+	for i: int in range(1, steps + 1):
+		var at: Vector3 = from + dir * (range_m * float(i) / float(steps))
+		var next: Vector3i = view_cell(at)
+		for axis: int in 3:
+			if next[axis] == cell[axis]:
+				continue
+			var facing: String = ("p" if next[axis] > cell[axis] else "n") + "xyz"[axis]
+			if closed.call(cell, facing):
+				# the point on the face itself, back along the line from where the step crossed it
+				var plane: float = float(maxi(cell[axis], next[axis]))
+				var t: float = (plane - from[axis]) / dir[axis] if absf(dir[axis]) > 0.0001 else from.distance_to(at)
+				return {"point": from + dir * t, "cell": cell, "facing": facing, "distance": t}
+			cell[axis] = next[axis]
+	return {"point": from + dir * range_m, "cell": cell, "distance": range_m}
+
+
+## The player's shot from the eye along the view: walls, floors, solid pieces and the ground.
+func _shot_impact(sim: SimRoot, dir: Vector3) -> Dictionary:
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var regions: Regions = SimAssembly.regions_of(sim)
+	var closed: Callable = func(cell: Vector3i, facing: String) -> bool:
+		var beyond: Vector3i = cell + FACING_STEP[facing]
+		return build.face_piece_at(BuildSystem.face_key(cell, facing)) != EntityIds.NONE or build.cell_piece_at(beyond) != EntityIds.NONE or regions.is_solid(beyond)
+	var from: Vector3 = eye_position(sim, _player)
+	var hit: Dictionary = shot_impact(from, dir, SHOT_RANGE_M, closed)
+	if hit.has("facing"):
+		var cell: Vector3i = hit["cell"]
+		var facing: String = hit["facing"]
+		var piece: int = build.face_piece_at(BuildSystem.face_key(cell, facing))
+		if piece == EntityIds.NONE:
+			piece = build.cell_piece_at(cell + FACING_STEP[facing])
+		hit["what"] = String(build.template_of(piece)) if piece != EntityIds.NONE else "the ground"
+	else:
+		hit["what"] = "nothing"
+	return hit
+
+
+## A mark where a shot that hit no one struck, and a line in the run log.
+func _mark_impact(impact: Dictionary) -> void:
+	var point: Vector3 = impact["point"]
+	_record("world", "shot hit %s at (%.1f, %.1f, %.1f) m, %.1f m out" % [impact["what"], point.x, point.y, point.z, impact["distance"]])
+	if impact["what"] == "nothing":
+		return
+	var mark: MeshInstance3D = _box(Vector3(0.12, 0.12, 0.12), Color(1.0, 0.55, 0.1))
+	mark.position = point
+	add_child(mark)
+	_impacts.append(mark)
+	while _impacts.size() > IMPACT_MARKS:
+		var oldest: MeshInstance3D = _impacts.pop_front()
+		oldest.queue_free()
+
+
+## The placeholder a held item is drawn as: "pistol", "rifle", "tool" or "melee".
+static func weapon_shape(kind: StringName, template: StringName) -> String:
+	var name: String = String(template)
+	if kind == &"weapon_frame":
+		return "rifle" if name.contains("rifle") or name.contains("carbine") or name.contains("shotgun") else "pistol"
+	if kind == &"tool_class" or name.contains("cutter") or name.contains("breacher"):
+		return "tool"
+	return "melee"
+
+
+## A rough grey-box weapon, its barrel or blade along -z, its muzzle a child "muzzle"
+## (a flash, hidden until a shot).
+func _weapon_model(shape: String) -> Node3D:
+	var root := Node3D.new()
+	root.name = "weapon"
+	var dark: Color = Color(0.12, 0.12, 0.13)
+	var parts: Array = []  # [size, position, colour]
+	var tip: float = 0.0
+	match shape:
+		"pistol":
+			parts = [[Vector3(0.035, 0.045, 0.2), Vector3(0.0, 0.0, -0.05), dark], [Vector3(0.03, 0.11, 0.045), Vector3(0.0, -0.065, 0.025), dark]]
+			tip = -0.15
+		"rifle":
+			parts = [[Vector3(0.05, 0.07, 0.5), Vector3(0.0, 0.0, -0.1), dark], [Vector3(0.025, 0.025, 0.3), Vector3(0.0, 0.01, -0.5), dark],
+				[Vector3(0.04, 0.1, 0.2), Vector3(0.0, -0.02, 0.25), Color(0.3, 0.22, 0.15)], [Vector3(0.03, 0.12, 0.05), Vector3(0.0, -0.09, -0.12), dark]]
+			tip = -0.65
+		"tool":
+			parts = [[Vector3(0.035, 0.035, 0.4), Vector3(0.0, 0.0, -0.1), Color(0.55, 0.45, 0.1)], [Vector3(0.12, 0.06, 0.06), Vector3(0.0, 0.0, -0.32), Color(0.5, 0.5, 0.55)]]
+			tip = -0.35
+		_:
+			parts = [[Vector3(0.03, 0.03, 0.12), Vector3(0.0, 0.0, 0.04), dark], [Vector3(0.015, 0.05, 0.45), Vector3(0.0, 0.0, -0.25), Color(0.6, 0.6, 0.65)]]
+			tip = -0.48
+	for part: Array in parts:
+		var size: Vector3 = part[0]
+		var at: Vector3 = part[1]
+		var colour: Color = part[2]
+		var box: MeshInstance3D = _box(size, colour)
+		box.position = at
+		box.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		root.add_child(box)
+	var flash: MeshInstance3D = _box(Vector3(0.08, 0.08, 0.08), Color(1.0, 0.85, 0.3))
+	flash.name = "muzzle"
+	flash.position = Vector3(0.0, 0.0, tip - 0.04)
+	flash.visible = false
+	root.add_child(flash)
+	return root
+
+
+## The held item's shape for `actor`, or "" with nothing in hand (or down).
+func _held_shape(actors: ActorSystem, actor: int, alive: bool) -> String:
+	var weapon: int = actors.wielded(actor)
+	if not alive or weapon == EntityIds.NONE:
+		return ""
+	var items: ItemSystem = SimAssembly.items_of(_host.sim())
+	return weapon_shape(items.item_kind(weapon), items.item_template(weapon))
+
+
+## Keeps an actor's placeholder in its right hand: out in front of the capsule (whose
+## nose is local +x), at chest height, on the right.
+func _sync_weapon(capsule: MeshInstance3D, actor: int, actors: ActorSystem, alive: bool) -> void:
+	var shape: String = _held_shape(actors, actor, alive)
+	if _weapon_shapes.get(actor, "") != shape:
+		if _weapon_nodes.has(actor):
+			var old: Node3D = _weapon_nodes[actor]
+			old.queue_free()
+			_weapon_nodes.erase(actor)
+		_weapon_shapes[actor] = shape
+		if not shape.is_empty():
+			var model: Node3D = _weapon_model(shape)
+			model.position = Vector3(0.4, 0.3, 0.22)
+			model.rotation.y = -PI / 2.0  # the model's -z onto the capsule's +x
+			capsule.add_child(model)
+			_weapon_nodes[actor] = model
+	if _weapon_nodes.has(actor):
+		var model: Node3D = _weapon_nodes[actor]
+		model.visible = not (_first_person and actor == _player)
+		var muzzle: Node3D = model.get_node("muzzle")
+		muzzle.visible = actor == _player and Time.get_ticks_msec() < _flash_until_ms
+
+
+## The first-person weapon: low on the right of the view, pointing where you look.
+func _sync_fp_weapon(sim: SimRoot) -> void:
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var shape: String = _held_shape(actors, _player, actors.is_alive(_player)) if _first_person else ""
+	if shape != _fp_weapon_shape:
+		if _fp_weapon != null:
+			_fp_weapon.queue_free()
+			_fp_weapon = null
+		_fp_weapon_shape = shape
+		if not shape.is_empty():
+			_fp_weapon = _weapon_model(shape)
+			_fp_weapon.position = Vector3(0.2, -0.17, -0.4)
+			_camera.add_child(_fp_weapon)
+	if _fp_weapon != null:
+		var muzzle: Node3D = _fp_weapon.get_node("muzzle")
+		muzzle.visible = Time.get_ticks_msec() < _flash_until_ms
+
+
+## Walks the line from `from` to `to` and stops short of the first shut face it would
+## cross, kept off the walls round where it stops; `to` (kept off) if nothing is in the way.
+static func walk_to_wall(from: Vector3, to: Vector3, closed: Callable) -> Vector3:
+	var steps: int = maxi(1, ceili(from.distance_to(to) / WALL_PROBE_STEP))
+	var last: Vector3 = from
+	var cell: Vector3i = view_cell(from)
+	for i: int in range(1, steps + 1):
+		var at: Vector3 = from.lerp(to, float(i) / float(steps))
+		var next: Vector3i = view_cell(at)
+		for axis: int in 3:
+			if next[axis] == cell[axis]:
+				continue
+			var facing: String = ("p" if next[axis] > cell[axis] else "n") + "xyz"[axis]
+			if closed.call(cell, facing):
+				return keep_off_walls(last, closed)
+			cell[axis] = next[axis]
+		last = at
+	return keep_off_walls(to, closed)
 
 
 ## Where the camera looks from `yaw` and `pitch` (up positive), as a unit vector.
@@ -1021,6 +1256,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		if event.is_action("world_" + action):
 			_perform(action)
 			return
+	# a button with no job in the world says so rather than nothing (Deck run, 2026-10-05:
+	# D-pad right was pressed and nothing showed)
+	if event is InputEventJoypadButton:
+		_note("%s does nothing here" % _glyphs.name_of(event))
 
 
 # ---------------------------------------------------------------- setup and actions
@@ -1336,11 +1575,30 @@ func _perform(action: String) -> void:
 		return
 	match action:
 		"fire":
-			var target: int = _aimed_target(sim)
-			if target == 0:
-				_note("no target in the aim cone")
+			# fire whenever: at whoever is in the aim cone nearer than the first wall, else
+			# at the wall, the ground or the air (CEOGG, 2026-10-05)
+			var weapon: int = actors.wielded(_player)
+			if weapon == EntityIds.NONE:
+				_note("nothing in hand: %s" % _glyphs.prompt(&"world_wield", "wield"))
 				return
+			if items.chambered(weapon) == EntityIds.NONE:
+				_note("click: nothing chambered: %s" % _glyphs.prompt(&"world_reload", "reload"))
+				return
+			var impact: Dictionary = _shot_impact(sim, look_direction(_yaw, _pitch))
+			var target: int = _aimed_target(sim)
+			if target != 0:
+				# along the line to them, not straight ahead: a door frame beside the view
+				# does not stop a shot at a guard plainly in it
+				var to: Vector3 = view_of(actors.position_of(target) - actors.position_of(_player))
+				var flat: Vector3 = Vector3(to.x, 0.0, to.z)
+				var wall: Dictionary = _shot_impact(sim, flat.normalized())
+				var wall_m: float = wall["distance"]
+				if flat.length() > wall_m:
+					target = 0  # a wall is between: the shot hits what is in front of you
+			_flash_until_ms = Time.get_ticks_msec() + FLASH_MS
 			_submit(sim, &"weapon.fire", {"actor": _player, "target": target})
+			if target == 0:
+				_mark_impact(impact)
 		"reload":
 			var mags: Array[int] = _loose_mags(items)
 			if mags.is_empty():
@@ -1359,6 +1617,8 @@ func _perform(action: String) -> void:
 			var occupies: String = k["occupies"]
 			var facing: String = "" if occupies == "cell" else _facing_ahead()
 			var centre: Vector3i = BuildSystem.cell_centre(cell)
+			_creator_pending = {"due": sim.get_tick() + 1, "piece": t, "cell": cell, "facing": facing,
+				"before": _creator_slot_piece(sim, cell, facing), "why": SiteCreator.why_not_at(sim, _host.content(), _player, t, cell, facing)}
 			_submit(sim, &"build.place", {"actor": _player, "piece": String(t), "x": centre.x, "y": centre.y, "z": centre.z, "facing": facing})
 		"build_remove":
 			var build: BuildSystem = SimAssembly.build_of(sim)
@@ -1372,6 +1632,7 @@ func _perform(action: String) -> void:
 			_submit(sim, &"build.remove", {"actor": _player, "piece_id": id})
 		"build_next":
 			_piece_index = (_piece_index + 1) % _piece_templates.size()
+			_note("piece to place: %s" % _piece_templates[_piece_index])
 		"build_room":
 			_submit_room(sim)
 		"raid":
@@ -1528,6 +1789,11 @@ func _restart() -> void:
 		for node: Node in table.values():
 			node.queue_free()
 		table.clear()
+	_weapon_nodes.clear()  # children of the capsules, freed with them
+	_weapon_shapes.clear()
+	for mark: MeshInstance3D in _impacts:
+		mark.queue_free()
+	_impacts.clear()
 	_forget_pieces()
 	if _device_raised:
 		_device_raised = false
@@ -1683,10 +1949,20 @@ func _log_input(event: InputEvent) -> void:
 	for action: StringName in InputMap.get_actions():
 		var a: String = String(action)
 		# named for what the press does: the creator's controls, or the device's while it is up
-		var ours: bool = (a.begins_with("device_") or a == "world_device" or a == "create_menu") if _create and _device_raised else ((a.begins_with("create_") or a == "world_device" or a == "world_camera") if _create else (a.begins_with("world_") or a.begins_with("device_")))
+		# one name per press: outside the creator A was logged as both world_build_place and
+		# device_select, and the audit took the second for a press that showed nothing
+		var ours: bool = (a.begins_with("device_") or a == "world_device" or a == "create_menu") if _device_raised else ((a.begins_with("create_") or a == "world_device" or a == "world_camera") if _create else a.begins_with("world_"))
 		if ours and event.is_action(action):
 			named = true
 			_record("input", "%s %s (%s)" % [a, "pressed" if event.is_pressed() else "released", event.as_text()])
+	# bound, but not to anything in this mode (D-pad right with the device down): logged
+	# under the first of its names; the press then notes that it does nothing here
+	if not named:
+		for action: StringName in InputMap.get_actions():
+			if not String(action).begins_with("ui_") and event.is_action(action):
+				named = true
+				_record("input", "%s %s (%s)" % [action, "pressed" if event.is_pressed() else "released", event.as_text()])
+				break
 	if not named and event.is_pressed() and (event is InputEventJoypadButton or event is InputEventKey):
 		_record("input", "unbound %s" % event.as_text())
 

@@ -82,3 +82,65 @@ func test_the_third_person_camera_never_sinks_under_the_ground() -> void:
 	var rest: Vector3 = WorldView.third_person_position(feet, 0.4, 0.0)
 	assert_true(rest.y - feet.y > 2.0 and rest.y - feet.y < 3.2, "at rest it sits about where it always did (%.2f up)" % (rest.y - feet.y))
 	assert_true(WorldView.third_person_position(feet, 0.4, WorldView.PITCH_MIN_THIRD).y > rest.y, "looking down lifts the camera")
+
+
+## A room one cell wide at the origin: walls on its four sides, a ceiling, a floor.
+func _room(cell: Vector3i, facing: String) -> bool:
+	return cell == Vector3i.ZERO
+
+
+## CEOGG's 2026-10-05 sandbox run: walking up to a wall put the first-person eye inside it
+## and the view saw through. The eye is kept a hand's width off every shut side.
+func test_the_eye_never_sits_in_a_wall() -> void:
+	var closed: Callable = _room
+	for at: Vector3 in [Vector3(0.0, 0.5, 0.5), Vector3(0.999, 0.5, 0.5), Vector3(0.5, 0.5, 0.01), Vector3(0.5, 0.99, 0.5), Vector3(0.02, 0.98, 0.97)]:
+		var eye: Vector3 = WorldView.keep_off_walls(at, closed)
+		for axis: int in 3:
+			assert_true(eye[axis] >= WorldView.WALL_MARGIN - 0.0001 and eye[axis] <= 1.0 - WorldView.WALL_MARGIN + 0.0001, "%s kept off the walls (%s)" % [at, eye])
+	assert_true(WorldView.keep_off_walls(Vector3(0.5, 0.5, 0.5), closed).is_equal_approx(Vector3(0.5, 0.5, 0.5)), "the middle of the room is left alone")
+	var open: Callable = func(_cell: Vector3i, _facing: String) -> bool: return false
+	assert_true(WorldView.keep_off_walls(Vector3(0.0, 0.5, 0.01), open).is_equal_approx(Vector3(0.0, 0.5, 0.01)), "with no wall the eye goes where the body is")
+
+
+## The third-person camera stops on the near side of a wall instead of sliding behind it.
+func test_the_third_person_camera_stops_in_front_of_a_wall() -> void:
+	# one wall: the face between x = 2 and x = 3
+	var closed: Callable = func(cell: Vector3i, facing: String) -> bool:
+		return (cell.x == 2 and facing == "px") or (cell.x == 3 and facing == "nx")
+	var at: Vector3 = WorldView.walk_to_wall(Vector3(0.5, 1.5, 0.5), Vector3(6.0, 2.5, 0.5), closed)
+	assert_true(at.x <= 3.0 - WorldView.WALL_MARGIN + 0.0001, "stopped before the wall (%s)" % at)
+	assert_true(at.x > 2.0, "and no further back than it has to (%s)" % at)
+	var free: Vector3 = WorldView.walk_to_wall(Vector3(0.5, 1.5, 0.5), Vector3(-4.0, 2.5, 0.5), closed)
+	assert_true(free.is_equal_approx(Vector3(-4.0, 2.5, 0.5)), "away from the wall it goes all the way (%s)" % free)
+	var other_side: Vector3 = WorldView.walk_to_wall(Vector3(5.5, 1.5, 0.5), Vector3(0.5, 1.5, 0.5), closed)
+	assert_true(other_side.x >= 3.0 + WorldView.WALL_MARGIN - 0.0001, "from the far side it stops on that side (%s)" % other_side)
+
+
+## CEOGG, 2026-10-05: "you should be able to fire whenever you want and hit any object in
+## front of you". A shot at no one stops on the first wall or the ground along the view.
+func test_a_shot_stops_on_the_first_wall_or_the_ground() -> void:
+	var wall: Callable = func(cell: Vector3i, facing: String) -> bool:
+		return (cell.x == 4 and facing == "px") or cell.y + FACING_Y.get(facing, 0) < 0
+	var level: Dictionary = WorldView.shot_impact(Vector3(0.5, 1.6, 0.5), Vector3(1.0, 0.0, 0.0), 60.0, wall)
+	var level_at: Vector3 = level["point"]
+	var level_out: float = level["distance"]
+	assert_eq(level["facing"], "px", "a level shot meets the wall")
+	assert_true(absf(level_at.x - 5.0) < 0.001, "on the wall's face (%s)" % level_at)
+	assert_true(absf(level_out - 4.5) < 0.001, "4.5 m out")
+	var down: Dictionary = WorldView.shot_impact(Vector3(0.5, 1.6, 0.5), Vector3(-1.0, -1.0, 0.0).normalized(), 60.0, wall)
+	assert_eq(down["facing"], "ny", "a shot down meets the ground")
+	var down_at: Vector3 = down["point"]
+	assert_true(absf(down_at.y) < 0.001, "at ground level (%s)" % down_at)
+	var away: Dictionary = WorldView.shot_impact(Vector3(0.5, 1.6, 0.5), Vector3(-1.0, 0.0, 0.0), 30.0, wall)
+	assert_false(away.has("facing"), "a shot at the open sky meets nothing")
+
+
+const FACING_Y: Dictionary = {"ny": -1, "py": 1}
+
+
+func test_every_held_thing_has_a_placeholder_shape() -> void:
+	assert_eq(WorldView.weapon_shape(&"weapon_frame", &"g19"), "pistol", "a g19 is a pistol")
+	assert_eq(WorldView.weapon_shape(&"weapon_frame", &"m9"), "pistol", "an m9 is a pistol")
+	assert_eq(WorldView.weapon_shape(&"weapon_frame", &"ar_rifle"), "rifle", "a rifle file is a long gun")
+	assert_eq(WorldView.weapon_shape(&"tool_class", &"cutter"), "tool", "a cutter is a tool")
+	assert_eq(WorldView.weapon_shape(&"melee", &"bat"), "melee", "anything else is held like a blade or a bat")

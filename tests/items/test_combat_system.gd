@@ -174,6 +174,29 @@ func test_rejections_and_events() -> void:
 	assert_false(_fire(), "nothing wielded")
 
 
+## CEOGG, 2026-10-05: "you should be able to fire whenever you want". Target 0 is a shot at
+## nobody: the round goes, the noise is made, nothing is hit and the miss says why.
+func test_a_shot_at_nobody_spends_a_round_and_hits_nothing() -> void:
+	_build()
+	_range()
+	var fires: Array[Dictionary] = []
+	assert_eq(_combat.events().subscribe(CombatSystem.EVENT_FIRE, func(p: Dictionary) -> void: fires.append(p)), OK, "sub fire")
+	var count: int = _items.item_count()
+	var health: Dictionary = _actors.health_of(_dummy)
+	assert_true(_do(&"weapon.fire", {"actor": _player, "target": 0}), "a shot at nobody is allowed")
+	assert_eq(_items.item_count(), count - 1, "a round is spent")
+	assert_eq(_combat.shots(), 1, "and counted as a shot")
+	assert_eq(_combat.hits(), 0, "that hits nobody")
+	assert_eq(_actors.health_of(_dummy), health, "the dummy is untouched")
+	assert_eq(fires.size(), 1, "the noise is made")
+	var last: Dictionary = _combat.last_shot()
+	assert_eq(last["reason"], CombatSystem.REASON_NO_TARGET, "the miss says why")
+	assert_false(_do(&"weapon.fire", {"actor": _player, "target": 0}), "the cycle still applies")
+	assert_true(_do(&"actor.wield", {"actor": _player, "weapon": 0}), "unwield")
+	_sim.step_n(6)
+	assert_false(_do(&"weapon.fire", {"actor": _player, "target": 0}), "nothing wielded, no shot")
+
+
 func test_empty_chamber_cannot_fire_and_reload_refills_it() -> void:
 	_build()
 	_range(1)

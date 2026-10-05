@@ -205,19 +205,24 @@ func place(actor: int, yaw: float, movement: MovementSystem) -> Dictionary:
 ## a button that seems to do nothing (Deck test, 2026-10-04). Read-only: the sim alone
 ## decides; this only explains.
 func why_not(sim: SimRoot, actor: int, name: StringName, facing: String) -> String:
+	return why_not_at(sim, _content, actor, name, _cursor, facing)
+
+
+## The same for any cell: the world's build buttons say why too (Deck run, 2026-10-05).
+static func why_not_at(sim: SimRoot, content: ContentDb, actor: int, name: StringName, cell: Vector3i, facing: String) -> String:
 	var build: BuildSystem = SimAssembly.build_of(sim)
-	var slot: String = BuildSystem.cell_key(_cursor) if facing.is_empty() else BuildSystem.face_key(_cursor, facing)
-	var taken: int = build.cell_piece_at(_cursor) if facing.is_empty() else build.face_piece_at(slot)
+	var slot: String = BuildSystem.cell_key(cell) if facing.is_empty() else BuildSystem.face_key(cell, facing)
+	var taken: int = build.cell_piece_at(cell) if facing.is_empty() else build.face_piece_at(slot)
 	if taken != EntityIds.NONE:
 		return "that spot already has a %s" % build.template_of(taken)
-	var rights: Dictionary = SimAssembly.land_of(sim).rights_at(BuildSystem.cell_centre(_cursor), actor)
+	var rights: Dictionary = SimAssembly.land_of(sim).rights_at(BuildSystem.cell_centre(cell), actor)
 	var may_build: bool = rights[&"build"]
 	if not may_build:
 		return "this is not your land to build on"
-	var t: Dictionary = _content.get_entry(BuildSystem.KIND_PIECE, name)
-	if LandSystem._as_name(t["kind"]) == &"foundation" and not build._on_ground(_cursor):
+	var t: Dictionary = content.get_entry(BuildSystem.KIND_PIECE, name)
+	if LandSystem._as_name(t["kind"]) == &"foundation" and not build._on_ground(cell):
 		return "a foundation goes on the ground: lower the cursor (L1)"
-	if build.would_enclose_a_body(name, _cursor, facing):
+	if build.would_enclose_a_body(name, cell, facing):
 		return "somebody is standing there"
 	return "nothing holds it up there: too far from a foundation, build one closer"
 

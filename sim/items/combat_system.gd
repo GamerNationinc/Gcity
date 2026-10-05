@@ -26,6 +26,9 @@ const STAT_ROUNDS_PER_SHOT: StringName = &"rounds_per_shot"
 ## The reason recorded on a shot that ran no stages: the shooter could not see the
 ## target (M4 spec claim 7). "" on any other shot.
 const REASON_NO_LOS: String = "no_los"
+## A shot at no actor (target 0): into a wall, the ground or the air. CEOGG, 2026-10-05:
+## "you should be able to fire whenever you want". The round goes and the noise is made.
+const REASON_NO_TARGET: String = "no_target"
 ## hit_chance is in basis points of a percent: this many is 100 %.
 const CHANCE_ONE: int = 1_000_000
 
@@ -175,13 +178,15 @@ func rounds_per_shot(shooter: int) -> int:
 
 # ---------------------------------------------------------------- the command
 
-## {"actor": int, "target": int}: fire the wielded weapon at another living actor.
+## {"actor": int, "target": int}: fire the wielded weapon at another living actor, or
+## with target 0 at nothing in particular (a wall, the ground): no stage runs.
 func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("target")) != TYPE_INT:
 		return false
 	var shooter: int = payload["actor"]
 	var target: int = payload["target"]
-	if shooter == target or not _actors.is_alive(shooter) or not _actors.is_alive(target):
+	var at_nobody: bool = target == EntityIds.NONE
+	if shooter == target or not _actors.is_alive(shooter) or (not at_nobody and not _actors.is_alive(target)):
 		return false
 	var weapon: int = _actors.wielded(shooter)
 	if weapon == EntityIds.NONE or _items.is_busy(weapon, sim.get_tick()):
@@ -192,13 +197,15 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 	var profile: Dictionary = _actors.profile_data(shooter)
 	var ctx: Dictionary = {
 		"tick": sim.get_tick(), "shooter": shooter, "weapon": weapon, "round": round, "target": target,
-		"range_m": ActorSystem.metres_between(_actors.position_of(shooter), _actors.position_of(target)), "profile": profile, "hit": false, "damage": 0, "applied": 0,
+		"range_m": 0 if at_nobody else ActorSystem.metres_between(_actors.position_of(shooter), _actors.position_of(target)), "profile": profile, "hit": false, "damage": 0, "applied": 0,
 		"node": &"", "chance": 0, "killed": false,
 	}
 	# A shot at a target the shooter cannot see runs no stage: the round goes, the
 	# noise is made, and the miss carries its reason (M4 spec claim 7).
 	var reason: String = ""
-	if _sight.is_valid() and not _sight.call(shooter, target):
+	if at_nobody:
+		reason = REASON_NO_TARGET
+	elif _sight.is_valid() and not _sight.call(shooter, target):
 		reason = REASON_NO_LOS
 	else:
 		var stages: Array = profile["stages"]
