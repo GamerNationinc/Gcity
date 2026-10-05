@@ -167,6 +167,15 @@ func test_a_site_raises_through_its_command_and_survives_the_round_trip() -> voi
 	var rec: Dictionary = raised[&"cold_storage"]
 	rec["pieces"] = [9999]
 	assert_eq(sites.restore(bad), ERR_INVALID_DATA, "a piece that is not standing")
+	# M7.6 mutation pass (site_system.gd:412): a base at the world's edge restores, past it not
+	bad = state.duplicate(true)
+	raised = bad["raised"]
+	rec = raised[&"cold_storage"]
+	rec["base"] = [BuildSystem.MAX_CELL, 0, 0]
+	assert_eq(sites.restore(bad), OK, "a base at the last cell is a base")
+	rec["base"] = [BuildSystem.MAX_CELL + 1, 0, 0]
+	assert_eq(sites.restore(bad), ERR_INVALID_DATA, "one past it is not")
+	assert_eq(sites.restore(state), OK, "and the real state back")
 	assert_eq(sites.snapshot(), state, "rejections leave the state untouched")
 
 

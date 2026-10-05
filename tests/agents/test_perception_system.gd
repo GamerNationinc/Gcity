@@ -548,3 +548,19 @@ func test_a_new_world_has_counted_no_alerts() -> void:
 	var sim: SimRoot = SimAssembly.build(SEED, db)
 	assert_eq(SimAssembly.perception_of(sim).alert_count(), 0, "no alerts yet")
 	assert_eq(SimAssembly.perception_of(sim).snapshot()["alerts"], 0, "and none in the save")
+
+
+
+## M7.6 mutation pass (perception_system.gd:429): what an agent saw last tick is rebuilt
+## every tick, so an agent that stops perceiving (frozen: `awake` at 0) sees nothing
+## rather than what it saw before.
+func test_an_agent_that_stops_perceiving_sees_nothing() -> void:
+	_setup()
+	var guard: int = _perception.spawn(&"guard_sim", BuildSystem.cell_of(_at(6, 0)), 0, 0, "")
+	_sim.step_n(3)
+	assert_true(_perception.sees(guard, _player), "it sees the player ahead of it")
+	var stats: StatResolver = SimAssembly.stats_of(_sim)
+	assert_eq(stats.register_stat(PerceptionSystem.STAT_AWAKE, 1), OK, "the rule registered, as the sandbox does")
+	assert_true(stats.add_modifier(guard, {"stat": PerceptionSystem.STAT_AWAKE, "class": &"add", "value": -1, "source": &"test"}) >= 1, "frozen")
+	_sim.step()
+	assert_false(_perception.sees(guard, _player), "frozen, it sees nothing")

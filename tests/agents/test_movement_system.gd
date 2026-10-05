@@ -287,6 +287,13 @@ func test_in_the_wilds_a_step_climbs_the_ground_and_the_city_edge_is_a_wall() ->
 	_sim.step()
 	assert_eq(_actors.position_of(_player), edge, "drops back to the ground below")
 	assert_true(_actors.is_alive(_player), "unhurt: one level is no fall")
+	# M7.6 mutation pass: rising a level needs the cells over the body clear. Rock over
+	# the lower column's head height stops the climb (it is no gap a person fits up into)
+	var lid: Vector3i = Vector3i(low.x, y + 2, low.y)
+	regions.set_ground(lid, true)
+	assert_false(_do(&"actor.move", {"actor": _player, "dx": 100, "dz": 0}), "under a rock lid the rise is not climbed")
+	assert_eq(_actors.position_of(_player), edge, "and the player stays at the edge")
+	regions.set_ground(lid, false)
 	# somebody put inside the rock stays where they were put
 	var buried: Vector3i = Vector3i(low.x * M + 500, (y - 3) * M, low.y * M + 500)
 	_actors.set_position(_player, buried)

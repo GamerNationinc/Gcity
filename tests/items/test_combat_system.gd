@@ -291,3 +291,21 @@ func test_something_that_is_not_an_actor_has_no_hit_chance() -> void:
 	_build()
 	_range()
 	assert_eq(_combat.hit_chance_at(_pistol, _pistol, 0), 0, "a pistol does not shoot itself")
+
+
+
+## M7.6 mutation pass (combat_system.gd:218, :134): a weapon that cycles in a tick fires
+## on the next; and a profile that enables a stage twice stops assembly.
+func test_a_one_tick_cycle_fires_every_tick_and_a_stage_twice_is_refused() -> void:
+	_build()
+	_range()
+	assert_eq(_stats.set_base(_pistol, CombatSystem.STAT_CYCLE_TICKS, 1000), OK, "a one-tick cycle")
+	assert_true(_fire(), "a shot")
+	assert_true(_fire(), "and another the very next tick")
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var twice: Dictionary = db.get_entry(&"combat_profile", &"arcade").duplicate(true)
+	var stages: Array = twice["stages"]
+	stages.append(stages[0])
+	assert_eq(db.add(&"combat_profile", &"zz_twice", twice), OK, "db takes the shape")
+	assert_true(SimAssembly.build(SEED, db) == null, "a stage enabled twice stops assembly")

@@ -346,3 +346,30 @@ func test_the_integer_square_root_is_exact_at_the_largest_distances() -> void:
 		assert_eq(ActorSystem._isqrt(k * k), k, "the root of %d squared" % k)
 		assert_eq(ActorSystem._isqrt(k * k - 1), k - 1, "and of one less")
 		assert_eq(ActorSystem._isqrt(k * k + 2 * k), k, "and of the last number before the next square")
+
+
+
+## M7.6 mutation pass (actor_system.gd:436): wielding a second weapon unlinks the first,
+## so the actor's perks stop reaching the one put away.
+func test_wielding_another_weapon_unlinks_the_first() -> void:
+	_build()
+	_do(&"actor.spawn", {"profile": "arcade", "range_m": 0})
+	var a: int = _actors.actor_ids()[0]
+	var first: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(a), 1)
+	var second: int = _items.spawn(&"weapon_frame", &"m9", ItemSystem.inventory_of(a), 2)
+	assert_true(_do(&"actor.wield", {"actor": a, "weapon": first}), "the first")
+	assert_true(_do(&"actor.wield", {"actor": a, "weapon": second}), "then the second")
+	assert_eq(_stats.get_inherits(second), a, "the second inherits from the actor")
+	assert_eq(_stats.get_inherits(first), -1, "the first no longer does")
+
+
+## M7.6 mutation pass (actor_system.gd:239): the integer square root is exact where a
+## float's is not, past 2^52.
+func test_the_integer_square_root_is_exact_for_big_numbers() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20261711
+	for i: int in 2000:
+		var x: int = rng.randi_range(1 << 26, (1 << 30) - 1) * 2 + rng.randi_range(0, 1)
+		assert_eq(ActorSystem._isqrt(x * x), x, "isqrt(%d^2)" % x)
+		assert_eq(ActorSystem._isqrt(x * x - 1), x - 1, "isqrt(%d^2 - 1)" % x)
+		assert_eq(ActorSystem._isqrt(x * x + 2 * x), x, "isqrt((%d+1)^2 - 1)" % x)

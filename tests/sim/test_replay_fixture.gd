@@ -135,3 +135,15 @@ func test_name_length_boundary() -> void:
 	var longest: ReplayFixture = ReplayFixture.parse(_with("name", '"%s"' % "a".repeat(ReplayFixture.MAX_NAME_LENGTH)))
 	assert_true(longest.is_valid(), "a name of exactly the maximum length: %s" % longest.error)
 	assert_false(ReplayFixture.parse(_with("name", '"%s"' % "a".repeat(ReplayFixture.MAX_NAME_LENGTH + 1))).is_valid(), "one character over")
+
+
+
+## M7.6 claim 9 and the mutation pass (replay_fixture.gd:69): a fixture names the assembly
+## it was recorded on, the game's when it does not say.
+func test_a_fixture_names_its_assembly() -> void:
+	assert_eq(ReplayFixture.parse(VALID).assembly, "game", "unsaid: the game's")
+	var sandbox: ReplayFixture = ReplayFixture.parse(VALID.replace('"expected_hash": ""', '"expected_hash": "", "assembly": "sandbox"'))
+	assert_true(sandbox.is_valid(), "valid: %s" % sandbox.error)
+	assert_eq(sandbox.assembly, "sandbox", "the sandbox's")
+	assert_false(ReplayFixture.parse(VALID.replace('"expected_hash": ""', '"expected_hash": "", "assembly": "mods"')).is_valid(), "no other")
+	assert_false(ReplayFixture.parse(VALID.replace('"expected_hash": ""', '"expected_hash": "", "assembly": 1')).is_valid(), "and a string")

@@ -392,3 +392,20 @@ func test_a_retreat_stops_once_the_contact_is_twice_the_retreat_away() -> void:
 	_sim.step_n(20)
 	assert_eq(_stances.stance_of(guard), &"retreat", "still retreating")
 	assert_eq(BuildSystem.cell_of(_actors.position_of(guard)), here, "but no farther: it has got away")
+
+
+
+## M7.6 mutation pass (stance_system.gd:305, :368): the scorers at their edges. Advance
+## loses its pull at engagement range, the boundary counting as in range; surrender scores
+## nothing until the agent is routed, the player visible and close.
+func test_the_scorers_hold_at_their_edges() -> void:
+	_setup()
+	var engage: int = StanceSystem.ENGAGE_CELLS * BuildSystem.CELL
+	var ctx: Dictionary = {"alerted": true, "awareness": 0, "stress": 0, "distance_mm": engage}
+	assert_eq(_stances._score_advance(ctx), 50_000, "at exactly engagement range: in range")
+	ctx["distance_mm"] = engage + 1
+	assert_eq(_stances._score_advance(ctx), 250_000, "a millimetre out: not")
+	var calm: Dictionary = {"routed": false, "visible": true, "distance_mm": 0}
+	assert_eq(_stances._score_surrender(calm), 0, "not routed: no surrender at all")
+	calm["routed"] = true
+	assert_eq(_stances._score_surrender(calm), 1_000_000, "routed, seen and close: surrender")
