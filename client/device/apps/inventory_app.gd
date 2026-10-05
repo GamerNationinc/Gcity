@@ -1,6 +1,7 @@
 ## The inventory app (design doc §12; M5 spec claim 3): every row is read from the
 ## item system this frame; every button is an item command. Select on a weapon
-## wields or holsters it, on a device carries or puts it away, on a magazine swaps
+## wields or holsters it, on a device carries it (never puts away the one whose screen
+## this is: nothing would be left to carry it again with), on a magazine swaps
 ## it into the wielded weapon, on loose rounds fills the first loose magazine, on a
 ## part or module fits it to the wielded weapon or carried device; secondary on a
 ## magazine unloads a round, on a fitted part removes it.
@@ -114,7 +115,10 @@ func _primary(row: Dictionary, sim: SimRoot, player: int) -> void:
 		"weapon":
 			submit(&"actor.wield", {"actor": player, "weapon": 0 if actors.wielded(player) == id else id})
 		"device":
-			submit(&"actor.equip_device", {"actor": player, "device": 0 if actors.device_of(player) == id else id})
+			if actors.device_of(player) == id:
+				note("this %s is the screen you are on: putting it away would leave no way back" % items.item_template(id))
+				return
+			submit(&"actor.equip_device", {"actor": player, "device": id})
 		"magazine":
 			var weapon: int = actors.wielded(player)
 			if weapon == EntityIds.NONE:
@@ -150,9 +154,11 @@ func _primary(row: Dictionary, sim: SimRoot, player: int) -> void:
 			submit(&"item.attach", {"actor": player, "weapon": device, "part": id})
 		"socket":
 			var part: int = row["part"]
-			if part != EntityIds.NONE:
-				var socket: StringName = row["socket"]
-				submit(&"item.detach", {"actor": player, "weapon": id, "socket": String(socket)})
+			var socket: StringName = row["socket"]
+			if part == EntityIds.NONE:
+				note("%s is empty: pick a loose part or module to fit one" % socket)
+				return
+			submit(&"item.detach", {"actor": player, "weapon": id, "socket": String(socket)})
 
 
 func _secondary(row: Dictionary, _sim: SimRoot, player: int) -> void:
@@ -163,9 +169,13 @@ func _secondary(row: Dictionary, _sim: SimRoot, player: int) -> void:
 			submit(&"magazine.unload", {"actor": player, "magazine": id})
 		"socket":
 			var part: int = row["part"]
-			if part != EntityIds.NONE:
-				var socket: StringName = row["socket"]
-				submit(&"item.detach", {"actor": player, "weapon": id, "socket": String(socket)})
+			var socket: StringName = row["socket"]
+			if part == EntityIds.NONE:
+				note("%s is empty: nothing to undo" % socket)
+				return
+			submit(&"item.detach", {"actor": player, "weapon": id, "socket": String(socket)})
+		_:
+			note("nothing to undo on this row: undo unloads a magazine or removes a fitted part")
 
 
 static func _loose_magazine_with_room(items: ItemSystem, player: int) -> int:

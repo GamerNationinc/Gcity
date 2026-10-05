@@ -152,11 +152,54 @@ func test_the_inventory_app_fits_loads_wields_and_swaps_through_commands() -> vo
 	_go(1)
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
-	assert_eq(_submitted.size(), 0, "an empty bay does nothing")
+	assert_eq(_submitted.size(), 0, "an empty bay sends nothing")
+	assert_true(_shell.note_text().contains("empty"), "and says why: no silent press")
 	_go(3)
 	_shell.handle(&"device_select", _sim, _player)
 	_step()
 	assert_eq(_items.socket_part(_handset, &"radio"), _radio, "the module fitted to the carried device")
+	_teardown()
+
+
+## CEOGG's creator run, 2026-10-05 10:08: A on the carried handset in the inventory put it
+## away, every app went with it (the inventory too, so nothing could carry it again) and the
+## creator's save was gone: a dead end. The carried device stays carried, and says why.
+func test_the_inventory_never_puts_away_the_device_you_are_looking_at() -> void:
+	_setup()
+	_equip()
+	_shell.grant(&"creator")
+	_shell.refresh(_sim, _player)
+	assert_eq(_shell.open_app(), &"creator", "the creator opens first, as on the Deck")
+	_shell.handle(&"device_next_app", _sim, _player)  # R1, as CEOGG pressed it
+	_shell.refresh(_sim, _player)
+	assert_eq(_shell.open_app(), &"inventory", "inventory open, the handset on row 0")
+	_submitted.clear()
+	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "A on the handset")
+	_step()
+	assert_eq(_submitted.size(), 0, "nothing sent")
+	assert_eq(_actors.device_of(_player), _handset, "still carried")
+	assert_true(_shell.note_text().contains("no way back"), "and the note says why")
+	assert_true(_app_ids().has(&"creator"), "the creator's save is still there")
+	_shell.handle(&"device_secondary", _sim, _player)
+	assert_true(_shell.note_text().contains("nothing to undo"), "Y on the handset says so too")
+	# a second device swaps in: select it and the first is put away by the swap
+	var other: int = _items.spawn(&"device_frame", &"handset", ItemSystem.inventory_of(_player), 7)
+	_shell.refresh(_sim, _player)
+	for i: int in 4:  # 0 handset, 1-2 its bays, 3 the radio module, 4 the new handset
+		_shell.handle(&"device_down", _sim, _player)
+	_shell.handle(&"device_select", _sim, _player)
+	_step()
+	assert_eq(_actors.device_of(_player), other, "swapped to the other device")
+	assert_false(_app_ids().is_empty(), "with its apps")
+	_teardown()
+
+
+func test_a_press_with_no_device_carried_says_so() -> void:
+	_setup()
+	_shell.refresh(_sim, _player)
+	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "used, not dropped")
+	assert_true(_shell.note_text().contains("no device carried"), "the note says why")
+	assert_eq(_shell.handle(&"device_back", _sim, _player), "lower", "B still lowers it")
 	_teardown()
 
 

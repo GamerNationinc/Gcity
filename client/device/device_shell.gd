@@ -132,6 +132,11 @@ func note(text: String) -> void:
 	_note_text = text
 
 
+## The note line as it stands, for the run log.
+func note_text() -> String:
+	return _note_text
+
+
 ## Rebuilds the shell from the sim. Returns true when anything visible changed.
 func refresh(sim: SimRoot, player: int) -> bool:
 	var changed: bool = false
@@ -191,6 +196,9 @@ func refresh(sim: SimRoot, player: int) -> bool:
 ## "handled" when used, "" otherwise.
 func handle(action: StringName, sim: SimRoot, player: int) -> String:
 	var apps: Array[Dictionary] = available_apps(sim, player)
+	if apps.is_empty() and action != &"device_back":
+		_note_text = "no device carried: nothing to run"
+		return "handled"
 	if action == &"device_next_app" or action == &"device_prev_app":
 		if apps.size() < 2:
 			return "handled"

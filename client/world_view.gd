@@ -968,7 +968,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if _device_raised:
 		for action: String in ["device_up", "device_down", "device_left", "device_right", "device_select", "device_secondary", "device_back", "device_prev_app", "device_next_app"]:
 			if event.is_action(action):
+				var noted: String = _shell.note_text()
 				var outcome: String = _shell.handle(StringName(action), _host.sim(), _player)
+				if _shell.note_text() != noted and not _shell.note_text().is_empty():
+					_record("device", _shell.note_text())  # a refusal on the device is in the log too
 				if outcome == "lower":
 					_raise_device(false)
 				else:
