@@ -1,0 +1,19 @@
+invalid  sim/agents/perception_system.gd:15 statement deleted  (0.4s)
+killed   sim/agents/perception_system.gd:429 statement deleted  (144.5s)
+killed   sim/agents/perception_system.gd:405 0 -> 1  (147.6s)
+killed   sim/agents/perception_system.gd:503 statement deleted  (142.5s)
+invalid  sim/agents/perception_system.gd:22 statement deleted  (3.8s)
+killed   sim/agents/perception_system.gd:694 != -> ==  (142.8s)
+killed   sim/agents/stance_system.gd:71 statement deleted  (89.9s)
+killed   sim/agents/stance_system.gd:533 0 -> 1  (89.2s)
+killed   sim/agents/stance_system.gd:305 <= -> <  (88.9s)
+killed   sim/agents/stance_system.gd:368 0 -> 1  (89.6s)
+killed   sim/agents/stance_system.gd:461 statement deleted  (89.0s)
+SURVIVED sim/agents/stance_system.gd:448 statement deleted  (89.2s)
+
+10 mutants, 9 killed, score 90.0%  (2 did not compile and are not counted)
+
+survived:
+  sim/agents/stance_system.gd:448  statement deleted
+      goal = _squads.assignment_of(agent)
+group b exit 0

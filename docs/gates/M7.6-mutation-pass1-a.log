@@ -1,0 +1,38 @@
+SURVIVED sim/agents/actor_system.gd:436 != -> ==  (89.2s)
+SURVIVED sim/agents/actor_system.gd:429 1 -> 2  (88.6s)
+killed   sim/agents/actor_system.gd:290 0 -> 1  (88.5s)
+SURVIVED sim/agents/actor_system.gd:105 statement deleted  (88.2s)
+SURVIVED sim/agents/actor_system.gd:239 1 -> 2  (87.8s)
+killed   sim/agents/actor_system.gd:324 statement deleted  (88.5s)
+killed   sim/agents/movement_system.gd:437 != -> ==  (120.4s)
+killed   sim/agents/movement_system.gd:385 != -> ==  (117.2s)
+killed   sim/agents/movement_system.gd:329 0 -> 1  (120.0s)
+SURVIVED sim/agents/movement_system.gd:406 return false -> true  (119.8s)
+killed   sim/agents/movement_system.gd:90 1 -> 2  (118.4s)
+killed   sim/agents/movement_system.gd:424 != -> ==  (118.0s)
+killed   sim/sandbox/sandbox_system.gd:197 != -> ==  (344.5s)
+killed   sim/sandbox/sandbox_system.gd:340 != -> ==  (97.9s)
+SURVIVED sim/sandbox/sandbox_system.gd:120 0 -> 1  (362.8s)
+killed   sim/sandbox/sandbox_system.gd:206 != -> ==  (313.3s)
+killed   sim/sandbox/sandbox_system.gd:289 return false -> true  (342.5s)
+invalid  sim/sandbox/sandbox_system.gd:61 statement deleted  (24.6s)
+killed   sim/sandbox/sandbox_assembly.gd:13 == -> !=  (5.8s)
+killed   sim/sandbox/sandbox_assembly.gd:17 != -> ==  (5.7s)
+invalid  sim/sandbox/sandbox_assembly.gd:16 statement deleted  (0.4s)
+
+19 mutants, 13 killed, score 68.4%  (2 did not compile and are not counted)
+
+survived:
+  sim/agents/actor_system.gd:436  != -> ==
+      if current != EntityIds.NONE:
+  sim/agents/actor_system.gd:429  1 -> 2
+      _stats.set_inherits(current, -1)
+  sim/agents/actor_system.gd:105  statement deleted
+      push_error("ActorSystem: combat_profile/%s routes to unknown node '%s'" % [profile, node])
+  sim/agents/actor_system.gd:239  1 -> 2
+      while (x + 1) * (x + 1) <= n:
+  sim/agents/movement_system.gd:406  return false -> true
+      return false
+  sim/sandbox/sandbox_system.gd:120  0 -> 1
+      return handle >= 0 and _stats.has_modifier(handle)
+group a exit 0

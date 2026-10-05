@@ -1,0 +1,44 @@
+killed   sim/core/sim_root.gd:161 statement deleted  (31.4s)
+killed   sim/core/sim_root.gd:71 != -> ==  (4.5s)
+invalid  sim/core/sim_root.gd:207 statement deleted  (0.4s)
+killed   sim/core/sim_root.gd:201 statement deleted  (31.1s)
+killed   sim/core/sim_root.gd:34 0 -> 1  (31.0s)
+killed   sim/core/sim_root.gd:89 == -> !=  (6.5s)
+killed   sim/core/sim_command.gd:23 statement deleted  (6.5s)
+killed   sim/core/sim_command.gd:24 statement deleted  (6.5s)
+killed   sim/core/sim_command.gd:22 statement deleted  (6.2s)
+killed   sim/core/replay_fixture.gd:9 1 -> 2  (3.9s)
+invalid  sim/core/replay_fixture.gd:26 statement deleted  (2.3s)
+invalid  sim/core/replay_fixture.gd:18 statement deleted  (0.4s)
+killed   sim/core/replay_fixture.gd:88 statement deleted  (4.8s)
+SURVIVED sim/core/replay_fixture.gd:69 statement deleted  (5.0s)
+killed   sim/core/replay_fixture.gd:75 statement deleted  (3.9s)
+SURVIVED sim/items/combat_system.gd:218 1 -> 2  (22.8s)
+SURVIVED sim/items/combat_system.gd:294 statement deleted  (23.3s)
+killed   sim/items/combat_system.gd:270 1 -> 2  (23.3s)
+killed   sim/items/combat_system.gd:255 statement deleted  (23.3s)
+killed   sim/items/combat_system.gd:164 0 -> 1  (23.0s)
+SURVIVED sim/items/combat_system.gd:134 statement deleted  (23.2s)
+SURVIVED sim/world/site_system.gd:412 > -> >=  (359.2s)
+killed   sim/world/site_system.gd:339 != -> ==  (355.0s)
+killed   sim/world/site_system.gd:47 statement deleted  (352.8s)
+invalid  sim/world/site_system.gd:377 statement deleted  (0.5s)
+killed   sim/world/site_system.gd:116 statement deleted  (306.0s)
+SURVIVED sim/world/site_system.gd:271 1000 -> 1001  (360.2s)
+
+23 mutants, 17 killed, score 73.9%  (4 did not compile and are not counted)
+
+survived:
+  sim/core/replay_fixture.gd:69  statement deleted
+      assembly = named
+  sim/items/combat_system.gd:218  1 -> 2
+      var cycle: int = maxi(1, _stats.resolve(weapon, STAT_CYCLE_TICKS) / 1000)
+  sim/items/combat_system.gd:294  statement deleted
+      push_error("CombatSystem.restore: rejected snapshot: shape")
+  sim/items/combat_system.gd:134  statement deleted
+      seen.append(name)
+  sim/world/site_system.gd:412  > -> >=
+      if absi(n) > BuildSystem.MAX_CELL:
+  sim/world/site_system.gd:271  1000 -> 1001
+      var weapon: int = _items.arm(agent, StringName(frame_s), StringName(magazine_s), StringName(ammo_s), rounds, agent * 1000)
+group c exit 0

@@ -1,0 +1,35 @@
+invalid  sim/agents/perception_system.gd:15 statement deleted  (0.4s)
+SURVIVED sim/agents/perception_system.gd:429 statement deleted  (145.1s)
+killed   sim/agents/perception_system.gd:405 0 -> 1  (149.1s)
+killed   sim/agents/perception_system.gd:503 statement deleted  (144.5s)
+invalid  sim/agents/perception_system.gd:22 statement deleted  (3.7s)
+killed   sim/agents/perception_system.gd:694 != -> ==  (145.1s)
+killed   sim/agents/stance_system.gd:71 statement deleted  (90.7s)
+killed   sim/agents/stance_system.gd:533 0 -> 1  (89.9s)
+SURVIVED sim/agents/stance_system.gd:305 <= -> <  (89.9s)
+SURVIVED sim/agents/stance_system.gd:368 0 -> 1  (90.5s)
+killed   sim/agents/stance_system.gd:461 statement deleted  (88.8s)
+SURVIVED sim/agents/stance_system.gd:448 statement deleted  (89.2s)
+killed   sim/agents/pathing_system.gd:170 != -> ==  (149.6s)
+killed   sim/agents/pathing_system.gd:129 return false -> true  (122.1s)
+SURVIVED sim/agents/pathing_system.gd:224 <= -> <  (150.2s)
+killed   sim/agents/pathing_system.gd:171 statement deleted  (150.0s)
+SURVIVED sim/agents/pathing_system.gd:14 256 -> 257  (149.5s)
+killed   sim/agents/pathing_system.gd:205 == -> !=  (73.0s)
+
+16 mutants, 10 killed, score 62.5%  (2 did not compile and are not counted)
+
+survived:
+  sim/agents/perception_system.gd:429  statement deleted
+      _visible.clear()
+  sim/agents/stance_system.gd:305  <= -> <
+      return maxi(250_000 + awareness / 2 - stress / 2 - (200_000 if distance <= ENGAGE_CELLS * BuildSystem.CELL else 0), 0)
+  sim/agents/stance_system.gd:368  0 -> 1
+      return 0
+  sim/agents/stance_system.gd:448  statement deleted
+      goal = _squads.assignment_of(agent)
+  sim/agents/pathing_system.gd:224  <= -> <
+      if known_g <= g:
+  sim/agents/pathing_system.gd:14  256 -> 257
+      const PATH_NODES_PER_TICK: int = 256
+group b exit 0

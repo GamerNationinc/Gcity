@@ -1,0 +1,19 @@
+killed   sim/core/replay_fixture.gd:9 1 -> 2  (4.0s)
+invalid  sim/core/replay_fixture.gd:26 statement deleted  (2.3s)
+invalid  sim/core/replay_fixture.gd:18 statement deleted  (0.4s)
+killed   sim/core/replay_fixture.gd:88 statement deleted  (4.9s)
+killed   sim/core/replay_fixture.gd:69 statement deleted  (5.1s)
+killed   sim/core/replay_fixture.gd:75 statement deleted  (4.0s)
+killed   sim/items/combat_system.gd:218 1 -> 2  (23.4s)
+SURVIVED sim/items/combat_system.gd:294 statement deleted  (23.5s)
+killed   sim/items/combat_system.gd:270 1 -> 2  (23.4s)
+killed   sim/items/combat_system.gd:255 statement deleted  (23.7s)
+killed   sim/items/combat_system.gd:164 0 -> 1  (23.2s)
+killed   sim/items/combat_system.gd:134 statement deleted  (23.6s)
+
+10 mutants, 9 killed, score 90.0%  (2 did not compile and are not counted)
+
+survived:
+  sim/items/combat_system.gd:294  statement deleted
+      push_error("CombatSystem.restore: rejected snapshot: shape")
+group c exit 0
