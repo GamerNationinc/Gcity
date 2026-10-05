@@ -1,0 +1,778 @@
+{
+	"schema_version": 1,
+	"description": "M7.6 claim 10: hostile payloads for every sandbox command and site.raise's 'at' form, each wrong in its own way, every one refused without moving the systems' state. Actor 1 is the player on the creator's lots, actor 2 a guard beside them (tests/fuzz/test_sandbox_corpus.gd sets them up); the scene has nothing to despawn at (45,0,45) and the player's own cell is (42,0,41).",
+	"cases": [
+		{
+			"kind": "sandbox.despawn",
+			"payload": {}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					0,
+					41
+				]
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					1
+				],
+				"facing": ""
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					1,
+					41.5
+				],
+				"facing": ""
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1,
+				"cell": "42,1,41",
+				"facing": ""
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					1,
+					41
+				],
+				"facing": "up"
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": "1",
+				"cell": [
+					42,
+					1,
+					41
+				],
+				"facing": ""
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 999,
+				"cell": [
+					42,
+					1,
+					41
+				],
+				"facing": ""
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					1,
+					41
+				],
+				"facing": "",
+				"x": 1
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					1,
+					41
+				],
+				"facing": ""
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					99999999,
+					0,
+					0
+				],
+				"facing": ""
+			}
+		},
+		{
+			"kind": "sandbox.despawn",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					45,
+					0,
+					45
+				],
+				"facing": ""
+			}
+		},
+		{
+			"kind": "sandbox.clear",
+			"payload": {}
+		},
+		{
+			"kind": "sandbox.clear",
+			"payload": {
+				"actor": "1"
+			}
+		},
+		{
+			"kind": "sandbox.clear",
+			"payload": {
+				"actor": 999
+			}
+		},
+		{
+			"kind": "sandbox.clear",
+			"payload": {
+				"actor": 1,
+				"x": 1
+			}
+		},
+		{
+			"kind": "sandbox.clear",
+			"payload": {
+				"actor": true
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "nobody",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0,
+				"kit": {}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 360,
+				"kit": {}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": -1,
+				"kit": {}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0
+				],
+				"facing": 0,
+				"kit": {}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					999999999
+				],
+				"facing": 0,
+				"kit": {}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0,
+				"kit": []
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0,
+				"kit": {
+					"frame": "g19",
+					"magazine": "g19_mag_15",
+					"ammo": "9x19_fmj",
+					"rounds": 101
+				}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0,
+				"kit": {
+					"frame": "g19",
+					"magazine": "g19_mag_15",
+					"ammo": "9x19_fmj",
+					"rounds": -1
+				}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0,
+				"kit": {
+					"frame": "nope",
+					"magazine": "g19_mag_15",
+					"ammo": "9x19_fmj",
+					"rounds": 15
+				}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0,
+				"kit": {
+					"frame": "g19",
+					"magazine": "g19_mag_15",
+					"ammo": "9x19_fmj",
+					"rounds": 15,
+					"extra": 1
+				}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0,
+				"kit": {
+					"frame": "g19",
+					"magazine": "g19_mag_15",
+					"rounds": 15
+				}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 999,
+				"profile": "guard_sim",
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0,
+				"kit": {}
+			}
+		},
+		{
+			"kind": "sandbox.spawn_agent",
+			"payload": {
+				"actor": 1,
+				"profile": 7,
+				"cell": [
+					44,
+					0,
+					44
+				],
+				"facing": 0,
+				"kit": {}
+			}
+		},
+		{
+			"kind": "sandbox.trainer",
+			"payload": {}
+		},
+		{
+			"kind": "sandbox.trainer",
+			"payload": {
+				"actor": 1,
+				"effect": "god"
+			}
+		},
+		{
+			"kind": "sandbox.trainer",
+			"payload": {
+				"actor": 1,
+				"effect": "frozen",
+				"on": true
+			}
+		},
+		{
+			"kind": "sandbox.trainer",
+			"payload": {
+				"actor": 1,
+				"effect": "god",
+				"on": 1
+			}
+		},
+		{
+			"kind": "sandbox.trainer",
+			"payload": {
+				"actor": 1,
+				"effect": "xray",
+				"on": true
+			}
+		},
+		{
+			"kind": "sandbox.trainer",
+			"payload": {
+				"actor": 999,
+				"effect": "god",
+				"on": true
+			}
+		},
+		{
+			"kind": "sandbox.trainer",
+			"payload": {
+				"actor": 1,
+				"effect": "god",
+				"on": false
+			}
+		},
+		{
+			"kind": "sandbox.trainer",
+			"payload": {
+				"actor": 1,
+				"effect": "god",
+				"on": true,
+				"x": 1
+			}
+		},
+		{
+			"kind": "sandbox.teleport",
+			"payload": {}
+		},
+		{
+			"kind": "sandbox.teleport",
+			"payload": {
+				"actor": 1
+			}
+		},
+		{
+			"kind": "sandbox.teleport",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					0
+				]
+			}
+		},
+		{
+			"kind": "sandbox.teleport",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					0,
+					41.5
+				]
+			}
+		},
+		{
+			"kind": "sandbox.teleport",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					0,
+					999999999
+				]
+			}
+		},
+		{
+			"kind": "sandbox.teleport",
+			"payload": {
+				"actor": 999,
+				"cell": [
+					43,
+					0,
+					43
+				]
+			}
+		},
+		{
+			"kind": "sandbox.teleport",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					43,
+					0,
+					43
+				],
+				"x": 1
+			}
+		},
+		{
+			"kind": "sandbox.teleport",
+			"payload": {
+				"actor": 1,
+				"cell": [
+					42,
+					-5,
+					41
+				]
+			}
+		},
+		{
+			"kind": "sandbox.set_health",
+			"payload": {}
+		},
+		{
+			"kind": "sandbox.set_health",
+			"payload": {
+				"actor": 1,
+				"node": "body"
+			}
+		},
+		{
+			"kind": "sandbox.set_health",
+			"payload": {
+				"actor": 1,
+				"node": "body",
+				"value": -1
+			}
+		},
+		{
+			"kind": "sandbox.set_health",
+			"payload": {
+				"actor": 1,
+				"node": "body",
+				"value": 100001
+			}
+		},
+		{
+			"kind": "sandbox.set_health",
+			"payload": {
+				"actor": 1,
+				"node": "nope",
+				"value": 1
+			}
+		},
+		{
+			"kind": "sandbox.set_health",
+			"payload": {
+				"actor": 1,
+				"node": "body",
+				"value": 1.5
+			}
+		},
+		{
+			"kind": "sandbox.set_health",
+			"payload": {
+				"actor": 999,
+				"node": "body",
+				"value": 1
+			}
+		},
+		{
+			"kind": "sandbox.set_health",
+			"payload": {
+				"actor": 1,
+				"node": 7,
+				"value": 1
+			}
+		},
+		{
+			"kind": "sandbox.set_health",
+			"payload": {
+				"actor": 1,
+				"node": "body",
+				"value": 1,
+				"x": 1
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 1,
+				"agent": 2,
+				"effect": "blind"
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 1,
+				"agent": 2,
+				"effect": "god",
+				"on": true
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 1,
+				"agent": 1,
+				"effect": "blind",
+				"on": true
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 1,
+				"agent": "some",
+				"effect": "blind",
+				"on": true
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 1,
+				"agent": 9999,
+				"effect": "blind",
+				"on": true
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 1,
+				"agent": 2,
+				"effect": "blind",
+				"on": 1
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 1,
+				"agent": 2,
+				"effect": "blind",
+				"on": false
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 1,
+				"agent": "all",
+				"effect": "deaf",
+				"on": false
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 999,
+				"agent": 2,
+				"effect": "blind",
+				"on": true
+			}
+		},
+		{
+			"kind": "sandbox.ai",
+			"payload": {
+				"actor": 1,
+				"agent": 2,
+				"effect": "blind",
+				"on": true,
+				"x": 1
+			}
+		},
+		{
+			"kind": "site.raise",
+			"payload": {
+				"actor": 1,
+				"site": "m4_test_building",
+				"at": [
+					42,
+					0
+				]
+			}
+		},
+		{
+			"kind": "site.raise",
+			"payload": {
+				"actor": 1,
+				"site": "m4_test_building",
+				"at": [
+					42,
+					0,
+					41.5
+				]
+			}
+		},
+		{
+			"kind": "site.raise",
+			"payload": {
+				"actor": 1,
+				"site": "m4_test_building",
+				"at": "42,0,41"
+			}
+		},
+		{
+			"kind": "site.raise",
+			"payload": {
+				"actor": 1,
+				"site": "m4_test_building",
+				"at": [
+					42,
+					0,
+					999999999
+				]
+			}
+		},
+		{
+			"kind": "site.raise",
+			"payload": {
+				"actor": 1,
+				"site": "nowhere",
+				"at": [
+					42,
+					0,
+					41
+				]
+			}
+		},
+		{
+			"kind": "site.raise",
+			"payload": {
+				"actor": "1",
+				"site": "m4_test_building",
+				"at": [
+					42,
+					0,
+					41
+				]
+			}
+		},
+		{
+			"kind": "site.raise",
+			"payload": {
+				"actor": 1,
+				"site": 7,
+				"at": [
+					42,
+					0,
+					41
+				]
+			}
+		},
+		{
+			"kind": "sandbox.unknown",
+			"payload": {
+				"actor": 1
+			}
+		}
+	]
+}
