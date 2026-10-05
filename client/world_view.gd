@@ -58,6 +58,16 @@ const THIRD_PERSON_UP: float = 2.8
 ## Over the right shoulder, so the ground ahead of the player is not behind the capsule.
 const THIRD_PERSON_SIDE: float = 0.9
 const LOOK_SPEED: float = 2.0
+## Up and down on the look stick (Deck run, 2026-10-05: the camera only turned). Slower
+## than turning, and stopped short of straight up or down so the view never flips.
+const PITCH_SPEED: float = 1.5
+const PITCH_MAX_FIRST: float = deg_to_rad(75.0)
+const PITCH_MIN_FIRST: float = -deg_to_rad(75.0)
+const PITCH_MAX_THIRD: float = deg_to_rad(45.0)
+const PITCH_MIN_THIRD: float = -deg_to_rad(55.0)
+## The third-person camera's rest angle: a little down onto the player, as before pitch.
+const THIRD_PERSON_TILT: float = -deg_to_rad(10.0)
+const THIRD_PERSON_PIVOT: float = 1.6
 const AIM_CONE_DEG: float = 15.0
 const SAVE_DIR: String = "user://saves/world"
 
@@ -75,6 +85,8 @@ var _setup_stage: int = 0
 ## Facing +z at start: the building's door is ten metres down the z axis.
 var _yaw: float = PI
 var _first_person: bool = false
+## Up is positive; the view only, never the sim (aim still reads the yaw alone).
+var _pitch: float = 0.0
 var _glyphs: InputGlyphs = InputGlyphs.new()
 ## The device (M5 spec claims 3, 5, 8): its own viewport, redrawn only on change, shown
 ## over the world while raised; raising pauses where the land says `safe`.
@@ -158,6 +170,7 @@ var _seen: Dictionary = {}
 var _seen_rejected: int = 0
 var _seen_move: String = ""
 var _seen_look: int = 0
+var _seen_pitch: int = 0
 var _submitted_kinds: Dictionary = {}
 var _frame_commands: Array[String] = []
 var _beat_usec: int = 0
@@ -770,6 +783,9 @@ func _process(delta: float) -> void:
 	if not _device_raised and (not _demo or _handed_back()):
 		var look: float = Input.get_action_strength("world_look_right") - Input.get_action_strength("world_look_left")
 		_yaw -= look * LOOK_SPEED * delta
+		var tilt: float = Input.get_action_strength("world_look_up") - Input.get_action_strength("world_look_down")
+		_pitch += tilt * PITCH_SPEED * delta
+	_pitch = clampf(_pitch, PITCH_MIN_FIRST, PITCH_MAX_FIRST) if _first_person else clampf(_pitch, PITCH_MIN_THIRD, PITCH_MAX_THIRD)
 	_sync_scene(sim)
 	_place_camera(sim)
 	_render(sim)
@@ -876,11 +892,28 @@ func _place_camera(sim: SimRoot) -> void:
 	var forward: Vector3 = Vector3(-sin(_yaw), 0.0, -cos(_yaw))
 	if _first_person:
 		_camera.position = eye_position(sim, _player)
-		_camera.look_at(_camera.position + forward, Vector3.UP)
+		_camera.look_at(_camera.position + look_direction(_yaw, _pitch), Vector3.UP)
 	else:
+		_camera.position = third_person_position(feet, _yaw, _pitch)
 		var side: Vector3 = Vector3(-forward.z, 0.0, forward.x) * THIRD_PERSON_SIDE
-		_camera.position = feet - forward * THIRD_PERSON_BACK + side + Vector3(0.0, THIRD_PERSON_UP, 0.0)
-		_camera.look_at(feet + side + Vector3(0.0, 1.0, 0.0) + forward * 4.0, Vector3.UP)
+		_camera.look_at(feet + side + Vector3(0.0, THIRD_PERSON_PIVOT, 0.0) + look_direction(_yaw, _pitch + THIRD_PERSON_TILT) * 4.0, Vector3.UP)
+
+
+## Where the camera looks from `yaw` and `pitch` (up positive), as a unit vector.
+static func look_direction(yaw: float, pitch: float) -> Vector3:
+	return Vector3(-sin(yaw) * cos(pitch), sin(pitch), -cos(yaw) * cos(pitch))
+
+
+## The third-person camera swings round a pivot over the player's shoulder: looking up
+## brings it down behind them, and it closes in rather than sink under their feet.
+static func third_person_position(feet: Vector3, yaw: float, pitch: float) -> Vector3:
+	var forward: Vector3 = Vector3(-sin(yaw), 0.0, -cos(yaw))
+	var pivot: Vector3 = feet + Vector3(-forward.z, 0.0, forward.x) * THIRD_PERSON_SIDE + Vector3(0.0, THIRD_PERSON_PIVOT, 0.0)
+	var dir: Vector3 = look_direction(yaw, pitch + THIRD_PERSON_TILT)
+	var back: float = Vector2(THIRD_PERSON_BACK, THIRD_PERSON_UP - THIRD_PERSON_PIVOT).length()
+	if dir.y > 0.0:
+		back = minf(back, (THIRD_PERSON_PIVOT - 0.3) / dir.y)
+	return pivot - dir * back
 
 
 ## Frame times to JSON: all of them, and the final five minutes on their own
@@ -1504,6 +1537,7 @@ func _restart() -> void:
 	_guards = []
 	_setup_stage = 0
 	_yaw = PI
+	_pitch = 0.0
 	_log.clear()
 	_demo_next = _demo_script.size()
 	if _create:
@@ -1583,7 +1617,7 @@ func _render(sim: SimRoot) -> void:
 	var regions: Regions = SimAssembly.regions_of(sim)
 	lines.append("region %s%s   ground: %d chunks drawn%s" % [regions.region_at(p.x, p.z).id(), "   IN THE GATE (load window)" if regions.in_transit(_player) else "",
 		_ground.shown_chunks().size(), "" if _ground.is_settled() else ", streaming"])
-	lines.append("player at (%d, %d) mm   yaw %d°   hp %d   %s" % [p.x, p.z, roundi(rad_to_deg(_yaw)), actors.health_of(_player)["body"] / 1000, "first person" if _first_person else "third person"])
+	lines.append("player at (%d, %d) mm   yaw %d°   pitch %d°   hp %d   %s" % [p.x, p.z, roundi(rad_to_deg(_yaw)), roundi(rad_to_deg(_pitch)), actors.health_of(_player)["body"] / 1000, "first person" if _first_person else "third person"])
 	var target: int = _aimed_target(sim)
 	var range_m: int = ActorSystem.metres_between(p, actors.position_of(target)) if target != 0 else -1
 	var mag: int = items.magazine_of(_pistol)
@@ -1658,7 +1692,7 @@ func _log_input(event: InputEvent) -> void:
 
 
 ## The move stick as a direction (to 45°) and how far it is pushed, and the way that walks
-## the player on the ground; the look stick as left, right or still. Changes only.
+## the player on the ground; the look stick as left, right or still and up, down or level. Changes only.
 func _log_sticks(input: Vector2) -> void:
 	if _run_log == null:
 		return
@@ -1677,6 +1711,11 @@ func _log_sticks(input: Vector2) -> void:
 	if look != _seen_look:
 		_seen_look = look
 		_record("stick", "look %s, yaw %d°" % [["left", "still", "right"][look + 1], roundi(rad_to_deg(_yaw))])
+	var tilt_axis: float = Input.get_action_strength("world_look_up") - Input.get_action_strength("world_look_down")
+	var tilt: int = 0 if absf(tilt_axis) < 0.2 else signi(roundi(signf(tilt_axis)))
+	if tilt != _seen_pitch:
+		_seen_pitch = tilt
+		_record("stick", "look %s, pitch %d°" % [["down", "level", "up"][tilt + 1], roundi(rad_to_deg(_pitch))])
 
 
 ## Once a frame: what changed that the player could see, rejected commands, a

@@ -53,3 +53,32 @@ func test_overlays_and_the_eye_follow_the_actor_up_the_building() -> void:
 	assert_true(WorldView.bar_position(Vector3i(3500, 6000, 2500)).is_equal_approx(Vector3(3.5, 6.0 + WorldView.BAR_OVER_FLOOR, 2.5)), "the bar is over the guard's own floor")
 	assert_true(WorldView.marker_position(Vector3i(9500, 3000, 2500)).is_equal_approx(Vector3(9.5, 3.0 + WorldView.MARKER_OVER_FLOOR, 2.5)), "the marker on the floor remembered")
 	assert_true(WorldView.eye_position(sim, player).is_equal_approx(Vector3(9.5, 3.0 + 1.6, 2.5)), "and the first-person eye is the sim's eye")
+
+
+## Deck run 2026-10-05: the camera turned but could not look up or down.
+func test_the_look_stick_up_and_down_is_bound_and_tilts_the_view() -> void:
+	for pair: Array in [[&"world_look_up", -1.0], [&"world_look_down", 1.0]]:
+		var on_stick: bool = false
+		var action: StringName = pair[0]
+		for event: InputEvent in InputMap.action_get_events(action):
+			if event is InputEventJoypadMotion and (event as InputEventJoypadMotion).axis == JOY_AXIS_RIGHT_Y and signf((event as InputEventJoypadMotion).axis_value) == pair[1]:
+				on_stick = true
+		assert_true(on_stick, "%s is on the right stick's vertical axis" % action)
+	for step: int in 8:
+		var yaw: float = TAU * float(step) / 8.0
+		var level: Vector3 = WorldView.look_direction(yaw, 0.0)
+		assert_true(absf(level.y) < 0.001 and absf(level.length() - 1.0) < 0.001, "level is flat at yaw %.2f" % yaw)
+		assert_true(WorldView.look_direction(yaw, 0.5).y > 0.4, "up looks up at yaw %.2f" % yaw)
+		assert_true(WorldView.look_direction(yaw, -0.5).y < -0.4, "down looks down at yaw %.2f" % yaw)
+		var tilted: Vector3 = WorldView.look_direction(yaw, 0.5)
+		assert_true(Vector2(tilted.x, tilted.z).normalized().distance_to(Vector2(level.x, level.z)) < 0.001, "tilting keeps the heading at yaw %.2f" % yaw)
+
+
+func test_the_third_person_camera_never_sinks_under_the_ground() -> void:
+	var feet := Vector3(3.0, 1.0, -2.0)
+	for pitch: float in [WorldView.PITCH_MIN_THIRD, 0.0, WorldView.PITCH_MAX_THIRD]:
+		var at: Vector3 = WorldView.third_person_position(feet, 0.4, pitch)
+		assert_true(at.y >= feet.y + 0.29, "camera above the feet at pitch %.2f (%.2f)" % [pitch, at.y])
+	var rest: Vector3 = WorldView.third_person_position(feet, 0.4, 0.0)
+	assert_true(rest.y - feet.y > 2.0 and rest.y - feet.y < 3.2, "at rest it sits about where it always did (%.2f up)" % (rest.y - feet.y))
+	assert_true(WorldView.third_person_position(feet, 0.4, WorldView.PITCH_MIN_THIRD).y > rest.y, "looking down lifts the camera")
