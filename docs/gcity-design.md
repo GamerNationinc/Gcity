@@ -780,6 +780,63 @@ this mission.
 
 Milestones ordered so each one proves an architectural claim rather than adding content.
 
+### Where the project stands (2026-10-06)
+
+The record behind every line is the gate ledger (`docs/gates/`); this is the summary, kept
+current as gates are signed.
+
+| Milestone | State | What it still needs |
+|---|---|---|
+| M0 — Skeleton | **Accepted** 2026-09-20 | — |
+| M1 — Stat resolver + one pistol | **Accepted** 2026-09-20 | — |
+| M2 — Land authority + starter plot | **Accepted** 2026-09-21 | — |
+| M3 — Portal graph + build system | **Accepted** 2026-09-21 | — |
+| M4 — Perception AI | **Accepted** 2026-09-21 | — |
+| M5 — The device | **Accepted** 2026-09-22 | — |
+| M6 — "Cold Storage" | **Accepted** 2026-09-23 | — |
+| M7 — Route graph + procgen wilds | **Accepted** 2026-10-01 | — |
+| M7.5 — Human scale | **Accepted** 2026-10-04 | — |
+| **M7.6 — The sandbox** | **Submitted** 2026-10-05 on `m7_6-sandbox`: claims 1–12 landed, mutation 84.5 %, the fixes from CEOGG's Deck runs (gate items 20–28) in | CEOGG's sandbox Deck run (gate §3) and button audit; CEOGG's answers to gate items 3 and 6; sign-off; the branch merged into the line |
+| M7.7 — Movement lockdown | Spec **approved** 2026-10-04; not started | Starts at G7.6's sign-off |
+| M8 — Look and feel | Spec **approved** 2026-09-30, with ADR-011 | Starts at G7.7's sign-off |
+| M9 — Threat director + raids | No spec yet | A spec, approved before any code |
+
+**What has to happen, in order**
+
+1. **Close G7.6.** CEOGG plays the sandbox demo script on the Deck (gate §3, steps 1–8),
+   does the button audit, answers items 3 (`sandbox.clear` leaves bodies: keep, or add a
+   body removal) and 6 (whether `sandbox.clear` un-raises sites), and signs. Then
+   `m7_6-sandbox` is merged into the line.
+2. **M7.7, movement lockdown** (11 claims): crouch as a posture on R3 (one cell, lower
+   eyes, half speed, less seen), sprint held on the left trigger, climbing by walking into a
+   flight or ladder, falls kept at a level a tick, one closed list of moves, steps as events
+   M8 plays and M9 hears, the properties, a movement course built in the sandbox, every
+   fixture re-recorded once, CEOGG's Deck run. No jump, vault or mantle (spec decision 4).
+   Before it starts: the G7.7 row in standards §11, which the approved spec does not have
+   yet, and G8's row moved to the G7.7 baseline the M8 spec already uses.
+3. **M8, look and feel** (15 claims): the art direction and asset sourcing of ADR-011,
+   characters animated over M7.7's closed list of moves, materials, the HUD and a front
+   door, sound, 40 fps on the Deck with the look on, and the sim untouched since G7.7.
+4. **M9, threat director + raids**: needs its spec. It inherits the debt scheduled to it:
+   G7 items 5 and 7; alerted squads in the wilds stand still (G7.5 item 16); Cold Storage's
+   side passages from the server room (G7.5 item 36); flanking to a squad's assignment
+   untested (G7.6 item 19); agents pathing between storeys (carried since G6).
+5. **After M9, not planned yet.** §16's own line: drone control, hacking depth, more
+   weapons, perk breadth and the economy are content on top of finished systems. Also
+   waiting for a milestone of their own: the Steam items that need the registered app id
+   (glyphs, the shipped input layout: G5–G7 debt), co-op (ADR-002, G7 item 8), and script
+   mods in a sandbox (standards §5.3). Each becomes a spec when CEOGG chooses it.
+
+**For CEOGG, outside the milestones**
+- `assets-operator-variants` (A1, four operator archetypes as data and placeholder models)
+  was made by a cloud session off the M5-era `main`, with its spec proposed and unsigned.
+  It cannot merge as it stands; it overlaps M8 (characters, ADR-011). Fold it into M8, or
+  drop it.
+- ADR-001 (clean start or existing codebase) still reads *proposed*, though M0 was
+  accepted on a clean start: sign it, or record it as superseded by M0.
+- `claude/functional-playable-requirements-0ebcjo`, a cloud session's redo of M6 from the
+  M5 merge, is not part of this line: keep or delete.
+
 **M0 — Skeleton**
 Godot project, sim/client split with a CI check enforcing it, headless test harness,
 deterministic tick loop (pending D-02). No gameplay.

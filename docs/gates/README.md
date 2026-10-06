@@ -17,5 +17,9 @@ scheduled into a named milestone), or **Rejected**.
 | G4 | M4 — Perception AI | **Accepted** 2026-09-21 by CEOGG |
 | G5 | M5 — The device | **Accepted** 2026-09-22 by CEOGG |
 | G6 | M6 — "Cold Storage" | **Accepted** 2026-09-23 by CEOGG |
-| G7 | M7 — Procgen, routes and site binding | in progress on `m7-procgen`; **ADR-010 is open and blocks it** |
-| G8 | see `docs/gcity-engineering-standards.md` §11 | not started |
+| G7 | M7 — Route graph + procgen wilds | **Accepted** 2026-10-01 by CEOGG |
+| G7.5 | M7.5 — Human scale | **Accepted** 2026-10-04 by CEOGG |
+| G7.6 | M7.6 — The sandbox | **Submitted** 2026-10-05 on `m7_6-sandbox`, for CEOGG's Deck run and sign-off |
+| G7.7 | M7.7 — Movement lockdown | spec approved 2026-10-04; not started |
+| G8 | M8 — Look and feel | spec approved 2026-09-30; not started |
+| G9 | M9 — Threat director + raids | no spec yet |
