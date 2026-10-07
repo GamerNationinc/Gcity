@@ -75,3 +75,36 @@ func test_the_trainer_page_toggles_what_is_on() -> void:
 	assert_eq(page[0]["label"], "god mode: ON", "shows on")
 	assert_eq(page[0]["on"], false, "and A asks for it off")
 	assert_eq(page.size(), SandboxApp.EFFECTS.size() + 2, "the three effects, full health, teleport")
+
+
+## Claim 3 on the Deck (gate items 3 and 6, CEOGG 2026-10-07): the reset page is last, so
+## every other page keeps its place; each entry sends its command or says why it does not.
+func test_the_reset_page_removes_and_clears_or_says_why_not() -> void:
+	assert_eq(SandboxApp.PAGES.back(), "reset", "the last page")
+	assert_eq(SandboxApp.PAGES.slice(0, 8), ["agents", "items", "sites", "trainer", "ai", "time", "inspect", "record"] as Array[String], "the others where they were")
+	var db: ContentDb = _db()
+	var spawns: Array = SandboxApp.entries(db, "reset").map(func(e: Dictionary) -> Variant: return e["spawn"])
+	assert_eq(spawns, ["despawn", "clear"], "remove and clear")
+	var sim: SimRoot = SandboxAssembly.build(1, db)
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var player: int = actors.spawn(&"arcade", 0)
+	var here: Vector3i = Vector3i(42, 0, 41)
+	actors.set_position(player, BuildSystem.cell_centre(here) - Vector3i(0, BuildSystem.CELL / 2, 0))
+	var empty: Dictionary = SandboxMode.reset_request(sim, player, here + Vector3i(4, 0, 0), "clear")
+	assert_eq(empty, {"say": "the lot is already clear"}, "nothing to clear: said, nothing sent")
+	assert_false(SandboxMode.reset_request(sim, player, here, "despawn").has("command"), "the player under the cursor: refused")
+	var me: String = SandboxMode.reset_request(sim, player, here, "despawn")["say"]
+	assert_true(me.contains("that is you"), "and said")
+	var nobody: Dictionary = SandboxMode.reset_request(sim, player, here + Vector3i(4, 0, 0), "despawn")
+	assert_false(nobody.has("command"), "an empty cell: nothing sent")
+	var why: String = nobody["say"]
+	assert_true(why.begins_with("nothing to remove"), "and said why")
+	var guard: int = actors.spawn(&"guard", 0)
+	actors.set_position(guard, BuildSystem.cell_centre(here + Vector3i(2, 0, 0)) - Vector3i(0, BuildSystem.CELL / 2, 0))
+	var take: Dictionary = SandboxMode.reset_request(sim, player, here + Vector3i(2, 0, 0), "despawn")
+	assert_eq(take.get("command"), SandboxSystem.COMMAND_DESPAWN, "a guard under the cursor: removed")
+	var clear: Dictionary = SandboxMode.reset_request(sim, player, here, "clear")
+	assert_eq(clear.get("command"), SandboxSystem.COMMAND_CLEAR, "someone on the lot: cleared")
+	assert_eq(clear.get("payload"), {"actor": player}, "for the player")
+	var said: String = clear["say"]
+	assert_true(said.contains("1 people"), "counting who goes")

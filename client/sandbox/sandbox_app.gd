@@ -1,14 +1,16 @@
 ## The sandbox's spawn menu (M7.6 spec claim 2, decision 5): pages of what the content
 ## holds, listed from the content database, so a new weapon file appears here with no
 ## code: agents with every kit, items, and sites raised with their base at the cursor; and
-## the trainer (claims 4–5): god mode, infinite ammo, fly, full health, teleport.
+## the trainer (claims 4–5): god mode, infinite ammo, fly, full health, teleport; and the
+## reset page (claim 3): remove what is under the cursor, clear the lot.
 ## D-pad left and right change the page, up and down choose, A spawns at the cursor.
 ## The pane asks the view through the shell's submit with `sandbox_ui.spawn`, which
 ## `client/sandbox/sandbox_mode.gd` turns into sim commands; it keeps nothing of the sim's.
 class_name SandboxApp extends DeviceApp
 
 const KIND_SPAWN: StringName = &"sandbox_ui.spawn"
-const PAGES: Array[String] = ["agents", "items", "sites", "trainer", "ai", "time", "inspect", "record"]
+## "reset" last, so every page before it keeps its place (the demo counts presses to them)
+const PAGES: Array[String] = ["agents", "items", "sites", "trainer", "ai", "time", "inspect", "record", "reset"]
 const EFFECTS: Array[String] = ["god", "ammo", "fly"]
 const EFFECT_NAMES: Dictionary = {"god": "god mode", "ammo": "infinite ammo", "fly": "fly (right trigger up, left down)"}
 const ITEM_KINDS: Array[StringName] = [&"weapon_frame", &"weapon_part", &"ammo", &"device_frame", &"device_module"]
@@ -60,7 +62,10 @@ static func _is_round(content: ContentDb, ammo: StringName, calibre: String) -> 
 ## page shows each effect's state for `player`, read from `sim` (null: all off).
 static func entries(content: ContentDb, page: String, sim: SimRoot = null, player: int = 0) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	if page == "record":
+	if page == "reset":
+		out.append({"spawn": "despawn", "label": "remove who or what is under the cursor"})
+		out.append({"spawn": "clear", "label": "clear the lot: everyone but you, everything built; bodies stay, sites come down"})
+	elif page == "record":
 		out.append({"spawn": "record", "label": "save this session as a replay fixture (user://fixtures)"})
 	elif page == "inspect":
 		for overlay: String in SandboxInspector.OVERLAYS:

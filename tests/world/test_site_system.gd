@@ -489,3 +489,39 @@ func test_a_site_raises_with_its_base_where_it_is_put() -> void:
 	var facing: String = first["facing"]
 	var id: int = _build.cell_piece_at(at + rel) if facing.is_empty() else _build.face_piece_at(BuildSystem.face_key(at + rel, facing))
 	assert_true(id != EntityIds.NONE, "its first piece is at base + rel")
+
+
+## M7.6 gate item 6 (CEOGG, 2026-10-07: the sandbox's clear un-raises sites): a site comes
+## down only once nothing of it stands, its terminals with it, and then raises again whole.
+func test_a_site_is_lowered_only_once_nothing_of_it_stands() -> void:
+	_setup()
+	_raise(&"cold_storage")
+	var terminals: TerminalSystem = SimAssembly.terminals_of(_sim)
+	var placed: Array[int] = _sites.terminals_of(&"cold_storage")
+	assert_false(_sites.lower(&"cold_storage"), "its pieces stand: refused")
+	assert_false(_sites.lower(&"m4_test_building"), "a site not raised: refused")
+	var progress: bool = true
+	while progress:
+		progress = false
+		for piece: int in _sites.pieces_of(&"cold_storage"):
+			if _build.has_piece(piece) and not _build.remove(_player, piece).is_empty():
+				progress = true
+	assert_eq(_sites.pieces_of(&"cold_storage").filter(func(p: int) -> bool: return _build.has_piece(p)), [], "every piece gone")
+	var guards: Array[int] = _sites.agents_of(&"cold_storage")
+	assert_true(guards.size() >= 2, "guards posted")
+	assert_false(_sites.lower(&"cold_storage"), "its guards stand: refused")
+	assert_true(_sites.is_raised(&"cold_storage"), "still raised")
+	for node: StringName in _actors.health_of(guards[0]):
+		_actors.damage_node(guards[0], node, 1_000_000)
+	assert_false(_actors.is_alive(guards[0]), "one guard dead")
+	for guard: int in guards.slice(1):
+		assert_true(_actors.remove(guard, ItemSystem.WORLD), "the others removed")
+	assert_true(_sites.lower(&"cold_storage"), "nothing of it stands: lowered")
+	assert_false(_sites.is_raised(&"cold_storage"), "no longer raised")
+	assert_true(_actors.has_actor(guards[0]), "the body stays (item 3)")
+	for terminal: int in placed:
+		assert_false(terminals.has_terminal(terminal), "its terminals went with it")
+	assert_true(_sites.raise_site(_player, &"cold_storage"), "and it raises again")
+	assert_eq(_sites.terminals_of(&"cold_storage").size(), 2, "with its two terminals, once each")
+	assert_eq(terminals.terminal_ids().size(), 2, "and no old one left")
+

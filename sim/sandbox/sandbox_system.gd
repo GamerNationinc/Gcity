@@ -34,7 +34,9 @@
 ##   there, the piece in the cell (`facing` "") or on its face (`facing` "px" …), through
 ##   the build system's own removal, rights and collapse included. Never `actor` itself.
 ## - `sandbox.clear {actor}`: every other living actor and every piece `actor` may remove.
-##   Bodies stay: the dead are traces other systems count, and nothing removes them.
+##   Bodies stay: the dead are traces other systems count, and nothing removes them (gate
+##   item 3, kept by CEOGG 2026-10-07). Every raised site with nothing of it left standing
+##   comes down with its terminals (`SiteSystem.lower`), so it can be raised again (item 6).
 class_name SandboxSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"sandbox"
@@ -67,16 +69,20 @@ var _movement: MovementSystem
 var _perception: PerceptionSystem
 var _items: ItemSystem
 var _stats: StatResolver
+var _sites: SiteSystem
 ## actor -> effect -> the stat modifier's handle, for each trainer effect that is on
 var _trainer: Dictionary = {}
 ## Actors and pieces the sandbox has removed, for the state hash.
 var _removed_actors: int = 0
 var _removed_pieces: int = 0
 var _spawned: int = 0
+## Sites the sandbox's clear has taken down.
+var _lowered_sites: int = 0
 
 
-func _init(content: ContentDb, actors: ActorSystem, build: BuildSystem, movement: MovementSystem, perception: PerceptionSystem, items: ItemSystem, stats: StatResolver) -> void:
+func _init(content: ContentDb, actors: ActorSystem, build: BuildSystem, movement: MovementSystem, perception: PerceptionSystem, items: ItemSystem, stats: StatResolver, sites: SiteSystem) -> void:
 	_stats = stats
+	_sites = sites
 	_content = content
 	_actors = actors
 	_build = build
@@ -94,7 +100,7 @@ func tick(_sim: SimRoot) -> void:
 
 
 func snapshot() -> Dictionary:
-	return {"removed_actors": _removed_actors, "removed_pieces": _removed_pieces, "spawned": _spawned, "trainer": _trainer.duplicate(true)}
+	return {"removed_actors": _removed_actors, "removed_pieces": _removed_pieces, "lowered_sites": _lowered_sites, "spawned": _spawned, "trainer": _trainer.duplicate(true)}
 
 
 func attach(sim: SimRoot) -> Error:
@@ -329,6 +335,9 @@ func _on_clear(_sim: SimRoot, payload: Dictionary) -> bool:
 			if not removed.is_empty():
 				_removed_pieces += removed.size()
 				progress = true
+	for site: StringName in _sites.site_ids():
+		if _sites.lower(site):
+			_lowered_sites += 1
 	return true
 
 

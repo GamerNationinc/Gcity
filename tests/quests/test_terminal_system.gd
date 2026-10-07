@@ -252,3 +252,17 @@ func test_placing_an_unknown_terminal_is_refused() -> void:
 	var before: int = _terminals.terminal_ids().size()
 	assert_eq(_terminals.place(&"no_such_terminal", Vector3i.ZERO), EntityIds.NONE, "refused")
 	assert_eq(_terminals.terminal_ids().size(), before, "nothing placed")
+
+
+## M7.6 gate item 6: the sandbox's clear takes a lowered site's terminals away; a hack
+## running on one is cancelled as walking away cancels it.
+func test_removing_a_terminal_cancels_its_hack() -> void:
+	_setup()
+	assert_true(_do(&"terminal.hack_start", {"actor": _player, "terminal": _terminal}), "hacking")
+	_sim.step()
+	assert_true(_terminals.remove(_terminal), "removed")
+	assert_false(_terminals.has_terminal(_terminal), "gone")
+	assert_eq(_cancelled.size(), 1, "the hack cancelled")
+	assert_eq(_cancelled[0]["reason"], "removed", "because the terminal went")
+	assert_false(_terminals.remove(_terminal), "a second time: refused")
+	assert_eq(_cancelled.size(), 1, "and nothing cancelled twice")

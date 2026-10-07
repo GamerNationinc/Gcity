@@ -13,7 +13,8 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	if sim == null:
 		return null
 	var sandbox: SandboxSystem = SandboxSystem.new(SimAssembly.content_of(sim), SimAssembly.actors_of(sim), SimAssembly.build_of(sim),
-		SimAssembly.movement_of(sim), SimAssembly.perception_of(sim), SimAssembly.items_of(sim), SimAssembly.stats_of(sim))
+		SimAssembly.movement_of(sim), SimAssembly.perception_of(sim), SimAssembly.items_of(sim), SimAssembly.stats_of(sim),
+		SimAssembly.sites_of(sim))
 	if sandbox.attach(sim) != OK:
 		return null
 	return sim

@@ -143,6 +143,14 @@ static func request(view: WorldView, kind: StringName, payload: Dictionary) -> S
 			return "no overlay called %s" % overlay
 		var on: bool = inspector.call(&"is_on", overlay)
 		return "%s %s" % [SandboxInspector.NAMES[overlay], "on" if on else "off"]
+	if spawn == "despawn" or spawn == "clear":
+		var asked: Dictionary = reset_request(sim, player, cell, spawn)
+		if asked.has("command"):
+			var command: StringName = asked["command"]
+			var sent: Dictionary = asked["payload"]
+			view.submit_command(command, sent)
+		var say: String = asked["say"]
+		return say
 	if spawn == "record":
 		var now: Dictionary = Time.get_datetime_dict_from_system()
 		var name: String = "sandbox-%04d%02d%02d-%02d%02d%02d" % [now["year"], now["month"], now["day"], now["hour"], now["minute"], now["second"]]
@@ -155,6 +163,41 @@ static func request(view: WorldView, kind: StringName, payload: Dictionary) -> S
 			return "not saved: could not write %s" % FIXTURE_DIR
 		return "saved %s: %d ticks, %d commands" % [path, sim.get_tick(), view.session().size()]
 	return "the spawn menu sent something it cannot spawn"
+
+
+## The reset page's two entries (claim 3; gate items 3 and 6) as {"command", "payload",
+## "say"}, or only {"say"} with why nothing is sent: `despawn` takes the living person in
+## `cell`, else the piece filling it; `clear` empties the lot but the player, keeps the
+## bodies and takes raised sites down so they raise again.
+static func reset_request(sim: SimRoot, player: int, cell: Vector3i, what: String) -> Dictionary:
+	var sandbox: SandboxSystem = SandboxAssembly.sandbox_of(sim)
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	if what == "despawn":
+		var who: int = sandbox.actor_in(cell)
+		if who == player:
+			return {"say": "not removed: that is you under the cursor"}
+		var payload: Dictionary = {"actor": player, "cell": [cell.x, cell.y, cell.z], "facing": ""}
+		if who != EntityIds.NONE:
+			return {"command": SandboxSystem.COMMAND_DESPAWN, "payload": payload,
+				"say": "removing %s at %s (its kit stays on the ground)" % [actors.profile_of(who), cell]}
+		if build.cell_piece_at(cell) != EntityIds.NONE:
+			return {"command": SandboxSystem.COMMAND_DESPAWN, "payload": payload,
+				"say": "removing the piece at %s (and what it held up)" % cell}
+		return {"say": "nothing to remove at %s: nobody and no block in that cell (B removes a wall on the cursor's face)" % cell}
+	var people: int = 0
+	for other: int in actors.actor_ids():
+		if other != player and actors.is_alive(other):
+			people += 1
+	var pieces: int = build.piece_ids().size()
+	var sites: int = 0
+	for site: StringName in SimAssembly.sites_of(sim).site_ids():
+		if SimAssembly.sites_of(sim).is_raised(site):
+			sites += 1
+	if people == 0 and pieces == 0 and sites == 0:
+		return {"say": "the lot is already clear"}
+	return {"command": SandboxSystem.COMMAND_CLEAR, "payload": {"actor": player},
+		"say": "clearing the lot: %d people, %d pieces; bodies stay; %d sites raised come down once nothing of them stands" % [people, pieces, sites]}
 
 
 ## Writes a fixture's text to `<dir>/<name>.json`. The path, or "" after an error.

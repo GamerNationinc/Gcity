@@ -25,6 +25,10 @@ LOG = """\
    17.000  t640    note     stepped to tick 641
    18.000  t641    note     time x1/4
    19.000  t650    note     time x1
+   19.100  t652    note     raising m4_test_building with its base at (41, 0, 41)
+   19.200  t654    note     removing guard_sim at (43, 1, 47) (its kit stays on the ground)
+   19.300  t656    note     clearing the lot: 2 people, 197 pieces; bodies stay; 1 sites raised come down once nothing of them stands
+   19.400  t658    note     raising m4_test_building with its base at (41, 0, 41)
    20.000  t690    note     saved user://fixtures/sandbox-20261005-150000.json: 690 ticks, 9 commands
 """.splitlines()
 
@@ -37,9 +41,13 @@ class CheckSandboxRunTest(unittest.TestCase):
         self.assertIn("60 fps", numbers["overlays on"])
 
     def test_a_skipped_step_is_missing(self) -> None:
-        steps, _ = cs.check([line for line in LOG if "frozen" not in line and "kit" not in line])
+        steps, _ = cs.check([line for line in LOG if "frozen" not in line and "\"kit\"" not in line])
         missing = [s for s, done, _ in steps if not done]
         self.assertEqual(missing, ["4. two armed guards", "7. ai freeze / thaw"])
+
+    def test_a_raise_only_before_the_clear_is_not_step_7b(self) -> None:
+        steps, _ = cs.check([line for line in LOG if "t658" not in line])
+        self.assertEqual([s for s, done, _ in steps if not done], ["7b. remove, clear, raise again"])
 
     def test_a_desktop_or_demo_launch_is_not_the_deck_run(self) -> None:
         steps, _ = cs.check([LOG[0].replace('"]', '", "--demo"]')] + LOG[1:])

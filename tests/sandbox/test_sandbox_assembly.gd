@@ -128,8 +128,34 @@ func test_clear_empties_the_lot_but_the_player() -> void:
 	assert_true(_do(sim, SandboxSystem.COMMAND_CLEAR, {"actor": player}), "clear")
 	assert_eq(actors.actor_ids(), [player] as Array[int], "only the player is left")
 	assert_eq(build.piece_ids(), [] as Array[int], "and nothing built")
-	assert_eq(SandboxAssembly.sandbox_of(sim).snapshot(), {"removed_actors": 2, "removed_pieces": 2, "spawned": 0, "trainer": {}}, "counted")
+	assert_eq(SandboxAssembly.sandbox_of(sim).snapshot(), {"removed_actors": 2, "removed_pieces": 2, "lowered_sites": 0, "spawned": 0, "trainer": {}}, "counted")
 
+
+
+## Gate items 3 and 6 (CEOGG, 2026-10-07): clear keeps the bodies and takes a raised site
+## down, so the same site raises again at the cursor.
+func test_clear_keeps_bodies_and_takes_raised_sites_down() -> void:
+	var sim: SimRoot = _sandbox()
+	var made: Array[int] = _scene(sim)
+	var player: int = made[0]
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var sites: SiteSystem = SimAssembly.sites_of(sim)
+	var at: Array = [41, 0, 41]
+	assert_true(_do(sim, SiteSystem.COMMAND_RAISE, {"actor": player, "site": "m4_test_building", "at": at}), "a site at the cursor")
+	assert_false(_do(sim, SiteSystem.COMMAND_RAISE, {"actor": player, "site": "m4_test_building", "at": at}), "raised once: a second raise refused")
+	var dead: int = made[1]
+	for node: StringName in actors.health_of(dead):
+		actors.damage_node(dead, node, 1_000_000)
+	assert_false(actors.is_alive(dead), "a body on the lot")
+	assert_true(_do(sim, SandboxSystem.COMMAND_CLEAR, {"actor": player}), "clear")
+	assert_eq(actors.actor_ids(), [player, dead] as Array[int], "the player and the body are left (item 3)")
+	assert_false(sites.is_raised(&"m4_test_building"), "the site is down (item 6)")
+	assert_eq(SimAssembly.build_of(sim).piece_ids(), [] as Array[int], "nothing of it left")
+	assert_eq(SandboxAssembly.sandbox_of(sim).snapshot()["lowered_sites"], 1, "counted")
+	assert_true(_do(sim, SiteSystem.COMMAND_RAISE, {"actor": player, "site": "m4_test_building", "at": at}), "and it raises again")
+	var db: ContentDb = SimAssembly.content_of(sim)
+	var pieces: Array = db.get_entry(SiteSystem.KIND_SITE, &"m4_test_building")["pieces"]
+	assert_eq(sites.pieces_of(&"m4_test_building").size(), pieces.size(), "whole")
 
 ## Claim 10's boundary for these two: exact payloads only.
 func test_a_malformed_payload_is_refused() -> void:

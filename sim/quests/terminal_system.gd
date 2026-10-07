@@ -207,6 +207,19 @@ func place(template: StringName, position: Vector3i) -> int:
 	return id
 
 
+## Takes a terminal away, a hack in progress on it cancelled ("removed"). Only the
+## sandbox's clear calls it, as a site it raised comes down (M7.6 gate item 6); the game
+## never removes a terminal, so a hacked one stays a trace there. False if unknown.
+func remove(terminal: int) -> bool:
+	var rec: Dictionary = _record(terminal)
+	if rec.is_empty():
+		return false
+	if rec["actor"] != EntityIds.NONE:
+		_cancel(terminal, rec, "removed")
+	_terminals.erase(terminal)
+	return true
+
+
 # ---------------------------------------------------------------- the tick
 
 func tick(_sim: SimRoot) -> void:

@@ -60,6 +60,9 @@ def check(lines: list[str]) -> tuple[list[tuple[str, bool, str]], dict[str, str]
     saved = [m for n in notes if (m := SAVED.search(n))]
     lowered_after = any(r[3] == "device: lowered" for r in kind("world"))
     flew = any(r[3].startswith("fly ") for r in kind("sandbox"))
+    # item 30: a clear, then a site raised after it
+    cleared = next((i for i, n in enumerate(notes) if n.startswith("clearing the lot")), None)
+    raised_after = cleared is not None and any(n.startswith("raising ") for n in notes[cleared + 1:])
     steps = [
         ("1. sandbox build in Game Mode", '"--sandbox"' in launch and "linux-dev" in build and "--demo" not in launch
          and "SteamGameId=" in env and not re.search(r"SteamGameId=(\s|$)", env),
@@ -73,6 +76,8 @@ def check(lines: list[str]) -> tuple[list[tuple[str, bool, str]], dict[str, str]
         ("7. ai freeze / thaw", has("every guard frozen") and has("every guard no longer frozen"), ""),
         ("7. time hold, step, x1/4, x1", has("time held") and has("stepped to tick") and has("time x1/4")
          and any(n == "time x1" for n in notes), ""),
+        ("7b. remove, clear, raise again", has("removing ") and cleared is not None and raised_after,
+         "" if cleared is not None else "no clear"),
         ("8. session saved", bool(saved), saved[-1].group(1) if saved else "no fixture saved"),
     ]
     # the gate's numbers: how long steps 2-8 took, fps with the overlays off and on

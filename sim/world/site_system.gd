@@ -10,6 +10,7 @@ const SYSTEM_ID: StringName = &"sites"
 const KIND_SITE: StringName = &"site"
 const COMMAND_RAISE: StringName = &"site.raise"
 const EVENT_RAISED: StringName = &"site.raised"
+const EVENT_LOWERED: StringName = &"site.lowered"
 
 var _content: ContentDb
 var _build: BuildSystem
@@ -254,6 +255,35 @@ func raise_site(actor: int, site: StringName, quest: StringName = &"", stand_at:
 			terminals.append(id)
 	_raised[site] = {"pieces": placed, "agents": agents, "terminals": terminals, "base": [base.x, base.y, base.z]}
 	_events.emit(EVENT_RAISED, {"site": site, "pieces": placed.size(), "agents": agents.size(), "terminals": terminals.size()})
+	return true
+
+
+## Forgets that a site stands, so it can be raised again (M7.6 gate item 6, CEOGG
+## 2026-10-07: the sandbox's clear un-raises sites). Only once nothing of it is left
+## standing: every piece it placed gone and every guard it posted removed or dead (bodies
+## stay, item 3). Its terminals go with it; lots a contract moved stay where they are.
+## False, touching nothing, if the site is not raised or something of it still stands.
+## Only the sandbox calls it; the game never lowers a site.
+func lower(site: StringName) -> bool:
+	if not _raised.has(site):
+		return false
+	var rec: Dictionary = _raised[site]
+	var pieces: Array = rec["pieces"]
+	for v: Variant in pieces:
+		var piece: int = v
+		if _build.has_piece(piece):
+			return false
+	var agents: Array = rec["agents"]
+	for v: Variant in agents:
+		var agent: int = v
+		if _actors.is_alive(agent):
+			return false
+	var terminals: Array = rec["terminals"]
+	for v: Variant in terminals:
+		var terminal: int = v
+		_terminals.remove(terminal)
+	_raised.erase(site)
+	_events.emit(EVENT_LOWERED, {"site": site})
 	return true
 
 
