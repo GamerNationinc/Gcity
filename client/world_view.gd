@@ -2171,6 +2171,9 @@ var _creator_open_path: String = ""
 ## The last placement sent and the reason it would be refused, checked once its tick has
 ## run: a refused press is said aloud, never silent.
 var _creator_pending: Dictionary = {}
+## Checks a sandbox request leaves for the tick after its command runs, each
+## {"due": tick, "check": Callable(sim) -> String}: what the sim made of it, said aloud.
+var _follow_ups: Array[Dictionary] = []
 ## The tick the lot is next written to the autosave, and what was last written there.
 var _creator_autosave_due: int = SiteCreator.AUTOSAVE_TICKS
 var _creator_autosaved: String = ""
@@ -2229,6 +2232,7 @@ func _creator_tick(sim: SimRoot) -> void:
 	for cell: Vector3i in _creator.prune(SimAssembly.movement_of(sim)):
 		_note("guard post at %s removed: no room for a guard there now" % cell)
 	_creator_check_pending(sim)
+	_run_follow_ups(sim)
 	if sim.get_tick() >= _creator_autosave_due:
 		_creator_autosave_due = sim.get_tick() + SiteCreator.AUTOSAVE_TICKS
 		_autosave_site(sim)
@@ -2255,6 +2259,17 @@ func _creator_tick(sim: SimRoot) -> void:
 			buttons.append(JOY_BUTTON_A)
 			# and the record page, next right: the session saved as a fixture
 			buttons.append_array([JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_A])
+			# gate item 30 (step 7b): the reset page, last: clear the lot; the sites page, six
+			# left: the second site at the cursor; clear again, which takes it down; and it
+			# raises again
+			var to_sites: Array[JoyButton] = [JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_LEFT,
+				JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_LEFT, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_A]
+			var to_clear: Array[JoyButton] = [JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_RIGHT,
+				JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_A]
+			buttons.append_array([JOY_BUTTON_DPAD_RIGHT, JOY_BUTTON_DPAD_DOWN, JOY_BUTTON_A])
+			buttons.append_array(to_sites)
+			buttons.append_array(to_clear)
+			buttons.append_array(to_sites)
 		buttons.append(JOY_BUTTON_START)
 		for button: JoyButton in buttons:
 			for pressed: bool in [true, false]:
@@ -2309,6 +2324,26 @@ func _creator_check_pending(sim: SimRoot) -> void:
 		var why: String = _creator_pending["why"]
 		_note("%s not placed at %s: %s" % [piece, cell, why])
 	_creator_pending = {}
+
+
+## Says what a sandbox command came to once it has run (M7.6 gate item 30): the request
+## only knows what it sent.
+func follow_up(check: Callable) -> void:
+	_follow_ups.append({"due": _host.sim().get_tick() + 1, "check": check})
+
+
+func _run_follow_ups(sim: SimRoot) -> void:
+	var waiting: Array[Dictionary] = []
+	for f: Dictionary in _follow_ups:
+		var due: int = f["due"]
+		if sim.get_tick() < due:
+			waiting.append(f)
+			continue
+		var check: Callable = f["check"]
+		var text: String = check.call(sim)
+		if not text.is_empty():
+			_note(text)
+	_follow_ups = waiting
 
 
 ## The piece in a cell, or on its face when `facing` names one.

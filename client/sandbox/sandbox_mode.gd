@@ -90,6 +90,7 @@ static func request(view: WorldView, kind: StringName, payload: Dictionary) -> S
 		if SimAssembly.sites_of(sim).is_raised(StringName(site)):
 			return "%s not raised: it already stands (clear the lot, or restart, to raise it again)" % site
 		view.submit_command(SiteSystem.COMMAND_RAISE, {"actor": view.player_id(), "site": site, "at": [cell.x, cell.y, cell.z]})
+		view.follow_up(func(now: SimRoot) -> String: return raise_result(now, StringName(site), cell))
 		return "raising %s with its base at %s" % [site, cell]
 	var player: int = view.player_id()
 	if spawn == "trainer":
@@ -149,6 +150,9 @@ static func request(view: WorldView, kind: StringName, payload: Dictionary) -> S
 			var command: StringName = asked["command"]
 			var sent: Dictionary = asked["payload"]
 			view.submit_command(command, sent)
+			if command == SandboxSystem.COMMAND_CLEAR:
+				var before: int = SandboxAssembly.sandbox_of(sim).snapshot()["lowered_sites"]
+				view.follow_up(func(now: SimRoot) -> String: return clear_result(now, before))
 		var say: String = asked["say"]
 		return say
 	if spawn == "record":
@@ -198,6 +202,35 @@ static func reset_request(sim: SimRoot, player: int, cell: Vector3i, what: Strin
 		return {"say": "the lot is already clear"}
 	return {"command": SandboxSystem.COMMAND_CLEAR, "payload": {"actor": player},
 		"say": "clearing the lot: %d people, %d pieces; bodies stay; %d sites raised come down once nothing of them stands" % [people, pieces, sites]}
+
+
+## What a raise at the cursor came to: refused, whole, or standing only in part (its
+## pieces need something under them; the guards and terminals stand regardless).
+static func raise_result(sim: SimRoot, site: StringName, cell: Vector3i) -> String:
+	var sites: SiteSystem = SimAssembly.sites_of(sim)
+	if not sites.is_raised(site):
+		return "%s not raised at %s: the sim refused it (no building rights there?)" % [site, cell]
+	var t: Dictionary = SimAssembly.content_of(sim).get_entry(SiteSystem.KIND_SITE, site)
+	var all: Array = t["pieces"]
+	var stand: int = sites.pieces_of(site).size()
+	var guards: int = sites.agents_of(site).size()
+	if stand == all.size():
+		return "%s stands at %s: %d pieces, %d guards" % [site, cell, stand, guards]
+	return "%s only partly stands: %d of %d pieces, %d guards (the rest had nothing under them or are on land you may not build on: put the cursor on the ground of your lot, L1 lowers it)" % [site, stand, all.size(), guards]
+
+
+## What a clear came to: how many sites came down, and any still standing because some
+## of their pieces are not the player's to remove.
+static func clear_result(sim: SimRoot, lowered_before: int) -> String:
+	var lowered: int = SandboxAssembly.sandbox_of(sim).snapshot()["lowered_sites"]
+	var still: PackedStringArray = PackedStringArray()
+	for site: StringName in SimAssembly.sites_of(sim).site_ids():
+		if SimAssembly.sites_of(sim).is_raised(site):
+			still.append(String(site))
+	var text: String = "cleared: %d sites came down" % (lowered - lowered_before)
+	if not still.is_empty():
+		text += "; still standing (pieces you may not remove): %s" % ", ".join(still)
+	return text
 
 
 ## Writes a fixture's text to `<dir>/<name>.json`. The path, or "" after an error.

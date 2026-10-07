@@ -498,8 +498,17 @@ func test_a_site_is_lowered_only_once_nothing_of_it_stands() -> void:
 	_raise(&"cold_storage")
 	var terminals: TerminalSystem = SimAssembly.terminals_of(_sim)
 	var placed: Array[int] = _sites.terminals_of(&"cold_storage")
-	assert_false(_sites.lower(&"cold_storage"), "its pieces stand: refused")
 	assert_false(_sites.lower(&"m4_test_building"), "a site not raised: refused")
+	# its guards first: one dead (bodies stay, item 3), the others removed
+	var guards: Array[int] = _sites.agents_of(&"cold_storage")
+	assert_true(guards.size() >= 2, "guards posted")
+	for node: StringName in _actors.health_of(guards[0]):
+		_actors.damage_node(guards[0], node, 1_000_000)
+	assert_false(_actors.is_alive(guards[0]), "one guard dead")
+	for guard: int in guards.slice(1):
+		assert_true(_actors.remove(guard, ItemSystem.WORLD), "the others removed")
+	assert_false(_sites.lower(&"cold_storage"), "no guard stands, but its pieces do: refused")
+	assert_true(_sites.is_raised(&"cold_storage"), "still raised")
 	var progress: bool = true
 	while progress:
 		progress = false
@@ -507,15 +516,6 @@ func test_a_site_is_lowered_only_once_nothing_of_it_stands() -> void:
 			if _build.has_piece(piece) and not _build.remove(_player, piece).is_empty():
 				progress = true
 	assert_eq(_sites.pieces_of(&"cold_storage").filter(func(p: int) -> bool: return _build.has_piece(p)), [], "every piece gone")
-	var guards: Array[int] = _sites.agents_of(&"cold_storage")
-	assert_true(guards.size() >= 2, "guards posted")
-	assert_false(_sites.lower(&"cold_storage"), "its guards stand: refused")
-	assert_true(_sites.is_raised(&"cold_storage"), "still raised")
-	for node: StringName in _actors.health_of(guards[0]):
-		_actors.damage_node(guards[0], node, 1_000_000)
-	assert_false(_actors.is_alive(guards[0]), "one guard dead")
-	for guard: int in guards.slice(1):
-		assert_true(_actors.remove(guard, ItemSystem.WORLD), "the others removed")
 	assert_true(_sites.lower(&"cold_storage"), "nothing of it stands: lowered")
 	assert_false(_sites.is_raised(&"cold_storage"), "no longer raised")
 	assert_true(_actors.has_actor(guards[0]), "the body stays (item 3)")
@@ -525,3 +525,16 @@ func test_a_site_is_lowered_only_once_nothing_of_it_stands() -> void:
 	assert_eq(_sites.terminals_of(&"cold_storage").size(), 2, "with its two terminals, once each")
 	assert_eq(terminals.terminal_ids().size(), 2, "and no old one left")
 
+
+## A guard still standing keeps the site up, with every piece gone.
+func test_a_site_with_a_guard_standing_is_not_lowered() -> void:
+	_setup()
+	_raise(&"cold_storage")
+	var progress: bool = true
+	while progress:
+		progress = false
+		for piece: int in _sites.pieces_of(&"cold_storage"):
+			if _build.has_piece(piece) and not _build.remove(_player, piece).is_empty():
+				progress = true
+	assert_false(_sites.lower(&"cold_storage"), "its guards stand: refused")
+	assert_true(_sites.is_raised(&"cold_storage"), "still raised")

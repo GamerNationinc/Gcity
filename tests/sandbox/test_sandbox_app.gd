@@ -108,3 +108,35 @@ func test_the_reset_page_removes_and_clears_or_says_why_not() -> void:
 	assert_eq(clear.get("payload"), {"actor": player}, "for the player")
 	var said: String = clear["say"]
 	assert_true(said.contains("1 people"), "counting who goes")
+
+
+## Item 30, found on the 2026-10-07 demo run: a site raised a level above the ground put
+## up its guards and none of its 197 pieces, and the HUD only said "raising". Now what the
+## raise and the clear came to is said once their tick has run.
+func test_a_raise_and_a_clear_say_what_they_came_to() -> void:
+	var db: ContentDb = _db()
+	var sim: SimRoot = SandboxAssembly.build(1, db)
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var player: int = actors.spawn(&"arcade", 0)
+	var tick: int = sim.get_tick() + 1
+	sim.submit(SimCommand.new(tick, &"land.identify", {"actor": player, "owner": "player"}))
+	for lot: String in SiteCreator.LOTS:
+		sim.submit(SimCommand.new(tick, &"land.transfer", {"parcel": lot, "owner": "player"}))
+	sim.step()
+	var at: Vector3i = Vector3i(41, 0, 41)
+	var cmd: Dictionary = {"actor": player, "site": "m4_test_building", "at": [at.x, at.y, at.z]}
+	var not_yet: String = SandboxMode.raise_result(sim, &"m4_test_building", at)
+	assert_true(not_yet.contains("not raised"), "before the sim has it: refused, said")
+	sim.submit(SimCommand.new(sim.get_tick() + 1, SiteSystem.COMMAND_RAISE, cmd))
+	sim.step()
+	var whole: String = SandboxMode.raise_result(sim, &"m4_test_building", at)
+	assert_true(whole.begins_with("m4_test_building stands at"), "on the ground: whole (%s)" % whole)
+	var before: int = SandboxAssembly.sandbox_of(sim).snapshot()["lowered_sites"]
+	sim.submit(SimCommand.new(sim.get_tick() + 1, SandboxSystem.COMMAND_CLEAR, {"actor": player}))
+	sim.step()
+	assert_eq(SandboxMode.clear_result(sim, before), "cleared: 1 sites came down", "the clear counted")
+	var up: Vector3i = at + Vector3i(0, 1, 0)
+	sim.submit(SimCommand.new(sim.get_tick() + 1, SiteSystem.COMMAND_RAISE, {"actor": player, "site": "m4_test_building", "at": [up.x, up.y, up.z]}))
+	sim.step()
+	var part: String = SandboxMode.raise_result(sim, &"m4_test_building", up)
+	assert_true(part.contains("only partly stands"), "a level up: said to stand only in part (%s)" % part)
