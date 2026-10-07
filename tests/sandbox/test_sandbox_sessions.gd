@@ -8,6 +8,7 @@ extends GcityTest
 const SEED: int = 20261709
 const CASES: int = 1_000
 const STEPS: int = 30
+const SITE_CASES: int = 15
 const PROFILES: Array[String] = ["guard_sim", "guard_arcade", "foot_patrol"]
 const KIT: Dictionary = {"frame": "g19", "magazine": "g19_mag_15", "ammo": "9x19_fmj", "rounds": 15}
 
@@ -28,7 +29,7 @@ func _send(sim: SimRoot, session: Array[Dictionary], kind: StringName, payload: 
 	session.append({"tick": sim.get_tick() + 1, "kind": String(kind), "payload": payload.duplicate(true)})
 
 
-func _one(rng: RandomNumberGenerator, case: int) -> void:
+func _one(rng: RandomNumberGenerator, case: int, sites: bool = false) -> void:
 	var seed: int = rng.randi_range(1, 1 << 30)
 	var sim: SimRoot = SandboxAssembly.build(seed, _content())
 	var session: Array[Dictionary] = []
@@ -43,7 +44,7 @@ func _one(rng: RandomNumberGenerator, case: int) -> void:
 	sim.step()
 	for step: int in STEPS:
 		var cell: Array = [start.x + rng.randi_range(-4, 4), 0, start.z + rng.randi_range(-4, 4)]
-		match rng.randi_range(0, 9):
+		match rng.randi_range(0, 11 if sites else 9):
 			0, 1:
 				_send(sim, session, SandboxSystem.COMMAND_SPAWN_AGENT, {"actor": player, "profile": PROFILES[rng.randi_range(0, PROFILES.size() - 1)],
 					"cell": cell, "facing": rng.randi_range(0, 3) * 90, "kit": KIT if rng.randi_range(0, 1) == 1 else {}})
@@ -63,6 +64,12 @@ func _one(rng: RandomNumberGenerator, case: int) -> void:
 				_send(sim, session, &"item.spawn", {"kind": "ammo", "template": "9x19_fmj", "container": String(ItemSystem.inventory_of(player)), "seed": step, "count": 15})
 			8:
 				_send(sim, session, &"actor.move", {"actor": player, "dx": rng.randi_range(-150, 150), "dz": rng.randi_range(-150, 150)})
+			9:
+				# gate item 30: a site at the cursor (refused while it stands) ...
+				_send(sim, session, SiteSystem.COMMAND_RAISE, {"actor": player, "site": "m4_test_building", "at": [start.x + rng.randi_range(-2, 2), 0, start.z + rng.randi_range(-2, 2)]})
+			10:
+				# ... and the clear that takes it down, so it raises again
+				_send(sim, session, SandboxSystem.COMMAND_CLEAR, {"actor": player})
 			_:
 				pass
 		for i: int in rng.randi_range(1, 4):
@@ -89,6 +96,19 @@ func test_property_a_saved_session_replays_to_its_hash() -> void:
 	for case: int in CASES:
 		_one(rng, case)
 	print("  %d sessions in %d ms" % [CASES, Time.get_ticks_msec() - started])
+
+
+## Gate item 30 (CEOGG, 2026-10-07: clear un-raises sites): sessions that raise a site,
+## clear it away and raise it again replay to their hash. Fewer cases: a site is 197
+## pieces and four guards: 15 here (about 4 min); a 100-case run passed on the Deck
+## 2026-10-07 (3 663 assertions, 25 min), recorded in the gate.
+func test_property_a_session_raising_and_clearing_sites_replays() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SEED + 30
+	var started: int = Time.get_ticks_msec()
+	for case: int in SITE_CASES:
+		_one(rng, case, true)
+	print("  %d sessions with sites in %d ms" % [SITE_CASES, Time.get_ticks_msec() - started])
 
 
 ## A session with a command still due cannot be a fixture yet, and says why.
