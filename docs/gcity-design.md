@@ -812,8 +812,8 @@ current as gates are signed.
    flight or ladder, falls kept at a level a tick, one closed list of moves, steps as events
    M8 plays and M9 hears, the properties, a movement course built in the sandbox, every
    fixture re-recorded once, CEOGG's Deck run. No jump, vault or mantle (spec decision 4).
-   Before it starts: the G7.7 row in standards §11, which the approved spec does not have
-   yet, and G8's row moved to the G7.7 baseline the M8 spec already uses.
+   The G7.7 row is in standards §11, and G8's row is on the G7.7 baseline the M8 spec
+   already uses (9da04e4, 2026-10-07).
 3. **M8, look and feel** (15 claims): the art direction and asset sourcing of ADR-011,
    characters animated over M7.7's closed list of moves, materials, the HUD and a front
    door, sound, 40 fps on the Deck with the look on, and the sim untouched since G7.7.
