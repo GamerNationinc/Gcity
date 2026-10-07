@@ -47,6 +47,16 @@ class CheckSandboxRunTest(unittest.TestCase):
         steps, _ = cs.check([LOG[0], LOG[1].replace("SteamGameId=2", "SteamGameId=")] + LOG[2:])
         self.assertFalse(steps[0][1])
 
+    def test_the_load_is_not_timed(self) -> None:
+        # a piece placed on the first ticks (the demo's): the load's frames are not play
+        load = [
+            "    0.300  t8      command  build.place {\"actor\":1,\"piece\":\"foundation_block\"}",
+            "    0.335  t8      beat     1 fps, worst frame 225.0 ms, 1 frames; ground 0 chunks (streaming)",
+            "    1.338  t49     beat     23 fps, worst frame 75.0 ms, 140 frames; ground 31 chunks (streaming)",
+        ]
+        _, numbers = cs.check(LOG[:3] + load + LOG[3:])
+        self.assertEqual(numbers["overlays off"], "90 fps mean, 90 fps 1 % low (per second), worst frame 11.1 ms")
+
 
 if __name__ == "__main__":
     unittest.main()

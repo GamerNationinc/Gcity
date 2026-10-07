@@ -85,8 +85,10 @@ def check(lines: list[str]) -> tuple[list[tuple[str, bool, str]], dict[str, str]
     names_on: set[str] = set()
     fps: dict[bool, list[int]] = {False: [], True: []}
     worst: dict[bool, float] = {False: 0.0, True: 0.0}
-    # timed from the first piece to the save: the load before it is not play
-    start = first if first is not None else 0.0
+    # timed from the first piece to the save: the load before it is not play, and neither
+    # is the first ground streaming (a piece can be placed on the first ticks: the demo's)
+    loaded = next((r[0] for r in rows if r[2] == "beat" and "(streaming)" not in r[3]), 0.0)
+    start = max(first if first is not None else 0.0, loaded)
     end = last if last is not None else float("inf")
     for at, _, k, text in rows:
         if k == "note":
