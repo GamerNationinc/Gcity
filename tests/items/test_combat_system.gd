@@ -265,3 +265,16 @@ func test_property_fire_is_the_only_way_a_round_leaves() -> void:
 	assert_eq(failures, 0, "item count moved only by fire, by exactly one")
 	assert_eq(_items.item_count(), 3 + 30 - fired, "every fired round is accounted for (%d fired)" % fired)
 	assert_true(fired >= 30 - 1 or not _actors.is_alive(_dummy) or fired > 0, "shots happened")
+
+
+func test_an_actor_in_the_air_cannot_fire() -> void:
+	# M6 claim 1: falling (or mid-move) actors have no footing to shoot from
+	_build()
+	_range()
+	assert_eq(_actors.set_position(_player, Vector3i(0, 2 * BuildSystem.STOREY_MM, 0)), OK, "two storeys up")
+	_sim.step()
+	assert_true(SimAssembly.movement_of(_sim).is_falling(_player), "falling")
+	assert_false(_fire(), "no shot while falling")
+	_sim.step_n(30)
+	assert_false(SimAssembly.movement_of(_sim).is_falling(_player), "landed")
+	assert_true(_fire(), "a shot once landed")

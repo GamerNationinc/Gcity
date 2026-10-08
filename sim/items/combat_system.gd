@@ -41,6 +41,7 @@ var _last: Dictionary = {}
 ## Callable(shooter: int, target: int) -> bool, set at assembly once perception
 ## exists (M4 spec claim 7). Unset, every target is in sight, as at M1.
 var _sight: Callable = Callable()
+var _footing: Callable = Callable()
 
 
 func _init(content: ContentDb, stats: StatResolver, items: ItemSystem, actors: ActorSystem, events: EventBus) -> void:
@@ -76,6 +77,12 @@ func events() -> EventBus:
 ## answers for players and agents alike; its owner decides what "seeing" means.
 func set_sight_check(check: Callable) -> void:
 	_sight = check
+
+
+## Installs the footing check (M6 claim 1): func(actor: int) -> bool, false while the
+## actor is falling or mid-move, so nobody fires from the air.
+func set_footing_check(check: Callable) -> void:
+	_footing = check
 
 
 func register_stage(name: StringName, implementation: Callable) -> Error:
@@ -171,6 +178,8 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 	var shooter: int = payload["actor"]
 	var target: int = payload["target"]
 	if shooter == target or not _actors.is_alive(shooter) or not _actors.is_alive(target):
+		return false
+	if _footing.is_valid() and not _footing.call(shooter):
 		return false
 	var weapon: int = _actors.wielded(shooter)
 	if weapon == EntityIds.NONE or _items.is_busy(weapon, sim.get_tick()):
