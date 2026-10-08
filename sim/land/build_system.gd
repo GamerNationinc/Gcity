@@ -351,6 +351,8 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 			return EntityIds.NONE
 		if kind == &"foundation" and cell.y != GROUND_CELL_Y:
 			return EntityIds.NONE
+		if _actor_in(cell):
+			return EntityIds.NONE
 	if not _land.require(cell_centre(cell), actor, &"build"):
 		return EntityIds.NONE
 	var id: int = _ids.allocate()
@@ -378,7 +380,46 @@ func remove(actor: int, id: int) -> Array[int]:
 		return none
 	if not _land.require(cell_centre(cell_of_piece(id)), actor, &"build"):
 		return none
+	if _holds_up_an_actor(_collapse_preview(id)):
+		return none
 	return _remove_and_collapse([id], actor)
+
+
+## Whether a living actor stands in `cell` (M6 spec claim 1: no piece is built into one).
+func _actor_in(cell: Vector3i) -> bool:
+	for a: int in _actors.actor_ids():
+		if _actors.is_alive(a) and cell_of(_actors.position_of(a)) == cell:
+			return true
+	return false
+
+
+## Whether any of `ids` is what a living actor stands on: the face under its cell or the
+## cell piece below it (M6 spec claim 1: nobody falls, so such a piece is not removed).
+func _holds_up_an_actor(ids: Array[int]) -> bool:
+	for a: int in _actors.actor_ids():
+		if not _actors.is_alive(a):
+			continue
+		var cell: Vector3i = cell_of(_actors.position_of(a))
+		if ids.has(face_piece_at(face_key(cell, "ny"))) or ids.has(cell_piece_at(cell + Vector3i(0, -1, 0))):
+			return true
+	return false
+
+
+## The ids removing `id` would take out, itself and the collapse, without removing them.
+func _collapse_preview(id: int) -> Array[int]:
+	var record: Dictionary = _pieces[id]
+	var face: String = record["face"]
+	var key: String = face if not face.is_empty() else cell_key(cell_of_piece(id))
+	_pieces.erase(id)
+	_occupied.erase(key)
+	var supported: Dictionary = supported_set()
+	_pieces[id] = record
+	_occupied[key] = id
+	var out: Array[int] = [id]
+	for other: int in piece_ids():
+		if other != id and not supported.has(other):
+			out.append(other)
+	return out
 
 
 ## Removes pieces without a rights check: the breach path of a raid (claim 9).

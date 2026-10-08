@@ -100,7 +100,8 @@ func test_objectives_advance_from_credited_tagged_events_and_complete_once_with_
 func test_a_build_objective_credits_the_builder() -> void:
 	_setup()
 	var build: BuildSystem = SimAssembly.build_of(_sim)
-	_actors.set_position(_player, Vector3i(500 * 1000, 0, 500 * 1000))
+	# beside the row it builds, not in it: no piece is built into a living actor's cell
+	_actors.set_position(_player, Vector3i(500 * 1000, 0, 502 * 1000))
 	assert_true(_do(&"quest.accept", {"actor": _player, "quest": "break_ground"}), "accept")
 	for i: int in 3:
 		assert_true(build.place(_player, &"foundation_block", Vector3i(500 * 1000 + i * 1000 + 500, 500, 500 * 1000 + 500), "") > 0, "placed %d" % i)
