@@ -132,6 +132,12 @@ func is_moving(actor: int) -> bool:
 	return _in_move.has(actor)
 
 
+## Whether the actor has its footing: not falling and not in the middle of a move. Other
+## systems ask this before letting an actor fire or work a device (M6 claims 1, 9).
+func can_act(actor: int) -> bool:
+	return not _falling.has(actor) and not _in_move.has(actor)
+
+
 ## Starts a climb across a stair or a ladder (M6 claim 2). A stair links its foot (the
 ## cell on its facing side) and its top (the cell above it); a ladder links the cells
 ## below and above its face. Returns false, changing nothing, when the actor cannot.

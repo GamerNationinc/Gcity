@@ -218,3 +218,16 @@ func test_property_moves_change_storey_by_at_most_one_and_never_end_inside_a_pie
 				_actors.set_position(_player, spot)
 	assert_eq(failures, 0, "every finished move within one storey, outside every piece; jumps level")
 	assert_true(finished > 100, "the stream finished moves (%d)" % finished)
+
+
+func test_an_actor_can_act_only_when_neither_falling_nor_mid_move() -> void:
+	_setup()
+	var stair: int = _stairs()
+	assert_true(_movement.can_act(_player), "standing: can act")
+	assert_true(_movement.climb(_player, stair), "climbing")
+	assert_false(_movement.can_act(_player), "not mid-climb")
+	_tick(_build.climb_ticks_of(stair))
+	assert_true(_movement.can_act(_player), "on top: can act")
+	_actors.set_position(_player, _feet(6, 2, 6))
+	_tick(1)
+	assert_false(_movement.can_act(_player), "not while falling")
