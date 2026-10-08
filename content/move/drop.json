@@ -1,0 +1,4 @@
+{
+	"schema_version": 1,
+	"description": "Step off an edge into a cell with nothing to stand on, and fall (M6 claim 1, ADR-011)."
+}

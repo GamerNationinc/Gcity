@@ -125,3 +125,13 @@ func test_restore_round_trip_and_rejections() -> void:
 static func _sub(dict: Dictionary, key: Variant) -> Dictionary:
 	var out: Dictionary = dict[key]
 	return out
+
+
+func test_a_fall_node_that_is_not_a_health_node_stops_assembly() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var bad: Dictionary = db.get_entry(&"combat_profile", &"arcade").duplicate(true)
+	var fall: Dictionary = bad["fall"]
+	fall["node"] = "left_leg"
+	assert_eq(db.add(&"combat_profile", &"zz_falls_on_nothing", bad), OK, "db takes the shape")
+	assert_true(SimAssembly.build(SEED, db) == null, "assembly refuses it")

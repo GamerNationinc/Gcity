@@ -59,7 +59,8 @@ func attach(sim: SimRoot) -> Error:
 	return sim.commands().register(COMMAND_EQUIP_DEVICE, _on_equip_device, true)
 
 
-## Health nodes must be unique and every routing entry must name one.
+## Health nodes must be unique and every routing entry, and the fall node (M6 claim 1),
+## must name one.
 func validate_content() -> Error:
 	for profile: StringName in _content.ids(KIND_PROFILE):
 		var t: Dictionary = _content.get_entry(KIND_PROFILE, profile)
@@ -86,6 +87,11 @@ func validate_content() -> Error:
 			if not seen.has(node):
 				push_error("ActorSystem: combat_profile/%s routes to unknown node '%s'" % [profile, node])
 				return ERR_INVALID_DATA
+		var fall: Dictionary = t["fall"]
+		var fall_node: String = fall["node"]
+		if not seen.has(fall_node):
+			push_error("ActorSystem: combat_profile/%s takes fall damage on unknown node '%s'" % [profile, fall_node])
+			return ERR_INVALID_DATA
 	return OK
 
 
