@@ -41,8 +41,12 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards �
 
 ## Phase 1 — Space (`sim/land/`, `sim/nav/`, `sim/agents/`)
 
-1. **Storeys.** `BuildSystem.STOREY_MM = 3000`. An actor's `y` is always a whole number
-   of storeys, from −1 to 2. A floor piece is something an actor stands on. An actor on
+1. **Storeys.** A storey is one build cell: `BuildSystem.STOREY_MM = CELL` (1000 sim
+   millimetres), so one wall piece spans a storey and the M4 building's roofs are
+   storey 1's floor; the client draws a storey taller than a cell (about 3 m on screen)
+   by a vertical scale that is presentation only. (Amended 2026-10-08 with CEOGG's
+   approval: the draft's 3000 would have tripled every wall run and the portal graph
+   it prices.) An actor's `y` is always a whole number of storeys, from −1 to 2. A floor piece is something an actor stands on. An actor on
    storey *n* stands on the floor face at the bottom of its cell, or on the ground at
    storey 0. `actor.move` stays in x/z and is refused onto a cell with nothing to stand
    on. Nobody falls in M6: movement simply never leaves a supported cell.
@@ -171,7 +175,7 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards �
     `cold_storage` parcel in a new `docklands` district (`law_index` 500; its rights
     table makes `enter` a violation for non-owners).
     - A city-owned utility parcel below the street is a separate vertical parcel
-      (`floor_y` −3000, `ceiling_y` 0). It holds the service tunnel, which proves the
+      (`floor_y` −1000, `ceiling_y` 0). It holds the service tunnel, which proves the
       vertical parcel rule of §15.2.
     - **Front:** the lobby door is locked by the `cold_storage_keycard` and watched by
       the lobby camera, with the heat check.
@@ -362,7 +366,7 @@ Every other G6 proof is met without them.
   the body.
 - A dead player respawns at home immediately. A respawn timer or a choice of safehouse
   waits for a hub (ADR-010).
-- Storeys are a fixed 3 m and there is no free vertical movement; ramps and terrain
+- Storeys are one build cell high in the sim and there is no free vertical movement; ramps and terrain
   height are M7.
 - One run record per accepted contract per actor; re-accepting an abandoned contract
   opens a fresh record.
