@@ -80,14 +80,13 @@ func test_no_cell_piece_is_placed_where_a_living_actor_stands() -> void:
 	assert_true(_build.place(_player, &"foundation_block", _at(3, 0, 0), "") > 0, "beside the player")
 
 
-func test_the_piece_a_living_actor_stands_on_is_not_removed() -> void:
+func test_the_piece_a_living_actor_stands_on_can_be_removed() -> void:
+	# ADR-011 C: a removal under an actor is not refused; the actor falls (sim/agents)
 	_setup()
 	var actors: ActorSystem = SimAssembly.actors_of(_sim)
 	var f: int = _build.place(_player, &"foundation_block", _at(0, 0, 0), "")
 	var floor_id: int = _build.place(_player, &"floor_panel", _at(1, 0, 0), "py")
 	assert_true(f > 0 and floor_id > 0, "foundation and floor")
 	assert_eq(actors.set_position(_player, _at(1, 1, 0) - Vector3i(0, 500, 0)), OK, "player on the floor")
-	assert_true(_build.remove(_player, floor_id).is_empty(), "the floor under the player stays")
-	assert_true(_build.remove(_player, f).is_empty(), "nor its support, which would collapse it")
-	assert_eq(actors.set_position(_player, _at(5, 0, 5) - Vector3i(0, 500, 0)), OK, "player steps off")
-	assert_eq(_build.remove(_player, floor_id), [floor_id] as Array[int], "now it comes out")
+	assert_eq(_build.remove(_player, floor_id), [floor_id] as Array[int], "the floor comes out from under the player")
+	assert_false(_build.is_standable(_cell(1, 1, 0)), "leaving nothing to stand on")
