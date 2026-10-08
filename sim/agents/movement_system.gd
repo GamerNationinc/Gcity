@@ -1,7 +1,8 @@
 ## Actor movement on the build grid (M3 claim set P1). One command, `actor.move
 ## {actor, dx, dz}`, moves a live actor by integer millimetres, capped by its profile's
-## `speed_mm_per_tick`, on flat ground (y stays 0 at M3). A move is rejected when it
-## would enter a cell a solid piece occupies, cross a face that carries a non-passable
+## `speed_mm_per_tick`, on its storey (y never changes here; climbing is M6 claim 2). A
+## move is rejected when it would enter a cell nobody can stand in (a solid piece fills
+## it, or nothing holds it up: M6 claim 1), cross a face that carries a non-passable
 ## piece, or enter a parcel the actor may not `enter` (a land violation).
 class_name MovementSystem extends SimSystem
 
@@ -87,7 +88,7 @@ func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 	var from_cell: Vector3i = BuildSystem.cell_of(from)
 	var to_cell: Vector3i = BuildSystem.cell_of(to)
 	if to_cell != from_cell:
-		if _build.cell_piece_at(to_cell) != EntityIds.NONE:
+		if not _build.is_standable(to_cell):
 			return false
 		var d: Vector3i = to_cell - from_cell
 		var facing: String = "px" if d.x > 0 else ("nx" if d.x < 0 else ("pz" if d.z > 0 else "nz"))

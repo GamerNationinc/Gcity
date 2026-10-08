@@ -505,8 +505,8 @@ func receive_report(agent: int, contact: int, position: Vector3i, tick_now: int)
 
 # ---------------------------------------------------------------- mutation
 
-## Spawns an actor of the profile's combat profile at the centre of `cell` on the
-## ground and registers it as an agent. Returns its id, or 0 with an error.
+## Spawns an actor of the profile's combat profile at the centre of `cell`, standing on
+## its storey (M6 claim 1: only where it can stand), and registers it as an agent. Returns its id, or 0 with an error.
 func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: String) -> int:
 	if not _content.has(KIND_AGENT, profile):
 		push_error("PerceptionSystem: no agent_profile/%s" % profile)
@@ -516,6 +516,9 @@ func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: 
 		return EntityIds.NONE
 	if facing < 0 or facing > 359 or squad < 0:
 		push_error("PerceptionSystem: facing must be 0..359 and squad >= 0")
+		return EntityIds.NONE
+	if not _build.is_standable(cell):
+		push_error("PerceptionSystem: nobody can stand in cell %s" % cell)
 		return EntityIds.NONE
 	if not route.is_empty() and not _content.has(KIND_ROUTE, StringName(route)):
 		push_error("PerceptionSystem: no patrol_route/%s" % route)
