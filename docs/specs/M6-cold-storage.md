@@ -47,22 +47,51 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards �
    by a vertical scale that is presentation only. (Amended 2026-10-08 with CEOGG's
    approval: the draft's 3000 would have tripled every wall run and the portal graph
    it prices.) An actor's `y` is always a whole number of storeys, from −1 to 2. A floor piece is something an actor stands on. An actor on
-   storey *n* stands on the floor face at the bottom of its cell, or on the ground at
-   storey 0. `actor.move` stays in x/z and is refused onto a cell with nothing to stand
-   on. Nobody falls in M6: movement simply never leaves a supported cell.
-   Property: over 10 000 generated build and move streams, every living actor stands
-   on a supported cell at every tick.
-2. **Climb edges.** `piece_kind` gains `climb: {from_storey_offset, to_storey_offset}`.
-   M6 ships three such kinds:
-   - `stair`, a cell piece linking *n* and *n*+1;
-   - `ladder`, a face piece linking *n* and *n*+1;
-   - `crate`, now climbable: standing on a crate lifts the actor by one storey to reach
-     an adjacent face on *n*+1, and a two-crate stack reaches a storey-1 window from the
-     ground.
-
-   `actor.climb {actor, piece}` moves the actor across the edge when it is adjacent, at
-   the piece's `climb_ticks`. The portal graph adds a climb edge between the two volumes
-   it joins, priced by `climb_ticks`. This closes G3 debt 4.
+   storey *n* stands on the floor face at the bottom of its cell, on the top of a cell
+   piece below it, or on the ground at storey 0.
+   **Gravity** (ADR-011 C; amended 2026-10-08 with CEOGG's approval, replacing the
+   draft's "nobody falls"):
+   - An actor, living or dead, whose cell is not standable **falls**. It drops one storey
+     every `fall.ticks_per_storey` ticks of its combat profile until its cell is
+     standable. There is bedrock under storey −1.
+   - While falling it cannot move, climb, fire or hack.
+   - On landing after *k* storeys it takes `max(0, k − fall.free_storeys) ×
+     fall.damage_per_storey` on `fall.node`, through the existing damage path, so a long
+     enough fall kills. It also emits `actor.landed {actor, storeys, damage}` and a
+     landing noise (claim 5) of `fall.noise_per_storey × k`. All numbers are content.
+   - `actor.move` steps into a cell that is not standable only when the profile has the
+     `drop` capability; the player has it and guards do not, so a guard's path never
+     walks off an edge.
+   - A breach or a collapse under an actor is never refused: the actor falls through.
+     The M6 claim 1 commit that refused `build.remove` under an actor is reverted.
+     Building a cell piece into an actor's cell stays refused.
+   - Property: over 10 000 generated build and move streams, every living actor stands
+     on a standable cell or is falling. Every fall lands within `ticks_per_storey` × the
+     storeys dropped, and the landing damage equals the formula.
+2. **Climb, mantle and jump** (the §6.4 capability tags, ADR-011 C). A combat profile
+   lists its `moves` from `walk`, `drop`, `climb`, `mantle` and `jump`, and a command
+   whose move the profile lacks is refused.
+   - **Climb.** `piece_kind` gains `climb: {from_storey_offset, to_storey_offset}`. M6
+     ships `stair` (a cell piece linking *n* and *n*+1) and `ladder` (a face piece
+     linking *n* and *n*+1). `actor.climb {actor, piece}` moves an adjacent actor across
+     at the piece's `climb_ticks`.
+   - **Mantle.** `actor.mantle {actor, dx, dz}` (one axis, one cell) lifts the actor
+     from storey *n* onto the top of the adjacent cell piece when its kind has
+     `mantle: true` (M6: the crate). It needs the face between to be open or passable
+     and headroom above the actor, and takes `mantle_ticks` from the profile. A
+     foundation or a wall cannot be mantled.
+   - **Jump.** `actor.jump {actor, dx, dz}` (one axis) crosses a one-cell gap on the same
+     storey: the middle cell is not standable and holds no cell piece, both faces
+     crossed are open or passable, the landing cell is standable, and it takes
+     `jump_ticks`. Jumps never gain height.
+   - The portal graph adds an edge for each climb, mantle and jump between the volumes
+     they join, priced by its ticks and tagged with its move. Pathing filters edges by
+     the agent's `moves` (the §6.4 rule that a guard never takes a move it cannot make).
+     This closes G3 debt 4.
+   - The client animates every move and every fall smoothly between the sim's states.
+     Flips and rolls are client animation of these same moves; they arrive with a
+     character rig (actors are capsules today) and are recorded as debt, not as a sim
+     change.
 3. **Openings have state.** Door, window, hatch and the new `grate` (a face piece; its
    material is `scrap_steel`) carry an `open` flag in the build snapshot.
    - A closed opening blocks movement and pathing.
@@ -179,7 +208,8 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards �
       vertical parcel rule of §15.2.
     - **Front:** the lobby door is locked by the `cold_storage_keycard` and watched by
       the lobby camera, with the heat check.
-    - **Side:** the storey-1 maintenance window is reached by stacking two crates. It
+    - **Side:** the storey-1 maintenance window is reached by mantling onto the yard's
+      crate beneath it. It
       is watched by a `power_monitor`, and the monitor's hack target is reachable from
       the ground in the yard.
     - **Under:** a street grate (cutter) leads to a ladder down to the tunnel, a grate
@@ -284,7 +314,9 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards �
       stealth-scoring proof.
     - `m6-front`: keycard, low heat, door opens silently.
     - `m6-front-hot`: high heat, the camera alarm.
-    - `m6-side`: crate stack, monitor spoofed, silent window.
+    - `m6-side`: mantle onto the crate, monitor spoofed, silent window.
+    - `m6-fall`: a drop off the roof edge, a jump across a gap, and a floor breached
+      under a guard, who falls and takes the content's damage.
     - `m6-loud`: breach the lobby, alarm, a body, reduced payout, heat raised.
     - `m6-death`: death mid-run, corpse, respawn, recovery, deliver.
     - `m6-city-death`: the law-index softening and the fee.
@@ -334,7 +366,8 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards �
 - Lighting (G4 debt 9).
 - The on-screen keyboard: nothing in M6 takes text (M5 debt 5, rescheduled to the first
   milestone that does).
-- Falling and fall damage.
+- Free physics movement: continuous jumping, climbing any ledge, parkour (ADR-011 C:
+  a later milestone after a spike). Flips and rolls wait for a character rig.
 
 ## Conditions planned for G6 (CEOGG, 2026-10-08: the Steamworks app is not registered)
 
@@ -384,7 +417,8 @@ recorded in `docs/extending-sites.md`.
 
 | Test | Cases | Fixed seed constant |
 |---|---|---|
-| Every living actor on a supported cell | 10 000 build/move streams | `tests/land/test_storeys.gd` |
+| Every living actor standing or falling; falls land on time with the formula's damage | 10 000 build/move streams | `tests/agents/test_storey_movement.gd` |
+| Climb, mantle and jump: refused without the move or the geometry; never gain more than one storey | 10 000 | `tests/agents/test_moves.gd` |
 | Incremental portal rebuild equals full rebuild | 10 000 build/destroy sequences | `tests/nav/test_portal_incremental.gd` |
 | Closed door never raises awareness gain; removing a floor never lengthens a path | 10 000 each (metamorphic) | `tests/agents/test_storey_metamorphic.gd` |
 | Hack: completes once, interrupted on every listed cause, slots never over-committed | 10 000 | `tests/items/test_hack.gd` |
