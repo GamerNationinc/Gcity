@@ -16,5 +16,5 @@ scheduled into a named milestone), or **Rejected**.
 | G3 | M3 — Portal graph + build system | **Accepted** 2026-09-21 by CEOGG |
 | G4 | M4 — Perception AI | **Accepted** 2026-09-21 by CEOGG |
 | G5 | M5 — The device | **Accepted** 2026-09-22 by CEOGG |
-| G6 | M6 — "Cold Storage" | spec drafted 2026-10-08 (`docs/specs/M6-cold-storage.md`), awaiting approval |
+| G6 | M6 — "Cold Storage" | spec approved 2026-10-08 (`docs/specs/M6-cold-storage.md`); in progress on `claude/relaxed-franklin-hs29t3` |
 | G7–G8 | see `docs/gcity-engineering-standards.md` §11 | not started |

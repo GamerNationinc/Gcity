@@ -1,8 +1,8 @@
 # M6 — "Cold Storage": specification
 
 Milestone M6 of `docs/gcity-design.md` §16, in the terms of that document. Written
-before implementation (standards §2.1, §10.2). Status: **draft**, awaiting CEOGG's
-approval. No M6 code is written before that approval.
+before implementation (standards §2.1, §10.2). Status: **approved** as written (CEOGG,
+2026-10-08).
 
 **Preconditions.** G5 is signed in `docs/gates/M5-gate.md` (it is). **ADR-007** (death
 cost) is `accepted` as **C** (CEOGG, 2026-10-08): the corpse persists with the gear, a
