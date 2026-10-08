@@ -25,6 +25,12 @@ const STAT_HP: StringName = &"piece_hp"
 const STAT_NOISE: StringName = &"breach_noise"
 const CELL: int = 1000
 const GROUND_CELL_Y: int = 0
+## A storey is one build cell (M6 spec claim 1, as amended): one wall piece spans it and
+## a horizontal face is the floor of the storey above. Actors stand on storeys
+## MIN_STOREY..MAX_STOREY only.
+const STOREY_MM: int = CELL
+const MIN_STOREY: int = -1
+const MAX_STOREY: int = 2
 const MAX_CELL: int = 100_000
 const FACINGS: Array[String] = ["px", "nx", "py", "ny", "pz", "nz"]
 const AXES: Array[String] = ["x", "y", "z"]
@@ -151,6 +157,27 @@ static func face_cells(key: String) -> Array[Vector3i]:
 		_:
 			upper.z += 1
 	return [lower, upper]
+
+
+static func storey_of(position: Vector3i) -> int:
+	return floori(float(position.y) / STOREY_MM)
+
+
+static func is_storey_in_range(storey: int) -> bool:
+	return storey >= MIN_STOREY and storey <= MAX_STOREY
+
+
+## Whether an actor can stand in `cell` (M6 spec claim 1): the cell is free of cell
+## pieces, on a storey in range, and held up by the ground (storey 0), a horizontal
+## face piece under it, or a cell piece directly below it.
+func is_standable(cell: Vector3i) -> bool:
+	if not is_storey_in_range(cell.y) or _occupied.has(cell_key(cell)):
+		return false
+	if face_piece_at(face_key(cell, "ny")) != EntityIds.NONE:
+		return true
+	if cell_piece_at(cell + Vector3i(0, -1, 0)) != EntityIds.NONE:
+		return true
+	return cell.y == GROUND_CELL_Y
 
 
 func has_piece(id: int) -> bool:
