@@ -276,11 +276,15 @@ func rebuild_count() -> int:
 	return _rebuilds
 
 
-## The cost of crossing a piece for a tool class: an opening's open_cost, else the
-## breach cost from the resolver and the tool. -1 for an unknown piece or tool.
+## The cost of crossing a piece for a tool class: a stair's or a ladder's climb ticks
+## (it is climbed, not breached: M6 claim 2), an opening's open_cost, else the breach
+## cost from the resolver and the tool. -1 for an unknown piece or tool.
 func edge_cost(piece: int, tool_class: StringName) -> int:
 	if not _build.has_piece(piece) or not _content.has(BuildSystem.KIND_TOOL, tool_class):
 		return -1
+	var climb: int = _build.climb_ticks_of(piece)
+	if climb > 0:
+		return climb
 	var k: Dictionary = _build.kind_data(piece)
 	var passable: bool = k["passable"]
 	var t: Dictionary = _content.get_entry(BuildSystem.KIND_PIECE, _build.template_of(piece))
@@ -292,6 +296,15 @@ func edge_cost(piece: int, tool_class: StringName) -> int:
 	var hp: int = maxi(0, _stats.resolve(piece, BuildSystem.STAT_HP))
 	var noise: int = maxi(0, _stats.resolve(piece, BuildSystem.STAT_NOISE))
 	return hp * hp_factor + noise * noise_weight
+
+
+## The move an edge's piece asks of whoever crosses it (the design doc §6.4 capability
+## tags, M6 claim 2): `climb` for a stair or a ladder, "" for an opening or a breach.
+## Mantles and jumps cross open air inside one volume, so no edge asks for them.
+func edge_move(piece: int) -> StringName:
+	if _build.climb_ticks_of(piece) > 0:
+		return MovementSystem.MOVE_CLIMB
+	return &""
 
 
 ## Cheapest path between two nodes for a tool class: {"cost": int, "pieces": Array[int]
