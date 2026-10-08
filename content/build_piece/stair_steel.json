@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "Steel stairs, one storey high.",
+	"kind": "stair",
+	"material": "scrap_steel",
+	"open_cost": 0,
+	"value": 0
+}

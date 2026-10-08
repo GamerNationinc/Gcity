@@ -1,0 +1,8 @@
+{
+	"schema_version": 1,
+	"description": "A steel ladder through a floor opening: passing costs 20.",
+	"kind": "ladder",
+	"material": "scrap_steel",
+	"open_cost": 20,
+	"value": 0
+}

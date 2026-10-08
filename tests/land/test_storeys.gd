@@ -43,7 +43,6 @@ func test_the_ground_storey_stands_on_the_ground() -> void:
 	_setup()
 	assert_true(_build.is_standable(_cell(0, 0, 0)), "bare ground")
 	assert_false(_build.is_standable(_cell(0, 1, 0)), "air above bare ground")
-	assert_false(_build.is_standable(_cell(0, -1, 0)), "nothing under a basement cell")
 
 
 func test_a_floor_face_under_the_cell_is_standable() -> void:
@@ -90,3 +89,53 @@ func test_the_piece_a_living_actor_stands_on_can_be_removed() -> void:
 	assert_eq(actors.set_position(_player, _at(1, 1, 0) - Vector3i(0, 500, 0)), OK, "player on the floor")
 	assert_eq(_build.remove(_player, floor_id), [floor_id] as Array[int], "the floor comes out from under the player")
 	assert_false(_build.is_standable(_cell(1, 1, 0)), "leaving nothing to stand on")
+
+
+func test_storey_minus_one_stands_on_bedrock() -> void:
+	# M6 claim 2 (as built): no terrain until M7, so bedrock holds up the basement storey
+	_setup()
+	assert_true(_build.is_standable(_cell(0, -1, 0)), "bedrock under storey -1")
+	assert_false(_build.is_standable(_cell(0, -2, 0)), "nothing below the storey range")
+
+
+func test_a_stair_is_a_cell_piece_placed_with_the_facing_of_its_foot() -> void:
+	_setup()
+	assert_true(_build.place(_player, &"foundation_block", _at(-1, 0, 0), "") > 0, "a foundation to hold it")
+	assert_eq(_build.place(_player, &"stair_steel", _at(0, 0, 0), ""), EntityIds.NONE, "a stair needs a facing")
+	assert_eq(_build.place(_player, &"stair_steel", _at(0, 0, 0), "py"), EntityIds.NONE, "and a level one")
+	var stair: int = _build.place(_player, &"stair_steel", _at(0, 0, 0), "px")
+	assert_true(stair > 0, "placed, foot to the east")
+	assert_eq(_build.facing_of(stair), "px", "the facing is kept")
+	assert_eq(_build.climb_ticks_of(stair), 20, "climbable, at the kind's ticks")
+	assert_true(_build.is_standable(_cell(0, 1, 0)), "its top is standable")
+	assert_eq(_build.place(_player, &"foundation_block", _at(2, 0, 0), "px"), EntityIds.NONE, "a foundation takes no facing")
+
+
+func test_a_ladder_is_a_climbable_horizontal_opening_and_crates_can_be_mantled() -> void:
+	_setup()
+	assert_true(_build.place(_player, &"foundation_block", _at(0, 0, 0), "") > 0, "foundation")
+	var ladder: int = _build.place(_player, &"ladder_hatch", _at(1, 0, 0), "py")
+	assert_true(ladder > 0, "a ladder through the floor of storey 1")
+	assert_eq(_build.climb_ticks_of(ladder), 30, "climbable")
+	assert_true(_build.is_standable(_cell(1, 1, 0)), "standing on the ladder's top")
+	assert_true(_build.place(_player, &"foundation_block", _at(4, 0, 0), "") > 0, "a foundation for the crate")
+	var crate: int = _build.place(_player, &"storage_crate", _at(3, 0, 0), "")
+	assert_true(_build.is_mantleable(crate), "a crate can be mantled")
+	assert_false(_build.is_mantleable(_build.cell_piece_at(_cell(0, 0, 0))), "a foundation cannot")
+	assert_eq(_build.climb_ticks_of(crate), 0, "and a crate is not climbed")
+
+
+func test_a_restored_stair_keeps_its_facing() -> void:
+	_setup()
+	assert_true(_build.place(_player, &"foundation_block", _at(-1, 0, 0), "") > 0, "a foundation to hold it")
+	var stair: int = _build.place(_player, &"stair_steel", _at(0, 0, 0), "nz")
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.build_of(other).restore(_build.snapshot()), OK, "restores")
+	assert_eq(SimAssembly.build_of(other).facing_of(stair), "nz", "facing survives")
+	var bad: Dictionary = _build.snapshot().duplicate(true)
+	var pieces: Dictionary = bad["pieces"]
+	var rec: Dictionary = pieces[stair]
+	rec["facing"] = "py"
+	assert_eq(SimAssembly.build_of(other).restore(bad), ERR_INVALID_DATA, "a level stair is rejected")

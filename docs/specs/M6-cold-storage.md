@@ -71,9 +71,10 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards �
 2. **Climb, mantle and jump** (the §6.4 capability tags, ADR-011 C). A combat profile
    lists its `moves` from `walk`, `drop`, `climb`, `mantle` and `jump`, and a command
    whose move the profile lacks is refused.
-   - **Climb.** `piece_kind` gains `climb: {from_storey_offset, to_storey_offset}`. M6
-     ships `stair` (a cell piece linking *n* and *n*+1) and `ladder` (a face piece
-     linking *n* and *n*+1). `actor.climb {actor, piece}` moves an adjacent actor across
+   - **Climb.** `piece_kind` gains `climb_ticks` (0: not climbable) and `mantle`; every
+     climb links *n* and *n*+1, so no offsets are needed. M6 ships `stair` (a cell
+     piece placed with the facing of its foot, climbed from that side to its top) and
+     `ladder` (a horizontal opening, climbed between the cell below and the cell above). `actor.climb {actor, piece}` moves an adjacent actor across
      at the piece's `climb_ticks`.
    - **Mantle.** `actor.mantle {actor, dx, dz}` (one axis, one cell) lifts the actor
      from storey *n* onto the top of the adjacent cell piece when its kind has
@@ -404,6 +405,8 @@ Every other G6 proof is met without them.
 - One run record per accepted contract per actor; re-accepting an abandoned contract
   opens a fresh record.
 - Exfil requires leaving the polygon with the deliverable; no extraction timer.
+- Storey −1 stands on bedrock wherever no piece fills it (there is no terrain before M7);
+  the only ways down are climb pieces, and the site's walls bound its tunnels.
 
 ## Extension exercise for Q4 (standards §11)
 

@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "A flight of stairs filling a cell: climbed from the cell on its facing side to its top, one storey up, and back (M6 claim 2).",
+	"occupies": "cell",
+	"orientation": "facing",
+	"passable": false,
+	"target": false,
+	"climb_ticks": 20,
+	"mantle": false
+}

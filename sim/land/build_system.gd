@@ -33,6 +33,8 @@ const MIN_STOREY: int = -1
 const MAX_STOREY: int = 2
 const MAX_CELL: int = 100_000
 const FACINGS: Array[String] = ["px", "nx", "py", "ny", "pz", "nz"]
+## Facings a cell piece of orientation `facing` may take: the side its foot is on.
+const LEVEL_FACINGS: Array[String] = ["px", "nx", "pz", "nz"]
 const AXES: Array[String] = ["x", "y", "z"]
 
 var _content: ContentDb
@@ -41,7 +43,8 @@ var _ids: EntityIds
 var _land: LandSystem
 var _actors: ActorSystem
 var _events: EventBus
-## piece id -> {"template": StringName, "cell": [x, y, z], "face": "" | "x,y,z|axis"}
+## piece id -> {"template": StringName, "cell": [x, y, z], "face": "" | "x,y,z|axis",
+##   "facing": "" | px/nx/pz/nz (a cell piece of orientation `facing`: M6 claim 2)}
 var _pieces: Dictionary = {}
 ## derived: "x,y,z" -> piece id (cell pieces); "x,y,z|axis" -> piece id (face pieces)
 var _occupied: Dictionary = {}
@@ -99,6 +102,15 @@ func validate_content() -> Error:
 			return _content_fail("piece_kind/%s is passable but not a face" % kind)
 		if target and occupies != "cell":
 			return _content_fail("piece_kind/%s is a target but not a cell" % kind)
+		var orientation: String = k["orientation"]
+		if orientation == "facing" and occupies != "cell":
+			return _content_fail("piece_kind/%s takes a facing but is not a cell" % kind)
+		var climb: int = k["climb_ticks"]
+		if climb > 0 and not (orientation == "facing" or (occupies == "face" and orientation == "horizontal" and passable)):
+			return _content_fail("piece_kind/%s is climbable but neither a stair nor a ladder" % kind)
+		var mantle: bool = k["mantle"]
+		if mantle and occupies != "cell":
+			return _content_fail("piece_kind/%s can be mantled but is not a cell" % kind)
 		if kind == &"foundation":
 			has_root = true
 	if not has_root:
@@ -168,11 +180,14 @@ static func is_storey_in_range(storey: int) -> bool:
 
 
 ## Whether an actor can stand in `cell` (M6 spec claim 1): the cell is free of cell
-## pieces, on a storey in range, and held up by the ground (storey 0), a horizontal
-## face piece under it, or a cell piece directly below it.
+## pieces, on a storey in range, and held up by the ground (storey 0), bedrock
+## (MIN_STOREY: there is no terrain before M7), a horizontal face piece under it, or a
+## cell piece directly below it.
 func is_standable(cell: Vector3i) -> bool:
 	if not is_storey_in_range(cell.y) or _occupied.has(cell_key(cell)):
 		return false
+	if cell.y == MIN_STOREY:
+		return true
 	if face_piece_at(face_key(cell, "ny")) != EntityIds.NONE:
 		return true
 	if cell_piece_at(cell + Vector3i(0, -1, 0)) != EntityIds.NONE:
@@ -219,6 +234,29 @@ func kind_data(id: int) -> Dictionary:
 	if kind.is_empty():
 		return {}
 	return _content.get_entry(KIND_PIECE_KIND, kind)
+
+
+## The side a stair's foot is on ("" for every other piece).
+func facing_of(id: int) -> String:
+	if not _pieces.has(id):
+		return ""
+	var record: Dictionary = _pieces[id]
+	return record["facing"]
+
+
+## Ticks to climb the piece (0: not climbable): a stair or a ladder (M6 claim 2).
+func climb_ticks_of(id: int) -> int:
+	var k: Dictionary = kind_data(id)
+	if k.is_empty():
+		return 0
+	return k["climb_ticks"]
+
+
+func is_mantleable(id: int) -> bool:
+	var k: Dictionary = kind_data(id)
+	if k.is_empty():
+		return false
+	return k["mantle"]
 
 
 func material_of(id: int) -> StringName:
@@ -345,7 +383,11 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 		if _occupied.has(face):
 			return EntityIds.NONE
 	else:
-		if not facing.is_empty():
+		var orientation_c: String = k["orientation"]
+		if orientation_c == "facing":
+			if not LEVEL_FACINGS.has(facing):
+				return EntityIds.NONE
+		elif not facing.is_empty():
 			return EntityIds.NONE
 		if _occupied.has(cell_key(cell)):
 			return EntityIds.NONE
@@ -357,7 +399,8 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 		return EntityIds.NONE
 	var id: int = _ids.allocate()
 	var lower: Vector3i = cell if face.is_empty() else face_cells(face)[0]
-	_pieces[id] = {"template": template, "cell": [lower.x, lower.y, lower.z] as Array[int], "face": face}
+	var piece_facing: String = facing if face.is_empty() else ""
+	_pieces[id] = {"template": template, "cell": [lower.x, lower.y, lower.z] as Array[int], "face": face, "facing": piece_facing}
 	_occupied[face if not face.is_empty() else cell_key(cell)] = id
 	if not supported_set().has(id):
 		_occupied.erase(face if not face.is_empty() else cell_key(cell))
@@ -464,7 +507,8 @@ func restore(state: Dictionary) -> Error:
 		if typeof(pk) != TYPE_INT or pk < 1 or typeof(pieces_in[pk]) != TYPE_DICTIONARY:
 			return _restore_fail("piece key or record")
 		var rec: Dictionary = pieces_in[pk]
-		if rec.size() != 3 or typeof(rec.get("cell")) != TYPE_ARRAY or typeof(rec.get("face")) != TYPE_STRING:
+		if rec.size() != 4 or typeof(rec.get("cell")) != TYPE_ARRAY or typeof(rec.get("face")) != TYPE_STRING \
+				or typeof(rec.get("facing")) != TYPE_STRING:
 			return _restore_fail("piece %d fields" % pk)
 		var template: StringName = LandSystem._as_name(rec.get("template"))
 		if not _content.has(KIND_PIECE, template):
@@ -481,6 +525,10 @@ func restore(state: Dictionary) -> Error:
 		var t: Dictionary = _content.get_entry(KIND_PIECE, template)
 		var k: Dictionary = _content.get_entry(KIND_PIECE_KIND, LandSystem._as_name(t["kind"]))
 		var occupies: String = k["occupies"]
+		var orientation: String = k["orientation"]
+		var piece_facing: String = rec["facing"]
+		if (orientation == "facing") != LEVEL_FACINGS.has(piece_facing) or (orientation != "facing" and not piece_facing.is_empty()):
+			return _restore_fail("piece %d facing" % pk)
 		var key: String = ""
 		if occupies == "face":
 			var parts: PackedStringArray = face.split("|")
@@ -494,7 +542,7 @@ func restore(state: Dictionary) -> Error:
 		if occupied.has(key):
 			return _restore_fail("piece %d overlaps" % pk)
 		occupied[key] = pk
-		pieces[pk] = {"template": template, "cell": [cx, cy, cz] as Array[int], "face": face}
+		pieces[pk] = {"template": template, "cell": [cx, cy, cz] as Array[int], "face": face, "facing": piece_facing}
 	_pieces = pieces
 	_occupied = occupied
 	return OK

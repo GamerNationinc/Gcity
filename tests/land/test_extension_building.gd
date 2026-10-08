@@ -39,7 +39,7 @@ func test_every_piece_places_on_a_foundation_and_every_tool_prices_every_wall() 
 		var base: Vector3i = FAR + Vector3i(500 + 2 * i * M, 500, 500)
 		i += 1
 		assert_true(build.place(player, &"foundation_block", base, "") > 0, "foundation %d" % i)
-		var facing: String = "" if occupies == "cell" else ("py" if orientation == "horizontal" else "pz")
+		var facing: String = ("px" if orientation == "facing" else "") if occupies == "cell" else ("py" if orientation == "horizontal" else "pz")
 		var at: Vector3i = base + Vector3i(0, M, 0) if occupies == "cell" else base
 		var id: int = build.place(player, piece, at, facing)
 		assert_true(id > 0, "%s places against its foundation" % piece)

@@ -4,6 +4,8 @@
 	"stages": ["hit_roll", "damage", "routing"],
 	"range_falloff_per_m": 5000,
 	"speed_mm_per_tick": 0,
+	"mantle_ticks": 40,
+	"jump_ticks": 30,
 	"moves": ["walk"],
 	"fall": {"ticks_per_storey": 12, "free_storeys": 1, "damage_per_storey": 50000, "node": "body", "noise_per_storey": 20000},
 	"health": {
