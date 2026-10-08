@@ -1,4 +1,4 @@
-# Gcity — Bounty Hunter Loop: Engineering Architecture
+# Gcity — Bounty System: Architecture
 
 Status: **proposed** — this is an architecture document, not a signed spec. Nothing in it
 is buildable until it is broken into milestone specs under `docs/specs/` and the ADR
@@ -13,7 +13,7 @@ new ADR candidates in §12. **None of those are resolved here.**
 
 ---
 
-## 1. Design intent (one paragraph)
+## 1. Concept
 
 Bounties are short stories, not fetch quests — Cowboy Bebop structure: episodic
 contracts with wildly different tones, targets that are rarely what the dossier says,
@@ -25,7 +25,7 @@ ledger, and a trail system whose beats decay on sim ticks.
 
 ---
 
-## 2. Where it lives
+## 2. Module layout
 
 ```
 sim/quests/                      existing module — the bounty loop is quest machinery
@@ -60,7 +60,7 @@ Rules this layout obeys (CLAUDE.md §5, §6):
 
 ---
 
-## 3. System responsibilities and boundaries
+## 3. Simulation systems
 
 ### 3.1 BountyDirector (`&"bounty_director"`)
 
@@ -127,7 +127,7 @@ Trail beats and heat decay for open contracts.
 - Discovering a beat (interacting at the site, buying a broker rumor) emits
   `&"trail.beat_found"` and refreshes trail heat by the beat's content-defined amount.
 
-### 3.5 Behaviour traits — who runs, and when
+### 3.5 Behaviour traits
 
 Traits are **content**, evaluated by a small decision hook in the agent layer (a
 `bounty_trait` reference on the target's `agent_profile`), not a new AI:
@@ -154,7 +154,7 @@ All ids `[a-z0-9_]+`, file name equals id, schema registered in
 `tools/content_schemas/`. Versioned with migrations like every other kind. Illustrative
 shapes (field lists are the spec-stage deliverable, these fix intent):
 
-### 4.1 `content/bounty_archetype/corpo_embezzler.json`
+### 4.1 Archetype — `content/bounty_archetype/corpo_embezzler.json`
 
 ```json
 {
@@ -171,7 +171,7 @@ shapes (field lists are the spec-stage deliverable, these fix intent):
 }
 ```
 
-### 4.2 `content/bounty_twist/client_is_the_criminal.json`
+### 4.2 Twist — `content/bounty_twist/client_is_the_criminal.json`
 
 ```json
 {
@@ -187,7 +187,7 @@ shapes (field lists are the spec-stage deliverable, these fix intent):
 }
 ```
 
-### 4.3 `content/bounty_trait/rabbit.json`
+### 4.3 Trait — `content/bounty_trait/rabbit.json`
 
 ```json
 {
@@ -279,7 +279,7 @@ A cold fugitive re-enters the offer pool after a content-defined tick delay, opt
 re-skinned (`new_identity` content hook: same record, new display name, dossier notes
 the alias) or promoted (joined/ranked up in a faction, changing its muscle faction tag).
 
-## 7. Authored vs procgen
+## 7. Authored and composed contracts
 
 - A small set of **flagship contracts** are fully authored content records (fixed
   archetype/twist/tone/trait, authored dialogue, scripted guaranteed-escape beats for
@@ -316,7 +316,7 @@ reach into those modules):
 `&"quest.completed"` so existing quest-objective wiring ("complete 3 bounties") works
 with zero new code.
 
-## 9. Determinism, snapshots, performance
+## 9. Determinism, snapshots and performance
 
 - All composition, trait rolls, stiff rolls, walk cadence and beat placement draw from
   `sim.rng()`; twist reveals and resurfacing are tick-scheduled. Same seed + input log
@@ -333,7 +333,7 @@ with zero new code.
 - Content validation at `attach()` (like QuestSystem), fuzz targets for every new
   schema parser, corpora committed.
 
-## 10. Testing plan (written with, not after)
+## 10. Verification
 
 - **Replay fixtures**: (a) accept → kill → turn-in → paid; (b) accept → rabbit flees →
   escaped → trail beats found → re-acquire → capture alive; hashes asserted, shipped
@@ -348,7 +348,7 @@ with zero new code.
   escape count must not decrease its bounty value.
 - Mutation score counts toward the ≥70% `sim/` target.
 
-## 11. Milestone mapping (proposal — gates decide)
+## 11. Milestone mapping
 
 | Piece | Earliest home | Why |
 |---|---|---|
@@ -361,7 +361,7 @@ Each row is its own spec in `docs/specs/` with its own gate evidence. Nothing he
 spans modules in one session: director, lifecycle, fugitives and trails are separate
 passes.
 
-## 12. ADR candidates (open — not resolved by this document)
+## 12. Open decisions (ADR candidates)
 
 - **ADR-A: Fugitive off-screen fidelity.** Abstract graph-walk (assumed here) vs
   partially simulated agents. Interacts directly with open ADR-010; should likely be
@@ -375,7 +375,7 @@ passes.
   capture escape, and does the contract survive death? The answer falls out of
   ADR-007's model and should be recorded there or in a follow-up.
 
-## 13. Debt / explicitly out of scope
+## 13. Out of scope
 
 Dialogue presentation, broker voice/portraits, co-op contract sharing, bounty boards as
 physical world objects (vs device app only), faction-issued counter-bounties *on the
