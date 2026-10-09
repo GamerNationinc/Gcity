@@ -106,9 +106,10 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards Â
    - Raid tokens keep paying `open_cost` exactly as in M3. Fixture hashes that change
      (new snapshot keys; windows no longer walkable in the M4 building) are regenerated
      in the commit that changes them, with the reason stated (invariant 9).
-4. **The player can breach.** `build.breach {actor, piece, tool}` needs the actor
-   adjacent to the piece and a wielded item tagged with the material's tool class
-   (`cutter` or `breacher`). It takes the material's breach ticks, can be interrupted by
+4. **The player can breach.** `build.breach {actor, piece}` needs the actor
+   adjacent to the piece and a wielded `tool` item (a new content kind) of the
+   material's breach class (`cutter` or `breacher`); the tool is read from the hand, so
+   the payload does not repeat it. It takes the material's breach ticks, can be interrupted by
    moving or taking damage, and removes the piece through the existing
    `BuildSystem.breach`. It also emits `build.breached {actor, piece, removed}` with
    `actor` in place of `token`; raid tokens are unchanged.

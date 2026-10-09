@@ -21,6 +21,10 @@ const KIND_TOOL: StringName = &"tool_class"
 const COMMAND_PLACE: StringName = &"build.place"
 const COMMAND_REMOVE: StringName = &"build.remove"
 const EVENT_CHANGED: StringName = &"build.changed"
+const COMMAND_BREACH: StringName = &"build.breach"
+## {actor, piece, removed} from a player's breach (M6 claim 4); raid tokens emit the
+## same event with `token` in place of `actor`.
+const EVENT_BREACHED: StringName = &"build.breached"
 const COMMAND_OPEN: StringName = &"opening.open"
 const COMMAND_CLOSE: StringName = &"opening.close"
 ## {piece, open, actor}: an opening changed state (M6 claim 3); sensors and run records
@@ -63,6 +67,12 @@ var _credential: Callable = Callable()
 ## func(cell: Vector3i) -> bool: the cell is inside an enclosed volume (installed at
 ## assembly from the portal graph); unset, every latch stays shut
 var _inside: Callable = Callable()
+## func(actor: int) -> bool: the actor has its footing (installed at assembly from the
+## movement system); unset, nobody can breach
+var _footing: Callable = Callable()
+## actor id -> {"piece": int, "ticks": ticks left, "pos": [x, y, z], "health": int}
+## (a player's breach under way: M6 claim 4)
+var _breaching: Dictionary = {}
 
 
 func _init(content: ContentDb, stats: StatResolver, ids: EntityIds, land: LandSystem, actors: ActorSystem, events: EventBus) -> void:
@@ -79,13 +89,35 @@ func system_id() -> StringName:
 
 
 func tick(_sim: SimRoot) -> void:
-	pass
+	var actors: Array = _breaching.keys()
+	actors.sort()
+	for a: Variant in actors:
+		var actor: int = a
+		var rec: Dictionary = _breaching[actor]
+		var piece: int = rec["piece"]
+		var pos: Array = rec["pos"]
+		var health: int = rec["health"]
+		var px: int = pos[0]
+		var py: int = pos[1]
+		var pz: int = pos[2]
+		if not _pieces.has(piece) or not _actors.is_alive(actor) or not _footing.is_valid() or not _footing.call(actor) \
+				or _actors.position_of(actor) != Vector3i(px, py, pz) or _health_total(actor) < health:
+			_breaching.erase(actor)
+			continue
+		var ticks: int = rec["ticks"]
+		ticks -= 1
+		if ticks > 0:
+			rec["ticks"] = ticks
+			continue
+		_breaching.erase(actor)
+		var removed: Array[int] = breach(piece)
+		_events.emit(EVENT_BREACHED, {"actor": actor, "piece": piece, "removed": removed})
 
 
 func snapshot() -> Dictionary:
 	var holes: Array = _holes.keys()
 	holes.sort()
-	return {"pieces": _pieces.duplicate(true), "holes": holes}
+	return {"pieces": _pieces.duplicate(true), "holes": holes, "breaching": _breaching.duplicate(true)}
 
 
 func attach(sim: SimRoot) -> Error:
@@ -96,6 +128,9 @@ func attach(sim: SimRoot) -> Error:
 	if err != OK:
 		return err
 	err = sim.commands().register(COMMAND_PLACE, _on_place)
+	if err != OK:
+		return err
+	err = sim.commands().register(COMMAND_BREACH, _on_breach)
 	if err != OK:
 		return err
 	err = sim.commands().register(COMMAND_OPEN, _on_open)
@@ -113,6 +148,10 @@ func set_credential_check(check: Callable) -> void:
 
 func set_inside_check(check: Callable) -> void:
 	_inside = check
+
+
+func set_footing_check(check: Callable) -> void:
+	_footing = check
 
 
 # ---------------------------------------------------------------- content validation
@@ -546,6 +585,47 @@ func _actor_in(cell: Vector3i) -> bool:
 	return false
 
 
+func is_breaching(actor: int) -> bool:
+	return _breaching.has(actor)
+
+
+## Starts a player's breach (M6 claim 4): a living actor with its footing, not already
+## breaching, standing at the piece (in one of a face's two cells, or beside a cell
+## piece), wielding a tool of the material's breach class. Breaching where the actor
+## lacks `build` is recorded as a violation and goes ahead. The piece comes out after
+## the material's breach_ticks unless the actor moves, is hurt, dies or loses its footing.
+func start_breach(actor: int, id: int) -> bool:
+	if not _actors.is_alive(actor) or _breaching.has(actor) or not _pieces.has(id):
+		return false
+	if not _footing.is_valid() or not _footing.call(actor):
+		return false
+	var here: Vector3i = cell_of(_actors.position_of(actor))
+	var face: String = _pieces[id]["face"]
+	if face.is_empty():
+		var d: Vector3i = here - cell_of_piece(id)
+		if absi(d.x) + absi(d.y) + absi(d.z) != 1:
+			return false
+	elif not cells_of_piece(id).has(here):
+		return false
+	var m: Dictionary = _content.get_entry(KIND_MATERIAL, material_of(id))
+	if _actors.wielded_tool_class(actor) != LandSystem._as_name(m["breach_tool"]):
+		return false
+	_land.require(cell_centre(cell_of_piece(id)), actor, &"build")
+	var ticks: int = m["breach_ticks"]
+	var pos: Vector3i = _actors.position_of(actor)
+	_breaching[actor] = {"piece": id, "ticks": ticks, "pos": [pos.x, pos.y, pos.z] as Array[int], "health": _health_total(actor)}
+	return true
+
+
+func _health_total(actor: int) -> int:
+	var total: int = 0
+	var health: Dictionary = _actors.health_of(actor)
+	for node: Variant in health:
+		var v: int = health[node]
+		total += v
+	return total
+
+
 ## Removes pieces without a rights check: the breach path of a raid (claim 9).
 func breach(id: int) -> Array[int]:
 	var none: Array[int] = []
@@ -597,6 +677,15 @@ func _on_place(_sim: SimRoot, payload: Dictionary) -> bool:
 
 
 ## {"actor": int, "piece": int}
+func _on_breach(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("piece")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	var id: int = payload["piece"]
+	return start_breach(actor, id)
+
+
+## {"actor": int, "piece": int}
 func _on_open(_sim: SimRoot, payload: Dictionary) -> bool:
 	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("piece")) != TYPE_INT:
 		return false
@@ -626,7 +715,8 @@ func _on_remove(_sim: SimRoot, payload: Dictionary) -> bool:
 # ---------------------------------------------------------------- restore
 
 func restore(state: Dictionary) -> Error:
-	if state.size() != 2 or typeof(state.get("pieces")) != TYPE_DICTIONARY or typeof(state.get("holes")) != TYPE_ARRAY:
+	if state.size() != 3 or typeof(state.get("pieces")) != TYPE_DICTIONARY or typeof(state.get("holes")) != TYPE_ARRAY \
+			or typeof(state.get("breaching")) != TYPE_DICTIONARY:
 		return _restore_fail("shape")
 	var pieces_in: Dictionary = state["pieces"]
 	var pieces: Dictionary = {}
@@ -690,9 +780,31 @@ func restore(state: Dictionary) -> Error:
 				or hk != "%d,%d,%d|y" % [coords[0].to_int(), GROUND_CELL_Y - 1, coords[2].to_int()] or holes.has(hk):
 			return _restore_fail("hole %s is not a ground face" % hk)
 		holes[hk] = true
+	var breaching_in: Dictionary = state["breaching"]
+	var breaching: Dictionary = {}
+	for k: Variant in breaching_in:
+		if typeof(k) != TYPE_INT or typeof(breaching_in[k]) != TYPE_DICTIONARY:
+			return _restore_fail("breaching actor")
+		var actor: int = k
+		var rec: Dictionary = breaching_in[k]
+		if not _actors.has_actor(actor) or rec.size() != 4 or typeof(rec.get("piece")) != TYPE_INT or typeof(rec.get("ticks")) != TYPE_INT \
+				or typeof(rec.get("pos")) != TYPE_ARRAY or typeof(rec.get("health")) != TYPE_INT:
+			return _restore_fail("breach record")
+		var piece: int = rec["piece"]
+		var ticks: int = rec["ticks"]
+		var health: int = rec["health"]
+		var pos: Array = rec["pos"]
+		if not pieces.has(piece) or ticks < 1 or ticks > 1_000_000 or health < 0 or pos.size() != 3 \
+				or typeof(pos[0]) != TYPE_INT or typeof(pos[1]) != TYPE_INT or typeof(pos[2]) != TYPE_INT:
+			return _restore_fail("breach record range")
+		var px: int = pos[0]
+		var py: int = pos[1]
+		var pz: int = pos[2]
+		breaching[actor] = {"piece": piece, "ticks": ticks, "pos": [px, py, pz] as Array[int], "health": health}
 	_pieces = pieces
 	_occupied = occupied
 	_holes = holes
+	_breaching = breaching
 	return OK
 
 
