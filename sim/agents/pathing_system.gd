@@ -109,12 +109,8 @@ func can_step(from: Vector3i, to: Vector3i) -> bool:
 	if _build.cell_piece_at(to) != EntityIds.NONE:
 		return false
 	var facing: String = ("p" if d.x > 0 else "n") + "x" if d.x != 0 else (("p" if d.y > 0 else "n") + "y" if d.y != 0 else ("p" if d.z > 0 else "n") + "z")
-	var piece: int = _build.face_piece_at(BuildSystem.face_key(from, facing))
-	if piece == EntityIds.NONE:
-		return true
-	var kind: Dictionary = _build.kind_data(piece)
-	var passable: bool = kind["passable"]
-	return passable
+	# a solid piece or a closed opening stops the step (M6 claim 3)
+	return not _build.blocks_passage(BuildSystem.face_key(from, facing))
 
 
 # ---------------------------------------------------------------- requests

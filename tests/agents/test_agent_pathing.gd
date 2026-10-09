@@ -223,7 +223,8 @@ func _joined(from: Vector3i, to: Vector3i) -> bool:
 			if piece != EntityIds.NONE:
 				var kind: Dictionary = _build.kind_data(piece)
 				var passable: bool = kind["passable"]
-				if not passable:
+				# M6 claim 3: an opening joins its cells only while it is open
+				if not passable or not _build.is_open(piece):
 					continue
 			seen[key] = true
 			queue.append(n)

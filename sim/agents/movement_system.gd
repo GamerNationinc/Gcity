@@ -2,8 +2,8 @@
 ## {actor, dx, dz}`, moves a live actor by integer millimetres, capped by its profile's
 ## `speed_mm_per_tick`, on its storey (y never changes here; climbing is M6 claim 2). A
 ## move is rejected when it would enter a cell nobody can stand in (a solid piece fills
-## it, or nothing holds it up: M6 claim 1), cross a face that carries a non-passable
-## piece, or enter a parcel the actor may not `enter` (a land violation). A profile with
+## it, or nothing holds it up: M6 claim 1), cross a face that carries a solid piece or
+## a closed opening (M6 claim 3), or enter a parcel the actor may not `enter` (a land violation). A profile with
 ## the `drop` move may step into a cell with nothing under it (ADR-011 C).
 ##
 ## Gravity (M6 claim 1): every tick, an actor (living or dead) whose cell is not
@@ -252,14 +252,10 @@ func _advance_move(actor: int) -> void:
 	assert(err == OK, "a destination cell in range is in range")
 
 
-## Whether the face carries a piece that stops a body (a wall, a closed window later).
+## Whether the face carries a piece that stops a body: a solid piece or a closed
+## opening (M6 claim 3).
 func _blocks(face: String) -> bool:
-	var piece: int = _build.face_piece_at(face)
-	if piece == EntityIds.NONE:
-		return false
-	var k: Dictionary = _build.kind_data(piece)
-	var passable: bool = k["passable"]
-	return not passable
+	return _build.blocks_passage(face)
 
 
 static func _direction(facing: String) -> Vector3i:
@@ -357,12 +353,8 @@ func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 			return false
 		var d: Vector3i = to_cell - from_cell
 		var facing: String = "px" if d.x > 0 else ("nx" if d.x < 0 else ("pz" if d.z > 0 else "nz"))
-		var piece: int = _build.face_piece_at(BuildSystem.face_key(from_cell, facing))
-		if piece != EntityIds.NONE:
-			var k: Dictionary = _build.kind_data(piece)
-			var passable: bool = k["passable"]
-			if not passable:
-				return false
+		if _build.blocks_passage(BuildSystem.face_key(from_cell, facing)):
+			return false
 	if _land.parcel_at(to) != _land.parcel_at(from):
 		if not _land.require(to, actor, &"enter"):
 			return false
