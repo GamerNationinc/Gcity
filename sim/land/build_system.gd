@@ -25,6 +25,9 @@ const COMMAND_BREACH: StringName = &"build.breach"
 ## {actor, piece, removed} from a player's breach (M6 claim 4); raid tokens emit the
 ## same event with `token` in place of `actor`.
 const EVENT_BREACHED: StringName = &"build.breached"
+## A breach under way makes its material's breach_reach_mm of noise on its first tick
+## and every this many ticks after (M6 claim 5).
+const BREACH_NOISE_EVERY: int = 40
 const COMMAND_OPEN: StringName = &"opening.open"
 const COMMAND_CLOSE: StringName = &"opening.close"
 ## {piece, open, actor}: an opening changed state (M6 claim 3); sensors and run records
@@ -105,6 +108,11 @@ func tick(_sim: SimRoot) -> void:
 			_breaching.erase(actor)
 			continue
 		var ticks: int = rec["ticks"]
+		var total: int = _breach_ticks(piece)
+		if (total - ticks) % BREACH_NOISE_EVERY == 0:
+			var m: Dictionary = _content.get_entry(KIND_MATERIAL, material_of(piece))
+			var reach: int = m["breach_reach_mm"]
+			_events.emit(PerceptionSystem.EVENT_NOISE, {"source": actor, "x": px, "y": py, "z": pz, "loudness": reach})
 		ticks -= 1
 		if ticks > 0:
 			rec["ticks"] = ticks
@@ -615,6 +623,11 @@ func start_breach(actor: int, id: int) -> bool:
 	var pos: Vector3i = _actors.position_of(actor)
 	_breaching[actor] = {"piece": id, "ticks": ticks, "pos": [pos.x, pos.y, pos.z] as Array[int], "health": _health_total(actor)}
 	return true
+
+
+func _breach_ticks(piece: int) -> int:
+	var m: Dictionary = _content.get_entry(KIND_MATERIAL, material_of(piece))
+	return m["breach_ticks"]
 
 
 func _health_total(actor: int) -> int:

@@ -165,3 +165,19 @@ func test_whoever_stands_on_a_breached_floor_falls_through() -> void:
 	_sim.step_n(_ticks_of(floor_id) + 12)
 	assert_false(_build.has_piece(floor_id), "the floor is out")
 	assert_eq(BuildSystem.storey_of(_actors.position_of(guard)), 0, "the guard dropped to the ground")
+
+
+func test_a_breach_makes_its_material_noise_every_40_ticks() -> void:
+	# M6 claim 5: heard at the material's breach_reach_mm from where the breacher stands
+	_setup()
+	var wall: int = _wall(FAR)
+	var heard: Array[Dictionary] = []
+	SimAssembly.combat_of(_sim).events().subscribe(PerceptionSystem.EVENT_NOISE, func(p: Dictionary) -> void: heard.append(p))
+	var ticks: int = _ticks_of(wall)
+	assert_true(_do(&"build.breach", {"actor": _player, "piece": wall}), "started")
+	_sim.step_n(ticks)
+	var m: Dictionary = _db.get_entry(&"material", &"scrap_steel")
+	var reach: int = m["breach_reach_mm"]
+	var at: Vector3i = _actors.position_of(_player)
+	assert_eq(heard.size(), ticks / BuildSystem.BREACH_NOISE_EVERY, "one noise per 40 ticks of the breach")
+	assert_eq(heard[0], {"source": _player, "x": at.x, "y": at.y, "z": at.z, "loudness": reach}, "the material's reach, at the breacher")

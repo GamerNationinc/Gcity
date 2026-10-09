@@ -117,8 +117,10 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards Â
    allowed here, so the violation is recorded (heat, claim 11) and the breach goes ahead.
 5. **Noise is an event.** `noise.emitted {source, x, y, z, loudness}` is one bus event
    that perception hears with its existing hearing model. `combat.fire` now emits
-   through it, with the same numbers. The new sources are a breach (the material's
-   `breach_noise`, which is now heard), a forced opening and the hack (claim 9).
+   through it, with the same numbers. The new sources are a breach (heard at the
+   material's new `breach_reach_mm` every 40 ticks while it runs; `breach_noise` stays the
+   portal graph's pricing weight, not a distance), a forced opening (which is a breach of
+   that opening), a landing, and the hack (claim 9).
    Sound does not cross more than one storey, and each storey crossed costs a
    content-defined attenuation.
 6. **Perception and pathing know storeys.** Sight is the existing line walk extended to
