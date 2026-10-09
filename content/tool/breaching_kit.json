@@ -1,0 +1,6 @@
+{
+	"schema_version": 1,
+	"description": "Shaped charges and a rotary hammer: breaks reinforced concrete, loudly.",
+	"tool_class": "breacher",
+	"tags": ["tool", "tool.breacher"]
+}

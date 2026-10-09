@@ -24,7 +24,9 @@ const KIND_CALIBRE: StringName = &"calibre"
 const KIND_DEVICE_FRAME: StringName = &"device_frame"
 const KIND_DEVICE_MODULE: StringName = &"device_module"
 const KIND_DEVICE_SOCKET: StringName = &"device_socket"
-const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE]
+## A wieldable tool that breaches (M6 spec claim 4).
+const KIND_TOOL: StringName = &"tool"
+const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_TOOL]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
 const COMMAND_LOAD: StringName = &"magazine.load"
@@ -260,6 +262,14 @@ func carries_tag(actor: int, tag: StringName) -> bool:
 		if _stats.get_tags(item).has(tag):
 			return true
 	return false
+
+
+## The tool class a tool item breaches with; &"" for any other item.
+func tool_class_of(item: int) -> StringName:
+	if item_kind(item) != KIND_TOOL:
+		return &""
+	var t: Dictionary = _content.get_entry(KIND_TOOL, item_template(item))
+	return _as_name(t["tool_class"])
 
 
 ## Items in a container, bottom to top. A copy.

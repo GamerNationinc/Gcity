@@ -1,0 +1,6 @@
+{
+	"schema_version": 1,
+	"description": "A handheld plasma cutter: cuts steel walls, doors and grates.",
+	"tool_class": "cutter",
+	"tags": ["tool", "tool.cutter"]
+}
