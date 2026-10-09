@@ -151,3 +151,16 @@ func test_a_tool_can_be_wielded_and_reports_its_class() -> void:
 	assert_eq(_actors.wielded_tool_class(a), &"", "a pistol is no tool")
 	var loose: int = _items.spawn(&"tool", &"breaching_kit", &"world", 3)
 	assert_false(_do(&"actor.wield", {"actor": a, "weapon": loose}), "not a tool lying in the world")
+
+
+func test_a_wielded_tool_survives_the_restore() -> void:
+	# regression: 007e8df let a tool be wielded but restore refused it
+	_build()
+	var a: int = _actors.spawn(&"arcade", 0)
+	var cutter: int = _items.spawn(&"tool", &"plasma_cutter", ItemSystem.inventory_of(a), 1)
+	assert_true(_do(&"actor.wield", {"actor": a, "weapon": cutter}), "wield the cutter")
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, _sim.snapshot()), OK, "restores")
+	assert_eq(SimAssembly.actors_of(other).wielded(a), cutter, "still in hand")

@@ -397,7 +397,8 @@ func restore(state: Dictionary) -> Error:
 			health[node] = hp_v
 		var wielded_v: int = rec["wielded"]
 		var actor_id: int = ak
-		if wielded_v != EntityIds.NONE and (_items.item_kind(wielded_v) != ItemSystem.KIND_FRAME or _items.container_of(wielded_v) != ItemSystem.inventory_of(actor_id)):
+		var wielded_kind: StringName = _items.item_kind(wielded_v)
+		if wielded_v != EntityIds.NONE and ((wielded_kind != ItemSystem.KIND_FRAME and wielded_kind != ItemSystem.KIND_TOOL) or _items.container_of(wielded_v) != ItemSystem.inventory_of(actor_id)):
 			return _restore_fail("actor %d wields something it does not hold" % ak)
 		var device_v: int = rec["device"]
 		if device_v != EntityIds.NONE and (_items.item_kind(device_v) != ItemSystem.KIND_DEVICE_FRAME or _items.container_of(device_v) != ItemSystem.inventory_of(actor_id)):
