@@ -253,6 +253,15 @@ func container_of(item: int) -> StringName:
 	return _location.get(item, &"")
 
 
+## Whether an item directly in the actor's inventory carries `tag` (M6 claims 3, 10:
+## the credential a lock names). Items inside magazines or sockets do not count.
+func carries_tag(actor: int, tag: StringName) -> bool:
+	for item: int in items_in(inventory_of(actor)):
+		if _stats.get_tags(item).has(tag):
+			return true
+	return false
+
+
 ## Items in a container, bottom to top. A copy.
 func items_in(container: StringName) -> Array[int]:
 	var out: Array[int] = []
