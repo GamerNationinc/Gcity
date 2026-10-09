@@ -308,6 +308,8 @@ func _land_at(actor: int, pos: Vector3i) -> void:
 	if _actors.is_alive(actor):
 		damage = _actors.damage_node(actor, StringName(node), maxi(0, storeys - free) * per)
 	_events.emit(EVENT_LANDED, {"actor": actor, "storeys": storeys, "damage": damage})
+	var noise_per: int = fall["noise_per_storey"]
+	_events.emit(PerceptionSystem.EVENT_NOISE, {"source": actor, "x": pos.x, "y": pos.y, "z": pos.z, "loudness": noise_per * storeys})
 
 
 func speed_of(actor: int) -> int:

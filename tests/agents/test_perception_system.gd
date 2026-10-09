@@ -65,6 +65,14 @@ func _do(kind: StringName, payload: Dictionary) -> bool:
 	return _sim.dispatched_count() == before + 1
 
 
+## The noise a shot from `weapon` makes where `shooter` stands (M6 claim 5: combat emits
+## exactly this before combat.fire).
+func _shot(shooter: int, weapon: int) -> void:
+	var at: Vector3i = _actors.position_of(shooter)
+	var loudness: int = SimAssembly.stats_of(_sim).resolve(weapon, &"noise")
+	_events.emit(PerceptionSystem.EVENT_NOISE, {"source": shooter, "x": at.x, "y": at.y, "z": at.z, "loudness": loudness})
+
+
 func _ticks_to_alert(observer: int, contact: int, limit: int) -> int:
 	for i: int in limit:
 		_sim.step()
@@ -204,7 +212,7 @@ func test_metamorphic_reduced_perception_never_lowers_time_to_alert() -> void:
 		var threshold: int = rng.randi_range(1, 1000000)
 		var base: Dictionary = {"schema_version": 1, "description": "generated", "sight_range_mm": range_mm, "fov_deg": fov,
 			"gain_per_tick": gain, "speed_gain_per_mm_per_tick": speed_gain, "decay_per_tick": rng.randi_range(0, 5000),
-			"alert_threshold": threshold, "memory_ticks": 10, "hearing_range_mm": 0, "hearing_gain": 0}
+			"alert_threshold": threshold, "memory_ticks": 10, "hearing_range_mm": 0, "hearing_gain": 0, "hearing_storey_loss_mm": 0}
 		var less: Dictionary = base.duplicate()
 		less["sight_range_mm"] = rng.randi_range(1, range_mm)
 		less["fov_deg"] = rng.randi_range(1, fov)
@@ -398,7 +406,7 @@ func test_a_shot_is_heard_within_range_and_remembered_at_its_position() -> void:
 	var far: int = _guard(&"guard_sim", 80, 0, 180)  # 70 m: beyond both ranges
 	_actors.set_position(_player, _at(10, 0))
 	assert_false(_perception.can_see(near, _player), "the near guard faces away")
-	_events.emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": near, "round": 0, "tags": []})
+	_shot(_player, pistol)
 	assert_eq(_perception.awareness_of(near, _player), 500000, "heard: the hearing gain")
 	assert_eq(_perception.last_known(near, _player), _at(10, 0), "the shot's position")
 	assert_eq(_perception.memory_of(near, _player), 400, "memory set")
@@ -409,9 +417,9 @@ func test_a_shot_is_heard_within_range_and_remembered_at_its_position() -> void:
 	_sim.step()
 	assert_eq(_perception.awareness_of(near, _player), 490000, "decays afterwards")
 	assert_eq(_perception.memory_of(near, _player), 399, "memory counts down while unseen")
-	_events.emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": near, "round": 0, "tags": []})
+	_shot(_player, pistol)
 	assert_eq(_perception.awareness_of(near, _player), 990000, "a second shot adds the gain again")
-	_events.emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": near, "round": 0, "tags": []})
+	_shot(_player, pistol)
 	_sim.step()
 	assert_true(_perception.is_alerted(near, _player), "a third shot crosses the threshold")
 	assert_eq(_alerts.size(), 1, "alerted by ear")
@@ -488,3 +496,35 @@ func test_restore_round_trip_and_rejections() -> void:
 	bad["alerts"] = -1
 	assert_eq(perception.restore(bad), ERR_INVALID_DATA, "a negative counter")
 	assert_eq(perception.snapshot(), state, "rejections leave the state untouched")
+
+
+func test_noise_crosses_one_storey_at_a_loss_and_never_two() -> void:
+	# M6 claim 5: the same noise, heard on its storey, one storey off at a shorter reach,
+	# and not at all two storeys off
+	_setup()
+	var g: int = _guard(&"guard_sim", 30, 0, 180)  # 20 m from the player, facing away
+	var p: Dictionary = _perception.perception_of(g)
+	var loss: int = p["hearing_storey_loss_mm"]
+	var noise: Callable = func(dy: int, reach: int) -> void:
+		var at: Vector3i = _actors.position_of(_player) + Vector3i(0, dy * BuildSystem.STOREY_MM, 0)
+		_events.emit(PerceptionSystem.EVENT_NOISE, {"source": _player, "x": at.x, "y": at.y, "z": at.z, "loudness": reach})
+	noise.call(0, 20_500)
+	assert_eq(_perception.awareness_of(g, _player), 500000, "heard on the same storey at 20 m")
+	_setup()
+	g = _guard(&"guard_sim", 30, 0, 180)
+	noise.call(1, 20_500)
+	assert_eq(_perception.awareness_of(g, _player), 0, "one storey up, the loss puts it out of reach")
+	noise.call(1, 20_500 + loss)
+	assert_eq(_perception.awareness_of(g, _player), 500000, "louder by the loss: heard")
+	_setup()
+	g = _guard(&"guard_sim", 30, 0, 180)
+	noise.call(2, 1_000_000)
+	assert_eq(_perception.awareness_of(g, _player), 0, "never across two storeys")
+
+
+func test_a_landing_is_heard() -> void:
+	_setup()
+	var g: int = _guard(&"guard_sim", 14, 0, 180)  # 4 m away, facing away
+	_actors.set_position(_player, _at(10, 0) + Vector3i(0, 2 * BuildSystem.STOREY_MM, 0))
+	_sim.step_n(30)
+	assert_true(_perception.awareness_of(g, _player) > 0, "a two-storey drop next to it was heard")

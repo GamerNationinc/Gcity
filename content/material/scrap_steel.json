@@ -5,5 +5,6 @@
 	"breach_tool": "cutter",
 	"breach_noise": 700,
 	"breach_ticks": 400,
+	"breach_reach_mm": 40000,
 	"max_span": 4
 }

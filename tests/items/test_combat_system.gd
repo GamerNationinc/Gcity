@@ -278,3 +278,19 @@ func test_an_actor_in_the_air_cannot_fire() -> void:
 	_sim.step_n(30)
 	assert_false(SimAssembly.movement_of(_sim).is_falling(_player), "landed")
 	assert_true(_fire(), "a shot once landed")
+
+
+func test_a_shot_makes_its_noise_where_the_shooter_stands() -> void:
+	# M6 claim 5: the weapon's resolved noise, emitted before combat.fire
+	_build()
+	_range()
+	var heard: Array[Dictionary] = []
+	var order: Array[StringName] = []
+	_combat.events().subscribe(PerceptionSystem.EVENT_NOISE, func(p: Dictionary) -> void:
+		heard.append(p)
+		order.append(PerceptionSystem.EVENT_NOISE))
+	_combat.events().subscribe(CombatSystem.EVENT_FIRE, func(_p: Dictionary) -> void: order.append(CombatSystem.EVENT_FIRE))
+	assert_true(_fire(), "fired")
+	var at: Vector3i = _actors.position_of(_player)
+	assert_eq(heard, [{"source": _player, "x": at.x, "y": at.y, "z": at.z, "loudness": _stats.resolve(_pistol, &"noise")}] as Array[Dictionary], "one noise at the shooter")
+	assert_eq(order, [PerceptionSystem.EVENT_NOISE, CombatSystem.EVENT_FIRE] as Array[StringName], "the noise first")

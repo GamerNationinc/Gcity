@@ -9,5 +9,6 @@
 	"alert_threshold": 1000000,
 	"memory_ticks": 400,
 	"hearing_range_mm": 60000,
-	"hearing_gain": 500000
+	"hearing_gain": 500000,
+	"hearing_storey_loss_mm": 20000
 }

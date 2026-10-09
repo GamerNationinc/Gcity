@@ -19,6 +19,8 @@ const STAGE_ROUTING: StringName = &"routing"
 const STAT_HIT_CHANCE: StringName = &"hit_chance"
 const STAT_DAMAGE: StringName = &"damage"
 const STAT_CYCLE_TICKS: StringName = &"cycle_ticks"
+## How far a shot carries, in mm: the loudness of its noise.emitted (M6 claim 5)
+const STAT_NOISE: StringName = &"noise"
 ## The reason recorded on a shot that ran no stages: the shooter could not see the
 ## target (M4 spec claim 7). "" on any other shot.
 const REASON_NO_LOS: String = "no_los"
@@ -225,6 +227,9 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 	_damage_dealt += applied
 	_last = {"tick": ctx["tick"], "shooter": shooter, "weapon": weapon, "target": target, "round": round,
 		"hit": hit, "damage": ctx["applied"], "node": ctx["node"], "chance": ctx["chance"], "killed": killed, "reason": reason}
+	# the shot's noise first, so perception hears it before anything reacts to the shot
+	var at: Vector3i = _actors.position_of(shooter)
+	_events.emit(PerceptionSystem.EVENT_NOISE, {"source": shooter, "x": at.x, "y": at.y, "z": at.z, "loudness": _stats.resolve(weapon, STAT_NOISE)})
 	_events.emit(EVENT_FIRE, {"shooter": shooter, "weapon": weapon, "target": target, "round": round, "tags": tags})
 	if hit:
 		_events.emit(EVENT_HIT, {"shooter": shooter, "weapon": weapon, "target": target, "node": ctx["node"],

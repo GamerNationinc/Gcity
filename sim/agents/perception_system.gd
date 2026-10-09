@@ -1,8 +1,9 @@
 ## Perception is a process, not a check (design doc §14.1; M4 spec claims 1–5). An
 ## agent is an actor with an `agent_profile`; every tick it gains integer awareness of
 ## each contact it can see (a cone, a range and an integer line walk over the build
-## grid) and loses it while it cannot, hears shots as `combat.fire` events within the
-## smaller of its hearing range and the shot's loudness, keeps a last-known position
+## grid) and loses it while it cannot, hears `noise.emitted` events (shots, breaches,
+## landings: M6 claim 5) within the smaller of its hearing range and the noise's
+## loudness, at most one storey away and less far across one, keeps a last-known position
 ## for a while, and emits `perception.alerted` once each time awareness crosses its
 ## profile's threshold. Facing is integer degrees about y: 0 looks along +x, 90 along
 ## +z. Owns `agent.spawn` and `agent.set_profile` (debug-class, G1 debt item 4).
@@ -15,6 +16,9 @@ const KIND_ROUTE: StringName = &"patrol_route"
 const COMMAND_SPAWN: StringName = &"agent.spawn"
 const COMMAND_SET_PROFILE: StringName = &"agent.set_profile"
 const EVENT_ALERTED: StringName = &"perception.alerted"
+## {source: actor, x, y, z: mm, loudness: mm it carries} (M6 claim 5): every sound in
+## the sim, emitted by whoever makes it, heard here.
+const EVENT_NOISE: StringName = &"noise.emitted"
 const STAT_NOISE: StringName = &"noise"
 const AWARENESS_MAX: int = 1_000_000
 ## The longest line walk accepted, in cells; sight ranges are at most 100 m.
@@ -72,7 +76,7 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.commands().register(COMMAND_SET_PROFILE, _on_set_profile)
 	if err != OK:
 		return err
-	return _events.subscribe(CombatSystem.EVENT_FIRE, _on_fire)
+	return _events.subscribe(EVENT_NOISE, _on_noise)
 
 
 ## Every agent profile binds profiles that exist, and the noise stat is registered.
@@ -431,22 +435,30 @@ func _same_squad(a: int, b: int) -> bool:
 	return squad > 0 and squad == squad_of(b)
 
 
-## A shot is heard by every agent within the smaller of its hearing range and the
-## weapon's resolved `noise`: awareness of the shooter rises by `hearing_gain` and the
-## shot's position becomes the last-known position (spec claim 4).
-func _on_fire(payload: Dictionary) -> void:
-	var shooter: int = payload["shooter"]
-	var weapon: int = payload["weapon"]
+## A noise is heard by every agent within the smaller of its hearing range and the
+## noise's loudness, on the noise's storey or one away, less that profile's
+## hearing_storey_loss_mm across a storey (M6 claim 5): awareness of the source rises by
+## `hearing_gain` and the noise's position becomes the last-known position.
+func _on_noise(payload: Dictionary) -> void:
+	var shooter: int = payload["source"]
+	var loudness: int = payload["loudness"]
+	var x: int = payload["x"]
+	var y: int = payload["y"]
+	var z: int = payload["z"]
 	if not _actors.is_alive(shooter):
 		return
-	var loudness: int = _stats.resolve(weapon, STAT_NOISE)
-	var origin: Vector3i = _actors.position_of(shooter)
+	var origin: Vector3i = Vector3i(x, y, z)
+	var storey: int = BuildSystem.storey_of(origin)
 	for observer: int in agent_ids():
 		if observer == shooter or not _actors.is_alive(observer) or _same_squad(observer, shooter):
 			continue
 		var p: Dictionary = perception_of(observer)
 		var hearing: int = p["hearing_range_mm"]
-		if distance_mm(_actors.position_of(observer), origin) > mini(hearing, loudness):
+		var storeys: int = absi(BuildSystem.storey_of(_actors.position_of(observer)) - storey)
+		if storeys > 1:
+			continue
+		var loss: int = p["hearing_storey_loss_mm"]
+		if distance_mm(_actors.position_of(observer), origin) > mini(hearing, loudness) - storeys * loss:
 			continue
 		var stored: Variant = _contacts.get(observer)
 		var table: Dictionary = stored if typeof(stored) == TYPE_DICTIONARY else {}

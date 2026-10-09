@@ -137,13 +137,21 @@ func test_detection_delay_then_the_first_shot_goes_through_the_command_path() ->
 	assert_eq(_sim.rejected_count(), 0, "readiness is checked before every submission")
 
 
+## The noise a shot from `weapon` makes where `shooter` stands (M6 claim 5: combat emits
+## exactly this before combat.fire).
+func _shot(shooter: int, weapon: int) -> void:
+	var at: Vector3i = _actors.position_of(shooter)
+	var loudness: int = SimAssembly.stats_of(_sim).resolve(weapon, &"noise")
+	_combat.events().emit(PerceptionSystem.EVENT_NOISE, {"source": shooter, "x": at.x, "y": at.y, "z": at.z, "loudness": loudness})
+
+
 func test_a_heard_shot_is_investigated_then_forgotten_back_to_hold() -> void:
 	_setup()
 	var guard: int = _perception.spawn(&"guard_sim", _cell(0, 0), 180, 1, "")  # facing away
 	_actors.set_position(_player, _at(10, 0))
 	var pistol: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(_player), 1)
 	_sim.step_n(48)  # past the minimum stance duration of the starting hold
-	_combat.events().emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": guard, "round": 0, "tags": []})
+	_shot(_player, pistol)
 	_actors.set_position(_player, FAR + Vector3i(-40 * M, 0, -40 * M))  # gone before anyone looks
 	_sim.step_n(StanceSystem.SCORE_EVERY)
 	assert_eq(_stances.stance_of(guard), &"investigate", "a noise with nothing in sight: investigate")
@@ -197,11 +205,11 @@ func test_hysteresis_keeps_a_stance_for_its_minimum_duration() -> void:
 	_actors.set_position(_player, _at(10, 0))
 	var pistol: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(_player), 1)
 	_sim.step_n(10)
-	_combat.events().emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": guard, "round": 0, "tags": []})
+	_shot(_player, pistol)
 	_sim.step_n(StanceSystem.SCORE_EVERY)
 	assert_eq(_stances.stance_of(guard), &"hold", "investigate would win, but hold has not run its minimum")
 	_sim.step_n(12)
-	_combat.events().emit(CombatSystem.EVENT_FIRE, {"shooter": _player, "weapon": pistol, "target": guard, "round": 0, "tags": []})  # a second shot keeps the noise worth a look
+	_shot(_player, pistol)  # a second shot keeps the noise worth a look
 	_sim.step_n(StanceSystem.MIN_STANCE_TICKS - 12)
 	assert_eq(_stances.stance_of(guard), &"investigate", "after the minimum it switches")
 

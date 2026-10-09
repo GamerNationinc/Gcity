@@ -12,8 +12,9 @@
 		"alert_threshold": {"type": "int", "min": 1, "max": 1000000},
 		"memory_ticks": {"type": "int", "min": 0, "max": 1000000},
 		"hearing_range_mm": {"type": "int", "min": 0, "max": 100000},
-		"hearing_gain": {"type": "int", "min": 0, "max": 1000000}
+		"hearing_gain": {"type": "int", "min": 0, "max": 1000000},
+		"hearing_storey_loss_mm": {"type": "int", "min": 0, "max": 1000000}
 	},
-	"required": ["schema_version", "description", "sight_range_mm", "fov_deg", "gain_per_tick", "speed_gain_per_mm_per_tick", "decay_per_tick", "alert_threshold", "memory_ticks", "hearing_range_mm", "hearing_gain"],
+	"required": ["schema_version", "description", "sight_range_mm", "fov_deg", "gain_per_tick", "speed_gain_per_mm_per_tick", "decay_per_tick", "alert_threshold", "memory_ticks", "hearing_range_mm", "hearing_gain", "hearing_storey_loss_mm"],
 	"additional_properties": false
 }

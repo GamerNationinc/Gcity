@@ -43,7 +43,7 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `device_socket` | M5 | `description` |
 | `device_module` | M5 | `socket` (ref), `fits` (device_frame refs), `modifiers`, `provides` (tags) |
 | `combat_stage` | M1 | `description` (a name code may implement) |
-| `perception_profile` | M4 | `sight_range_mm`, `fov_deg`, `gain_per_tick`, `speed_gain_per_mm_per_tick`, `decay_per_tick`, `alert_threshold`, `memory_ticks`, `hearing_range_mm`, `hearing_gain` (all int) |
+| `perception_profile` | M4 | `sight_range_mm`, `fov_deg`, `gain_per_tick`, `speed_gain_per_mm_per_tick`, `decay_per_tick`, `alert_threshold`, `memory_ticks`, `hearing_range_mm`, `hearing_gain`, `hearing_storey_loss_mm` (M6) (all int) |
 | `aim_profile` | M4 | `cone_start_mdeg`, `cone_settled_mdeg`, `settle_ticks`, `swing_penalty_mdeg`, `swing_ticks`, `penalty_per_mdeg` (all int) |
 | `stress_profile` | M4 | `near_miss_mm`, `gain_fired_at`, `gain_hit`, `gain_squadmate_down`, `decay_per_tick`, `break_threshold`, `rout_threshold`, `hit_penalty_at_max` (all int) |
 | `stance` | M4 | `description` (a name the sim registers a scorer for) |
