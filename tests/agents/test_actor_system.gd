@@ -135,3 +135,19 @@ func test_a_fall_node_that_is_not_a_health_node_stops_assembly() -> void:
 	fall["node"] = "left_leg"
 	assert_eq(db.add(&"combat_profile", &"zz_falls_on_nothing", bad), OK, "db takes the shape")
 	assert_true(SimAssembly.build(SEED, db) == null, "assembly refuses it")
+
+
+func test_a_tool_can_be_wielded_and_reports_its_class() -> void:
+	# M6 claim 4: a breach needs the material's tool class in hand
+	_build()
+	var a: int = _actors.spawn(&"arcade", 0)
+	var cutter: int = _items.spawn(&"tool", &"plasma_cutter", ItemSystem.inventory_of(a), 1)
+	assert_eq(_actors.wielded_tool_class(a), &"", "nothing in hand")
+	assert_true(_do(&"actor.wield", {"actor": a, "weapon": cutter}), "wield the cutter")
+	assert_eq(_actors.wielded(a), cutter, "in hand")
+	assert_eq(_actors.wielded_tool_class(a), &"cutter", "a cutter")
+	var pistol: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(a), 2)
+	assert_true(_do(&"actor.wield", {"actor": a, "weapon": pistol}), "swap to the pistol")
+	assert_eq(_actors.wielded_tool_class(a), &"", "a pistol is no tool")
+	var loose: int = _items.spawn(&"tool", &"breaching_kit", &"world", 3)
+	assert_false(_do(&"actor.wield", {"actor": a, "weapon": loose}), "not a tool lying in the world")

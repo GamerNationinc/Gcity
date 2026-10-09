@@ -162,6 +162,12 @@ func wielded(actor: int) -> int:
 
 
 ## The device an actor carries, or NONE.
+## The tool class of what the actor holds (M6 claim 4: a breach needs the material's),
+## or &"" when it holds no tool.
+func wielded_tool_class(actor: int) -> StringName:
+	return _items.tool_class_of(wielded(actor))
+
+
 func device_of(actor: int) -> int:
 	if not _actors.has(actor):
 		return EntityIds.NONE
@@ -291,7 +297,7 @@ func _on_spawn(_sim: SimRoot, payload: Dictionary) -> bool:
 	return id != EntityIds.NONE
 
 
-## {"actor": int, "weapon": int}: wield a weapon frame from the actor's inventory, or
+## {"actor": int, "weapon": int}: wield a weapon frame or a tool (M6 claim 4) from the actor's inventory, or
 ## 0 to unwield. The wielded weapon inherits the actor's tagged modifiers.
 func _on_wield(_sim: SimRoot, payload: Dictionary) -> bool:
 	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("weapon")) != TYPE_INT:
@@ -308,7 +314,8 @@ func _on_wield(_sim: SimRoot, payload: Dictionary) -> bool:
 		_stats.set_inherits(current, -1)
 		rec["wielded"] = EntityIds.NONE
 		return true
-	if _items.item_kind(weapon) != ItemSystem.KIND_FRAME or _items.container_of(weapon) != ItemSystem.inventory_of(actor):
+	var kind: StringName = _items.item_kind(weapon)
+	if (kind != ItemSystem.KIND_FRAME and kind != ItemSystem.KIND_TOOL) or _items.container_of(weapon) != ItemSystem.inventory_of(actor):
 		return false
 	if current == weapon:
 		return false
