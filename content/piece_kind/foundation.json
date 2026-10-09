@@ -6,5 +6,6 @@
 	"passable": false,
 	"target": false,
 	"climb_ticks": 0,
-	"mantle": false
+	"mantle": false,
+	"transparent": false
 }

@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "A steel street grate over a service shaft, bolted shut by the city: cut it, or carry a maintenance key.",
+	"kind": "grate",
+	"material": "scrap_steel",
+	"open_cost": 60,
+	"value": 0,
+	"starts_open": false,
+	"lock": "maintenance_key",
+	"latched": false
+}

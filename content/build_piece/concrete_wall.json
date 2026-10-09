@@ -4,5 +4,8 @@
 	"kind": "wall",
 	"material": "reinforced_concrete",
 	"open_cost": 0,
-	"value": 0
+	"value": 0,
+	"starts_open": false,
+	"lock": "",
+	"latched": false
 }

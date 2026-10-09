@@ -21,6 +21,11 @@ const KIND_TOOL: StringName = &"tool_class"
 const COMMAND_PLACE: StringName = &"build.place"
 const COMMAND_REMOVE: StringName = &"build.remove"
 const EVENT_CHANGED: StringName = &"build.changed"
+const COMMAND_OPEN: StringName = &"opening.open"
+const COMMAND_CLOSE: StringName = &"opening.close"
+## {piece, open, actor}: an opening changed state (M6 claim 3); sensors and run records
+## listen for it.
+const EVENT_OPENING: StringName = &"opening.changed"
 const STAT_HP: StringName = &"piece_hp"
 const STAT_NOISE: StringName = &"breach_noise"
 const CELL: int = 1000
@@ -44,10 +49,20 @@ var _land: LandSystem
 var _actors: ActorSystem
 var _events: EventBus
 ## piece id -> {"template": StringName, "cell": [x, y, z], "face": "" | "x,y,z|axis",
-##   "facing": "" | px/nx/pz/nz (a cell piece of orientation `facing`: M6 claim 2)}
+##   "facing": "" | px/nx/pz/nz (a cell piece of orientation `facing`: M6 claim 2),
+##   "open": bool (openings only; M6 claim 3)}
 var _pieces: Dictionary = {}
 ## derived: "x,y,z" -> piece id (cell pieces); "x,y,z|axis" -> piece id (face pieces)
 var _occupied: Dictionary = {}
+## ground faces ("x,-1,z|y") a piece has been set into: the ground there is cut for good,
+## so a cut grate leaves a hole (M6 claim 3)
+var _holes: Dictionary = {}
+## func(actor: int, tag: StringName) -> bool: the actor carries the credential (installed
+## at assembly from the item system); unset, every lock stays shut
+var _credential: Callable = Callable()
+## func(cell: Vector3i) -> bool: the cell is inside an enclosed volume (installed at
+## assembly from the portal graph); unset, every latch stays shut
+var _inside: Callable = Callable()
 
 
 func _init(content: ContentDb, stats: StatResolver, ids: EntityIds, land: LandSystem, actors: ActorSystem, events: EventBus) -> void:
@@ -68,7 +83,9 @@ func tick(_sim: SimRoot) -> void:
 
 
 func snapshot() -> Dictionary:
-	return {"pieces": _pieces.duplicate(true)}
+	var holes: Array = _holes.keys()
+	holes.sort()
+	return {"pieces": _pieces.duplicate(true), "holes": holes}
 
 
 func attach(sim: SimRoot) -> Error:
@@ -81,7 +98,21 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.commands().register(COMMAND_PLACE, _on_place)
 	if err != OK:
 		return err
+	err = sim.commands().register(COMMAND_OPEN, _on_open)
+	if err != OK:
+		return err
+	err = sim.commands().register(COMMAND_CLOSE, _on_close)
+	if err != OK:
+		return err
 	return sim.commands().register(COMMAND_REMOVE, _on_remove)
+
+
+func set_credential_check(check: Callable) -> void:
+	_credential = check
+
+
+func set_inside_check(check: Callable) -> void:
+	_inside = check
 
 
 # ---------------------------------------------------------------- content validation
@@ -111,8 +142,20 @@ func validate_content() -> Error:
 		var mantle: bool = k["mantle"]
 		if mantle and occupies != "cell":
 			return _content_fail("piece_kind/%s can be mantled but is not a cell" % kind)
+		var transparent: bool = k["transparent"]
+		if transparent and not passable:
+			return _content_fail("piece_kind/%s is transparent but not an opening" % kind)
 		if kind == &"foundation":
 			has_root = true
+	for template: StringName in _content.ids(KIND_PIECE):
+		var t: Dictionary = _content.get_entry(KIND_PIECE, template)
+		var tk: Dictionary = _content.get_entry(KIND_PIECE_KIND, LandSystem._as_name(t["kind"]))
+		var opening_kind: bool = tk["passable"]
+		var starts_open: bool = t["starts_open"]
+		var lock: String = t["lock"]
+		var latched: bool = t["latched"]
+		if not opening_kind and (starts_open or not lock.is_empty() or latched):
+			return _content_fail("build_piece/%s has an opening's state but is not an opening" % template)
 	if not has_root:
 		return _content_fail("piece_kind/foundation must exist: it is the root of support")
 	return OK
@@ -188,11 +231,14 @@ func is_standable(cell: Vector3i) -> bool:
 		return false
 	if cell.y == MIN_STOREY:
 		return true
-	if face_piece_at(face_key(cell, "ny")) != EntityIds.NONE:
-		return true
+	var under: String = face_key(cell, "ny")
+	var floor_id: int = face_piece_at(under)
+	if floor_id != EntityIds.NONE:
+		# an open horizontal opening is a hole (M6 claim 3)
+		return not is_open(floor_id)
 	if cell_piece_at(cell + Vector3i(0, -1, 0)) != EntityIds.NONE:
 		return true
-	return cell.y == GROUND_CELL_Y
+	return cell.y == GROUND_CELL_Y and not _holes.has(under)
 
 
 func has_piece(id: int) -> bool:
@@ -234,6 +280,69 @@ func kind_data(id: int) -> Dictionary:
 	if kind.is_empty():
 		return {}
 	return _content.get_entry(KIND_PIECE_KIND, kind)
+
+
+func is_open(id: int) -> bool:
+	if not _pieces.has(id):
+		return false
+	var record: Dictionary = _pieces[id]
+	return record["open"]
+
+
+## Whether the piece is an opening: a passable face whose state can change.
+func is_opening(id: int) -> bool:
+	var k: Dictionary = kind_data(id)
+	if k.is_empty():
+		return false
+	return k["passable"]
+
+
+## Whether the face stops a body: a solid piece, or an opening that is closed (M6
+## claim 3). Movement, climbing and pathing ask this.
+func blocks_passage(face: String) -> bool:
+	var id: int = face_piece_at(face)
+	if id == EntityIds.NONE:
+		return false
+	return not (is_opening(id) and is_open(id))
+
+
+## Whether the face stops sight: a solid piece, or a closed opening that is not
+## transparent (a window passes sight open or closed: M6 claim 3).
+func blocks_sight(face: String) -> bool:
+	var id: int = face_piece_at(face)
+	if id == EntityIds.NONE:
+		return false
+	if not is_opening(id):
+		return true
+	var k: Dictionary = kind_data(id)
+	var transparent: bool = k["transparent"]
+	return not is_open(id) and not transparent
+
+
+## Opens or closes an opening (M6 claim 3). The actor must be alive and stand in one of
+## the two cells the face separates. Opening a locked piece needs the credential carried;
+## opening a latched one, the actor's cell inside an enclosed volume. Returns false,
+## changing nothing, otherwise or when the piece is already in that state.
+func set_open(actor: int, id: int, open: bool) -> bool:
+	if not _actors.is_alive(actor) or not _pieces.has(id) or not is_opening(id) or is_open(id) == open:
+		return false
+	var here: Vector3i = cell_of(_actors.position_of(actor))
+	if not cells_of_piece(id).has(here):
+		return false
+	if open:
+		var t: Dictionary = _content.get_entry(KIND_PIECE, template_of(id))
+		var lock: String = t["lock"]
+		var latched: bool = t["latched"]
+		if not lock.is_empty():
+			if not _credential.is_valid() or not _credential.call(actor, StringName(lock)):
+				return false
+		elif latched:
+			if not _inside.is_valid() or not _inside.call(here):
+				return false
+	var record: Dictionary = _pieces[id]
+	record["open"] = open
+	_events.emit(EVENT_OPENING, {"piece": id, "open": open, "actor": actor})
+	return true
 
 
 ## The side a stair's foot is on ("" for every other piece).
@@ -400,12 +509,15 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 	var id: int = _ids.allocate()
 	var lower: Vector3i = cell if face.is_empty() else face_cells(face)[0]
 	var piece_facing: String = facing if face.is_empty() else ""
-	_pieces[id] = {"template": template, "cell": [lower.x, lower.y, lower.z] as Array[int], "face": face, "facing": piece_facing}
+	var starts_open: bool = t["starts_open"]
+	_pieces[id] = {"template": template, "cell": [lower.x, lower.y, lower.z] as Array[int], "face": face, "facing": piece_facing, "open": starts_open}
 	_occupied[face if not face.is_empty() else cell_key(cell)] = id
 	if not supported_set().has(id):
 		_occupied.erase(face if not face.is_empty() else cell_key(cell))
 		_pieces.erase(id)
 		return EntityIds.NONE
+	if not face.is_empty() and face.ends_with("|y") and lower.y == GROUND_CELL_Y - 1:
+		_holes[face] = true
 	var m: Dictionary = _content.get_entry(KIND_MATERIAL, material_of(id))
 	var hp: int = m["hp"]
 	var noise: int = m["breach_noise"]
@@ -484,6 +596,24 @@ func _on_place(_sim: SimRoot, payload: Dictionary) -> bool:
 	return place(actor, StringName(piece_s), Vector3i(x, y, z), facing) != EntityIds.NONE
 
 
+## {"actor": int, "piece": int}
+func _on_open(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("piece")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	var id: int = payload["piece"]
+	return set_open(actor, id, true)
+
+
+## {"actor": int, "piece": int}
+func _on_close(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("piece")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	var id: int = payload["piece"]
+	return set_open(actor, id, false)
+
+
 ## {"actor": int, "piece_id": int}
 func _on_remove(_sim: SimRoot, payload: Dictionary) -> bool:
 	if payload.size() != 2 or typeof(payload.get("actor")) != TYPE_INT or typeof(payload.get("piece_id")) != TYPE_INT:
@@ -496,7 +626,7 @@ func _on_remove(_sim: SimRoot, payload: Dictionary) -> bool:
 # ---------------------------------------------------------------- restore
 
 func restore(state: Dictionary) -> Error:
-	if state.size() != 1 or typeof(state.get("pieces")) != TYPE_DICTIONARY:
+	if state.size() != 2 or typeof(state.get("pieces")) != TYPE_DICTIONARY or typeof(state.get("holes")) != TYPE_ARRAY:
 		return _restore_fail("shape")
 	var pieces_in: Dictionary = state["pieces"]
 	var pieces: Dictionary = {}
@@ -507,8 +637,8 @@ func restore(state: Dictionary) -> Error:
 		if typeof(pk) != TYPE_INT or pk < 1 or typeof(pieces_in[pk]) != TYPE_DICTIONARY:
 			return _restore_fail("piece key or record")
 		var rec: Dictionary = pieces_in[pk]
-		if rec.size() != 4 or typeof(rec.get("cell")) != TYPE_ARRAY or typeof(rec.get("face")) != TYPE_STRING \
-				or typeof(rec.get("facing")) != TYPE_STRING:
+		if rec.size() != 5 or typeof(rec.get("cell")) != TYPE_ARRAY or typeof(rec.get("face")) != TYPE_STRING \
+				or typeof(rec.get("facing")) != TYPE_STRING or typeof(rec.get("open")) != TYPE_BOOL:
 			return _restore_fail("piece %d fields" % pk)
 		var template: StringName = LandSystem._as_name(rec.get("template"))
 		if not _content.has(KIND_PIECE, template):
@@ -529,6 +659,10 @@ func restore(state: Dictionary) -> Error:
 		var piece_facing: String = rec["facing"]
 		if (orientation == "facing") != LEVEL_FACINGS.has(piece_facing) or (orientation != "facing" and not piece_facing.is_empty()):
 			return _restore_fail("piece %d facing" % pk)
+		var piece_open: bool = rec["open"]
+		var opening: bool = k["passable"]
+		if piece_open and not opening:
+			return _restore_fail("piece %d is open but not an opening" % pk)
 		var key: String = ""
 		if occupies == "face":
 			var parts: PackedStringArray = face.split("|")
@@ -542,9 +676,23 @@ func restore(state: Dictionary) -> Error:
 		if occupied.has(key):
 			return _restore_fail("piece %d overlaps" % pk)
 		occupied[key] = pk
-		pieces[pk] = {"template": template, "cell": [cx, cy, cz] as Array[int], "face": face, "facing": piece_facing}
+		pieces[pk] = {"template": template, "cell": [cx, cy, cz] as Array[int], "face": face, "facing": piece_facing, "open": piece_open}
+	var holes_in: Array = state["holes"]
+	var holes: Dictionary = {}
+	for h: Variant in holes_in:
+		if typeof(h) != TYPE_STRING:
+			return _restore_fail("hole key")
+		var hk: String = h
+		var parts: PackedStringArray = hk.split("|")
+		var coords: PackedStringArray = parts[0].split(",") if parts.size() == 2 else PackedStringArray()
+		if parts.size() != 2 or parts[1] != "y" or coords.size() != 3 or not coords[0].is_valid_int() or coords[1] != str(GROUND_CELL_Y - 1) \
+				or not coords[2].is_valid_int() or absi(coords[0].to_int()) > MAX_CELL or absi(coords[2].to_int()) > MAX_CELL \
+				or hk != "%d,%d,%d|y" % [coords[0].to_int(), GROUND_CELL_Y - 1, coords[2].to_int()] or holes.has(hk):
+			return _restore_fail("hole %s is not a ground face" % hk)
+		holes[hk] = true
 	_pieces = pieces
 	_occupied = occupied
+	_holes = holes
 	return OK
 
 

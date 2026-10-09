@@ -227,6 +227,12 @@ func node_at(cell: Vector3i) -> int:
 	return node
 
 
+## Whether an air cell lies inside an enclosed volume: the latch side of an opening (M6
+## claim 3).
+func is_inside(cell: Vector3i) -> bool:
+	return node_at(cell) > EXTERIOR
+
+
 func node_ids() -> Array[int]:
 	var out: Array[int] = [EXTERIOR]
 	var keys: Array = _nodes.keys()

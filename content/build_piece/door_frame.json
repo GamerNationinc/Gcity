@@ -4,5 +4,8 @@
 	"kind": "door",
 	"material": "scrap_steel",
 	"open_cost": 40,
-	"value": 0
+	"value": 0,
+	"starts_open": true,
+	"lock": "",
+	"latched": false
 }

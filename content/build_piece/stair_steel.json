@@ -4,5 +4,8 @@
 	"kind": "stair",
 	"material": "scrap_steel",
 	"open_cost": 0,
-	"value": 0
+	"value": 0,
+	"starts_open": false,
+	"lock": "",
+	"latched": false
 }

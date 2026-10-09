@@ -1,9 +1,9 @@
 {
 	"schema_version": 1,
-	"description": "A solid horizontal face.",
+	"description": "A horizontal grate over a shaft: an opening that is stood on while closed and blocks sight (M6 claim 3).",
 	"occupies": "face",
 	"orientation": "horizontal",
-	"passable": false,
+	"passable": true,
 	"target": false,
 	"climb_ticks": 0,
 	"mantle": false,

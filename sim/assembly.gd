@@ -45,6 +45,8 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var portals: PortalGraph = PortalGraph.new(content, stats, build)
 	if portals.attach(sim, events) != OK:
 		return null
+	build.set_credential_check(items.carries_tag)
+	build.set_inside_check(portals.is_inside)
 	var movement: MovementSystem = MovementSystem.new(content, actors, land, build, events)
 	if movement.attach(sim) != OK:
 		return null
