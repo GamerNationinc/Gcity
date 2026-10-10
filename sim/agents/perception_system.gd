@@ -31,7 +31,8 @@ var _stats: StatResolver
 var _actors: ActorSystem
 var _build: BuildSystem
 var _events: EventBus
-## actor id -> {"profile": StringName, "facing": int (degrees), "squad": int, "route": String}
+## actor id -> {"profile": StringName, "facing": int (degrees), "squad": int, "route": String,
+##   "home": int (the facing it spawned with, which a sweep pans about: M6 claim 8)}
 var _agents: Dictionary = {}
 ## observer -> contact -> {"aw": int, "last": [x, y, z] or [], "memory": int, "alerted": bool}
 var _contacts: Dictionary = {}
@@ -363,6 +364,7 @@ func tick(sim: SimRoot) -> void:
 		if not _actors.is_alive(observer):
 			_contacts.erase(observer)
 			continue
+		_sweep(observer, sim.get_tick())
 		var p: Dictionary = perception_of(observer)
 		var stored: Variant = _contacts.get(observer)
 		var table: Dictionary = stored if typeof(stored) == TYPE_DICTIONARY else {}
@@ -541,7 +543,7 @@ func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: 
 	var c: int = BuildSystem.CELL
 	var err: Error = _actors.set_position(actor, Vector3i(cell.x * c + c / 2, cell.y * c, cell.z * c + c / 2))
 	assert(err == OK, "a cell within MAX_CELL is within MAX_COORD")
-	_agents[actor] = {"profile": profile, "facing": facing, "squad": squad, "route": route}
+	_agents[actor] = {"profile": profile, "facing": facing, "squad": squad, "route": route, "home": facing}
 	return actor
 
 
@@ -553,6 +555,40 @@ func set_facing(actor: int, facing: int) -> bool:
 	var rec: Dictionary = _agents[actor]
 	rec["facing"] = facing
 	return true
+
+
+## The facing a sweeping agent has at `tick` (M6 claim 8): its profile's sweep pans it
+## from `from_deg` to `to_deg` about its spawn facing and back over `period_ticks`, a
+## triangle wave on the tick count, so it is the same whenever it is asked. -1 when the
+## agent does not sweep.
+func sweep_facing(actor: int, tick: int) -> int:
+	if not _agents.has(actor):
+		return -1
+	var rec: Dictionary = _agents[actor]
+	var profile: StringName = rec["profile"]
+	var t: Dictionary = _content.get_entry(KIND_AGENT, profile)
+	var sweep: Dictionary = t["sweep"]
+	var period: int = sweep["period_ticks"]
+	if period <= 0:
+		return -1
+	var from_deg: int = sweep["from_deg"]
+	var to_deg: int = sweep["to_deg"]
+	var home: int = rec["home"]
+	var half: int = maxi(1, period / 2)
+	var phase: int = posmod(tick, period)
+	var offset: int
+	if phase < half:
+		offset = from_deg + (to_deg - from_deg) * phase / half
+	else:
+		offset = to_deg - (to_deg - from_deg) * (phase - half) / maxi(1, period - half)
+	return posmod(home + offset, 360)
+
+
+func _sweep(actor: int, tick: int) -> void:
+	var facing: int = sweep_facing(actor, tick)
+	if facing >= 0:
+		var rec: Dictionary = _agents[actor]
+		rec["facing"] = facing
 
 
 ## Swaps a live agent's profile. The actor's combat profile is fixed at spawn (its
@@ -619,18 +655,20 @@ func restore(state: Dictionary) -> Error:
 		var rec: Dictionary = agents_in[key]
 		if not _actors.has_actor(id):
 			return _restore_fail("agent %d is not an actor" % id)
-		if rec.size() != 4 or typeof(rec.get("profile")) != TYPE_STRING_NAME and typeof(rec.get("profile")) != TYPE_STRING \
-				or typeof(rec.get("facing")) != TYPE_INT or typeof(rec.get("squad")) != TYPE_INT or typeof(rec.get("route")) != TYPE_STRING:
+		if rec.size() != 5 or typeof(rec.get("profile")) != TYPE_STRING_NAME and typeof(rec.get("profile")) != TYPE_STRING \
+				or typeof(rec.get("facing")) != TYPE_INT or typeof(rec.get("squad")) != TYPE_INT or typeof(rec.get("route")) != TYPE_STRING \
+				or typeof(rec.get("home")) != TYPE_INT:
 			return _restore_fail("agent %d record" % id)
 		var profile_s: String = rec["profile"]
 		var facing: int = rec["facing"]
 		var squad: int = rec["squad"]
 		var route: String = rec["route"]
-		if not _content.has(KIND_AGENT, StringName(profile_s)) or facing < 0 or facing > 359 or squad < 0:
+		var home: int = rec["home"]
+		if not _content.has(KIND_AGENT, StringName(profile_s)) or facing < 0 or facing > 359 or squad < 0 or home < 0 or home > 359:
 			return _restore_fail("agent %d values" % id)
 		if not route.is_empty() and not _content.has(KIND_ROUTE, StringName(route)):
 			return _restore_fail("agent %d route" % id)
-		agents[id] = {"profile": StringName(profile_s), "facing": facing, "squad": squad, "route": route}
+		agents[id] = {"profile": StringName(profile_s), "facing": facing, "squad": squad, "route": route, "home": home}
 	var contacts_in: Dictionary = state["contacts"]
 	var contacts: Dictionary = {}
 	for key: Variant in contacts_in:

@@ -1,0 +1,14 @@
+{
+	"schema_version": 1,
+	"description": "A security camera: a 60 degree cone out to 25 m, quick to notice, no microphone (M6 claim 8).",
+	"sight_range_mm": 25000,
+	"fov_deg": 60,
+	"gain_per_tick": 62500,
+	"speed_gain_per_mm_per_tick": 100,
+	"decay_per_tick": 40000,
+	"alert_threshold": 1000000,
+	"memory_ticks": 120,
+	"hearing_range_mm": 0,
+	"hearing_gain": 0,
+	"hearing_storey_loss_mm": 0
+}

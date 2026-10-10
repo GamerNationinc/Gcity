@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "An agent is an actor with a combat profile, a perception profile, an aim profile, a stress profile and the stances it may choose with their weights plus its radio (M4 spec claims 1, 6, 8, 10, 11). 1000 is a neutral weight.",
+	"description": "An agent is an actor with a combat profile, a perception profile, an aim profile, a stress profile and the stances it may choose with their weights plus its radio (M4 spec claims 1, 6, 8, 10, 11). 1000 is a neutral weight. sweep pans the facing between two offsets from the spawn facing over period_ticks (0: no sweep; M6 claim 8, cameras).",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -59,6 +59,32 @@
 			"type": "int",
 			"min": 0,
 			"max": 100000
+		},
+		"sweep": {
+			"type": "object",
+			"properties": {
+				"from_deg": {
+					"type": "int",
+					"min": -180,
+					"max": 180
+				},
+				"to_deg": {
+					"type": "int",
+					"min": -180,
+					"max": 180
+				},
+				"period_ticks": {
+					"type": "int",
+					"min": 0,
+					"max": 100000
+				}
+			},
+			"required": [
+				"from_deg",
+				"to_deg",
+				"period_ticks"
+			],
+			"additional_properties": false
 		}
 	},
 	"required": [
@@ -70,7 +96,8 @@
 		"stress_profile",
 		"stances",
 		"radio",
-		"radio_latency_ticks"
+		"radio_latency_ticks",
+		"sweep"
 	],
 	"additional_properties": false
 }

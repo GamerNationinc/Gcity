@@ -16,5 +16,6 @@
 		}
 	],
 	"radio": true,
-	"radio_latency_ticks": 1
+	"radio_latency_ticks": 1,
+	"sweep": {"from_deg": 0, "to_deg": 0, "period_ticks": 0}
 }

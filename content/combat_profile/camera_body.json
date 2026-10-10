@@ -1,0 +1,15 @@
+{
+	"schema_version": 1,
+	"description": "A wall-mounted security camera: one fragile node, fixed in place (M6 claim 8).",
+	"stages": ["hit_roll", "damage", "routing"],
+	"range_falloff_per_m": 5000,
+	"speed_mm_per_tick": 0,
+	"mantle_ticks": 1,
+	"jump_ticks": 1,
+	"moves": ["walk"],
+	"fall": {"ticks_per_storey": 12, "free_storeys": 0, "damage_per_storey": 20000, "node": "body", "noise_per_storey": 20000},
+	"health": {
+		"nodes": [{"id": "body", "max": 20000, "fatal": true}],
+		"routing": [{"node": "body", "weight": 1}]
+	}
+}

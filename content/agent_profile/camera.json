@@ -1,0 +1,17 @@
+{
+	"schema_version": 1,
+	"description": "A security camera (M6 claim 8): an agent that only holds, carries no weapon and never moves, reports what it sees by radio, and pans 45 degrees either side of where it was mounted every 6 seconds.",
+	"combat_profile": "camera_body",
+	"perception_profile": "camera",
+	"aim_profile": "sentry_drone",
+	"stress_profile": "sentry_drone",
+	"stances": [
+		{
+			"stance": "hold",
+			"weight": 1000
+		}
+	],
+	"radio": true,
+	"radio_latency_ticks": 20,
+	"sweep": {"from_deg": -45, "to_deg": 45, "period_ticks": 240}
+}

@@ -27,9 +27,9 @@ func _db(radio: bool = true, latency: int = 20) -> ContentDb:
 	assert_eq(ContentLoader.load_all(db), OK, "content loads")
 	# a watcher that never fires or moves, so squads are tested without the stance layer acting
 	db.add(&"agent_profile", &"watcher", {"schema_version": 1, "description": "test", "combat_profile": "guard", "perception_profile": "guard_sim",
-		"aim_profile": "guard_sim", "stress_profile": "guard_sim", "stances": [{"stance": "surrender", "weight": 1000}], "radio": radio, "radio_latency_ticks": latency})
+		"aim_profile": "guard_sim", "stress_profile": "guard_sim", "stances": [{"stance": "surrender", "weight": 1000}], "radio": radio, "radio_latency_ticks": latency, "sweep": {"from_deg": 0, "to_deg": 0, "period_ticks": 0}})
 	db.add(&"agent_profile", &"mute", {"schema_version": 1, "description": "test", "combat_profile": "guard", "perception_profile": "guard_sim",
-		"aim_profile": "guard_sim", "stress_profile": "guard_sim", "stances": [{"stance": "surrender", "weight": 1000}], "radio": false, "radio_latency_ticks": 0})
+		"aim_profile": "guard_sim", "stress_profile": "guard_sim", "stances": [{"stance": "surrender", "weight": 1000}], "radio": false, "radio_latency_ticks": 0, "sweep": {"from_deg": 0, "to_deg": 0, "period_ticks": 0}})
 	return db
 
 
