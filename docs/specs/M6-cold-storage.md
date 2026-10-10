@@ -130,8 +130,9 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards Â
      paths cell by cell inside each volume on the way. This closes G4 debt 6.
    - Metamorphic relation: adding a closed door between an agent and a contact never
      raises the contact's awareness gain.
-   - Metamorphic relation: removing a floor piece never lengthens a path that existed
-     before.
+   - Metamorphic relation: removing a wall never lengthens the shortest path between two
+     cells that were already joined. (Corrected at claim 6: the draft said a floor, but
+     removing a floor takes away cells to stand on, so a path can grow or vanish.)
 7. **The portal graph rebuilds incrementally.** A `build.changed` marks only the volumes
    it touches as dirty. The flood fill reruns over the dirty set, and a whole-site spawn
    (claim 13) is one batched rebuild.
@@ -428,7 +429,7 @@ recorded in `docs/extending-sites.md`.
 | Every living actor standing or falling; falls land on time with the formula's damage | 10 000 build/move streams | `tests/agents/test_storey_movement.gd` |
 | Climb, mantle and jump: refused without the move or the geometry; never gain more than one storey | 10 000 | `tests/agents/test_moves.gd` |
 | Incremental portal rebuild equals full rebuild | 10 000 build/destroy sequences | `tests/nav/test_portal_incremental.gd` |
-| Closed door never raises awareness gain; removing a floor never lengthens a path | 10 000 each (metamorphic) | `tests/agents/test_storey_metamorphic.gd` |
+| Closed door never raises awareness gain; removing a wall never lengthens a path | 10 000 each (metamorphic) | `tests/agents/test_storey_metamorphic.gd` |
 | Hack: completes once, interrupted on every listed cause, slots never over-committed | 10 000 | `tests/items/test_hack.gd` |
 | Run counters equal a recount; multiplier monotone | 10 000 event streams | `tests/quests/test_contract_run.gd` |
 | Item conservation across death, corpse, recovery, take, drop, deliver | 10 000 | `tests/items/test_item_conservation.gd` |

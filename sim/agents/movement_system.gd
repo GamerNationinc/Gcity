@@ -142,12 +142,22 @@ func can_act(actor: int) -> bool:
 ## cell on its facing side) and its top (the cell above it); a ladder links the cells
 ## below and above its face. Returns false, changing nothing, when the actor cannot.
 func climb(actor: int, piece: int) -> bool:
-	if not _can_start(actor, MOVE_CLIMB) or not _build.has_piece(piece):
-		return false
-	var ticks: int = _build.climb_ticks_of(piece)
-	if ticks <= 0:
+	if not _can_start(actor, MOVE_CLIMB):
 		return false
 	var here: Vector3i = BuildSystem.cell_of(_actors.position_of(actor))
+	var to: Array[Vector3i] = climb_destination(here, piece)
+	if to.is_empty():
+		return false
+	return _start(actor, MOVE_CLIMB, to[0], _build.climb_ticks_of(piece))
+
+
+## Where climbing `piece` from `here` leads: [cell], or [] when the piece is not a climb
+## piece, `here` is neither of its ends, the other end cannot be stood in, or a stair's
+## foot is walled off from it. Pathing plans with this (M6 claim 6).
+func climb_destination(here: Vector3i, piece: int) -> Array[Vector3i]:
+	var none: Array[Vector3i] = []
+	if not _build.has_piece(piece) or _build.climb_ticks_of(piece) <= 0:
+		return none
 	var low: Vector3i
 	var high: Vector3i
 	var facing: String = _build.facing_of(piece)
@@ -160,17 +170,38 @@ func climb(actor: int, piece: int) -> bool:
 		low = stair + _direction(facing)
 		high = stair + UP
 		if _blocks(BuildSystem.face_key(low, _facing_toward(low, stair))):
-			return false
+			return none
 	var to: Vector3i
 	if here == low:
 		to = high
 	elif here == high:
 		to = low
 	else:
-		return false
+		return none
 	if not _build.is_standable(to):
-		return false
-	return _start(actor, MOVE_CLIMB, to, ticks)
+		return none
+	return [to] as Array[Vector3i]
+
+
+## Every climb usable from `here`, as [piece, destination] pairs in piece order: a ladder
+## in the floor or the ceiling, the stair whose top this is, or a stair whose foot this is.
+func climb_links(here: Vector3i) -> Array[Array]:
+	var candidates: Array[int] = []
+	for face: String in [BuildSystem.face_key(here, "py"), BuildSystem.face_key(here, "ny")]:
+		var f: int = _build.face_piece_at(face)
+		if f != EntityIds.NONE:
+			candidates.append(f)
+	for d: Vector3i in [-UP, Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]:
+		var c: int = _build.cell_piece_at(here + d)
+		if c != EntityIds.NONE and not candidates.has(c):
+			candidates.append(c)
+	candidates.sort()
+	var out: Array[Array] = []
+	for piece: int in candidates:
+		var to: Array[Vector3i] = climb_destination(here, piece)
+		if not to.is_empty():
+			out.append([piece, to[0]])
+	return out
 
 
 ## Starts a mantle onto the top of the adjacent cell piece in (dx, dz), one axis and

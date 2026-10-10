@@ -5,7 +5,9 @@
 ## agent, in agent-id order, and picks up next tick where it stopped; an agent whose
 ## path is ready walks it with `actor.move`-sized steps through MovementSystem,
 ## facing the way it walks. Any build change re-plans every route from where each
-## agent stands. Search is bounded to SEARCH_RADIUS cells around the start, which is
+## agent stands. Routes cross storeys through stairs and ladders for agents with the
+## `climb` move (M6 claim 6): a climb is an edge costing its ticks in cells walked, and
+## the agent climbs it with `actor.climb` and waits for the climb to finish. Search is bounded to SEARCH_RADIUS cells around the start, which is
 ## the reach of an M4 building; the portal-graph handoff for larger sites is a
 ## debt item, not a hidden assumption.
 class_name PathingSystem extends SimSystem
@@ -101,12 +103,13 @@ func _route(agent: int) -> Dictionary:
 
 
 ## Whether an actor may step from one cell into an adjacent one: the movement rules
-## without the land check (agents enter what they are sent into).
+## without the land check (agents enter what they are sent into). Agents never step off
+## an edge (they lack the `drop` move), so the cell ahead must be standable.
 func can_step(from: Vector3i, to: Vector3i) -> bool:
 	var d: Vector3i = to - from
 	if absi(d.x) + absi(d.y) + absi(d.z) != 1:
 		return false
-	if _build.is_solid(to):
+	if not _build.is_standable(to):
 		return false
 	var facing: String = ("p" if d.x > 0 else "n") + "x" if d.x != 0 else (("p" if d.y > 0 else "n") + "y" if d.y != 0 else ("p" if d.z > 0 else "n") + "z")
 	# a solid piece or a closed opening stops the step (M6 claim 3)
@@ -115,13 +118,14 @@ func can_step(from: Vector3i, to: Vector3i) -> bool:
 
 # ---------------------------------------------------------------- requests
 
-## Sends a live agent toward a cell. Planning starts on the next tick. False for a
-## non-agent, a dead agent, or a goal beyond SEARCH_RADIUS of the agent's cell.
+## Sends a live agent toward a cell, on any storey in range. Planning starts on the
+## next tick. False for a non-agent, a dead agent, or a goal beyond SEARCH_RADIUS of the
+## agent's cell.
 func request(agent: int, goal: Vector3i) -> bool:
 	if not _perception.is_agent(agent) or not _actors.is_alive(agent):
 		return false
 	var start: Vector3i = BuildSystem.cell_of(_actors.position_of(agent))
-	if _manhattan(start, goal) > SEARCH_RADIUS or goal.y != start.y:
+	if _manhattan(start, goal) > SEARCH_RADIUS or not BuildSystem.is_storey_in_range(goal.y):
 		return false
 	_routes[agent] = _fresh(goal, start)
 	return true
@@ -151,7 +155,7 @@ func tick(_sim: SimRoot) -> void:
 		if _replan and rec["state"] != STATE_ARRIVED:
 			rec = _fresh(goal, here)
 		if rec["state"] == STATE_PLANNING:
-			budget = _plan(rec, goal, budget)
+			budget = _plan(agent, rec, goal, budget)
 		if rec["state"] == STATE_FOLLOWING:
 			_follow(agent, rec, goal)
 		_routes[agent] = rec
@@ -168,7 +172,7 @@ func _agent_order() -> Array[int]:
 
 
 ## Spends up to `budget` expansions on the route's search; returns what is left.
-func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
+func _plan(agent: int, rec: Dictionary, goal: Vector3i, budget: int) -> int:
 	var search: Dictionary = rec["search"]
 	var start: Vector3i = _vec(search["start"])
 	var open: Dictionary = search["open"]
@@ -180,7 +184,9 @@ func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
 			rec["state"] = STATE_FAILED
 			rec["search"] = {}
 			return budget
-		var current_key: String = _pop_best(open)
+		var popped: Array = _pop_best(open)
+		var current_key: String = popped[0]
+		var g_here: int = popped[1]
 		budget -= 1
 		_expanded += 1
 		if current_key == goal_key:
@@ -191,13 +197,23 @@ func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
 			return budget
 		closed[current_key] = true
 		var current: Vector3i = _parse(current_key)
-		var g_here: int = _g_of(came, start, current_key, open, closed)
+		var edges: Array[Array] = []
 		for step: Vector3i in STEPS:
 			var next: Vector3i = current + step
+			if can_step(current, next):
+				edges.append([next, 1])
+		if _movement.has_move(agent, MovementSystem.MOVE_CLIMB):
+			for link: Array in _movement.climb_links(current):
+				var piece: int = link[0]
+				var to: Vector3i = link[1]
+				edges.append([to, _climb_cost(agent, piece)])
+		for edge: Array in edges:
+			var next: Vector3i = edge[0]
+			var cost: int = edge[1]
 			var next_key: String = BuildSystem.cell_key(next)
-			if closed.has(next_key) or _manhattan(start, next) > SEARCH_RADIUS or not can_step(current, next):
+			if closed.has(next_key) or _manhattan(start, next) > SEARCH_RADIUS:
 				continue
-			var g: int = g_here + 1
+			var g: int = g_here + cost
 			var known: Variant = open.get(next_key)
 			if typeof(known) == TYPE_ARRAY:
 				var entry: Array = known
@@ -209,8 +225,16 @@ func _plan(rec: Dictionary, goal: Vector3i, budget: int) -> int:
 	return 0
 
 
-## Removes and returns the open cell with the lowest f, then lowest g, then lowest key.
-func _pop_best(open: Dictionary) -> String:
+## A climb's cost in cells walked: its ticks at the agent's walking pace, at least one.
+func _climb_cost(agent: int, piece: int) -> int:
+	var ticks: int = _build.climb_ticks_of(piece)
+	var speed: int = maxi(1, _movement.speed_of(agent))
+	return maxi(1, (ticks * speed + 999) / 1000)
+
+
+## Removes the open cell with the lowest f, then lowest g, then lowest key; returns
+## [key, g].
+func _pop_best(open: Dictionary) -> Array:
 	var best_key: String = ""
 	var best_f: int = 0
 	var best_g: int = 0
@@ -224,22 +248,7 @@ func _pop_best(open: Dictionary) -> String:
 			best_f = f
 			best_g = g
 	open.erase(best_key)
-	return best_key
-
-
-## g of a popped cell: its recorded g lives in the open entry until it is popped, so
-## it is recovered by walking `came` back to the start.
-func _g_of(came: Dictionary, start: Vector3i, key: String, _open: Dictionary, _closed: Dictionary) -> int:
-	var start_key: String = BuildSystem.cell_key(start)
-	var g: int = 0
-	var k: String = key
-	while k != start_key:
-		var prev: Variant = came.get(k)
-		if typeof(prev) != TYPE_STRING:
-			break
-		k = prev
-		g += 1
-	return g
+	return [best_key, best_g]
 
 
 func _unwind(came: Dictionary, start: Vector3i, goal_key: String) -> Array:
@@ -272,6 +281,23 @@ func _follow(agent: int, rec: Dictionary, goal: Vector3i) -> void:
 			rec["search"] = fresh["search"]
 		return
 	var next: Vector3i = _vec(path[index])
+	if _movement.is_moving(agent) or _movement.is_falling(agent):
+		return
+	var lateral: bool = next.y == here.y and _manhattan(here, next) == 1
+	if not lateral:
+		# a climb edge (M6 claim 6): find the piece that leads there and climb it
+		for link: Array in _movement.climb_links(here):
+			var to: Vector3i = link[1]
+			if to == next:
+				var piece: int = link[0]
+				if _movement.climb(agent, piece):
+					return
+		var replan: Dictionary = _fresh(goal, here)
+		rec["state"] = STATE_PLANNING
+		rec["search"] = replan["search"]
+		rec["path"] = [] as Array
+		rec["index"] = 0
+		return
 	var target: Vector3i = BuildSystem.cell_centre(next)
 	target.y = _actors.position_of(agent).y
 	var pos: Vector3i = _actors.position_of(agent)

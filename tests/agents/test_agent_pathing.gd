@@ -117,7 +117,9 @@ func test_requests_are_validated_and_budget_is_shared_in_agent_order() -> void:
 	var b: int = _perception.spawn(&"guard_sim", _cell(0, 1), 0, 1, "")
 	assert_false(_pathing.request(_player, _cell(1, 1)), "not an agent")
 	assert_false(_pathing.request(a, _cell(50, 0)), "beyond the search radius")
-	assert_false(_pathing.request(a, _cell(1, 0) + Vector3i(0, 1, 0)), "another level")
+	# M6 claim 6: a goal on another storey is planned for; one outside the range is not
+	assert_false(_pathing.request(a, _cell(1, 0) + Vector3i(0, 3, 0)), "a storey out of range")
+	assert_true(_pathing.request(a, _cell(1, 0) + Vector3i(0, 1, 0)), "another storey")
 	assert_true(_pathing.request(a, _cell(10, 10)), "a goal walled in by blocks")
 	assert_true(_pathing.request(b, _cell(0, 3)), "a short open route")
 	var before: int = _pathing.expanded_count()
