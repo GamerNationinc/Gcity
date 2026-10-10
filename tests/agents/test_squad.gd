@@ -217,3 +217,22 @@ func test_restore_round_trip_and_rejections() -> void:
 	assignments[_player] = [0, 0, 0]
 	assert_eq(squads.restore(bad), ERR_INVALID_DATA, "an assignment for a non-agent")
 	assert_eq(squads.snapshot(), state, "rejections leave the state untouched")
+
+
+func test_a_queued_report_from_no_agent_reaches_every_member_after_its_latency() -> void:
+	# M6 claim 8: a sensor's alarm reaches the squad as a report with no reporting agent
+	_setup()
+	var a: int = _perception.spawn(&"watcher", _cell(0, 0), 180, 1, "")
+	var b: int = _perception.spawn(&"watcher", _cell(2, 0), 180, 1, "")
+	_actors.set_position(_player, _at(0, 20))
+	assert_true(_squads.queue_report(1, EntityIds.NONE, _player, BuildSystem.cell_of(_at(0, 20)), 30, _sim.get_tick()), "queued")
+	assert_false(_squads.queue_report(1, EntityIds.NONE, 999, _cell(0, 0), 30, _sim.get_tick()), "not about a non-actor")
+	assert_false(_squads.queue_report(0, EntityIds.NONE, _player, _cell(0, 0), 30, _sim.get_tick()), "not to squad 0")
+	var other: SimRoot = SimAssembly.build(SEED, _db())
+	assert_eq(SimAssembly.restore_systems(other, _sim.snapshot()), OK, "a save with the report in flight restores")
+	_sim.step_n(29)
+	assert_false(_perception.is_alerted(a, _player), "not before the latency")
+	_sim.step_n(2)
+	assert_true(_perception.is_alerted(a, _player) and _perception.is_alerted(b, _player), "both members after it")
+	assert_eq(_perception.last_known(a, _player), BuildSystem.cell_centre(BuildSystem.cell_of(_at(0, 20))) - Vector3i(0, 500, 0), "at the reported cell")
+	assert_eq(_reports.back()["reporter"], EntityIds.NONE, "reported by nobody in the squad")

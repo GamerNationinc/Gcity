@@ -129,6 +129,17 @@ func _on_alerted(payload: Dictionary) -> void:
 	_reports.append({"due": tick_now + radio_latency(observer), "squad": squad, "reporter": observer, "contact": contact, "cell": PathingSystem._arr(cell)})
 
 
+## Puts a report on the squad's radio from outside it (M6 claim 8: a sensor's alarm):
+## `contact` at `cell`, delivered to every living member after `latency` ticks.
+## `reporter` may be EntityIds.NONE. False for squad 0, a non-actor contact or a
+## negative latency.
+func queue_report(squad: int, reporter: int, contact: int, cell: Vector3i, latency: int, tick_now: int) -> bool:
+	if squad <= 0 or not _actors.has_actor(contact) or latency < 0:
+		return false
+	_reports.append({"due": tick_now + latency, "squad": squad, "reporter": reporter, "contact": contact, "cell": PathingSystem._arr(cell)})
+	return true
+
+
 func _on_build_changed(_payload: Dictionary) -> void:
 	_replan = true
 
@@ -294,7 +305,7 @@ func restore(state: Dictionary) -> Error:
 		var reporter: int = report["reporter"]
 		var contact: int = report["contact"]
 		var squad: int = report["squad"]
-		if not _perception.is_agent(reporter) or not _actors.has_actor(contact) or squad <= 0:
+		if (reporter != EntityIds.NONE and not _perception.is_agent(reporter)) or not _actors.has_actor(contact) or squad <= 0:
 			return _restore_fail("report references")
 		var due: int = report["due"]
 		reports.append({"due": due, "squad": squad, "reporter": reporter, "contact": contact, "cell": PathingSystem._arr(PathingSystem._vec(report["cell"]))})
