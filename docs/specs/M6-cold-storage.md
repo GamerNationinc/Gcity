@@ -126,8 +126,11 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards Â
 6. **Perception and pathing know storeys.** Sight is the existing line walk extended to
    3D. Floors block it, and so do openings whose kind blocks sight. Pathing searches per
    storey and joins storeys through climb edges.
-   - Past `SEARCH_RADIUS`, the agent asks the portal graph for a volume-level route and
-     paths cell by cell inside each volume on the way. This closes G4 debt 6.
+   - `SEARCH_RADIUS` rises from 32 to 64 cells, which covers an authored site across its
+     storeys; planning stays time-sliced, so a longer search spreads over more ticks and
+     the G6 Deck run measures it. (Amended 2026-10-10 with CEOGG's approval: the
+     portal-graph handoff for longer routes moves to M7, where open-world distances need
+     it; G4 debt 6 is rescheduled there and recorded in the G6 debt log.)
    - Metamorphic relation: adding a closed door between an agent and a contact never
      raises the contact's awareness gain.
    - Metamorphic relation: removing a wall never lengthens the shortest path between two

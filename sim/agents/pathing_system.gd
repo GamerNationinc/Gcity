@@ -7,14 +7,16 @@
 ## facing the way it walks. Any build change re-plans every route from where each
 ## agent stands. Routes cross storeys through stairs and ladders for agents with the
 ## `climb` move (M6 claim 6): a climb is an edge costing its ticks in cells walked, and
-## the agent climbs it with `actor.climb` and waits for the climb to finish. Search is bounded to SEARCH_RADIUS cells around the start, which is
-## the reach of an M4 building; the portal-graph handoff for larger sites is a
-## debt item, not a hidden assumption.
+## the agent climbs it with `actor.climb` and waits for the climb to finish. Search is
+## bounded to SEARCH_RADIUS cells around the start, the reach of an authored M6 site;
+## the portal-graph handoff for open-world distances is M7 debt (G6 debt log), not a
+## hidden assumption.
 class_name PathingSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"pathing"
 const PATH_NODES_PER_TICK: int = 256
-const SEARCH_RADIUS: int = 32
+## 64 cells covers an authored M6 site across its storeys (M6 claim 6, as amended).
+const SEARCH_RADIUS: int = 64
 const STATE_PLANNING: String = "planning"
 const STATE_FOLLOWING: String = "following"
 const STATE_ARRIVED: String = "arrived"
