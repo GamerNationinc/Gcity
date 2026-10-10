@@ -15,6 +15,8 @@ Editors, validators, fitness functions and the engine pin. May import anything.
 | `check_test_log.py` | Fails the unit stage on any `SCRIPT ERROR` or any engine error not raised by `push_error`; a test that passes while the engine logs a bug underneath it is a failure. |
 | `replay_hash.gd` | Replays one fixture headless against the assembled sim (`SimAssembly` over the shipped content) and prints its state hash. CI runs it twice and diffs. |
 | `export.sh` | Native Linux export with the pinned engine and pinned, SHA-512-verified export templates; the preset excludes `tests/`, `tools/`, `docs/`, `spikes/`. |
+| `showcase.sh` | Renders a showcase scenario (`showcase/scenarios/<name>.gd`) under Xvfb into an animated GIF and a PNG of its last frame: the real sim, drawn for a reader who does not read code (CLAUDE.md §13). |
+| `showcase/` | The showcase renderer (`showcase.gd`) and one scenario per claim. Plain-English labels in the world, a fixed colour code with a legend, a caption of what the player notices, and an event feed. Deterministic: frames step the sim, not the wall clock. |
 | `screenshot.sh` | Renders the client demo under Xvfb and saves a PNG at a given second; every delivery carries one. |
 | `bench_device.gd` | Time-to-complete for each core device task (M5 claim 14): presses, sim ticks and seconds, driven through the same shell the player uses. |
 | `make_m5_fixtures.gd` | Regenerates the three M5 replay fixtures; re-record their hashes afterwards. |

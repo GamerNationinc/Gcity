@@ -263,6 +263,15 @@ scripted `--demo` path). Gate evidence keeps its screenshots under
 `docs/gates/screenshots/M<n>-<view>.png`; a status update or a review request attaches
 one in the message. A change that alters what the client shows re-captures it.
 
+The approver does not read code, so every update must also be checkable by eye
+(approver's instruction, 2026-10-10). Sim work with no client view yet is shown with
+`tools/showcase.sh <scenario> <out.gif>`: the real sim running a scenario from
+`tools/showcase/scenarios/`, drawn with plain-English labels on every actor, the
+standard colours (green unaware, amber suspicious, red alerted), a caption saying what
+the player would notice, and a "what just happened" feed. Each claim adds a scenario
+that shows its mechanic happening; a still alone, or the unchanged client demo, is not
+enough.
+
 ---
 
 **These guidelines are working if:** diffs trace cleanly to a spec, clarifying questions
