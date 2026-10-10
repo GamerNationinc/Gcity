@@ -368,26 +368,33 @@ func is_opening(id: int) -> bool:
 	return k["passable"]
 
 
-## Whether the face stops a body: a solid piece, or an opening that is closed (M6
-## claim 3). Movement, climbing and pathing ask this.
+## Whether the face stops a body: a solid piece, an opening that is closed (M6 claim 3),
+## or the uncut ground (claim 6). Movement, climbing and pathing ask this.
 func blocks_passage(face: String) -> bool:
 	var id: int = face_piece_at(face)
 	if id == EntityIds.NONE:
-		return false
+		return _is_uncut_ground(face)
 	return not (is_opening(id) and is_open(id))
 
 
-## Whether the face stops sight: a solid piece, or a closed opening that is not
-## transparent (a window passes sight open or closed: M6 claim 3).
+## Whether the face stops sight: a solid piece, a closed opening that is not
+## transparent (a window passes sight open or closed: M6 claim 3), or the uncut ground
+## (claim 6).
 func blocks_sight(face: String) -> bool:
 	var id: int = face_piece_at(face)
 	if id == EntityIds.NONE:
-		return false
+		return _is_uncut_ground(face)
 	if not is_opening(id):
 		return true
 	var k: Dictionary = kind_data(id)
 	var transparent: bool = k["transparent"]
 	return not is_open(id) and not transparent
+
+
+## Whether a face is the ground between the basement and the ground storey with no cut
+## in it (M6 claim 6): solid to bodies and to sight.
+func _is_uncut_ground(face: String) -> bool:
+	return face.ends_with("|y") and face_cells(face)[0].y == GROUND_CELL_Y - 1 and not _holes.has(face)
 
 
 ## Opens or closes an opening (M6 claim 3). The actor must be alive and stand in one of

@@ -159,3 +159,19 @@ func test_a_restored_stair_keeps_its_facing() -> void:
 	var rec: Dictionary = pieces[stair]
 	rec["facing"] = "py"
 	assert_eq(SimAssembly.build_of(other).restore(bad), ERR_INVALID_DATA, "a level stair is rejected")
+
+
+func test_the_uncut_ground_face_blocks_sight_and_passage_and_a_hole_does_not() -> void:
+	_setup()
+	assert_eq(_build.excavate([_cell(0, -1, 0), _cell(1, -1, 0)] as Array[Vector3i]), OK, "a tunnel")
+	var ground: String = BuildSystem.face_key(_cell(0, 0, 0), "ny")
+	assert_true(_build.blocks_sight(ground) and _build.blocks_passage(ground), "solid ground over the tunnel")
+	assert_true(_build.place(_player, &"foundation_block", _at(2, 0, 0), "") > 0, "foundation")
+	var grate: int = _build.place(_player, &"street_grate", _at(1, -1, 0), "py")
+	assert_true(grate > 0, "a grate over the tunnel")
+	var grate_face: String = BuildSystem.face_key(_cell(1, 0, 0), "ny")
+	assert_true(_build.blocks_sight(grate_face), "a closed grate is opaque")
+	assert_false(_build.breach(grate).is_empty(), "cut")
+	assert_false(_build.blocks_sight(grate_face) or _build.blocks_passage(grate_face), "the hole lets both through")
+	var side: String = BuildSystem.face_key(_cell(0, 0, 0), "px")
+	assert_false(_build.blocks_sight(side), "a bare face above ground blocks nothing")
