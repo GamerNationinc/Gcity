@@ -282,6 +282,18 @@ func is_solid(cell: Vector3i) -> bool:
 	return cell.y < GROUND_CELL_Y and not _excavated.has(cell_key(cell))
 
 
+## The excavated cells, in key order (the portal graph's region reaches them).
+func excavated_cells() -> Array[Vector3i]:
+	var keys: Array = _excavated.keys()
+	keys.sort()
+	var out: Array[Vector3i] = []
+	for k: Variant in keys:
+		var key: String = k
+		var parts: PackedStringArray = key.split(",")
+		out.append(Vector3i(parts[0].to_int(), parts[1].to_int(), parts[2].to_int()))
+	return out
+
+
 ## Digs basement cells out of the earth (sites at M6; dig is M7). Every cell must be on
 ## a storey below the ground and in range; ERR_INVALID_PARAMETER changes nothing.
 func excavate(cells: Array[Vector3i]) -> Error:
@@ -373,7 +385,7 @@ func is_opening(id: int) -> bool:
 func blocks_passage(face: String) -> bool:
 	var id: int = face_piece_at(face)
 	if id == EntityIds.NONE:
-		return _is_uncut_ground(face)
+		return is_uncut_ground(face)
 	return not (is_opening(id) and is_open(id))
 
 
@@ -383,7 +395,7 @@ func blocks_passage(face: String) -> bool:
 func blocks_sight(face: String) -> bool:
 	var id: int = face_piece_at(face)
 	if id == EntityIds.NONE:
-		return _is_uncut_ground(face)
+		return is_uncut_ground(face)
 	if not is_opening(id):
 		return true
 	var k: Dictionary = kind_data(id)
@@ -393,7 +405,7 @@ func blocks_sight(face: String) -> bool:
 
 ## Whether a face is the ground between the basement and the ground storey with no cut
 ## in it (M6 claim 6): solid to bodies and to sight.
-func _is_uncut_ground(face: String) -> bool:
+func is_uncut_ground(face: String) -> bool:
 	return face.ends_with("|y") and face_cells(face)[0].y == GROUND_CELL_Y - 1 and not _holes.has(face)
 
 

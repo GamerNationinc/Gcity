@@ -79,7 +79,6 @@ func rebuild() -> void:
 		return
 	var lo: Vector3i = _build.cell_of_piece(ids[0])
 	var hi: Vector3i = lo
-	var solid: Dictionary = {}
 	var faces: Dictionary = {}
 	for id: int in ids:
 		var rec: Dictionary = _build.piece(id)
@@ -87,13 +86,15 @@ func rebuild() -> void:
 		for c: Vector3i in _build.cells_of_piece(id):
 			lo = Vector3i(mini(lo.x, c.x), mini(lo.y, c.y), mini(lo.z, c.z))
 			hi = Vector3i(maxi(hi.x, c.x), maxi(hi.y, c.y), maxi(hi.z, c.z))
-		if face.is_empty():
-			solid[BuildSystem.cell_key(_build.cell_of_piece(id))] = id
-		else:
+		if not face.is_empty():
 			faces[face] = id
+	# excavated basement cells are part of the region (M6 claim 6)
+	for c: Vector3i in _build.excavated_cells():
+		lo = Vector3i(mini(lo.x, c.x), mini(lo.y, c.y), mini(lo.z, c.z))
+		hi = Vector3i(maxi(hi.x, c.x), maxi(hi.y, c.y), maxi(hi.z, c.z))
 	lo -= Vector3i.ONE
 	hi += Vector3i.ONE
-	lo.y = maxi(lo.y, BuildSystem.GROUND_CELL_Y)
+	lo.y = maxi(lo.y, BuildSystem.MIN_STOREY)
 	var size: Vector3i = hi - lo + Vector3i.ONE
 	assert(size.x * size.y * size.z <= MAX_REGION_CELLS, "portal region too large")
 	# exterior first: everything reachable from the border
@@ -104,9 +105,9 @@ func rebuild() -> void:
 			for z: int in range(lo.z, hi.z + 1):
 				var c: Vector3i = Vector3i(x, y, z)
 				var on_border: bool = x == lo.x or x == hi.x or y == hi.y or z == lo.z or z == hi.z
-				if on_border and not solid.has(BuildSystem.cell_key(c)):
+				if on_border and not _build.is_solid(c):
 					border.append(c)
-	_fill(border, EXTERIOR, lo, hi, solid, faces, visited)
+	_fill(border, EXTERIOR, lo, hi, faces, visited)
 	# then every enclosed volume, seeded in cell order
 	var next_node: int = 1
 	for x: int in range(lo.x, hi.x + 1):
@@ -114,10 +115,10 @@ func rebuild() -> void:
 			for z: int in range(lo.z, hi.z + 1):
 				var c: Vector3i = Vector3i(x, y, z)
 				var key: String = BuildSystem.cell_key(c)
-				if visited.has(key) or solid.has(key):
+				if visited.has(key) or _build.is_solid(c):
 					continue
 				var seeds: Array[Vector3i] = [c]
-				var count: int = _fill(seeds, next_node, lo, hi, solid, faces, visited)
+				var count: int = _fill(seeds, next_node, lo, hi, faces, visited)
 				_nodes[next_node] = {"cells": count, "min": [c.x, c.y, c.z] as Array[int]}
 				next_node += 1
 	# edges: face pieces between two different nodes; solid blocks between two air cells
@@ -167,18 +168,19 @@ func rebuild() -> void:
 ## The node of the neighbour across an open face of `cell`, or SOLID when the face
 ## carries a piece or the neighbour is solid.
 func _open_neighbour(cell: Vector3i, d: Vector3i, faces: Dictionary) -> int:
-	if faces.has(BuildSystem.face_key(cell, _facing_of(d))):
+	var face: String = BuildSystem.face_key(cell, _facing_of(d))
+	if faces.has(face) or _build.is_uncut_ground(face):
 		return SOLID
 	return node_at(cell + d)
 
 
 ## Breadth-first over air cells inside [lo, hi] through unblocked faces. Returns the
 ## number of cells labelled.
-func _fill(seeds: Array[Vector3i], node: int, lo: Vector3i, hi: Vector3i, solid: Dictionary, faces: Dictionary, visited: Dictionary) -> int:
+func _fill(seeds: Array[Vector3i], node: int, lo: Vector3i, hi: Vector3i, faces: Dictionary, visited: Dictionary) -> int:
 	var queue: Array[Vector3i] = []
 	for s: Vector3i in seeds:
 		var key: String = BuildSystem.cell_key(s)
-		if visited.has(key) or solid.has(key):
+		if visited.has(key) or _build.is_solid(s):
 			continue
 		visited[key] = true
 		_node_of_cell[key] = node
@@ -192,10 +194,10 @@ func _fill(seeds: Array[Vector3i], node: int, lo: Vector3i, hi: Vector3i, solid:
 			if n.x < lo.x or n.x > hi.x or n.y < lo.y or n.y > hi.y or n.z < lo.z or n.z > hi.z:
 				continue
 			var key: String = BuildSystem.cell_key(n)
-			if visited.has(key) or solid.has(key):
+			if visited.has(key) or _build.is_solid(n):
 				continue
-			var facing: String = _facing_of(d)
-			if faces.has(BuildSystem.face_key(c, facing)):
+			var face: String = BuildSystem.face_key(c, _facing_of(d))
+			if faces.has(face) or _build.is_uncut_ground(face):
 				continue
 			visited[key] = true
 			_node_of_cell[key] = node
@@ -214,11 +216,9 @@ static func _facing_of(d: Vector3i) -> String:
 # ---------------------------------------------------------------- queries
 
 ## The node an air cell belongs to: EXTERIOR outside or on the border of the region,
-## a volume id inside, SOLID for a cell a solid piece occupies or below ground.
+## a volume id inside, SOLID for a cell a solid piece occupies or earth (M6 claim 6).
 func node_at(cell: Vector3i) -> int:
-	if cell.y < BuildSystem.GROUND_CELL_Y:
-		return SOLID
-	if _build.cell_piece_at(cell) != EntityIds.NONE:
+	if _build.is_solid(cell):
 		return SOLID
 	var v: Variant = _node_of_cell.get(BuildSystem.cell_key(cell))
 	if typeof(v) != TYPE_INT:
