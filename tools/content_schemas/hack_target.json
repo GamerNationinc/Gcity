@@ -1,0 +1,18 @@
+{
+	"schema_version": 1,
+	"description": "A hack target (M6 spec claim 9): how long the hack runs, the daemon slots it holds, the noise it makes every 40 ticks, the reach it is worked from, and an effect of a kind the hack system registers (spawn_item {template}, spoof_sensor {sensor}); the effect's own params are checked by its kind at assembly.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"ticks": {"type": "int", "min": 1, "max": 100000},
+		"daemons": {"type": "int", "min": 1, "max": 16},
+		"noise": {"type": "int", "min": 0, "max": 100000},
+		"reach_mm": {"type": "int", "min": 0, "max": 10000},
+		"effect": {"type": "object", "properties": {
+			"kind": {"type": "string", "pattern": "[a-z][a-z_]*"},
+			"params": {"type": "object"}
+		}, "required": ["kind", "params"], "additional_properties": false}
+	},
+	"required": ["schema_version", "description", "ticks", "daemons", "noise", "reach_mm", "effect"],
+	"additional_properties": false
+}
