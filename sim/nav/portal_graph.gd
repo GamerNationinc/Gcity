@@ -27,6 +27,13 @@ var _build: BuildSystem
 var _lo: Vector3i = Vector3i.ZERO
 var _size: Vector3i = Vector3i.ZERO
 var _labels: PackedInt32Array = PackedInt32Array()
+## blocked faces of the last rebuild, one grid per axis, on the lower cell
+var _blocked: Array[PackedByteArray] = []
+## piece id -> its lower cell and its face axis (-1: a cell piece), as of the last change
+var _piece_lower: Dictionary = {}
+var _piece_axis: Dictionary = {}
+## volume id -> the grid index of its first cell in x, y, z order (its numbering key)
+var _node_first: Dictionary = {}
 ## node id -> {"cells": int, "min": [x, y, z]}
 var _nodes: Dictionary = {}
 ## edge index -> {"piece": int, "a": int, "b": int}, sorted by piece id
@@ -68,8 +75,15 @@ func attach(sim: SimRoot, events: EventBus) -> Error:
 	return events.subscribe(BuildSystem.EVENT_CHANGED, _on_build_changed)
 
 
-func _on_build_changed(_payload: Dictionary) -> void:
-	_stale = true
+## A removal-only change is applied in place (M6 claim 7: the hot path of a mission is
+## breaches and cuts); anything else marks the graph stale for one batched rebuild.
+func _on_build_changed(payload: Dictionary) -> void:
+	if _stale:
+		return
+	var added: Array = payload["added"]
+	var removed: Array = payload["removed"]
+	if not added.is_empty() or removed.is_empty() or _size == Vector3i.ZERO or not _remove_in_place(removed):
+		_stale = true
 
 
 ## Rebuilds once if the build changed since the last rebuild. Every query calls it: the
@@ -94,6 +108,10 @@ func rebuild() -> void:
 	_edges = []
 	_targets = {}
 	_labels = PackedInt32Array()
+	_blocked = []
+	_piece_lower = {}
+	_piece_axis = {}
+	_node_first = {}
 	_size = Vector3i.ZERO
 	var ids: Array[int] = _build.piece_ids()
 	if ids.is_empty():
@@ -109,6 +127,8 @@ func rebuild() -> void:
 		var axis: int = -1 if face.is_empty() else BuildSystem.AXES.find(face.substr(face.length() - 1))
 		lowers.append(lower)
 		axes.append(axis)
+		_piece_lower[id] = lower
+		_piece_axis[id] = axis
 		var upper: Vector3i = lower if axis < 0 else lower + NEIGHBOURS[axis * 2]
 		lo = Vector3i(mini(lo.x, lower.x), mini(lo.y, lower.y), mini(lo.z, lower.z))
 		hi = Vector3i(maxi(hi.x, upper.x), maxi(hi.y, upper.y), maxi(hi.z, upper.z))
@@ -173,28 +193,37 @@ func rebuild() -> void:
 		if _labels[i] != UNVISITED:
 			continue
 		var cells: int = _fill(PackedInt32Array([i]), next_node, blocked)
-		var x: int = i / sx
-		var y: int = (i % sx) / sy
-		var z: int = i % sy
-		_nodes[next_node] = {"cells": cells, "min": [lo.x + x, lo.y + y, lo.z + z] as Array[int]}
+		_nodes[next_node] = {"cells": cells, "min": _cell_array(i)}
+		_node_first[next_node] = i
 		next_node += 1
-	# edges: face pieces between two different nodes; solid blocks between two air cells
-	for p: int in ids.size():
-		var id: int = ids[p]
-		var axis: int = axes[p]
+	_blocked = blocked
+	_derive_edges()
+
+
+## Edges and targets from the labels and the piece cache: a face piece is an edge between
+## two different nodes, a solid block between the air on two opposite open faces; a
+## target opens into its lowest open neighbour.
+func _derive_edges() -> void:
+	_edges = []
+	_targets = {}
+	var sx: int = _size.y * _size.z
+	var sy: int = _size.z
+	var ids: Array[int] = _build.piece_ids()
+	for id: int in ids:
+		var axis: int = _piece_axis[id]
+		var lower: Vector3i = _piece_lower[id]
 		if axis >= 0:
-			var li: int = _index(lowers[p])
+			var li: int = _index(lower)
 			var a: int = _labels[li]
 			var b: int = _labels[li + (sx if axis == 0 else (sy if axis == 1 else 1))]
 			if a != SOLID and b != SOLID and a != b:
 				_edges.append({"piece": id, "a": mini(a, b), "b": maxi(a, b)})
 		else:
-			# a solid block is an edge between the air on two opposite open faces
-			var c: Vector3i = lowers[p]
+			var c: Vector3i = lower
 			for ax: int in 3:
 				var d: Vector3i = NEIGHBOURS[ax * 2]
-				var a: int = _open_neighbour(c, d, blocked)
-				var b: int = _open_neighbour(c, -d, blocked)
+				var a: int = _open_neighbour(c, d, _blocked)
+				var b: int = _open_neighbour(c, -d, _blocked)
 				if a != SOLID and b != SOLID and a != b:
 					_edges.append({"piece": id, "a": mini(a, b), "b": maxi(a, b)})
 			var k: Dictionary = _build.kind_data(id)
@@ -202,7 +231,7 @@ func rebuild() -> void:
 			if is_target:
 				var best: int = SOLID
 				for d: Vector3i in NEIGHBOURS:
-					var n: int = _open_neighbour(c, d, blocked)
+					var n: int = _open_neighbour(c, d, _blocked)
 					if n != SOLID and (best == SOLID or n < best):
 						best = n
 				_targets[id] = best
@@ -218,6 +247,118 @@ func rebuild() -> void:
 		var bx: int = x["b"]
 		var by: int = y["b"]
 		return bx < by)
+
+
+## Applies removed pieces to the labels in place: a face that opens merges the nodes on
+## its two sides, a cell that empties joins every node it now touches (or becomes a
+## volume of its own); a merge with the exterior is the exterior. Volumes are then
+## renumbered by their first cell, as the full fill numbers them, and edges re-derived.
+## Returns false, having changed nothing, when it cannot: a piece it never saw, or no
+## pieces left.
+func _remove_in_place(removed: Array) -> bool:
+	for v: Variant in removed:
+		var id: int = v
+		if not _piece_axis.has(id):
+			return false
+	if _build.piece_ids().is_empty():
+		return false
+	var sx: int = _size.y * _size.z
+	var sy: int = _size.z
+	var strides: PackedInt32Array = PackedInt32Array([sx, sy, 1])
+	for v: Variant in removed:
+		var id: int = v
+		var axis: int = _piece_axis[id]
+		var lower: Vector3i = _piece_lower[id]
+		var li: int = _index(lower)
+		if axis >= 0:
+			_blocked[axis][li] = 0
+			var a: int = _labels[li]
+			var b: int = _labels[li + strides[axis]]
+			if a != SOLID and b != SOLID and a != b:
+				_merge([a, b], PackedInt32Array())
+		else:
+			var touching: Array[int] = []
+			for d: Vector3i in NEIGHBOURS:
+				var n: int = _open_neighbour(lower, d, _blocked)
+				if n != SOLID and not touching.has(n):
+					touching.append(n)
+			_merge(touching, PackedInt32Array([li]))
+		_piece_axis.erase(id)
+		_piece_lower.erase(id)
+	_renumber()
+	_derive_edges()
+	return true
+
+
+## Gives every cell labelled with one of `labels`, and every cell in `new_cells`, one
+## label: the exterior if it is among them, else a fresh volume.
+func _merge(labels: Array[int], new_cells: PackedInt32Array) -> void:
+	var target: int = EXTERIOR
+	if not labels.has(EXTERIOR):
+		target = 1
+		for k: Variant in _nodes:
+			var node: int = k
+			target = maxi(target, node + 1)
+	var cells: int = new_cells.size()
+	var first: int = -1
+	for i: int in new_cells:
+		first = i if first < 0 else mini(first, i)
+	for node: int in labels:
+		if node == EXTERIOR:
+			continue
+		var rec: Dictionary = _nodes[node]
+		var c: int = rec["cells"]
+		cells += c
+		var f: int = _node_first[node]
+		first = f if first < 0 else mini(first, f)
+		_nodes.erase(node)
+		_node_first.erase(node)
+	if labels.size() > 1 or (labels.size() == 1 and labels[0] != target):
+		for i: int in _labels.size():
+			if labels.has(_labels[i]):
+				_labels[i] = target
+	for i: int in new_cells:
+		_labels[i] = target
+	if target != EXTERIOR:
+		_nodes[target] = {"cells": cells, "min": _cell_array(first)}
+		_node_first[target] = first
+
+
+## Numbers the volumes 1.. in the order of their first cell, as the full fill does.
+func _renumber() -> void:
+	var order: Array[int] = []
+	for k: Variant in _node_first:
+		var node: int = k
+		order.append(node)
+	order.sort_custom(func(a: int, b: int) -> bool:
+		var fa: int = _node_first[a]
+		var fb: int = _node_first[b]
+		return fa < fb)
+	var identity: bool = true
+	var map: Dictionary = {}
+	for n: int in order.size():
+		map[order[n]] = n + 1
+		identity = identity and order[n] == n + 1
+	if identity:
+		return
+	for i: int in _labels.size():
+		var label: int = _labels[i]
+		if label > EXTERIOR:
+			_labels[i] = map[label]
+	var nodes: Dictionary = {}
+	var firsts: Dictionary = {}
+	for old: int in order:
+		var new_id: int = map[old]
+		nodes[new_id] = _nodes[old]
+		firsts[new_id] = _node_first[old]
+	_nodes = nodes
+	_node_first = firsts
+
+
+func _cell_array(i: int) -> Array[int]:
+	var sx: int = _size.y * _size.z
+	var sy: int = _size.z
+	return [_lo.x + i / sx, _lo.y + (i % sx) / sy, _lo.z + i % sy] as Array[int]
 
 
 ## The index of a cell inside the last rebuild's region, or -1 outside it.

@@ -95,3 +95,28 @@ func test_a_burst_of_changes_costs_one_rebuild_at_the_next_query() -> void:
 	var reference: RefCounted = ReferenceGraph.new(build)
 	assert_eq(StateHash.of(portals.snapshot()), StateHash.of(reference.call("snapshot")), "the batched graph is the reference's")
 	assert_eq(volumes, 0, "a row of blocks encloses nothing")
+
+
+func test_a_removal_is_applied_in_place_without_a_rebuild() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var sim: SimRoot = SimAssembly.build(SEED, db)
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var portals: PortalGraph = SimAssembly.portals_of(sim)
+	var player: int = SimAssembly.actors_of(sim).spawn(&"arcade", 0)
+	SimAssembly.actors_of(sim).set_position(player, FAR + Vector3i(-30 * M, 0, -30 * M))
+	# two sealed cells side by side, a wall between them
+	for c: Vector3i in [Vector3i(-1, 0, 0), Vector3i(2, 0, 0), Vector3i(0, 0, 1), Vector3i(1, 0, 1), Vector3i(0, 0, -1), Vector3i(1, 0, -1)]:
+		assert_true(build.place(player, &"foundation_block", _at(c.x, c.y, c.z), "") > 0, "foundation %s" % c)
+	assert_true(build.place(player, &"floor_panel", _at(0, 0, 0), "py") > 0, "roof west")
+	assert_true(build.place(player, &"floor_panel", _at(1, 0, 0), "py") > 0, "roof east")
+	var wall: int = build.place(player, &"wall_panel", _at(0, 0, 0), "px")
+	assert_true(wall > 0, "the wall between")
+	assert_eq(portals.volume_count(), 2, "two volumes")
+	var rebuilds: int = portals.rebuild_count()
+	assert_false(build.remove(player, wall).is_empty(), "the wall comes out")
+	assert_eq(portals.volume_count(), 1, "one volume")
+	assert_eq(portals.cells_in(1), 2, "of both cells")
+	assert_eq(portals.rebuild_count(), rebuilds, "merged in place, no rebuild")
+	var reference: RefCounted = ReferenceGraph.new(build)
+	assert_eq(StateHash.of(portals.snapshot()), StateHash.of(reference.call("snapshot")), "and equal to the reference")
