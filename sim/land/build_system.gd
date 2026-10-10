@@ -64,6 +64,9 @@ var _occupied: Dictionary = {}
 ## ground faces ("x,-1,z|y") a piece has been set into: the ground there is cut for good,
 ## so a cut grate leaves a hole (M6 claim 3)
 var _holes: Dictionary = {}
+## basement cells ("x,-1,z") dug out of the earth: below the ground storey everything
+## else is solid (M6 claim 6, as built: no terrain or dig before M7; sites excavate)
+var _excavated: Dictionary = {}
 ## func(actor: int, tag: StringName) -> bool: the actor carries the credential (installed
 ## at assembly from the item system); unset, every lock stays shut
 var _credential: Callable = Callable()
@@ -125,7 +128,9 @@ func tick(_sim: SimRoot) -> void:
 func snapshot() -> Dictionary:
 	var holes: Array = _holes.keys()
 	holes.sort()
-	return {"pieces": _pieces.duplicate(true), "holes": holes, "breaching": _breaching.duplicate(true)}
+	var excavated: Array = _excavated.keys()
+	excavated.sort()
+	return {"pieces": _pieces.duplicate(true), "holes": holes, "breaching": _breaching.duplicate(true), "excavated": excavated}
 
 
 func attach(sim: SimRoot) -> Error:
@@ -269,12 +274,31 @@ static func is_storey_in_range(storey: int) -> bool:
 	return storey >= MIN_STOREY and storey <= MAX_STOREY
 
 
-## Whether an actor can stand in `cell` (M6 spec claim 1): the cell is free of cell
-## pieces, on a storey in range, and held up by the ground (storey 0), bedrock
-## (MIN_STOREY: there is no terrain before M7), a horizontal face piece under it, or a
-## cell piece directly below it.
+## Whether a cell is solid: a cell piece fills it, or it lies below the ground storey
+## and has not been excavated (M6 claim 6: the earth).
+func is_solid(cell: Vector3i) -> bool:
+	if _occupied.has(cell_key(cell)):
+		return true
+	return cell.y < GROUND_CELL_Y and not _excavated.has(cell_key(cell))
+
+
+## Digs basement cells out of the earth (sites at M6; dig is M7). Every cell must be on
+## a storey below the ground and in range; ERR_INVALID_PARAMETER changes nothing.
+func excavate(cells: Array[Vector3i]) -> Error:
+	for c: Vector3i in cells:
+		if c.y >= GROUND_CELL_Y or not is_storey_in_range(c.y) or absi(c.x) > MAX_CELL or absi(c.z) > MAX_CELL:
+			return ERR_INVALID_PARAMETER
+	for c: Vector3i in cells:
+		_excavated[cell_key(c)] = true
+	return OK
+
+
+## Whether an actor can stand in `cell` (M6 spec claim 1): the cell is not solid, is on
+## a storey in range, and is held up by the ground (storey 0), bedrock (the lowest
+## storey, where excavated), a horizontal face piece under it, or something solid
+## directly below it (a cell piece, or earth).
 func is_standable(cell: Vector3i) -> bool:
-	if not is_storey_in_range(cell.y) or _occupied.has(cell_key(cell)):
+	if not is_storey_in_range(cell.y) or is_solid(cell):
 		return false
 	if cell.y == MIN_STOREY:
 		return true
@@ -283,7 +307,7 @@ func is_standable(cell: Vector3i) -> bool:
 	if floor_id != EntityIds.NONE:
 		# an open horizontal opening is a hole (M6 claim 3)
 		return not is_open(floor_id)
-	if cell_piece_at(cell + Vector3i(0, -1, 0)) != EntityIds.NONE:
+	if is_solid(cell + Vector3i(0, -1, 0)):
 		return true
 	return cell.y == GROUND_CELL_Y and not _holes.has(under)
 
@@ -545,7 +569,7 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 				return EntityIds.NONE
 		elif not facing.is_empty():
 			return EntityIds.NONE
-		if _occupied.has(cell_key(cell)):
+		if is_solid(cell):
 			return EntityIds.NONE
 		if kind == &"foundation" and cell.y != GROUND_CELL_Y:
 			return EntityIds.NONE
@@ -728,8 +752,8 @@ func _on_remove(_sim: SimRoot, payload: Dictionary) -> bool:
 # ---------------------------------------------------------------- restore
 
 func restore(state: Dictionary) -> Error:
-	if state.size() != 3 or typeof(state.get("pieces")) != TYPE_DICTIONARY or typeof(state.get("holes")) != TYPE_ARRAY \
-			or typeof(state.get("breaching")) != TYPE_DICTIONARY:
+	if state.size() != 4 or typeof(state.get("pieces")) != TYPE_DICTIONARY or typeof(state.get("holes")) != TYPE_ARRAY \
+			or typeof(state.get("breaching")) != TYPE_DICTIONARY or typeof(state.get("excavated")) != TYPE_ARRAY:
 		return _restore_fail("shape")
 	var pieces_in: Dictionary = state["pieces"]
 	var pieces: Dictionary = {}
@@ -814,10 +838,25 @@ func restore(state: Dictionary) -> Error:
 		var py: int = pos[1]
 		var pz: int = pos[2]
 		breaching[actor] = {"piece": piece, "ticks": ticks, "pos": [px, py, pz] as Array[int], "health": health}
+	var excavated_in: Array = state["excavated"]
+	var excavated: Dictionary = {}
+	for e: Variant in excavated_in:
+		if typeof(e) != TYPE_STRING:
+			return _restore_fail("excavated key")
+		var ek: String = e
+		var coords: PackedStringArray = ek.split(",")
+		if coords.size() != 3 or not coords[0].is_valid_int() or not coords[1].is_valid_int() or not coords[2].is_valid_int():
+			return _restore_fail("excavated %s" % ek)
+		var cell: Vector3i = Vector3i(coords[0].to_int(), coords[1].to_int(), coords[2].to_int())
+		if cell_key(cell) != ek or cell.y >= GROUND_CELL_Y or not is_storey_in_range(cell.y) or absi(cell.x) > MAX_CELL \
+				or absi(cell.z) > MAX_CELL or excavated.has(ek):
+			return _restore_fail("excavated %s is not a basement cell" % ek)
+		excavated[ek] = true
 	_pieces = pieces
 	_occupied = occupied
 	_holes = holes
 	_breaching = breaching
+	_excavated = excavated
 	return OK
 
 

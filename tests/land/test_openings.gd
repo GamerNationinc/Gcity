@@ -129,6 +129,7 @@ func test_an_open_hatch_holds_nobody_up() -> void:
 
 func test_a_grate_in_the_ground_is_locked_and_cutting_it_leaves_a_hole() -> void:
 	_setup()
+	assert_eq(_build.excavate([_cell(0, -1, 0)] as Array[Vector3i]), OK, "a shaft under the street")
 	assert_true(_build.place(_player, &"foundation_block", _at(1, 0, 0), "") > 0, "foundation")
 	var grate: int = _build.place(_player, &"street_grate", _at(0, -1, 0), "py")
 	assert_true(grate > 0, "a grate set into the ground face")
@@ -138,7 +139,7 @@ func test_a_grate_in_the_ground_is_locked_and_cutting_it_leaves_a_hole() -> void
 	_actors.set_position(_player, _feet(4, 0, 4))
 	assert_false(_build.breach(grate).is_empty(), "cut out")
 	assert_false(_build.is_standable(_cell(0, 0, 0)), "the ground there is a hole now")
-	assert_true(_build.is_standable(_cell(0, -1, 0)), "onto the bedrock below")
+	assert_true(_build.is_standable(_cell(0, -1, 0)), "onto the shaft's floor below")
 	assert_true(_build.is_standable(_cell(2, 0, 0)), "the ground elsewhere is untouched")
 
 
@@ -146,6 +147,7 @@ func test_open_flags_and_holes_survive_a_restore_and_bad_ones_are_rejected() -> 
 	_setup()
 	var door: int = _room(&"door_frame")
 	assert_true(_build.place(_player, &"foundation_block", _at(3, 0, 0), "") > 0, "foundation")
+	assert_eq(_build.excavate([_cell(2, -1, 0)] as Array[Vector3i]), OK, "a shaft")
 	var grate: int = _build.place(_player, &"street_grate", _at(2, -1, 0), "py")
 	assert_false(_build.breach(grate).is_empty(), "a hole")
 	var db := ContentDb.new()
@@ -163,3 +165,13 @@ func test_open_flags_and_holes_survive_a_restore_and_bad_ones_are_rejected() -> 
 	var bad_holes: Dictionary = _build.snapshot().duplicate(true)
 	bad_holes["holes"] = ["0,0,0|x"]
 	assert_eq(other.restore(bad_holes), ERR_INVALID_DATA, "a hole that is not a ground face is rejected")
+
+
+func test_a_hole_cut_over_unexcavated_earth_is_still_stood_on() -> void:
+	# M6 claim 6 (as built): no dig before M7; a cut over earth leaves earth underfoot
+	_setup()
+	assert_true(_build.place(_player, &"foundation_block", _at(1, 0, 0), "") > 0, "foundation")
+	var grate: int = _build.place(_player, &"street_grate", _at(0, -1, 0), "py")
+	assert_true(grate > 0, "a grate over no shaft")
+	assert_false(_build.breach(grate).is_empty(), "cut out")
+	assert_true(_build.is_standable(_cell(0, 0, 0)), "the earth below still holds you up")

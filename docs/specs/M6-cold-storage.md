@@ -408,8 +408,10 @@ Every other G6 proof is met without them.
 - One run record per accepted contract per actor; re-accepting an abandoned contract
   opens a fresh record.
 - Exfil requires leaving the polygon with the deliverable; no extraction timer.
-- Storey −1 stands on bedrock wherever no piece fills it (there is no terrain before M7);
-  the only ways down are climb pieces, and the site's walls bound its tunnels.
+- Storey −1 is solid earth except the cells a site excavates (there is no terrain or dig
+  before M7); excavated cells stand on bedrock, and the only ways down are climb pieces
+  and cut ground faces. (Amended at claim 6: the claim-2 draft had bedrock everywhere,
+  which made the whole underground walkable.)
 
 ## Extension exercise for Q4 (standards §11)
 

@@ -91,11 +91,31 @@ func test_the_piece_a_living_actor_stands_on_can_be_removed() -> void:
 	assert_false(_build.is_standable(_cell(1, 1, 0)), "leaving nothing to stand on")
 
 
-func test_storey_minus_one_stands_on_bedrock() -> void:
-	# M6 claim 2 (as built): no terrain until M7, so bedrock holds up the basement storey
+func test_storey_minus_one_is_earth_until_excavated() -> void:
+	# M6 claim 6 (as built): no terrain and no dig before M7; a site excavates its tunnels
 	_setup()
-	assert_true(_build.is_standable(_cell(0, -1, 0)), "bedrock under storey -1")
+	assert_true(_build.is_solid(_cell(0, -1, 0)), "earth under the street")
+	assert_false(_build.is_standable(_cell(0, -1, 0)), "nobody stands inside it")
+	assert_eq(_build.place(_player, &"storage_crate", _at(0, -1, 0), ""), EntityIds.NONE, "nor builds into it")
+	assert_eq(_build.excavate([_cell(0, -1, 0), _cell(1, -1, 0)] as Array[Vector3i]), OK, "a tunnel dug")
+	assert_false(_build.is_solid(_cell(0, -1, 0)), "air now")
+	assert_true(_build.is_standable(_cell(0, -1, 0)), "on bedrock")
+	assert_false(_build.is_solid(_cell(0, 0, 0)), "the ground storey is air")
+	assert_eq(_build.excavate([_cell(0, 0, 0)] as Array[Vector3i]), ERR_INVALID_PARAMETER, "only the basement storey is dug")
 	assert_false(_build.is_standable(_cell(0, -2, 0)), "nothing below the storey range")
+
+
+func test_excavation_survives_a_restore_and_bad_cells_are_rejected() -> void:
+	_setup()
+	assert_eq(_build.excavate([_cell(3, -1, 3)] as Array[Vector3i]), OK, "dug")
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: BuildSystem = SimAssembly.build_of(SimAssembly.build(SEED, db))
+	assert_eq(other.restore(_build.snapshot()), OK, "restores")
+	assert_false(other.is_solid(_cell(3, -1, 3)), "still dug")
+	var bad: Dictionary = _build.snapshot().duplicate(true)
+	bad["excavated"] = ["0,0,0"]
+	assert_eq(other.restore(bad), ERR_INVALID_DATA, "a ground-storey cell is not excavation")
 
 
 func test_a_stair_is_a_cell_piece_placed_with_the_facing_of_its_foot() -> void:
