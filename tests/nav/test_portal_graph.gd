@@ -95,7 +95,7 @@ func test_a_walled_room_is_one_volume_with_a_door_and_walls_as_edges() -> void:
 	var wall: int = r["walls"][0]
 	assert_eq(_portals.edge_cost(wall, CUTTER), WALL_COST, "wall costs hp × 1 + noise × 1")
 	assert_eq(_portals.edge_cost(wall, &"spoon"), -1, "unknown tool")
-	assert_eq(_portals.rebuild_count(), 9 + 12 + 9, "one rebuild per change")
+	assert_eq(_portals.rebuild_count(), 1, "30 changes, then queries: one rebuild (M6 claim 7 batching)")
 
 
 func test_cheapest_path_takes_the_door_and_is_deterministic() -> void:

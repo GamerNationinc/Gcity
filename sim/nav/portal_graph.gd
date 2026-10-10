@@ -34,6 +34,9 @@ var _edges: Array[Dictionary] = []
 ## piece id (target) -> node id it opens into
 var _targets: Dictionary = {}
 var _rebuilds: int = 0
+## a build change since the last rebuild: the next query or snapshot rebuilds once, so a
+## burst of changes (a site raised in one tick) costs one rebuild (M6 claim 7)
+var _stale: bool = false
 
 
 func _init(content: ContentDb, stats: StatResolver, build: BuildSystem) -> void:
@@ -51,6 +54,7 @@ func tick(_sim: SimRoot) -> void:
 
 
 func snapshot() -> Dictionary:
+	_fresh()
 	var edges: Array = []
 	for e: Dictionary in _edges:
 		edges.append([e["piece"], e["a"], e["b"]] as Array[int])
@@ -65,7 +69,14 @@ func attach(sim: SimRoot, events: EventBus) -> Error:
 
 
 func _on_build_changed(_payload: Dictionary) -> void:
-	rebuild()
+	_stale = true
+
+
+## Rebuilds once if the build changed since the last rebuild. Every query calls it: the
+## graph is a function of the pieces alone, so when it is computed changes nothing.
+func _fresh() -> void:
+	if _stale:
+		rebuild()
 
 
 # ---------------------------------------------------------------- flood fill
@@ -78,6 +89,7 @@ func _on_build_changed(_payload: Dictionary) -> void:
 ## claim 7); the result is exactly the string-keyed fill's (tests/nav/doubles).
 func rebuild() -> void:
 	_rebuilds += 1
+	_stale = false
 	_nodes = {}
 	_edges = []
 	_targets = {}
@@ -274,6 +286,7 @@ func _fill(seeds: PackedInt32Array, node: int, blocked: Array[PackedByteArray]) 
 ## The node an air cell belongs to: EXTERIOR outside or on the border of the region,
 ## a volume id inside, SOLID for a cell a solid piece occupies or earth (M6 claim 6).
 func node_at(cell: Vector3i) -> int:
+	_fresh()
 	var i: int = _index(cell)
 	if i < 0:
 		return SOLID if _build.is_solid(cell) else EXTERIOR
@@ -287,6 +300,7 @@ func is_inside(cell: Vector3i) -> bool:
 
 
 func node_ids() -> Array[int]:
+	_fresh()
 	var out: Array[int] = [EXTERIOR]
 	var keys: Array = _nodes.keys()
 	keys.sort()
@@ -297,10 +311,12 @@ func node_ids() -> Array[int]:
 
 
 func volume_count() -> int:
+	_fresh()
 	return _nodes.size()
 
 
 func cells_in(node: int) -> int:
+	_fresh()
 	if node == EXTERIOR:
 		return -1
 	if not _nodes.has(node):
@@ -310,11 +326,13 @@ func cells_in(node: int) -> int:
 
 
 func edge_count() -> int:
+	_fresh()
 	return _edges.size()
 
 
 ## Edges touching a node, as [piece, other node] pairs in piece order.
 func edges_of(node: int) -> Array[Array]:
+	_fresh()
 	var out: Array[Array] = []
 	for e: Dictionary in _edges:
 		var a: int = e["a"]
@@ -328,6 +346,7 @@ func edges_of(node: int) -> Array[Array]:
 
 
 func targets() -> Dictionary:
+	_fresh()
 	return _targets.duplicate()
 
 
@@ -371,6 +390,7 @@ func edge_move(piece: int) -> StringName:
 ## search (A* with a zero heuristic: nodes have no metric); ties resolve to the lower
 ## piece id, so the result is deterministic.
 func cheapest_path(from: int, to: int, tool_class: StringName) -> Dictionary:
+	_fresh()
 	var none: Dictionary = {"cost": -1, "pieces": [] as Array[int], "nodes": [] as Array[int]}
 	if not _content.has(BuildSystem.KIND_TOOL, tool_class):
 		return none
@@ -432,6 +452,7 @@ func cheapest_path(from: int, to: int, tool_class: StringName) -> Dictionary:
 ## cost, then lower id) and its cheapest path to the volume it sits in.
 ## {"target": piece id or 0, "value": int, "cost": int, "pieces": Array[int]}.
 func raid_plan(tool_class: StringName) -> Dictionary:
+	_fresh()
 	var plan: Dictionary = {"target": EntityIds.NONE, "value": 0, "cost": -1, "pieces": [] as Array[int]}
 	var ids: Array = _targets.keys()
 	ids.sort()

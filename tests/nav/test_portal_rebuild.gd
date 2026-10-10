@@ -74,3 +74,24 @@ func test_property_the_graph_always_equals_the_reference_flood_fill() -> void:
 				fail("case %d: graph differs from the reference (%d pieces)" % [case, build.piece_ids().size()])
 	assert_eq(mismatches, 0, "the graph matches the reference after every change")
 	assert_eq(changes, CASES, "10 000 changes compared (%d operations)" % case)
+
+
+func test_a_burst_of_changes_costs_one_rebuild_at_the_next_query() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var sim: SimRoot = SimAssembly.build(SEED, db)
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var portals: PortalGraph = SimAssembly.portals_of(sim)
+	var player: int = SimAssembly.actors_of(sim).spawn(&"arcade", 0)
+	SimAssembly.actors_of(sim).set_position(player, FAR + Vector3i(-30 * M, 0, -30 * M))
+	var before: int = portals.rebuild_count()
+	for x: int in 6:
+		assert_true(build.place(player, &"foundation_block", _at(x, 0, 0), "") > 0, "foundation %d" % x)
+	assert_eq(portals.rebuild_count(), before, "no rebuild while nothing asks")
+	var volumes: int = portals.volume_count()
+	assert_eq(portals.rebuild_count(), before + 1, "one rebuild at the first query")
+	portals.edge_count()
+	assert_eq(portals.rebuild_count(), before + 1, "and none for the next")
+	var reference: RefCounted = ReferenceGraph.new(build)
+	assert_eq(StateHash.of(portals.snapshot()), StateHash.of(reference.call("snapshot")), "the batched graph is the reference's")
+	assert_eq(volumes, 0, "a row of blocks encloses nothing")
