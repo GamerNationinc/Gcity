@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "A contract delivered to a fixer raises your notoriety (claim 14 emits contract.delivered).",
+	"standing": "notoriety",
+	"event": "contract.delivered",
+	"credit": "actor",
+	"tags_any": [],
+	"violating": "",
+	"amount": 100
+}

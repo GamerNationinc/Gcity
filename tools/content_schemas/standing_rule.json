@@ -1,0 +1,16 @@
+{
+	"schema_version": 1,
+	"description": "A rule raising a standing on a bus event (M6 spec claim 11), as skill xp rules do: the payload key naming the credited actor, tags the payload must carry one of (empty: any), a right the actor must lack where it stands (empty: none), and the amount.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"standing": {"type": "string", "ref": "standing"},
+		"event": {"type": "string", "pattern": "[a-z][a-z_]*\\.[a-z][a-z_.]*"},
+		"credit": {"type": "string", "pattern": "[a-z][a-z_]*"},
+		"tags_any": {"type": "array", "max_length": 16, "items": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"}},
+		"violating": {"type": "string", "max_length": 32},
+		"amount": {"type": "int", "min": 1, "max": 1000000}
+	},
+	"required": ["schema_version", "description", "standing", "event", "credit", "tags_any", "violating", "amount"],
+	"additional_properties": false
+}

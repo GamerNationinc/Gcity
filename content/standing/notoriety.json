@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"description": "Notoriety (design doc §7.3): your reputation for getting jobs done. Raised by delivered contracts; never decays.",
+	"decay_per_1000_ticks": 0
+}

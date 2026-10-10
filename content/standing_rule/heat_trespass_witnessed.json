@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "A guard or camera becoming alerted to you while you stand where you may not enter raises your heat.",
+	"standing": "heat",
+	"event": "perception.alerted",
+	"credit": "contact",
+	"tags_any": [],
+	"violating": "enter",
+	"amount": 100
+}

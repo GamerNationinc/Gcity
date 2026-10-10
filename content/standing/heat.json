@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"description": "Heat (design doc §7.3): how hot the city is on you right now. Raised by alarms and witnessed trespass; cools by itself.",
+	"decay_per_1000_ticks": 50
+}
