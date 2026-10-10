@@ -136,14 +136,20 @@ a second contract at a second site needs no `sim/` diff. G6's proof (standards �
    - Metamorphic relation: removing a wall never lengthens the shortest path between two
      cells that were already joined. (Corrected at claim 6: the draft said a floor, but
      removing a floor takes away cells to stand on, so a path can grow or vanish.)
-7. **The portal graph rebuilds incrementally.** A `build.changed` marks only the volumes
-   it touches as dirty. The flood fill reruns over the dirty set, and a whole-site spawn
-   (claim 13) is one batched rebuild.
+7. **The portal graph rebuilds incrementally.** A removal (a breach, a cut, a collapse:
+   the changes a mission makes) is applied in place: the volumes it touches merge and are
+   renumbered as the full fill numbers them. Any other change marks the graph stale, and
+   the next query rebuilds it once on packed grids, so a whole-site spawn (claim 13) is
+   one batched rebuild. (As built 2026-10-10, for CEOGG's review: profiling showed the
+   rebuild's cost was string keys, not the fill's extent, so additions run the full grid
+   fill, 1.0-1.4 ms on the M4 building on the dev machine, instead of a dirty-set fill
+   for splits; a removal's graph update is about 0.7 ms.)
    - Budget: on the Deck, a single-piece change to the Cold Storage building costs at
      most 1.5 ms (standards §4.1, navigation), and the site spawn produces no hitch over
      one frame.
-   - Property: over 10 000 build and destroy sequences, the incremental partition equals
-     a full rebuild. This closes G4 debt 7.
+   - Property: over 10 000 generated changes, the graph equals the pre-claim-7 full fill
+     (kept as a test double) after every one. This closes G4 debt 7 once the Deck run
+     confirms the budget.
 
 ## Phase 2 — Security (`sim/agents/`, `sim/threat/`, `sim/items/`)
 
