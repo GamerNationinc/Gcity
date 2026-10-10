@@ -49,6 +49,7 @@ kind or free `pattern`-checked ids that a system registers at runtime.
 | `stance` | M4 | `description` (a name the sim registers a scorer for) |
 | `patrol_route` | M4 | `cells` (arrays of three ints) |
 | `agent_profile` | M4 | `combat_profile`, `perception_profile`, `aim_profile`, `stress_profile` (refs), `stances` (`{stance: ref, weight}`), `radio` (bool), `radio_latency_ticks`, `sweep` (`from_deg`, `to_deg`, `period_ticks`; M6) |
+| `sensor` | M6 | `triggers` (opened, breached), `radio_latency_ticks`: a sensor on an opening |
 | `tool` | M6 | `tool_class` (ref), `tags`: a wieldable tool that breaches |
 | `move` | M6 | `description` (a movement capability the sim implements) |
 | `combat_profile` | M1 | `stages` (refs), `range_falloff_per_m`, `mantle_ticks`, `jump_ticks`, `moves` (refs, M6), `fall` (`ticks_per_storey`, `free_storeys`, `damage_per_storey`, `node`, `noise_per_storey`, M6), `health` (`nodes` with `id`/`max`/`fatal`, `routing` with `node`/`weight`) |

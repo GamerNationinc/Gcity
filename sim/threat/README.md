@@ -4,4 +4,4 @@ Heat, notoriety, visible wealth, signals and suspicion, the threat director and 
 
 **Allowed imports:** `sim/` only.
 
-**Introduced at:** M8 (threat director + raids).
+**Introduced at:** M6 (sensors on openings, claim 8; standing, claim 11); the director, signals, suspicion and raids arrive at M8.

@@ -1,0 +1,6 @@
+{
+	"schema_version": 1,
+	"description": "A power monitor on a window's circuit: opening or breaking the window trips it, and the alarm reaches the guards a second later. A hack spoofs it (claim 9).",
+	"triggers": ["opened", "breached"],
+	"radio_latency_ticks": 40
+}
