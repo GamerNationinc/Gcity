@@ -3559,7 +3559,7 @@
 			"tick": 229
 		}
 	],
-	"expected_hash": "306c5419745648ff4f4644b0181bbc2935c7305fd62ee7e7c696794544b893aa",
+	"expected_hash": "989c6df9123d57136cb55042ef31165ab96b31c2727f5ad0fef1115910eb8259",
 	"name": "m4-break-contact",
 	"schema_version": 1,
 	"seed": 20261100,

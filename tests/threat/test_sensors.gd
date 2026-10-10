@@ -127,3 +127,74 @@ func test_a_sensor_naming_an_unknown_trigger_stops_assembly() -> void:
 	assert_eq(ContentLoader.load_all(db), OK, "content")
 	assert_eq(db.add(&"sensor", &"zz_seismic", {"schema_version": 1, "description": "x", "triggers": ["stomped"], "radio_latency_ticks": 0}), OK, "a sensor")
 	assert_true(SimAssembly.build(SEED, db) == null, "refused")
+
+
+## M6 claim 9: the spoof_sensor hack effect, registered by the sensor system. A hack on a
+## target tied to the watched window silences that window's sensor of the named kind;
+## on a piece without one it completes with nothing applied.
+func _hacker() -> HackSystem:
+	var items: ItemSystem = SimAssembly.items_of(_sim)
+	var inv: StringName = ItemSystem.inventory_of(_player)
+	var device: int = items.spawn(&"device_frame", &"handset", inv, 1)
+	var cop: int = items.spawn(&"device_module", &"daemon_coprocessor", inv, 2)
+	assert_true(_do(&"actor.equip_device", {"actor": _player, "device": device}), "device carried")
+	assert_true(_do(&"item.attach", {"actor": _player, "weapon": device, "part": cop}), "coprocessor fitted")
+	return SimAssembly.hacks_of(_sim)
+
+
+func test_a_hack_spoofs_the_watched_window_and_opening_it_is_then_silent() -> void:
+	_setup()
+	var window: int = _room_and_guard()
+	assert_true(_sensors.install(&"power_monitor", window, 1), "installed")
+	var hacks: HackSystem = _hacker()
+	var completed: Array[Dictionary] = []
+	SimAssembly.combat_of(_sim).events().subscribe(HackSystem.EVENT_COMPLETED, func(p: Dictionary) -> void: completed.append(p))
+	var box: int = hacks.place(&"power_monitor_spoof", BuildSystem.cell_of(_feet(1, 0)), window)
+	assert_true(box > 0, "the monitor's junction box, outside the window")
+	_actors.set_position(_player, _feet(1, 0))
+	assert_true(_do(&"hack.start", {"actor": _player, "target": box}), "hack started")
+	_sim.step_n(238)
+	assert_false(_sensors.is_spoofed(window), "not before the 240 ticks are up")
+	_sim.step()
+	assert_eq(completed, [{"actor": _player, "target": box, "applied": true}], "completed and applied")
+	assert_true(_sensors.is_spoofed(window), "the monitor is spoofed")
+	_actors.set_position(_player, _feet(0, 0))  # the window is latched: it opens from inside
+	assert_true(_do(&"opening.open", {"actor": _player, "piece": window}), "the window opens")
+	assert_eq(_alarms.size(), 0, "without an alarm")
+
+
+func test_a_spoof_with_no_matching_sensor_applies_nothing() -> void:
+	_setup()
+	var window: int = _room_and_guard()
+	var hacks: HackSystem = _hacker()
+	var completed: Array[Dictionary] = []
+	SimAssembly.combat_of(_sim).events().subscribe(HackSystem.EVENT_COMPLETED, func(p: Dictionary) -> void: completed.append(p))
+	var box: int = hacks.place(&"power_monitor_spoof", BuildSystem.cell_of(_feet(1, 0)), window)
+	var bare: int = hacks.place(&"power_monitor_spoof", BuildSystem.cell_of(_feet(1, 1)), EntityIds.NONE)
+	_actors.set_position(_player, _feet(1, 0))
+	assert_true(_do(&"hack.start", {"actor": _player, "target": box}), "a box on a window with no monitor")
+	_sim.step_n(240)
+	assert_eq(completed.size(), 1, "the hack completes")
+	var first: bool = completed[0]["applied"]
+	assert_false(first, "with nothing to spoof")
+	assert_true(_sensors.install(&"power_monitor", window, 1), "a monitor installed later is live")
+	assert_true(_do(&"hack.logout", {"actor": _player, "target": box}), "logged out")
+	assert_true(_do(&"hack.start", {"actor": _player, "target": bare}), "a box tied to no piece")
+	_sim.step_n(240)
+	assert_eq(completed.size(), 2, "completes")
+	var second: bool = completed[1]["applied"]
+	assert_false(second, "applies nothing")
+	assert_false(_sensors.is_spoofed(window), "and the window's monitor stays live")
+
+
+func test_a_spoof_naming_an_unknown_sensor_stops_assembly() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	assert_eq(db.add(&"hack_target", &"zz_bad", {"schema_version": 1, "description": "test", "ticks": 10, "daemons": 1, "noise": 0, "reach_mm": 1000,
+		"effect": {"kind": "spoof_sensor", "params": {"sensor": "zz_nothing"}}}), OK, "an unknown sensor")
+	assert_eq(SimAssembly.build(SEED, db), null, "rejected")
+	db = ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	assert_eq(db.add(&"hack_target", &"zz_bad", {"schema_version": 1, "description": "test", "ticks": 10, "daemons": 1, "noise": 0, "reach_mm": 1000,
+		"effect": {"kind": "spoof_sensor", "params": {"sensor": "power_monitor", "extra": 1}}}), OK, "an extra param")
+	assert_eq(SimAssembly.build(SEED, db), null, "rejected")

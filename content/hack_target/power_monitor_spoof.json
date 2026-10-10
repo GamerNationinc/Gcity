@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "The junction box of a window's power monitor: a daemon on it feeds the monitor a steady circuit, and the window can be opened or cut without an alarm (M6 claim 9).",
+	"ticks": 240,
+	"daemons": 1,
+	"noise": 4000,
+	"reach_mm": 1500,
+	"effect": {"kind": "spoof_sensor", "params": {"sensor": "power_monitor"}}
+}

@@ -13,6 +13,8 @@ const EVENT_ALARM: StringName = &"security.alarm"
 const TRIGGER_OPENED: StringName = &"opened"
 const TRIGGER_BREACHED: StringName = &"breached"
 const TRIGGERS: Array[StringName] = [TRIGGER_OPENED, TRIGGER_BREACHED]
+## The hack effect this system registers with the hack system (claim 9).
+const EFFECT_SPOOF: StringName = &"spoof_sensor"
 
 var _content: ContentDb
 var _actors: ActorSystem
@@ -118,6 +120,25 @@ func spoof(piece: int) -> bool:
 	var rec: Dictionary = _sensors[piece]
 	rec["spoofed"] = true
 	return true
+
+
+## spoof_sensor {sensor}: the hack effect (claim 9). Its params name a sensor kind.
+func check_spoof(params: Dictionary) -> bool:
+	if params.size() != 1 or typeof(params.get("sensor")) != TYPE_STRING:
+		return false
+	var sensor: String = params["sensor"]
+	return _content.has(KIND_SENSOR, StringName(sensor))
+
+
+## Spoofs the sensor on the hack target's piece when it is live and of the named kind.
+func apply_spoof(_actor: int, params: Dictionary, piece: int) -> bool:
+	if not _sensors.has(piece) or _gone.has(piece):
+		return false
+	var rec: Dictionary = _sensors[piece]
+	var sensor: String = params["sensor"]
+	if rec["sensor"] != StringName(sensor):
+		return false
+	return spoof(piece)
 
 
 # ---------------------------------------------------------------- events

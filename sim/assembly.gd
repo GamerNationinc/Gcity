@@ -79,6 +79,8 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 		return null
 	var hacks: HackSystem = HackSystem.new(content, stats, items, actors, build, events)
 	hacks.set_footing_check(movement.can_act)
+	if hacks.register_effect(SensorSystem.EFFECT_SPOOF, sensors.check_spoof, sensors.apply_spoof) != OK:
+		return null
 	if hacks.attach(sim) != OK:
 		return null
 	var quests: QuestSystem = QuestSystem.new(content, actors, items, events)
