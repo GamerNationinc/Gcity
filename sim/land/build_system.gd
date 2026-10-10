@@ -435,6 +435,14 @@ func set_open(actor: int, id: int, open: bool) -> bool:
 	return true
 
 
+## A face piece's canonical face key ("" for a cell piece), without copying the record.
+func face_of(id: int) -> String:
+	if not _pieces.has(id):
+		return ""
+	var record: Dictionary = _pieces[id]
+	return record["face"]
+
+
 ## The side a stair's foot is on ("" for every other piece).
 func facing_of(id: int) -> String:
 	if not _pieces.has(id):
