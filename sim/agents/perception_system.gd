@@ -314,7 +314,8 @@ static func exposure_gain(p: Dictionary, dist_mm: int, moved_mm: int) -> int:
 
 ## An integer grid walk from a toward b (Amanatides–Woo with exact rational
 ## comparisons). Every face crossed must not block sight (a solid piece or a closed
-## opaque opening) and every cell entered must hold no cell piece.
+## opaque opening, or the uncut ground) and every cell entered must not be solid (a
+## cell piece, or earth: M6 claim 6).
 func _walk_clear(a: Vector3i, b: Vector3i) -> bool:
 	var cell: Vector3i = BuildSystem.cell_of(a)
 	var target: Vector3i = BuildSystem.cell_of(b)
@@ -346,7 +347,7 @@ func _walk_clear(a: Vector3i, b: Vector3i) -> bool:
 		# a solid piece or a closed opaque opening stops sight; a window never does (M6 claim 3)
 		if _build.blocks_sight(BuildSystem.face_key(cell, facing)):
 			return false
-		if _build.cell_piece_at(next) != EntityIds.NONE:
+		if _build.is_solid(next):
 			return false
 		cell = next
 		num[best] += BuildSystem.CELL

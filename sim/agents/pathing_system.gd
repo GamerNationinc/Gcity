@@ -106,7 +106,7 @@ func can_step(from: Vector3i, to: Vector3i) -> bool:
 	var d: Vector3i = to - from
 	if absi(d.x) + absi(d.y) + absi(d.z) != 1:
 		return false
-	if _build.cell_piece_at(to) != EntityIds.NONE:
+	if _build.is_solid(to):
 		return false
 	var facing: String = ("p" if d.x > 0 else "n") + "x" if d.x != 0 else (("p" if d.y > 0 else "n") + "y" if d.y != 0 else ("p" if d.z > 0 else "n") + "z")
 	# a solid piece or a closed opening stops the step (M6 claim 3)

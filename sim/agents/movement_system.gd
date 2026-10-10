@@ -185,7 +185,7 @@ func mantle(actor: int, dx: int, dz: int) -> bool:
 	if piece == EntityIds.NONE or not _build.is_mantleable(piece):
 		return false
 	var to: Vector3i = here + d + UP
-	if not _build.is_standable(to) or _build.cell_piece_at(here + UP) != EntityIds.NONE:
+	if not _build.is_standable(to) or _build.is_solid(here + UP):
 		return false
 	if _build.face_piece_at(BuildSystem.face_key(here, "py")) != EntityIds.NONE:
 		return false
@@ -207,7 +207,7 @@ func jump(actor: int, dx: int, dz: int) -> bool:
 	var d: Vector3i = Vector3i(dx, 0, dz)
 	var middle: Vector3i = here + d
 	var to: Vector3i = here + d * 2
-	if _build.cell_piece_at(middle) != EntityIds.NONE or _build.is_standable(middle) or not _build.is_standable(to):
+	if _build.is_solid(middle) or _build.is_standable(middle) or not _build.is_standable(to):
 		return false
 	var facing: String = _facing_toward(here, middle)
 	if _blocks(BuildSystem.face_key(here, facing)) or _blocks(BuildSystem.face_key(middle, facing)):
@@ -349,7 +349,7 @@ func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 	var from_cell: Vector3i = BuildSystem.cell_of(from)
 	var to_cell: Vector3i = BuildSystem.cell_of(to)
 	if to_cell != from_cell:
-		if _build.cell_piece_at(to_cell) != EntityIds.NONE:
+		if _build.is_solid(to_cell):
 			return false
 		if not _build.is_standable(to_cell) and not has_move(actor, MOVE_DROP):
 			return false
