@@ -2,8 +2,8 @@
 ## player stands, facing `facing` ("px", "nx", "pz" or "nz"), as {"label", "kind",
 ## "payload"}, or {} for nothing. In order: the fixer in reach (take the contract, or
 ## deliver it), a body, pile or crate in reach with something in it (take the first
-## thing), the face ahead (cut it with a wielded tool, else open or close an opening),
-## something to climb here or ahead. Reads the sim only; the caller submits.
+## thing), the face ahead, then the floor underfoot (cut it with a wielded tool, else
+## open or close an opening: a grate or hatch below), something to climb here or ahead. Reads the sim only; the caller submits.
 class_name Interact extends RefCounted
 
 const UP: Vector3i = Vector3i(0, 1, 0)
@@ -18,6 +18,8 @@ static func choose(sim: SimRoot, player: int, facing: String) -> Dictionary:
 		choice = _take(sim, player)
 	if choice.is_empty():
 		choice = _ahead(sim, player, facing)
+	if choice.is_empty():
+		choice = _ahead(sim, player, "ny")
 	if choice.is_empty():
 		choice = _climb(sim, player, facing)
 	return choice
@@ -83,6 +85,8 @@ static func _ahead(sim: SimRoot, player: int, facing: String) -> Dictionary:
 		return {}
 	var name: String = _name(build.template_of(id))
 	var opening: bool = build.is_opening(id)
+	if facing == "ny" and not opening:
+		return {}  # underfoot, only a grate or hatch is offered: not every floor
 	var wielded: int = actors.wielded(player)
 	if wielded != EntityIds.NONE and items.item_kind(wielded) == ItemSystem.KIND_TOOL and not (opening and build.is_open(id)):
 		return {"label": "cut %s with the %s" % [name, _name(items.item_template(wielded))], "kind": BuildSystem.COMMAND_BREACH, "payload": {"actor": player, "piece": id}}

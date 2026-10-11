@@ -85,6 +85,21 @@ func test_facing_a_door_the_button_opens_it_and_a_cutter_cuts_it() -> void:
 	assert_true(_accepted(choice), "the sim takes it")
 
 
+func test_standing_on_the_street_grate_the_button_opens_it_with_the_key() -> void:
+	_setup()
+	_stand(O + Vector3i(1, 0, -3))
+	var choice: Dictionary = Interact.choose(_sim, _player, "pz")
+	assert_eq(choice.get("kind"), BuildSystem.COMMAND_OPEN, "the grate underfoot: open")
+	assert_true(_label(choice).begins_with("open street grate"), "named: %s" % choice.get("label"))
+	assert_false(_accepted(choice), "locked: refused without the key")
+	SimAssembly.items_of(_sim).spawn(&"key_item", &"maintenance_key", ItemSystem.inventory_of(_player), 1)
+	assert_true(_accepted(choice), "with the maintenance key it opens")
+	var cutter: int = SimAssembly.items_of(_sim).spawn(&"tool", &"plasma_cutter", ItemSystem.inventory_of(_player), 2)
+	assert_true(_accepted({"kind": &"actor.wield", "payload": {"actor": _player, "weapon": cutter}}), "wielded")
+	_stand(O + Vector3i(6, 0, 6))
+	assert_eq(Interact.choose(_sim, _player, "pz"), {}, "on a plain floor with a cutter in hand: no offer to cut the floor")
+
+
 func test_at_the_stairs_the_button_climbs() -> void:
 	_setup()
 	_stand(O + Vector3i(9, 0, 5))
