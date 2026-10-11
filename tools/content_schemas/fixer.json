@@ -1,0 +1,24 @@
+{
+	"schema_version": 1,
+	"description": "A fixer (M6 spec claim 14): who gives a contract and takes the goods. Where they stand (an absolute cell), how near you must be to deal, their lines (briefing, turn-in, refusal), the base credits a contract of theirs pays before scoring, and reward items on delivery.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 240},
+		"name": {"type": "string", "min_length": 1, "max_length": 40},
+		"cell": {"type": "array", "min_length": 3, "max_length": 3, "items": {"type": "int", "min": -100000, "max": 100000}},
+		"reach_mm": {"type": "int", "min": 0, "max": 10000},
+		"lines": {"type": "object", "properties": {
+			"briefing": {"type": "string", "min_length": 1, "max_length": 600},
+			"turn_in": {"type": "string", "min_length": 1, "max_length": 600},
+			"refusal": {"type": "string", "min_length": 1, "max_length": 600}
+		}, "required": ["briefing", "turn_in", "refusal"], "additional_properties": false},
+		"base_credits": {"type": "int", "min": 0, "max": 1000000},
+		"reward": {"type": "array", "max_length": 8, "items": {"type": "object", "properties": {
+			"kind": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"},
+			"template": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"},
+			"count": {"type": "int", "min": 1, "max": 100}
+		}, "required": ["kind", "template", "count"], "additional_properties": false}}
+	},
+	"required": ["schema_version", "description", "name", "cell", "reach_mm", "lines", "base_credits", "reward"],
+	"additional_properties": false
+}

@@ -369,9 +369,14 @@ func _apply_spawn_item(actor: int, params: Dictionary, _piece: int) -> bool:
 
 func _spawn_kind(params: Dictionary) -> StringName:
 	var template: String = params["template"]
+	return spawnable_kind(_content, StringName(template))
+
+
+## The one spawnable kind with a template of this id, or &"" for none or several.
+static func spawnable_kind(content: ContentDb, template: StringName) -> StringName:
 	var found: StringName = &""
 	for kind: StringName in ItemSystem.SPAWNABLE:
-		if _content.has(kind, StringName(template)):
+		if content.has(kind, template):
 			if found != &"":
 				return &""
 			found = kind

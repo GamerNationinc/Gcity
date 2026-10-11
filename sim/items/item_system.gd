@@ -648,7 +648,7 @@ func restore(state: Dictionary) -> Error:
 		var name: StringName = _as_name(ck)
 		if name.is_empty() or typeof(containers_in[ck]) != TYPE_ARRAY:
 			return _restore_fail("container key or list")
-		if not _is_open_container(name) and not _is_closed_container_name(name, new_items):
+		if not _is_open_container(name) and not _is_closed_container_name(name, new_items) and not _is_fixer_container(name):
 			return _restore_fail("unknown container '%s'" % name)
 		var arr: Array = containers_in[ck]
 		var list: Array[int] = []
@@ -863,6 +863,27 @@ func _is_open_container(name: StringName) -> bool:
 		return false
 	var rest: String = text.trim_prefix("inv.")
 	return rest.is_valid_int() and int(rest) >= 1 and str(int(rest)) == rest
+
+
+## A fixer's container (M6 claim 14): "fixer.<id>" for a fixer in content. Where a
+## delivered contract item goes.
+static func fixer_container(fixer: StringName) -> StringName:
+	return StringName("fixer.%s" % fixer)
+
+
+func _is_fixer_container(name: StringName) -> bool:
+	var text: String = String(name)
+	return text.begins_with("fixer.") and _content.has(&"fixer", StringName(text.trim_prefix("fixer.")))
+
+
+## Hands an item from an actor's inventory to a fixer (M6 claim 14: contract.deliver).
+## False, changing nothing, unless the item lies directly in the actor's inventory and
+## the fixer exists.
+func hand_over(actor: int, item: int, fixer: StringName) -> bool:
+	if container_of(item) != inventory_of(actor) or not _is_fixer_container(fixer_container(fixer)):
+		return false
+	_move(item, fixer_container(fixer))
+	return true
 
 
 func _is_closed_container_name(name: StringName, items: Dictionary) -> bool:

@@ -1,0 +1,14 @@
+{
+	"schema_version": 1,
+	"description": "Marlow, the docklands fixer (M6 spec claim 14): stands on the street south of the starter plot and gives the Cold Storage contract.",
+	"name": "Marlow",
+	"cell": [14, 0, -3],
+	"reach_mm": 2000,
+	"lines": {
+		"briefing": "Cold Storage, on the docklands. Their records sit on a terminal in the server room, upstairs. Get them out, bring them to me. Front door takes a staff keycard; there's one in a crate in their yard. Or go round the side, or under. Quieter is worth more.",
+		"turn_in": "That's the drive. Pleasure doing business.",
+		"refusal": "Not yet. Bring me the records from Cold Storage, and come and see me in person."
+	},
+	"base_credits": 1000,
+	"reward": []
+}
