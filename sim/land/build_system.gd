@@ -599,6 +599,133 @@ func _max_span(id: int) -> int:
 
 # ---------------------------------------------------------------- operations
 
+const INVALID_SLOT: String = "!"
+
+
+## Where `template` would go in `cell` with `facing`: its face key, "" for a cell
+## piece, or INVALID_SLOT when the facing, the storey or the occupancy forbids it.
+func _slot(template: StringName, cell: Vector3i, facing: String) -> String:
+	var t: Dictionary = _content.get_entry(KIND_PIECE, template)
+	var kind: StringName = LandSystem._as_name(t["kind"])
+	var k: Dictionary = _content.get_entry(KIND_PIECE_KIND, kind)
+	var occupies: String = k["occupies"]
+	if occupies == "face":
+		var face: String = face_key(cell, facing)
+		if face.is_empty():
+			return INVALID_SLOT
+		var orientation: String = k["orientation"]
+		var axis: String = facing.substr(1, 1)
+		if orientation == "vertical" and axis == "y":
+			return INVALID_SLOT
+		if orientation == "horizontal" and axis != "y":
+			return INVALID_SLOT
+		if _occupied.has(face):
+			return INVALID_SLOT
+		return face
+	var orientation_c: String = k["orientation"]
+	if orientation_c == "facing":
+		if not LEVEL_FACINGS.has(facing):
+			return INVALID_SLOT
+	elif not facing.is_empty():
+		return INVALID_SLOT
+	if is_solid(cell):
+		return INVALID_SLOT
+	if kind == &"foundation" and cell.y != GROUND_CELL_Y:
+		return INVALID_SLOT
+	return ""
+
+
+## A site's pieces in one step (M6 claim 12): excavates `excavate`, then places every
+## entry {"piece": StringName, "cell": Vector3i, "facing": String} in order, with no
+## rights check (the site's owner raises it, as the M2 plot seeding did) and one support
+## check for the whole set. All or nothing: an entry that does not fit (bad slot, taken,
+## an actor in the cell, out of range) or a piece left unsupported changes nothing, not
+## even an id, and returns an empty list. Success emits one build.changed with every id.
+func spawn_batch(excavate_cells: Array[Vector3i], entries: Array[Dictionary]) -> Array[int]:
+	var none: Array[int] = []
+	for c: Vector3i in excavate_cells:
+		if c.y >= GROUND_CELL_Y or not is_storey_in_range(c.y) or absi(c.x) > MAX_CELL or absi(c.z) > MAX_CELL:
+			return none
+	var dug: Array[String] = []
+	for c: Vector3i in excavate_cells:
+		var key: String = cell_key(c)
+		if not _excavated.has(key):
+			_excavated[key] = true
+			dug.append(key)
+	# trial: place under temporary negative ids, so a refusal allocates nothing
+	var trial: Array[int] = []
+	var ok: bool = true
+	for i: int in entries.size():
+		var e: Dictionary = entries[i]
+		var template: StringName = e["piece"]
+		var cell: Vector3i = e["cell"]
+		var facing: String = e["facing"]
+		if not _content.has(KIND_PIECE, template) or absi(cell.x) > MAX_CELL or absi(cell.y) > MAX_CELL or absi(cell.z) > MAX_CELL:
+			ok = false
+			break
+		var face: String = _slot(template, cell, facing)
+		if face == INVALID_SLOT or (face.is_empty() and _actor_in(cell)):
+			ok = false
+			break
+		var temp: int = -1 - i
+		_insert(temp, template, cell, face, facing)
+		trial.append(temp)
+	if ok:
+		var supported: Dictionary = supported_set()
+		for temp: int in trial:
+			if not supported.has(temp):
+				ok = false
+				break
+	for temp: int in trial:
+		_uninsert(temp)
+	if not ok:
+		for key: String in dug:
+			_excavated.erase(key)
+		return none
+	var ids: Array[int] = []
+	for e: Dictionary in entries:
+		var template: StringName = e["piece"]
+		var cell: Vector3i = e["cell"]
+		var facing: String = e["facing"]
+		var id: int = _ids.allocate()
+		_insert(id, template, cell, _slot(template, cell, facing), facing)
+		_finish(id)
+		ids.append(id)
+	_events.emit(EVENT_CHANGED, {"added": ids, "removed": [] as Array[int], "actor": EntityIds.NONE})
+	return ids
+
+
+func _insert(id: int, template: StringName, cell: Vector3i, face: String, facing: String) -> void:
+	var t: Dictionary = _content.get_entry(KIND_PIECE, template)
+	var lower: Vector3i = cell if face.is_empty() else face_cells(face)[0]
+	var starts_open: bool = t["starts_open"]
+	_pieces[id] = {"template": template, "cell": [lower.x, lower.y, lower.z] as Array[int], "face": face, "facing": facing if face.is_empty() else "", "open": starts_open}
+	_occupied[face if not face.is_empty() else cell_key(cell)] = id
+
+
+func _uninsert(id: int) -> void:
+	var rec: Dictionary = _pieces[id]
+	var face: String = rec["face"]
+	var c: Array = rec["cell"]
+	var cx: int = c[0]
+	var cy: int = c[1]
+	var cz: int = c[2]
+	_occupied.erase(face if not face.is_empty() else cell_key(Vector3i(cx, cy, cz)))
+	_pieces.erase(id)
+
+
+## A placed piece's ground hole and its stats from its material.
+func _finish(id: int) -> void:
+	var rec: Dictionary = _pieces[id]
+	var face: String = rec["face"]
+	if not face.is_empty() and face.ends_with("|y") and face_cells(face)[0].y == GROUND_CELL_Y - 1:
+		_holes[face] = true
+	var m: Dictionary = _content.get_entry(KIND_MATERIAL, material_of(id))
+	var hp: int = m["hp"]
+	var noise: int = m["breach_noise"]
+	_stats.set_base(id, STAT_HP, hp)
+	_stats.set_base(id, STAT_NOISE, noise)
+
 ## Places `template` in the cell containing `position` (face pieces on the face in
 ## `facing`). Returns the piece id or EntityIds.NONE.
 func place(actor: int, template: StringName, position: Vector3i, facing: String) -> int:
@@ -606,39 +733,15 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 		return EntityIds.NONE
 	if absi(position.x) > MAX_CELL * CELL or absi(position.y) > MAX_CELL * CELL or absi(position.z) > MAX_CELL * CELL:
 		return EntityIds.NONE
-	var t: Dictionary = _content.get_entry(KIND_PIECE, template)
-	var kind: StringName = LandSystem._as_name(t["kind"])
-	var k: Dictionary = _content.get_entry(KIND_PIECE_KIND, kind)
-	var occupies: String = k["occupies"]
 	var cell: Vector3i = cell_of(position)
-	var face: String = ""
-	if occupies == "face":
-		face = face_key(cell, facing)
-		if face.is_empty():
-			return EntityIds.NONE
-		var orientation: String = k["orientation"]
-		var axis: String = facing.substr(1, 1)
-		if orientation == "vertical" and axis == "y":
-			return EntityIds.NONE
-		if orientation == "horizontal" and axis != "y":
-			return EntityIds.NONE
-		if _occupied.has(face):
-			return EntityIds.NONE
-	else:
-		var orientation_c: String = k["orientation"]
-		if orientation_c == "facing":
-			if not LEVEL_FACINGS.has(facing):
-				return EntityIds.NONE
-		elif not facing.is_empty():
-			return EntityIds.NONE
-		if is_solid(cell):
-			return EntityIds.NONE
-		if kind == &"foundation" and cell.y != GROUND_CELL_Y:
-			return EntityIds.NONE
-		if _actor_in(cell):
-			return EntityIds.NONE
+	var face: String = _slot(template, cell, facing)
+	if face == INVALID_SLOT:
+		return EntityIds.NONE
+	if face.is_empty() and _actor_in(cell):
+		return EntityIds.NONE
 	if not _land.require(cell_centre(cell), actor, &"build"):
 		return EntityIds.NONE
+	var t: Dictionary = _content.get_entry(KIND_PIECE, template)
 	var id: int = _ids.allocate()
 	var lower: Vector3i = cell if face.is_empty() else face_cells(face)[0]
 	var piece_facing: String = facing if face.is_empty() else ""
