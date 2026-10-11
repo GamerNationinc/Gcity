@@ -21,16 +21,20 @@ func _replay(name: String) -> void:
 	_sim = SimAssembly.build(fixture.seed, db)
 	var log: Array[Dictionary] = []
 	_events = log
+	# the tick a step runs at, set before each step: the listener captures this, the log
+	# and the kind, never the test or the sim, so no reference cycle outlives the test
+	var now: Array[int] = [0]
 	var bus: EventBus = SimAssembly.combat_of(_sim).events()
 	for kind: StringName in [SensorSystem.EVENT_ALARM, BuildSystem.EVENT_OPENING, BuildSystem.EVENT_CHECK_FAILED, PerceptionSystem.EVENT_ALERTED,
 			QuestSystem.EVENT_DELIVERED, QuestSystem.EVENT_EXFIL, ActorSystem.EVENT_DIED, ActorSystem.EVENT_RESPAWNED, CorpseSystem.EVENT_MOVED,
 			RecoverySystem.EVENT_RETURNED, HackSystem.EVENT_COMPLETED, MovementSystem.EVENT_LANDED, BuildSystem.EVENT_BREACHED, CombatSystem.EVENT_HIT]:
-		bus.subscribe(kind, func(p: Dictionary) -> void: log.append({"kind": kind, "tick": _sim.get_tick(), "p": p}))
+		bus.subscribe(kind, func(p: Dictionary) -> void: log.append({"kind": kind, "tick": now[0], "p": p}))
 	_commands = fixture.commands
 	for c: SimCommand in fixture.commands:
 		assert_eq(_sim.submit(c), OK, "submit")
 	var rejected: int = 0
 	for i: int in fixture.ticks:
+		now[0] = _sim.get_tick() + (0 if _sim.is_paused() else 1)
 		_sim.step()
 	assert_eq(_sim.rejected_count(), rejected, "%s: no command was refused" % name)
 	assert_false(fixture.expected_hash.is_empty(), "%s has its hash recorded" % name)
