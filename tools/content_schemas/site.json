@@ -34,9 +34,16 @@
 			"cell": {"type": "array", "min_length": 3, "max_length": 3, "items": {"type": "int", "min": -1000, "max": 1000}},
 			"piece": {"type": "int", "min": -1, "max": 4095}
 		}, "required": ["target", "cell", "piece"], "additional_properties": false}},
+		"containers": {"type": "array", "max_length": 64, "items": {"type": "object", "properties": {
+			"piece": {"type": "int", "min": 0, "max": 4095},
+			"items": {"type": "array", "max_length": 64, "items": {"type": "object", "properties": {
+				"kind": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"},
+				"template": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"}
+			}, "required": ["kind", "template"], "additional_properties": false}}
+		}, "required": ["piece", "items"], "additional_properties": false}},
 		"placement": {"type": "array", "min_length": 3, "max_length": 3, "items": {"type": "int", "min": -100000, "max": 100000}},
 		"exfil": {"type": "array", "min_length": 3, "max_length": 32, "items": {"type": "array", "min_length": 2, "max_length": 2, "items": {"type": "int", "min": -1000, "max": 1000}}}
 	},
-	"required": ["schema_version", "description", "district", "owner", "parcels", "excavate", "pieces", "agents", "hack_targets", "placement", "exfil"],
+	"required": ["schema_version", "description", "district", "owner", "parcels", "excavate", "pieces", "agents", "hack_targets", "containers", "placement", "exfil"],
 	"additional_properties": false
 }

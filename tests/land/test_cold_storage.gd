@@ -183,3 +183,26 @@ func test_cutting_the_street_grate_leaves_the_tunnel_hatch_standing() -> void:
 	var hatch: int = build.face_piece_at(BuildSystem.face_key(O + Vector3i(2, -1, -3), "py"))
 	assert_eq(build.breach(grate), [grate] as Array[int], "only the grate comes out")
 	assert_true(build.has_piece(hatch), "the hatch stands on its own bollard")
+
+
+func test_the_keycard_lies_in_the_yard_crate() -> void:
+	# M6 claim 13: "it lies in an unlocked crate in the yard, a placement the fixer's
+	# briefing names"; claim 16 makes the crate a place it is taken from
+	_setup()
+	var crates: Array[StringName] = SimAssembly.sites_of(_sim).crates_of(&"cold_storage")
+	assert_eq(crates.size(), 1, "one crate holds anything")
+	var corpses: CorpseSystem = SimAssembly.corpses_of(_sim)
+	assert_eq(corpses.position_of(crates[0]), _feet(Vector3i(10, 0, 1)), "the yard crate under the window")
+	var items: ItemSystem = SimAssembly.items_of(_sim)
+	var held: Array[int] = items.items_in(crates[0])
+	assert_eq(held.size(), 1, "one item")
+	assert_eq(items.item_template(held[0]), &"cold_storage_keycard", "the keycard")
+	var player: int = SimAssembly.actors_of(_sim).spawn(&"arcade", 0)
+	SimAssembly.actors_of(_sim).set_position(player, _feet(Vector3i(11, 0, 1)))
+	var build: BuildSystem = SimAssembly.build_of(_sim)
+	var door: int = build.face_piece_at(BuildSystem.face_key(O + Vector3i(2, 0, 0), "nz"))
+	assert_false(build.may_pass(player, door), "without the card the front door does not open")
+	_sim.submit(SimCommand.new(_sim.get_tick() + 1, CorpseSystem.COMMAND_TAKE, {"actor": player, "from": String(crates[0]), "item": held[0]}))
+	_sim.step()
+	assert_eq(items.container_of(held[0]), ItemSystem.inventory_of(player), "taken from the yard")
+	assert_true(build.may_pass(player, door), "and with it, it does")

@@ -25,6 +25,7 @@ func _site() -> Dictionary:
 		"pieces": pieces,
 		"agents": [{"profile": "guard_sim", "cell": [1, 0, 3], "facing": 0, "squad": 1, "route": "zz_rel"}],
 		"hack_targets": [{"target": "power_monitor_spoof", "cell": [1, 0, 0], "piece": 5}],
+		"containers": [{"piece": 3, "items": [{"kind": "key_item", "template": "cold_storage_keycard"}, {"kind": "ammo", "template": "9x19_fmj"}]}],
 		"placement": [0, 0, 0], "exfil": [[6, 6], [9, 6], [9, 9], [6, 9]]}
 
 
@@ -90,6 +91,16 @@ func test_a_site_spawns_everything_it_declares() -> void:
 	assert_true(sites.in_exfil(&"zz_shed", BuildSystem.cell_centre(O1 + Vector3i(7, 0, 7))), "the exfil zone")
 	assert_false(sites.in_exfil(&"zz_shed", BuildSystem.cell_centre(O1)), "the shed is not out")
 	assert_eq(spawned, [{"site": &"zz_shed", "x": O1.x, "y": O1.y, "z": O1.z}], "site.spawned")
+	# M6 claims 13 and 16: a site's crate is a place holding what the site puts in it
+	var crates: Array[StringName] = sites.crates_of(&"zz_shed")
+	assert_eq(crates.size(), 1, "one crate")
+	var corpses: CorpseSystem = SimAssembly.corpses_of(sim)
+	assert_eq(corpses.position_of(crates[0]), BuildSystem.cell_centre(O1 + Vector3i(3, 0, 0)) - Vector3i(0, BuildSystem.CELL / 2, 0), "at its piece's cell")
+	var items: ItemSystem = SimAssembly.items_of(sim)
+	var held: Array[StringName] = []
+	for id: int in items.items_in(crates[0]):
+		held.append(items.item_template(id))
+	assert_eq(held, [&"cold_storage_keycard", &"9x19_fmj"] as Array[StringName], "the keycard and a round, in order")
 	assert_false(_spawn(sim, "zz_shed", O2), "a site spawns once")
 	assert_eq(land.violation_count(), 0, "no rights asked")
 
@@ -149,6 +160,10 @@ func test_site_content_is_validated() -> void:
 		{"agents": [{"profile": "guard_sim", "cell": [0, 0, 0], "facing": 0, "squad": 1, "route": "zz_nothing"}]},
 		{"placement": [0, 0, 0], "exfil": [[0, 0], [1, 0]]},
 		{"parcels": [{"id": "a", "footprint": [[0, 0], [1, 0], [1, 1], [0, 1]], "floor": 1, "ceiling": 1, "district": "", "owner": ""}]},
+		{"containers": [{"piece": 99, "items": []}]},
+		{"containers": [{"piece": 0, "items": [{"kind": "key_item", "template": "zz_nothing"}]}]},
+		{"containers": [{"piece": 0, "items": [{"kind": "stat", "template": "hit_chance"}]}]},
+		{"containers": [{"piece": 0}]},
 	]
 	for patch: Dictionary in patches:
 		assert_eq(SimAssembly.build(SEED, _db(patch)), null, "rejected: %s" % str(patch))
@@ -161,9 +176,10 @@ func test_the_spawned_record_survives_the_restore() -> void:
 	assert_eq(SimAssembly.restore_systems(other, sim.snapshot()), OK, "restores")
 	assert_true(SimAssembly.sites_of(other).is_spawned(&"zz_shed"), "spawned")
 	assert_eq(SimAssembly.sites_of(other).origin_of(&"zz_shed"), O1, "where")
-	var good: Dictionary = {"origin": [0, 0, 0], "pieces": [1, 2], "agents": [3], "targets": [1]}
+	assert_eq(SimAssembly.sites_of(other).crates_of(&"zz_shed"), SimAssembly.sites_of(sim).crates_of(&"zz_shed"), "its crate")
+	var good: Dictionary = {"origin": [0, 0, 0], "pieces": [1, 2], "agents": [3], "targets": [1], "crates": ["crate.1"]}
 	assert_eq(SimAssembly.sites_of(other).restore({"spawned": {"zz_nothing": good}}), ERR_INVALID_DATA, "an unknown site is refused")
-	for patch: Dictionary in [{"origin": [0, 0]}, {"pieces": [1, 1]}, {"agents": [0]}, {"targets": ["1"]}, {"extra": 1}]:
+	for patch: Dictionary in [{"origin": [0, 0]}, {"pieces": [1, 1]}, {"agents": [0]}, {"targets": ["1"]}, {"crates": ["pile.1"]}, {"crates": [1]}, {"extra": 1}]:
 		var bad: Dictionary = good.duplicate(true)
 		bad.merge(patch, true)
 		assert_eq(SimAssembly.sites_of(other).restore({"spawned": {"zz_shed": bad}}), ERR_INVALID_DATA, "refused: %s" % str(patch))

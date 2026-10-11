@@ -90,7 +90,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	if standing.attach(sim) != OK:
 		return null
 	build.set_standing_check(standing.standing_of)
-	var sites: SiteSystem = SiteSystem.new(content, land, build, perception, sensors, hacks, events)
+	var sites: SiteSystem = SiteSystem.new(content, land, build, perception, sensors, hacks, items, corpses, events)
 	if sites.attach(sim) != OK:
 		return null
 	var wallet: WalletSystem = WalletSystem.new(actors, events)

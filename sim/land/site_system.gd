@@ -3,7 +3,8 @@
 ## floor and ceiling), the basement cells it digs, its pieces by relative cell (each
 ## optionally watched by a sensor for a squad), its agents (profile, cell, facing, squad,
 ## a patrol route measured from the site), its hack targets (optionally tied to one of
-## its pieces) and an exfil polygon. `site.spawn {site, origin}` raises all of it at a
+## its pieces), its containers (a piece holding items: a crate place at its cell, filled
+## in order; M6 claims 13 and 16) and an exfil polygon. `site.spawn {site, origin}` raises all of it at a
 ## cell origin in one step: the parcels must fit and the pieces go in as one
 ## all-or-nothing batch (BuildSystem.spawn_batch), so a refused spawn changes nothing.
 ## A site spawns once.
@@ -21,6 +22,8 @@ var _build: BuildSystem
 var _perception: PerceptionSystem
 var _sensors: SensorSystem
 var _hacks: HackSystem
+var _items: ItemSystem
+var _corpses: CorpseSystem
 var _events: EventBus
 var _owner_regex: RegEx = RegEx.create_from_string(LandSystem.OWNER_PATTERN)
 ## site id -> {"origin": [x, y, z] cell, "pieces": [ids], "agents": [ids], "targets": [ids]}:
@@ -28,7 +31,9 @@ var _owner_regex: RegEx = RegEx.create_from_string(LandSystem.OWNER_PATTERN)
 var _spawned: Dictionary = {}
 
 
-func _init(content: ContentDb, land: LandSystem, build: BuildSystem, perception: PerceptionSystem, sensors: SensorSystem, hacks: HackSystem, events: EventBus) -> void:
+func _init(content: ContentDb, land: LandSystem, build: BuildSystem, perception: PerceptionSystem, sensors: SensorSystem, hacks: HackSystem, items: ItemSystem, corpses: CorpseSystem, events: EventBus) -> void:
+	_items = items
+	_corpses = corpses
 	_content = content
 	_land = land
 	_build = build
@@ -74,7 +79,7 @@ func _check_site(t: Dictionary) -> String:
 	for key: String in ["district", "owner"]:
 		if typeof(t.get(key)) != TYPE_STRING:
 			return "needs a string %s" % key
-	for key: String in ["parcels", "excavate", "pieces", "agents", "hack_targets", "exfil"]:
+	for key: String in ["parcels", "excavate", "pieces", "agents", "hack_targets", "containers", "exfil"]:
 		if typeof(t.get(key)) != TYPE_ARRAY:
 			return "needs a %s list" % key
 	var district: String = t["district"]
@@ -150,6 +155,27 @@ func _check_site(t: Dictionary) -> String:
 		var index: int = h["piece"]
 		if not _content.has(HackSystem.KIND_TARGET, StringName(target)) or index < -1 or index >= pieces.size():
 			return "has a hack target with unknown target '%s' or piece index %d" % [target, index]
+	var containers: Array = t["containers"]
+	for v: Variant in containers:
+		if typeof(v) != TYPE_DICTIONARY:
+			return "has a container that is not an object"
+		var c: Dictionary = v
+		if c.size() != 2 or typeof(c.get("piece")) != TYPE_INT or typeof(c.get("items")) != TYPE_ARRAY:
+			return "has a container without piece and items"
+		var cindex: int = c["piece"]
+		if cindex < 0 or cindex >= pieces.size():
+			return "has a container with piece index %d" % cindex
+		var held: Array = c["items"]
+		for iv: Variant in held:
+			if typeof(iv) != TYPE_DICTIONARY:
+				return "has a container item that is not an object"
+			var it: Dictionary = iv
+			if it.size() != 2 or typeof(it.get("kind")) != TYPE_STRING or typeof(it.get("template")) != TYPE_STRING:
+				return "has a container item without kind and template"
+			var kind: String = it["kind"]
+			var template: String = it["template"]
+			if not ItemSystem.SPAWNABLE.has(StringName(kind)) or not _content.has(StringName(kind), StringName(template)):
+				return "puts an unknown item %s/%s in a container" % [kind, template]
 	if LandSystem._normalised_polygon(_scaled(t["exfil"], Vector3i.ZERO)).is_empty():
 		return "has an exfil that is not a polygon"
 	if typeof(t.get("placement")) != TYPE_ARRAY or not _cell_ok_any(t["placement"]):
@@ -264,6 +290,19 @@ func targets_of(site: StringName) -> Array[int]:
 	return _ids_of(site, "targets")
 
 
+## The site's crate places, in content order (M6 claims 13 and 16).
+func crates_of(site: StringName) -> Array[StringName]:
+	var out: Array[StringName] = []
+	if not is_spawned(site):
+		return out
+	var rec: Dictionary = _spawned[String(site)]
+	var list: Array = rec["crates"]
+	for v: Variant in list:
+		var name: String = v
+		out.append(StringName(name))
+	return out
+
+
 func _ids_of(site: StringName, key: String) -> Array[int]:
 	var out: Array[int] = []
 	if not is_spawned(site):
@@ -375,7 +414,23 @@ func spawn(site: StringName, origin: Vector3i) -> bool:
 		var agent: int = _perception.spawn(StringName(profile), _cell(a["cell"]) + origin, facing, squad_a, route, origin)
 		assert(agent != EntityIds.NONE, "a site's agent stands where the site put it")
 		agent_ids.append(agent)
-	_spawned[String(site)] = {"origin": [origin.x, origin.y, origin.z] as Array[int], "pieces": ids, "agents": agent_ids, "targets": target_ids}
+	var crates: Array[String] = []
+	var containers: Array = t["containers"]
+	for ci: int in containers.size():
+		var c: Dictionary = containers[ci]
+		var index_c: int = c["piece"]
+		var e_c: Dictionary = pieces[index_c]
+		var at: Vector3i = BuildSystem.cell_centre(_cell(e_c["cell"]) + origin) - Vector3i(0, BuildSystem.CELL / 2, 0)
+		var crate: StringName = _corpses.make_crate(at)
+		var held: Array = c["items"]
+		for ii: int in held.size():
+			var it: Dictionary = held[ii]
+			var kind: String = it["kind"]
+			var template: String = it["template"]
+			var item: int = _items.spawn(StringName(kind), StringName(template), crate, (ci + 1) * 1000 + ii)
+			assert(item != EntityIds.NONE, "content validation proved the item spawns")
+		crates.append(String(crate))
+	_spawned[String(site)] = {"origin": [origin.x, origin.y, origin.z] as Array[int], "pieces": ids, "agents": agent_ids, "targets": target_ids, "crates": crates}
 	_events.emit(EVENT_SPAWNED, {"site": site, "x": origin.x, "y": origin.y, "z": origin.z})
 	return true
 
@@ -418,7 +473,7 @@ func restore(state: Dictionary) -> Error:
 		if not _content.has(KIND_SITE, StringName(site)):
 			return _restore_fail("unknown site '%s'" % site)
 		var rec: Dictionary = src[k]
-		if rec.size() != 4 or not _cell_ok_any(rec.get("origin")):
+		if rec.size() != 5 or not _cell_ok_any(rec.get("origin")) or typeof(rec.get("crates")) != TYPE_ARRAY:
 			return _restore_fail("site '%s' record" % site)
 		var o: Vector3i = _cell(rec["origin"])
 		var clean: Dictionary = {"origin": [o.x, o.y, o.z] as Array[int]}
@@ -435,6 +490,16 @@ func restore(state: Dictionary) -> Error:
 					return _restore_fail("site '%s' %s id" % [site, key])
 				list.append(id)
 			clean[key] = list
+		var crates_in: Array = rec["crates"]
+		var crates: Array[String] = []
+		for v: Variant in crates_in:
+			if typeof(v) != TYPE_STRING:
+				return _restore_fail("site '%s' crate entry" % site)
+			var crate: String = v
+			if not crate.begins_with("crate.") or not ItemSystem.is_place(StringName(crate)) or crates.has(crate):
+				return _restore_fail("site '%s' crate name" % site)
+			crates.append(crate)
+		clean["crates"] = crates
 		out[site] = clean
 	_spawned = out
 	return OK
