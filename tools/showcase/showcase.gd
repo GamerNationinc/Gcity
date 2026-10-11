@@ -90,6 +90,9 @@ func _ready() -> void:
 	bus.subscribe(WalletSystem.EVENT_CHANGED, _on_wallet)
 	bus.subscribe(BuildSystem.EVENT_BREACHED, _on_breached)
 	bus.subscribe(MovementSystem.EVENT_LANDED, _on_landed)
+	bus.subscribe(CorpseSystem.EVENT_CREATED, _on_corpse)
+	bus.subscribe(CorpseSystem.EVENT_MOVED, _on_item_moved)
+	bus.subscribe(LandSystem.EVENT_VIOLATION, _on_violation)
 	_scenario.call("setup", _sim, self)
 
 
@@ -546,13 +549,20 @@ func _sync(dt: float) -> void:
 			if not seen.is_empty():
 				colour = ALERTED
 				state = "ALERTED: " + ", ".join(seen)
-			label_text += "\n" + state
-			_sync_cone(actor, feet, colour)
+			if actors.is_alive(actor):
+				label_text += "\n" + state
+				_sync_cone(actor, feet, colour)
+			elif _cones.has(actor):
+				var dead_cone: MeshInstance3D = _cones[actor]
+				dead_cone.visible = false
 		else:
 			capsule.rotation.y = 0.0
 		if not actors.is_alive(actor):
 			colour = Color(0.2, 0.2, 0.2)
 			label_text += "\n(down)"
+			# lying where it fell
+			capsule.rotation = Vector3(0, 0, PI / 2)
+			capsule.position = feet + Vector3(0, 0.3, 0)
 		capsule.material_override = _material(colour)
 		tag.position = feet + Vector3(0, 2.35, 0)
 		tag.modulate = colour.lightened(0.35)
@@ -563,6 +573,7 @@ func _sync(dt: float) -> void:
 		tag.text = label_text
 	# sensors: a dot on each watched piece, red while live, green once spoofed
 	_sync_sensors()
+	_sync_places()
 	for tile: MeshInstance3D in _markers:
 		var storey: int = tile.get_meta("storey", 0)
 		tile.visible = storey <= _cut
@@ -594,6 +605,76 @@ func _sync(dt: float) -> void:
 
 
 var _sensor_nodes: Dictionary = {}
+## place name -> [slab, label]
+var _place_nodes: Dictionary = {}
+
+
+## Bodies and piles (M6 claim 16): a dark slab where each lies, labelled with what
+## is in it, read from the sim every frame.
+func _sync_places() -> void:
+	var corpses: CorpseSystem = SimAssembly.corpses_of(_sim)
+	var items: ItemSystem = SimAssembly.items_of(_sim)
+	var present: Dictionary = {}
+	for place: StringName in corpses.place_ids():
+		present[place] = true
+		var corpse: bool = String(place).begins_with("corpse.")
+		if not _place_nodes.has(place):
+			var slab: MeshInstance3D = _box(Vector3(0.9, 0.08, 0.9), Color(0.45, 0.1, 0.1) if corpse else Color(0.55, 0.45, 0.25))
+			var label: Label3D = _label3d(24)
+			add_child(slab)
+			add_child(label)
+			_place_nodes[place] = [slab, label]
+		var nodes: Array = _place_nodes[place]
+		var slab_node: MeshInstance3D = nodes[0]
+		var tag: Label3D = nodes[1]
+		var at: Vector3 = world(corpses.position_of(place))
+		slab_node.position = at + Vector3(0, 0.05, 0)
+		tag.position = at + Vector3(0, 0.6, 0)
+		var held: PackedStringArray = PackedStringArray()
+		for id: int in items.items_in(place):
+			held.append(String(items.item_template(id)))
+		var owner: int = corpses.owner_of(place)
+		var title: String = ("BODY of %s" % _who(owner)) if corpse else "PILE on the floor"
+		tag.text = "%s\n%s" % [title, ", ".join(held) if not held.is_empty() else "(empty)"]
+		tag.modulate = Color(1.0, 0.7, 0.7) if corpse else Color(0.95, 0.85, 0.6)
+		var shown: bool = corpses.storey_of(place) <= _cut
+		slab_node.visible = shown
+		tag.visible = shown
+	for place: Variant in _place_nodes.keys():
+		if not present.has(place):
+			var gone: Array = _place_nodes[place]
+			for n: Variant in gone:
+				var node: Node3D = n
+				node.queue_free()
+			_place_nodes.erase(place)
+
+
+func _on_corpse(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	var count: int = p["items"]
+	note("%s died: a body is left where they fell, holding %d item(s)" % [_who(actor), count], 3)
+
+
+func _on_item_moved(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	var item: int = p["item"]
+	var from: String = p["from"]
+	var to: String = p["to"]
+	var what: String = String(SimAssembly.items_of(_sim).item_template(item))
+	if to.begins_with("inv."):
+		var owner: int = SimAssembly.corpses_of(_sim).owner_of(StringName(from))
+		var where: String = ("%s's body" % _who(owner)) if from.begins_with("corpse.") else "the pile"
+		note("%s took %s from %s" % [_who(actor), what, where], 4)
+	else:
+		note("%s dropped %s on the floor" % [_who(actor), what], 4)
+
+
+func _on_violation(p: Dictionary) -> void:
+	var right: StringName = p["right"]
+	if right != &"loot":
+		return
+	var actor: int = p["actor"]
+	note("%s LOOTED where they have no right to: recorded against them" % _who(actor), 3)
 
 
 func _sync_sensors() -> void:
