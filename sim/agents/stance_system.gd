@@ -461,7 +461,15 @@ func _route_of(agent: int) -> Array:
 	if route_s.is_empty() or not _content.has(KIND_ROUTE, StringName(route_s)):
 		return []
 	var t: Dictionary = _content.get_entry(KIND_ROUTE, StringName(route_s))
-	return t["cells"]
+	var cells: Array = t["cells"]
+	var origin: Vector3i = _perception.route_origin_of(agent)
+	if origin == Vector3i.ZERO:
+		return cells
+	var out: Array = []
+	for c: Variant in cells:
+		var v: Vector3i = PathingSystem._vec(c) + origin
+		out.append([v.x, v.y, v.z])
+	return out
 
 
 ## The whole degree whose direction best matches `v` (integer trig: the table's dot

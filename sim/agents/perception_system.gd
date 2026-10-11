@@ -32,7 +32,9 @@ var _actors: ActorSystem
 var _build: BuildSystem
 var _events: EventBus
 ## actor id -> {"profile": StringName, "facing": int (degrees), "squad": int, "route": String,
-##   "home": int (the facing it spawned with, which a sweep pans about: M6 claim 8)}
+##   "home": int (the facing it spawned with, which a sweep pans about: M6 claim 8),
+##   "origin": [x, y, z] cell its route's cells are measured from (a site's origin, M6
+##   claim 12; zero for agent.spawn)}
 var _agents: Dictionary = {}
 ## observer -> contact -> {"aw": int, "last": [x, y, z] or [], "memory": int, "alerted": bool}
 var _contacts: Dictionary = {}
@@ -134,6 +136,18 @@ func route_of(actor: int) -> String:
 		return ""
 	var rec: Dictionary = _agents[actor]
 	return rec["route"]
+
+
+## The cell an agent's route cells are measured from (M6 claim 12).
+func route_origin_of(actor: int) -> Vector3i:
+	if not _agents.has(actor):
+		return Vector3i.ZERO
+	var rec: Dictionary = _agents[actor]
+	var o: Array = rec["origin"]
+	var ox: int = o[0]
+	var oy: int = o[1]
+	var oz: int = o[2]
+	return Vector3i(ox, oy, oz)
 
 
 func squad_of(actor: int) -> int:
@@ -519,7 +533,7 @@ func receive_report(agent: int, contact: int, position: Vector3i, tick_now: int)
 
 ## Spawns an actor of the profile's combat profile at the centre of `cell`, standing on
 ## its storey (M6 claim 1: only where it can stand), and registers it as an agent. Returns its id, or 0 with an error.
-func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: String) -> int:
+func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: String, origin: Vector3i = Vector3i.ZERO) -> int:
 	if not _content.has(KIND_AGENT, profile):
 		push_error("PerceptionSystem: no agent_profile/%s" % profile)
 		return EntityIds.NONE
@@ -543,7 +557,7 @@ func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: 
 	var c: int = BuildSystem.CELL
 	var err: Error = _actors.set_position(actor, Vector3i(cell.x * c + c / 2, cell.y * c, cell.z * c + c / 2))
 	assert(err == OK, "a cell within MAX_CELL is within MAX_COORD")
-	_agents[actor] = {"profile": profile, "facing": facing, "squad": squad, "route": route, "home": facing}
+	_agents[actor] = {"profile": profile, "facing": facing, "squad": squad, "route": route, "home": facing, "origin": [origin.x, origin.y, origin.z] as Array[int]}
 	return actor
 
 
@@ -655,9 +669,9 @@ func restore(state: Dictionary) -> Error:
 		var rec: Dictionary = agents_in[key]
 		if not _actors.has_actor(id):
 			return _restore_fail("agent %d is not an actor" % id)
-		if rec.size() != 5 or typeof(rec.get("profile")) != TYPE_STRING_NAME and typeof(rec.get("profile")) != TYPE_STRING \
+		if rec.size() != 6 or typeof(rec.get("profile")) != TYPE_STRING_NAME and typeof(rec.get("profile")) != TYPE_STRING \
 				or typeof(rec.get("facing")) != TYPE_INT or typeof(rec.get("squad")) != TYPE_INT or typeof(rec.get("route")) != TYPE_STRING \
-				or typeof(rec.get("home")) != TYPE_INT:
+				or typeof(rec.get("home")) != TYPE_INT or typeof(rec.get("origin")) != TYPE_ARRAY:
 			return _restore_fail("agent %d record" % id)
 		var profile_s: String = rec["profile"]
 		var facing: int = rec["facing"]
@@ -668,7 +682,18 @@ func restore(state: Dictionary) -> Error:
 			return _restore_fail("agent %d values" % id)
 		if not route.is_empty() and not _content.has(KIND_ROUTE, StringName(route)):
 			return _restore_fail("agent %d route" % id)
-		agents[id] = {"profile": StringName(profile_s), "facing": facing, "squad": squad, "route": route, "home": home}
+		var origin_in: Array = rec["origin"]
+		if origin_in.size() != 3:
+			return _restore_fail("agent %d origin" % id)
+		var origin: Array[int] = []
+		for v: Variant in origin_in:
+			if typeof(v) != TYPE_INT:
+				return _restore_fail("agent %d origin" % id)
+			var n: int = v
+			if absi(n) > BuildSystem.MAX_CELL:
+				return _restore_fail("agent %d origin" % id)
+			origin.append(n)
+		agents[id] = {"profile": StringName(profile_s), "facing": facing, "squad": squad, "route": route, "home": home, "origin": origin}
 	var contacts_in: Dictionary = state["contacts"]
 	var contacts: Dictionary = {}
 	for key: Variant in contacts_in:
