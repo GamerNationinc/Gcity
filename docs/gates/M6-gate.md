@@ -68,7 +68,7 @@ Counts are filled in at submission.
     building is cut away; below, the storey you are on.
 11. At the terminal, View, R1 to Hacking. → `daemons 0 / 2`, `cold storage terminal
     ready 15 s`; A starts it: the panel goes see-through, a progress bar fills. Moving
-    or being hit stops it (B cancels). When done: `logged in`; A logs out.
+    or being hit stops it (Y cancels). When done: `logged in`; A logs out.
 12. Back down and out by the tunnel's hatch (`climb tunnel hatch` from below), off
     the site (the exit zone), back to Marlow. → `deliver cold storage data to Marlow`.
 13. Press it. → Paid; the shell bar's credits show the pay and the tier by how quiet
