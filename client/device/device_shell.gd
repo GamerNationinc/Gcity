@@ -12,6 +12,9 @@ const BODY_PX: int = 22
 const SECONDARY_PX: int = 18
 const WIDTH: int = 896
 const HEIGHT: int = 560
+const BACK: Color = Color(0.07, 0.08, 0.1, 0.96)
+## The backdrop's alpha while the open app asks to keep the world visible.
+const SEE_THROUGH_ALPHA: float = 0.35
 
 var _views: Dictionary[StringName, PackedScene] = {}
 var _content: ContentDb
@@ -30,6 +33,7 @@ var _status: Label
 var _pane_holder: Control
 var _prompts: Label
 var _note: Label
+var _back: ColorRect
 
 
 func setup(content: ContentDb, submit: Callable, glyphs: InputGlyphs) -> void:
@@ -47,10 +51,10 @@ func register_view(app: StringName, scene: PackedScene) -> void:
 func _init() -> void:
 	custom_minimum_size = Vector2(WIDTH, HEIGHT)
 	size = Vector2(WIDTH, HEIGHT)
-	var back := ColorRect.new()
-	back.color = Color(0.07, 0.08, 0.1, 0.96)
-	back.size = size
-	add_child(back)
+	_back = ColorRect.new()
+	_back.color = BACK
+	_back.size = size
+	add_child(_back)
 	_strip = _label(Vector2(24, 14), BODY_PX)
 	_status = _label(Vector2(24, 50), SECONDARY_PX)
 	_status.modulate = Color(0.8, 0.85, 0.9)
@@ -100,6 +104,11 @@ func open_app() -> StringName:
 	return _open_app
 
 
+## Whether the backdrop is see-through (the open app asked for it at the last refresh).
+func see_through() -> bool:
+	return _back.color.a < BACK.a
+
+
 func note(text: String) -> void:
 	_note_text = text
 
@@ -136,6 +145,7 @@ func refresh(sim: SimRoot, player: int) -> bool:
 	if _pane != null and _pane.name != String(_open_app):
 		_pane.queue_free()
 		_pane = null
+		_back.color = BACK
 	if _pane == null and not _open_app.is_empty():
 		assert(_views.has(_open_app), "app '%s' has no registered view" % _open_app)
 		var scene: PackedScene = _views[_open_app]
@@ -148,6 +158,10 @@ func refresh(sim: SimRoot, player: int) -> bool:
 		changed = true
 	if _pane != null:
 		if _pane.refresh(sim, player):
+			changed = true
+		var alpha: float = SEE_THROUGH_ALPHA if _pane.see_through(sim, player) else BACK.a
+		if _back.color.a != alpha:
+			_back.color.a = alpha
 			changed = true
 		var prompts: String = "%s   %s" % [_glyphs.line([[&"device_prev_app", "prev"], [&"device_next_app", "next"], [&"world_device", "lower"]]), _pane.prompts(_glyphs)]
 		if prompts != _last_prompts:

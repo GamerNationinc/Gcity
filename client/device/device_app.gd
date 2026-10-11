@@ -29,6 +29,12 @@ func handle(_action: StringName, _sim: SimRoot, _player: int) -> bool:
 	return false
 
 
+## Whether the shell should go see-through, keeping the world visible behind the pane
+## (the hacking pane while a hack runs, M6 claim 19).
+func see_through(_sim: SimRoot, _player: int) -> bool:
+	return false
+
+
 ## The prompt line the shell shows under the pane for this app.
 func prompts(_glyphs: InputGlyphs) -> String:
 	return ""

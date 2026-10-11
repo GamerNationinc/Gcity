@@ -156,6 +156,74 @@ func test_the_inventory_app_fits_loads_wields_and_swaps_through_commands() -> vo
 	_teardown()
 
 
+## M6 claim 19: the hacking pane lists the targets in reach with their state, starts,
+## cancels and logs out through commands, shows the slots and a progress bar, and the
+## panel turns see-through while a hack runs so the world stays visible behind it.
+func test_the_hacking_pane_starts_cancels_and_logs_out_through_commands() -> void:
+	_setup()
+	_equip()
+	var coprocessor: int = _items.spawn(&"device_module", &"daemon_coprocessor", ItemSystem.inventory_of(_player), 9)
+	_submit(&"item.attach", {"actor": _player, "weapon": _handset, "part": coprocessor})
+	_step()
+	var hacks: HackSystem = SimAssembly.hacks_of(_sim)
+	var terminal: int = hacks.place(&"cold_storage_terminal", BuildSystem.cell_of(_actors.position_of(_player)), EntityIds.NONE)
+	hacks.place(&"cold_storage_terminal", BuildSystem.cell_of(_actors.position_of(_player)) + Vector3i(9, 0, 0), EntityIds.NONE)
+	_open(&"hacking")
+	_shell.refresh(_sim, _player)
+	var text: String = _pane_text(&"hacking")
+	assert_true(text.contains("daemons 0 / 2"), "the slots: %s" % text)
+	assert_true(text.contains("cold storage terminal") and text.contains("ready"), "the terminal in reach, ready")
+	assert_eq(text.count("cold storage terminal"), 1, "the one out of reach is not listed")
+	assert_false(_shell.see_through(), "solid while nothing runs")
+	_submitted.clear()
+	_shell.handle(&"device_select", _sim, _player)
+	assert_eq(_submitted, [{"kind": &"hack.start", "payload": {"actor": _player, "target": terminal}}] as Array[Dictionary], "select starts it")
+	_step()
+	_sim.step_n(299)
+	_shell.refresh(_sim, _player)
+	text = _pane_text(&"hacking")
+	assert_true(text.contains("50 %") and text.contains("#"), "a progress bar half way: %s" % text)
+	assert_true(_shell.see_through(), "see-through while it runs")
+	_submitted.clear()
+	_shell.handle(&"device_secondary", _sim, _player)
+	assert_eq(_submitted, [{"kind": &"hack.cancel", "payload": {"actor": _player}}] as Array[Dictionary], "secondary cancels")
+	_step()
+	assert_false(hacks.is_hacking(_player), "cancelled")
+	_shell.refresh(_sim, _player)
+	assert_false(_shell.see_through(), "solid again")
+	_shell.handle(&"device_select", _sim, _player)
+	_step()
+	_sim.step_n(600)
+	_shell.refresh(_sim, _player)
+	text = _pane_text(&"hacking")
+	assert_true(text.contains("logged in") and text.contains("daemons 1 / 2"), "done, logged in, its daemon held: %s" % text)
+	_submitted.clear()
+	_shell.handle(&"device_select", _sim, _player)
+	assert_eq(_submitted, [{"kind": &"hack.logout", "payload": {"actor": _player, "target": terminal}}] as Array[Dictionary], "select logs out")
+	_step()
+	assert_eq(hacks.logins_of(_player), [] as Array[int], "logged out")
+	_shell.refresh(_sim, _player)
+	assert_true(_pane_text(&"hacking").contains("done"), "and the terminal shows done")
+	_teardown()
+
+
+func _open(app: StringName) -> void:
+	for i: int in 10:
+		_shell.refresh(_sim, _player)
+		if _shell.open_app() == app:
+			return
+		_shell.handle(&"device_next_app", _sim, _player)
+	assert_eq(_shell.open_app(), app, "opened %s" % app)
+
+
+func _pane_text(app: StringName) -> String:
+	for node: Node in _all_nodes(_shell):
+		if node is RichTextLabel and node.get_parent().name == String(app):
+			var rich: RichTextLabel = node
+			return rich.text
+	return ""
+
+
 ## M6 claim 19: the shell bar shows the credit balance, read from the wallet, and a
 ## change of balance redraws it.
 func test_the_shell_bar_shows_the_credit_balance() -> void:
