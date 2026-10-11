@@ -18,7 +18,7 @@ var _drive: RefCounted
 
 func _initialize() -> void:
 	var only: PackedStringArray = OS.get_cmdline_user_args()
-	var all: Dictionary = {"m6-front": _front, "m6-side": _side, "m6-front-hot": _front_hot, "m6-hack-interrupt": _hack_interrupt, "m6-death": _death}
+	var all: Dictionary = {"m6-front": _front, "m6-side": _side, "m6-front-hot": _front_hot, "m6-hack-interrupt": _hack_interrupt, "m6-death": _death, "m6-city-death": _city_death}
 	var failed: int = 0
 	for name: String in all:
 		if not only.is_empty() and not only.has(name):
@@ -373,3 +373,28 @@ func _find_shooter(_d: RefCounted) -> bool:
 	var ids: Array[int] = SimAssembly.actors_of(_sim).actor_ids()
 	_shooter = ids[ids.size() - 1]
 	return _shooter != _player
+
+
+# ---------------------------------------------------------------- m6-city-death
+
+## The city's softening and its fee: the m6-death run, paid by Marlow, then back into
+## the docklands yard (law 500) carrying the cutter and six rounds, shot dead again.
+## This time there are credits: the city returns each item home with probability
+## 500 / 1000, drawn from the sim's generator, for 100 credits each.
+func _city_death() -> Array:
+	var plan: Array = _death()
+	plan.pop_back()  # the m6-death tail wait
+	var inv: String = String(ItemSystem.inventory_of(_player))
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"item.spawn", {"kind": "ammo", "template": "9x19_fmj", "container": inv, "seed": 21, "count": 6})
+		return true])
+	plan.append(["wait", 2])
+	plan.append(["walk", [Vector3i(14, 0, -6), _site(Vector3i(11, 0, -6)), _site(Vector3i(11, 0, 1))]])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		if not SimAssembly.actors_of(_sim).is_alive(_player):
+			return true
+		if not SimAssembly.items_of(_sim).is_busy(_shooter_frame(), _sim.get_tick() + 1):
+			d.call("submit", &"weapon.fire", {"actor": _shooter, "target": _player})
+		return false])
+	plan.append(["wait", 40])
+	return plan

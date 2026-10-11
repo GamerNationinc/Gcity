@@ -152,3 +152,26 @@ func test_death_the_drive_lies_in_the_body_and_the_recovery_run_delivers_it() ->
 	var credits: int = pay["credits"]
 	assert_true(credits > 0, "and paid (%d credits)" % credits)
 	assert_eq(SimAssembly.wallet_of(_sim).balance_of(PLAYER), credits, "into the wallet")
+
+
+func test_city_death_the_city_returns_some_kit_for_a_fee() -> void:
+	_replay("m6-city-death")
+	var returned: Array[Dictionary] = _of(RecoverySystem.EVENT_RETURNED)
+	assert_eq(returned.size(), 1, "the second death, with credits, called on the city once")
+	var r: Dictionary = returned[0]["p"]
+	var items: Array = r["returned"]
+	var fee: int = r["fee"]
+	assert_eq(fee, 100, "the content's fee")
+	assert_true(items.size() >= 1, "something came home (%d items)" % items.size())
+	var home: Array[int] = SimAssembly.items_of(_sim).items_in(ItemSystem.base_of(PLAYER))
+	for v: Variant in items:
+		var id: int = v
+		assert_true(home.has(id), "item %d is in the player's base" % id)
+	var paid: int = 0
+	for e: Dictionary in _of(QuestSystem.EVENT_DELIVERED):
+		var p: Dictionary = e["p"]
+		var credits: int = p["credits"]
+		paid += credits
+	assert_eq(SimAssembly.wallet_of(_sim).balance_of(PLAYER), paid - fee * items.size(), "the pay less the city's fees")
+	var body: StringName = SimAssembly.corpses_of(_sim).corpse_of(PLAYER)
+	assert_true(SimAssembly.items_of(_sim).items_in(body).size() >= 1, "and the rest stays in the second body")
