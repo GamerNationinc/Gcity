@@ -71,7 +71,11 @@ func _ready() -> void:
 		get_tree().quit(1)
 		return
 	_scenario.call("content", db)
-	_sim = SimAssembly.build(SEED, db)
+	# a scenario that replays a fixture runs on the fixture's seed
+	var seed: int = SEED
+	if _scenario.has_method("seed"):
+		seed = _scenario.call("seed")
+	_sim = SimAssembly.build(seed, db)
 	if _sim == null:
 		push_error("showcase: assembly")
 		get_tree().quit(1)
