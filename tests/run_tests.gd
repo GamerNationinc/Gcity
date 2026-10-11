@@ -1,8 +1,38 @@
 ## Headless test runner. Usage:
 ##   godot --headless --path . -s tests/run_tests.gd
 ## Discovers tests/**/test_*.gd, runs every test_* method on a fresh instance, prints
-## one line per test and a summary, and exits 0 only if everything passed.
+## one line per test and a summary, and exits 0 only if everything passed. A runtime
+## script error inside a test (an invalid call, a bad typed assignment) aborts the test
+## body silently, so the runner counts them through a Logger and fails the test that
+## raised one; a deliberate push_error is not a script error.
 extends SceneTree
+
+
+## Counts runtime script errors (ERROR_TYPE_SCRIPT), whichever thread reports them.
+class ScriptErrorCounter extends Logger:
+	var _mutex: Mutex = Mutex.new()
+	var _count: int = 0
+	var _last: String = ""
+
+	func _log_error(function: String, file: String, line: int, code: String, rationale: String, _editor_notify: bool, error_type: int, _script_backtraces: Array[ScriptBacktrace]) -> void:
+		if error_type != ERROR_TYPE_SCRIPT:
+			return
+		_mutex.lock()
+		_count += 1
+		_last = "%s (%s:%d in %s)" % [rationale if not rationale.is_empty() else code, file, line, function]
+		_mutex.unlock()
+
+	func count() -> int:
+		_mutex.lock()
+		var n: int = _count
+		_mutex.unlock()
+		return n
+
+	func last() -> String:
+		_mutex.lock()
+		var text: String = _last
+		_mutex.unlock()
+		return text
 
 const TESTS_ROOT: String = "res://tests"
 
@@ -14,6 +44,8 @@ func _initialize() -> void:
 	var total: int = 0
 	var failed: int = 0
 	var assertions: int = 0
+	var errors := ScriptErrorCounter.new()
+	OS.add_logger(errors)
 	for path: String in paths:
 		var script: GDScript = load(path)
 		if script == null or not script.can_instantiate():
@@ -29,9 +61,13 @@ func _initialize() -> void:
 				failed += 1
 				continue
 			var test: GcityTest = probe
+			var errors_before: int = errors.count()
 			test.call(method)
 			assertions += test.assertion_count()
 			var failures: PackedStringArray = test.failures()
+			var raised: int = errors.count() - errors_before
+			if raised > 0:
+				failures.append("%d runtime script error(s); the last: %s" % [raised, errors.last()])
 			if failures.is_empty():
 				print("ok   %s::%s" % [path, method])
 			else:
