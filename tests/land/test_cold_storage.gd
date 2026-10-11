@@ -157,3 +157,20 @@ func test_the_roamer_walks_between_storeys_and_nobody_is_stuck() -> void:
 		storeys[BuildSystem.cell_of(actors.position_of(roamer)).y] = true
 	assert_true(storeys.has(0) and storeys.has(1), "it climbs between the hall and storey 1 (%s)" % str(storeys.keys()))
 	assert_eq(SimAssembly.movement_of(_sim).blocked_count(), 0, "no guard's step was ever blocked")
+
+
+func test_the_tunnel_hatch_is_a_way_out_not_a_way_in() -> void:
+	_setup()
+	var build: BuildSystem = SimAssembly.build_of(_sim)
+	var actors: ActorSystem = SimAssembly.actors_of(_sim)
+	var hatch: int = build.face_piece_at(BuildSystem.face_key(O + Vector3i(2, -1, -3), "py"))
+	assert_eq(build.template_of(hatch), &"tunnel_hatch", "the access hatch beside the street grate")
+	var player: int = actors.spawn(&"arcade", 0)
+	actors.set_position(player, _feet(Vector3i(2, 0, -3)))
+	_sim.step_n(5)
+	assert_false(SimAssembly.movement_of(_sim).climb(player, hatch), "not down it from the street")
+	actors.set_position(player, _feet(Vector3i(2, -1, -3)))
+	_sim.step_n(5)
+	assert_true(SimAssembly.movement_of(_sim).climb(player, hatch), "up it from the tunnel")
+	_sim.step_n(build.climb_ticks_of(hatch) + 2)
+	assert_eq(BuildSystem.cell_of(actors.position_of(player)), O + Vector3i(2, 0, -3), "out on the street")

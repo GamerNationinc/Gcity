@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "A service tunnel's access hatch with its ladder (M6 spec claim 13): latched, so it opens and is climbed from below only. The way out of the tunnel, not a way in.",
+	"kind": "ladder",
+	"material": "scrap_steel",
+	"open_cost": 20,
+	"value": 0,
+	"starts_open": false,
+	"lock": "",
+	"latched": true,
+	"check": {"standing": "", "max": 0}
+}
