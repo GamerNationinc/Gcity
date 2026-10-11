@@ -1,5 +1,5 @@
 ## The device's shell (design doc §12.2; M5 spec claims 3–5, 8): an app strip, a
-## secure indicator, the open app's pane and its prompts. The shell knows nothing of
+## secure indicator and the credit balance (M6 claim 19), the open app's pane and its prompts. The shell knows nothing of
 ## any app: apps are `content/device_app/` entries whose hardware requirement the
 ## equipped device provides, and their views are registered by id before the first
 ## refresh (`register_view`); an app with no registered view fails startup. Nothing
@@ -128,7 +128,7 @@ func refresh(sim: SimRoot, player: int) -> bool:
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
 	var rights: Dictionary = land.rights_at(actors.position_of(player), player)
 	var safe: bool = rights[&"safe"]
-	var status: String = "%s   tick %d   %s" % ["SECURE: time stopped" if sim.is_paused() else ("SECURE: safe to pause" if safe else "EXPOSED: time runs"), sim.get_tick(), "parcel %s" % land.parcel_at(actors.position_of(player))]
+	var status: String = "%s   tick %d   %s   credits %d" % ["SECURE: time stopped" if sim.is_paused() else ("SECURE: safe to pause" if safe else "EXPOSED: time runs"), sim.get_tick(), "parcel %s" % land.parcel_at(actors.position_of(player)), SimAssembly.wallet_of(sim).balance_of(player)]
 	if status != _last_status:
 		_last_status = status
 		_status.text = status

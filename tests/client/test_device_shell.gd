@@ -156,6 +156,31 @@ func test_the_inventory_app_fits_loads_wields_and_swaps_through_commands() -> vo
 	_teardown()
 
 
+## M6 claim 19: the shell bar shows the credit balance, read from the wallet, and a
+## change of balance redraws it.
+func test_the_shell_bar_shows_the_credit_balance() -> void:
+	_setup()
+	_equip()
+	var wallet: WalletSystem = SimAssembly.wallet_of(_sim)
+	assert_eq(wallet.register_source(&"test.grant"), OK, "a test source")
+	_shell.refresh(_sim, _player)
+	assert_true(_status_text().contains("credits 0"), "no credits yet: %s" % _status_text())
+	assert_false(_shell.refresh(_sim, _player), "settled")
+	assert_true(wallet.credit(_player, 250, &"test.grant"), "credited")
+	assert_true(_shell.refresh(_sim, _player), "the balance changed: a redraw")
+	assert_true(_status_text().contains("credits 250"), "the new balance: %s" % _status_text())
+	_teardown()
+
+
+func _status_text() -> String:
+	for node: Node in _all_nodes(_shell):
+		if node is Label:
+			var label: Label = node
+			if label.text.contains("tick"):
+				return label.text
+	return ""
+
+
 ## M6 claim 19 (M5 debt 11): rows are grouped by kind (weapons, tools, magazines,
 ## parts, rounds, devices, modules, keys) and named in order within a kind, whatever
 ## order the items came in; a frame's sockets stay under it.
