@@ -3299,7 +3299,7 @@
 			"tick": 451
 		}
 	],
-	"expected_hash": "3b1da3ae38171a253b17d374c826bf3064dcc647968fe28d23c893e97b553818",
+	"expected_hash": "ec1d4b1de04a328b58abbffa00a9d194eb44bad6d7db31dd99caf7c1d72e8823",
 	"name": "m6-hack-interrupt",
 	"schema_version": 1,
 	"seed": 20261200,

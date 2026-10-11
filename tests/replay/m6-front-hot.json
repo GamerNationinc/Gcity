@@ -4447,7 +4447,7 @@
 			"tick": 978
 		}
 	],
-	"expected_hash": "cf4a508d1654c9d34475c9efa1da44eb4075b377c77fc09ba5d21eb7c7b00ce7",
+	"expected_hash": "a6d960ebb81af6836be7ee15f4502fe900f7b398a444a2ce551c3f412aa8f14d",
 	"name": "m6-front-hot",
 	"schema_version": 1,
 	"seed": 20261200,

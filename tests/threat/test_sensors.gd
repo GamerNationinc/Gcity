@@ -231,3 +231,15 @@ func test_a_hot_opener_sets_off_the_door_camera() -> void:
 	assert_true(_do(&"opening.open", {"actor": _player, "piece": door}), "the door still opens")
 	assert_eq(_alarms, [{"sensor": &"door_camera", "piece": door, "squad": 1, "actor": _player}], "and the camera raises the alarm")
 	assert_eq(SimAssembly.standing_of(_sim).standing_of(_player, &"heat"), 600, "which heats the opener further")
+
+
+func test_cutting_through_the_watched_door_sets_off_its_camera() -> void:
+	# M6 claim 20's loud run: a camera watching its door sees it cut open
+	_setup()
+	var door: int = _front_door()
+	var cutter: int = SimAssembly.items_of(_sim).spawn(&"tool", &"plasma_cutter", ItemSystem.inventory_of(_player), 2)
+	assert_true(_do(&"actor.wield", {"actor": _player, "weapon": cutter}), "cutter in hand")
+	assert_true(_do(&"build.breach", {"actor": _player, "piece": door}), "cutting the door")
+	_sim.step_n(1200)
+	assert_false(_build.has_piece(door), "the door is out")
+	assert_eq(_alarms, [{"sensor": &"door_camera", "piece": door, "squad": 1, "actor": _player}], "and the camera raised the alarm")

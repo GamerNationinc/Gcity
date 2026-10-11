@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "A camera watching a checked door (M6 spec claim 10): a credential opening the door while its holder is too hot is reported to the guards a half-second later. It ignores ordinary openings.",
-	"triggers": ["check_failed"],
+	"description": "A camera watching a checked door (M6 claims 10, 20): a card opening it while its holder is too hot, or the door cut open, is reported to the guards a half-second later. It ignores ordinary openings.",
+	"triggers": ["check_failed", "breached"],
 	"radio_latency_ticks": 20
 }

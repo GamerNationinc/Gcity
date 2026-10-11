@@ -175,3 +175,26 @@ func test_city_death_the_city_returns_some_kit_for_a_fee() -> void:
 	assert_eq(SimAssembly.wallet_of(_sim).balance_of(PLAYER), paid - fee * items.size(), "the pay less the city's fees")
 	var body: StringName = SimAssembly.corpses_of(_sim).corpse_of(PLAYER)
 	assert_true(SimAssembly.items_of(_sim).items_in(body).size() >= 1, "and the rest stays in the second body")
+
+
+func test_loud_breach_alarm_body_and_a_reduced_payout() -> void:
+	_replay("m6-loud")
+	var cut: Array[Dictionary] = _of(BuildSystem.EVENT_BREACHED)
+	assert_true(cut.size() >= 1, "the front door was cut")
+	assert_true(_of(SensorSystem.EVENT_ALARM).size() >= 1, "an alarm was raised")
+	var guard_down: bool = false
+	for e: Dictionary in _of(ActorSystem.EVENT_DIED):
+		var p: Dictionary = e["p"]
+		if p["actor"] != PLAYER:
+			guard_down = true
+	assert_true(guard_down, "a guard was shot down: a body")
+	var delivered: Array[Dictionary] = _of(QuestSystem.EVENT_DELIVERED)
+	assert_eq(delivered.size(), 1, "delivered")
+	var pay: Dictionary = delivered[0]["p"]
+	var bodies: int = pay["bodies"]
+	var alarms: int = pay["alarms_raised"]
+	var multiplier: int = pay["multiplier_milli"]
+	assert_true(bodies >= 1, "the run counted the body (%d)" % bodies)
+	assert_true(alarms >= 1, "and the alarms (%d)" % alarms)
+	assert_true(multiplier < 1000, "for less than the base pay (multiplier %d of 1000)" % multiplier)
+	assert_true(SimAssembly.standing_of(_sim).standing_of(PLAYER, &"heat") > 0, "and the heat stays on the player")

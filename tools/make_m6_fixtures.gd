@@ -18,7 +18,7 @@ var _drive: RefCounted
 
 func _initialize() -> void:
 	var only: PackedStringArray = OS.get_cmdline_user_args()
-	var all: Dictionary = {"m6-front": _front, "m6-side": _side, "m6-front-hot": _front_hot, "m6-hack-interrupt": _hack_interrupt, "m6-death": _death, "m6-city-death": _city_death}
+	var all: Dictionary = {"m6-front": _front, "m6-side": _side, "m6-front-hot": _front_hot, "m6-hack-interrupt": _hack_interrupt, "m6-death": _death, "m6-city-death": _city_death, "m6-loud": _loud}
 	var failed: int = 0
 	for name: String in all:
 		if not only.is_empty() and not only.has(name):
@@ -398,3 +398,81 @@ func _city_death() -> Array:
 		return false])
 	plan.append(["wait", 40])
 	return plan
+
+
+# ---------------------------------------------------------------- m6-loud
+
+## Loud: cut through the front door without the card (the lobby camera's alarm), shoot
+## the lobby's guard down (a body), up the stairs to the server room for the drive, back
+## out the way in, and deliver: a reduced payout and raised heat.
+func _loud() -> Array:
+	var plan: Array = _kit()
+	var inv: String = String(ItemSystem.inventory_of(_player))
+	for spec: Array in [["weapon_frame", "g19", 31, 1], ["weapon_part", "g19_mag_15", 32, 1], ["ammo", "9x19_fmj", 33, 15]]:
+		plan.append(["call", func(d: RefCounted) -> bool:
+			d.call("submit", &"item.spawn", {"kind": spec[0], "template": spec[1], "container": inv, "seed": spec[2], "count": spec[3]})
+			return true])
+	plan.append(["wait", 2])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		var mag: int = _carried(&"g19_mag_15")
+		var items: ItemSystem = SimAssembly.items_of(_sim)
+		for id: int in items.items_in(ItemSystem.inventory_of(_player)):
+			if items.item_kind(id) == &"ammo":
+				d.call("submit", &"magazine.load", {"actor": _player, "magazine": mag, "round": id})
+		return true])
+	plan.append(["wait", 2])
+	plan.append_array(_accept())
+	plan.append(["walk", [Vector3i(14, 0, -2), _site(Vector3i(2, 0, -2)), _site(Vector3i(2, 0, -1))]])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"build.breach", {"actor": _player, "piece": _front_door()})
+		return true])
+	plan.append(["wait", 3])
+	plan.append(["call", func(_d: RefCounted) -> bool: return not SimAssembly.build_of(_sim).is_breaching(_player)])
+	# the pistol, loaded
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"actor.wield", {"actor": _player, "weapon": _carried(&"g19")})
+		return true])
+	plan.append(["wait", 2])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"weapon.reload_tactical", {"actor": _player, "weapon": _carried(&"g19"), "magazine": _carried(&"g19_mag_15")})
+		return true])
+	plan.append(["wait", 90])
+	plan.append(["walk", [_site(Vector3i(2, 0, 0))]])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		var post: int = _lobby_guard()
+		if not SimAssembly.actors_of(_sim).is_alive(post):
+			return true
+		var pistol: int = SimAssembly.actors_of(_sim).wielded(_player)
+		if not SimAssembly.items_of(_sim).is_busy(pistol, _sim.get_tick() + 1):
+			d.call("submit", &"weapon.fire", {"actor": _player, "target": post})
+		return false])
+	# the hall, the stairs, the server room
+	plan.append(["walk", [_site(Vector3i(2, 0, 1)), _site(Vector3i(5, 0, 1)), _site(Vector3i(5, 0, 5)), _site(Vector3i(9, 0, 5))]])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"actor.climb", {"actor": _player, "piece": SimAssembly.build_of(_sim).cell_piece_at(_site(Vector3i(9, 0, 6)))})
+		return true])
+	plan.append(["wait", 3])
+	plan.append(["call", func(_d: RefCounted) -> bool: return SimAssembly.movement_of(_sim).can_act(_player)])
+	plan.append(["walk", [_site(Vector3i(9, 1, 5)), _site(Vector3i(2, 1, 5)), _site(Vector3i(2, 1, 6))]])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"hack.start", {"actor": _player, "target": _target(&"cold_storage_terminal")})
+		return true])
+	plan.append(["wait", 3])
+	plan.append(["call", func(_d: RefCounted) -> bool: return not SimAssembly.hacks_of(_sim).is_hacking(_player)])
+	plan.append(["call", func(_d: RefCounted) -> bool: return _carried(&"cold_storage_data") != EntityIds.NONE])
+	plan.append(["walk", [_site(Vector3i(2, 1, 5)), _site(Vector3i(9, 1, 5)), _site(Vector3i(9, 1, 6))]])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"actor.climb", {"actor": _player, "piece": SimAssembly.build_of(_sim).cell_piece_at(_site(Vector3i(9, 0, 6)))})
+		return true])
+	plan.append(["wait", 3])
+	plan.append(["call", func(_d: RefCounted) -> bool: return SimAssembly.movement_of(_sim).can_act(_player)])
+	plan.append(["walk", [_site(Vector3i(9, 0, 5)), _site(Vector3i(5, 0, 5)), _site(Vector3i(5, 0, 1)), _site(Vector3i(2, 0, 1)), _site(Vector3i(2, 0, -1)), _site(Vector3i(2, 0, -7)), Vector3i(14, 0, -7), Vector3i(14, 0, -2)]])
+	plan.append(["deliver", QUEST])
+	plan.append(["wait", 40])
+	return plan
+
+
+## The lobby's static post: the site spawns its agents in content order, the lobby
+## camera first and then this guard.
+func _lobby_guard() -> int:
+	return SimAssembly.sites_of(_sim).agents_of(&"cold_storage")[1]
