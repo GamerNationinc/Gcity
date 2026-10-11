@@ -1,0 +1,113 @@
+{
+	"description": "two foundation blocks in one cell: the batch refuses and nothing changes",
+	"expect": "refused_at_spawn",
+	"entries": {
+		"site": {
+			"schema_version": 1,
+			"description": "hostile site (M6 claim 22 corpus)",
+			"district": "starter_ghetto",
+			"owner": "zz_corp",
+			"parcels": [
+				{
+					"id": "yard",
+					"footprint": [
+						[
+							-2,
+							-2
+						],
+						[
+							5,
+							-2
+						],
+						[
+							5,
+							5
+						],
+						[
+							-2,
+							5
+						]
+					],
+					"floor": -1,
+					"ceiling": 3,
+					"district": "",
+					"owner": ""
+				}
+			],
+			"excavate": [],
+			"pieces": [
+				{
+					"piece": "foundation_block",
+					"cell": [
+						0,
+						0,
+						0
+					],
+					"facing": "",
+					"sensor": "",
+					"squad": 0
+				},
+				{
+					"piece": "floor_panel",
+					"cell": [
+						0,
+						0,
+						0
+					],
+					"facing": "py",
+					"sensor": "",
+					"squad": 0
+				},
+				{
+					"piece": "foundation_block",
+					"cell": [
+						0,
+						0,
+						0
+					],
+					"facing": "",
+					"sensor": "",
+					"squad": 0
+				}
+			],
+			"agents": [
+				{
+					"profile": "guard_sim",
+					"cell": [
+						1,
+						0,
+						1
+					],
+					"facing": 0,
+					"squad": 1,
+					"route": ""
+				}
+			],
+			"hack_targets": [],
+			"containers": [],
+			"placement": [
+				0,
+				0,
+				0
+			],
+			"exfil": [
+				[
+					6,
+					6
+				],
+				[
+					9,
+					6
+				],
+				[
+					9,
+					9
+				],
+				[
+					6,
+					9
+				]
+			]
+		}
+	}
+}

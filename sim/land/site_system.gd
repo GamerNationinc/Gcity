@@ -144,6 +144,19 @@ func _check_site(t: Dictionary) -> String:
 			return "has an agent with unknown profile '%s' or a bad facing or squad" % profile
 		if not route.is_empty() and not _content.has(PerceptionSystem.KIND_ROUTE, StringName(route)):
 			return "has an agent with unknown route '%s'" % route
+		# M6 claim 22: a site's guards stand and patrol on the site (a site that declares
+		# no parcels, like the M4 test building on the starter plot's land, has none to
+		# leave)
+		if parcels.is_empty():
+			continue
+		if not _inside(parcels, _cell(a["cell"])):
+			return "has an agent (%s) outside its parcels" % profile
+		if not route.is_empty():
+			var r: Dictionary = _content.get_entry(PerceptionSystem.KIND_ROUTE, StringName(route))
+			var route_cells: Array = r["cells"]
+			for rc: Variant in route_cells:
+				if not _cell_ok(rc) or not _inside(parcels, _cell(rc)):
+					return "has an agent whose route '%s' leaves its parcels" % route
 	var targets: Array = t["hack_targets"]
 	for v: Variant in targets:
 		if typeof(v) != TYPE_DICTIONARY:
@@ -181,6 +194,21 @@ func _check_site(t: Dictionary) -> String:
 	if typeof(t.get("placement")) != TYPE_ARRAY or not _cell_ok_any(t["placement"]):
 		return "needs a placement cell"
 	return ""
+
+
+## Whether a site cell lies in one of the site's parcels: inside a footprint and
+## between its floor and ceiling storeys (site coordinates, origin zero).
+static func _inside(parcels: Array, cell: Vector3i) -> bool:
+	for v: Variant in parcels:
+		var p: Dictionary = v
+		var floor_s: int = p["floor"]
+		var ceiling_s: int = p["ceiling"]
+		if cell.y < floor_s or cell.y >= ceiling_s:
+			continue
+		var poly: Array[Vector2i] = LandSystem._normalised_polygon(_scaled(p["footprint"], Vector3i.ZERO))
+		if not poly.is_empty() and LandSystem._contains_half_open(poly, cell.x * M + M / 2, cell.z * M + M / 2):
+			return true
+	return false
 
 
 static func _cell_ok(v: Variant) -> bool:
