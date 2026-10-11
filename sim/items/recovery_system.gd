@@ -20,7 +20,9 @@ var _corpses: CorpseSystem
 var _land: LandSystem
 var _wallet: WalletSystem
 var _events: EventBus
-var _sim: SimRoot
+## the sim's generator (not the sim: holding the root would be a reference cycle);
+## SimRoot keeps this object for its life and restores only its state
+var _rng: RandomNumberGenerator
 
 
 func _init(content: ContentDb, items: ItemSystem, corpses: CorpseSystem, land: LandSystem, wallet: WalletSystem, events: EventBus) -> void:
@@ -44,7 +46,7 @@ func attach(sim: SimRoot) -> Error:
 	if not _content.has(KIND_RECOVERY, CONFIG):
 		push_error("RecoverySystem: no %s/%s" % [KIND_RECOVERY, CONFIG])
 		return ERR_INVALID_DATA
-	_sim = sim
+	_rng = sim.rng()
 	var err: Error = sim.register_system(self)
 	if err != OK:
 		return err
@@ -72,7 +74,7 @@ func _on_corpse(payload: Dictionary) -> void:
 	var base: StringName = ItemSystem.base_of(actor)
 	var returned: Array[int] = []
 	for item: int in _items.items_in(corpse):
-		if _sim.rng().randi_range(0, 999) >= law:
+		if _rng.randi_range(0, 999) >= law:
 			continue
 		if fee > 0 and not _wallet.debit(actor, fee, SOURCE_FEE):
 			break

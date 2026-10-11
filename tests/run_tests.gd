@@ -37,6 +37,17 @@ class ScriptErrorCounter extends Logger:
 const TESTS_ROOT: String = "res://tests"
 
 
+var _errors: ScriptErrorCounter
+
+
+## Quits after unregistering the logger, which would otherwise outlive the run.
+func _finish(code: int) -> void:
+	if _errors != null:
+		OS.remove_logger(_errors)
+		_errors = null
+	quit(code)
+
+
 func _initialize() -> void:
 	# `-- --only=res://tests/items` limits the run to one directory, and `--fail-fast`
 	# stops at the first failure (both for tools/mutate.py, where a mutant is killed by
@@ -54,7 +65,8 @@ func _initialize() -> void:
 	var total: int = 0
 	var failed: int = 0
 	var assertions: int = 0
-	var errors := ScriptErrorCounter.new()
+	_errors = ScriptErrorCounter.new()
+	var errors: ScriptErrorCounter = _errors
 	OS.add_logger(errors)
 	for path: String in paths:
 		var script: GDScript = load(path)
@@ -63,7 +75,7 @@ func _initialize() -> void:
 			failed += 1
 			total += 1
 			if fail_fast:
-				quit(1)
+				_finish(1)
 				return
 			continue
 		for method: String in _test_methods(script):
@@ -90,15 +102,15 @@ func _initialize() -> void:
 					print("     - %s" % failure)
 				if fail_fast:
 					print("stopped at the first failure (--fail-fast)")
-					quit(1)
+					_finish(1)
 					return
 	print("")
 	print("%d tests, %d assertions, %d failed" % [total, assertions, failed])
 	if total == 0:
 		print("no tests found under %s" % root)
-		quit(2)
+		_finish(2)
 		return
-	quit(1 if failed > 0 else 0)
+	_finish(1 if failed > 0 else 0)
 
 
 func _discover(dir_path: String, out: PackedStringArray) -> void:
