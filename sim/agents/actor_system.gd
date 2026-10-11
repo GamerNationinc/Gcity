@@ -11,6 +11,9 @@ const COMMAND_WIELD: StringName = &"actor.wield"
 ## The personal device an actor carries (design doc §12; M5 spec claim 2): one device
 ## frame in its inventory, inheriting its modifiers like a wielded weapon.
 const COMMAND_EQUIP_DEVICE: StringName = &"actor.equip_device"
+## {actor, x, y, z}: once, the moment any death path takes a fatal node to zero
+## (M6 claim 16: where the corpse lies)
+const EVENT_DIED: StringName = &"actor.died"
 const MAX_RANGE_M: int = 10_000
 const MAX_COORD: int = 100_000_000
 
@@ -18,17 +21,19 @@ var _content: ContentDb
 var _stats: StatResolver
 var _ids: EntityIds
 var _items: ItemSystem
+var _events: EventBus
 ## actor id -> {"profile": StringName, "health": {node: int}, "wielded": int, "device": int, "pos": [x, y, z] mm, "alive": bool}
 ## Positions are integer millimetres (M3 claim set P1). `actor.spawn`'s range_m places
 ## the actor at (range_m × 1000, 0, 0) so the M1 range keeps its meaning.
 var _actors: Dictionary = {}
 
 
-func _init(content: ContentDb, stats: StatResolver, ids: EntityIds, items: ItemSystem) -> void:
+func _init(content: ContentDb, stats: StatResolver, ids: EntityIds, items: ItemSystem, events: EventBus) -> void:
 	_content = content
 	_stats = stats
 	_ids = ids
 	_items = items
+	_events = events
 
 
 func system_id() -> StringName:
@@ -264,8 +269,16 @@ func damage_node(actor: int, node: StringName, amount: int) -> int:
 	var applied: int = mini(current, amount)
 	health[node] = current - applied
 	var profile: StringName = rec["profile"]
-	if health[node] == 0 and _is_fatal(profile, node):
+	var alive: bool = rec["alive"]
+	if alive and health[node] == 0 and _is_fatal(profile, node):
 		rec["alive"] = false
+		# a dead actor holds nothing: its weapon stops inheriting from it
+		var held: int = rec["wielded"]
+		if held != EntityIds.NONE:
+			_stats.set_inherits(held, -1)
+			rec["wielded"] = EntityIds.NONE
+		var at: Vector3i = position_of(actor)
+		_events.emit(EVENT_DIED, {"actor": actor, "x": at.x, "y": at.y, "z": at.z})
 	return applied
 
 

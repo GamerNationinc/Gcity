@@ -22,11 +22,11 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var items: ItemSystem = ItemSystem.new(content, stats, ids)
 	if items.attach(sim) != OK:
 		return null
-	var actors: ActorSystem = ActorSystem.new(content, stats, ids, items)
+	var events: EventBus = EventBus.new()
+	var actors: ActorSystem = ActorSystem.new(content, stats, ids, items, events)
 	if actors.attach(sim) != OK:
 		return null
 	items.set_actor_check(actors.has_actor)
-	var events: EventBus = EventBus.new()
 	var combat: CombatSystem = CombatSystem.new(content, stats, items, actors, events)
 	if combat.attach(sim) != OK:
 		return null

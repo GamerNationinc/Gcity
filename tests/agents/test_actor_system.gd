@@ -164,3 +164,26 @@ func test_a_wielded_tool_survives_the_restore() -> void:
 	var other: SimRoot = SimAssembly.build(SEED, db)
 	assert_eq(SimAssembly.restore_systems(other, _sim.snapshot()), OK, "restores")
 	assert_eq(SimAssembly.actors_of(other).wielded(a), cutter, "still in hand")
+
+
+func test_death_is_one_event_and_drops_what_the_actor_wields() -> void:
+	# M6 claim 16: every death path (a shot, a fall) ends in damage_node; the actor
+	# that dies emits actor.died once, where it fell, and holds nothing any more
+	_build()
+	_do(&"actor.spawn", {"profile": "arcade", "range_m": 0})
+	var a: int = _actors.actor_ids()[0]
+	_actors.set_position(a, Vector3i(3500, 1000, -2500))
+	var pistol: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(a), 1)
+	assert_true(_do(&"actor.wield", {"actor": a, "weapon": pistol}), "wield")
+	var died: Array[Dictionary] = []
+	SimAssembly.combat_of(_sim).events().subscribe(ActorSystem.EVENT_DIED, func(p: Dictionary) -> void: died.append(p))
+	assert_eq(_actors.damage_node(a, &"body", 60000), 60000, "hurt")
+	assert_eq(died.size(), 0, "not dead yet")
+	assert_eq(_actors.damage_node(a, &"body", 60000), 40000, "the rest")
+	assert_false(_actors.is_alive(a), "dead")
+	assert_eq(died, [{"actor": a, "x": 3500, "y": 1000, "z": -2500}], "one actor.died, where it fell")
+	assert_eq(_actors.wielded(a), EntityIds.NONE, "a dead actor wields nothing")
+	assert_eq(_stats.get_inherits(pistol), -1, "and the weapon no longer inherits from it")
+	assert_eq(_items.container_of(pistol), ItemSystem.inventory_of(a), "the weapon itself stays where it was (the corpse system moves it)")
+	assert_eq(_actors.damage_node(a, &"body", 1), 0, "nothing left to damage")
+	assert_eq(died.size(), 1, "dying is once")
