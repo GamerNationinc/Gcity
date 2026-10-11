@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"description": "A Cold Storage staff keycard (M6 spec claim 10): the credential the front door's lock names. Found in an unlocked crate in the yard.",
+	"tags": ["key_item", "credential", "cold_storage_keycard"]
+}

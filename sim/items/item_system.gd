@@ -26,7 +26,10 @@ const KIND_DEVICE_MODULE: StringName = &"device_module"
 const KIND_DEVICE_SOCKET: StringName = &"device_socket"
 ## A wieldable tool that breaches (M6 spec claim 4).
 const KIND_TOOL: StringName = &"tool"
-const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_TOOL]
+## An item that matters by being carried: a credential a lock names, a deliverable a
+## fixer takes (M6 spec claim 10). Only its tags.
+const KIND_KEY_ITEM: StringName = &"key_item"
+const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_TOOL, KIND_KEY_ITEM]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
 const COMMAND_LOAD: StringName = &"magazine.load"
