@@ -18,7 +18,7 @@ var _drive: RefCounted
 
 func _initialize() -> void:
 	var only: PackedStringArray = OS.get_cmdline_user_args()
-	var all: Dictionary = {"m6-front": _front}
+	var all: Dictionary = {"m6-front": _front, "m6-side": _side}
 	var failed: int = 0
 	for name: String in all:
 		if not only.is_empty() and not only.has(name):
@@ -66,6 +66,39 @@ func _carried(template: StringName) -> int:
 	return EntityIds.NONE
 
 
+## Kit, through commands: a plasma cutter in hand, and a handset with a daemon
+## coprocessor carried as the device.
+func _kit() -> Array:
+	var inv: String = String(ItemSystem.inventory_of(_player))
+	var plan: Array = []
+	for spec: Array in [["tool", "plasma_cutter", 1], ["device_frame", "handset", 2], ["device_module", "daemon_coprocessor", 3]]:
+		plan.append(["call", func(d: RefCounted) -> bool:
+			d.call("submit", &"item.spawn", {"kind": spec[0], "template": spec[1], "container": inv, "seed": spec[2], "count": 1})
+			return true])
+	plan.append(["wait", 2])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"actor.wield", {"actor": _player, "weapon": _carried(&"plasma_cutter")})
+		d.call("submit", &"actor.equip_device", {"actor": _player, "device": _carried(&"handset")})
+		return true])
+	plan.append(["wait", 2])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"item.attach", {"actor": _player, "weapon": _carried(&"handset"), "part": _carried(&"daemon_coprocessor")})
+		return true])
+	plan.append(["wait", 2])
+	return plan
+
+
+## The site's hack target of `kind`.
+func _target(kind: StringName) -> int:
+	var hacks: HackSystem = SimAssembly.hacks_of(_sim)
+	var targets: Dictionary = hacks.snapshot()["targets"]
+	for t: int in SimAssembly.sites_of(_sim).targets_of(&"cold_storage"):
+		var rec: Dictionary = targets[t]
+		if rec["target"] == kind:
+			return t
+	return EntityIds.NONE
+
+
 func _accept() -> Array:
 	return [
 		["walk", [Vector3i(14, 0, -2)]],
@@ -105,3 +138,31 @@ func _open_front_door(d: RefCounted) -> bool:
 		return true
 	d.call("submit", &"opening.open", {"actor": _player, "piece": _front_door()})
 	return false
+
+
+# ---------------------------------------------------------------- m6-side
+
+## The side route: spoof the window's power monitor from its junction box in the yard,
+## mantle onto the crate under the window, cut the window and step in: no alarm.
+func _side() -> Array:
+	var plan: Array = _kit()
+	plan.append_array(_accept())
+	plan.append(["walk", [Vector3i(14, 0, -6), _site(Vector3i(11, 0, -6)), _site(Vector3i(11, 0, 1))]])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"hack.start", {"actor": _player, "target": _target(&"power_monitor_spoof")})
+		return true])
+	plan.append(["wait", 3])
+	plan.append(["call", func(_d: RefCounted) -> bool: return not SimAssembly.hacks_of(_sim).is_hacking(_player)])
+	plan.append(["mantle", -1, 0])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"build.breach", {"actor": _player, "piece": _side_window()})
+		return true])
+	plan.append(["wait", 3])
+	plan.append(["call", func(_d: RefCounted) -> bool: return not SimAssembly.build_of(_sim).is_breaching(_player)])
+	plan.append(["walk", [_site(Vector3i(9, 1, 1))]])
+	plan.append(["wait", 40])
+	return plan
+
+
+func _side_window() -> int:
+	return SimAssembly.build_of(_sim).face_piece_at(BuildSystem.face_key(_site(Vector3i(9, 1, 1)), "px"))

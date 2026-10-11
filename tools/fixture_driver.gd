@@ -9,6 +9,7 @@
 ##   ["walk", [cells...]]            cell centres in order, one axis at a time
 ##   ["breach", piece]               cut a piece with the wielded tool, until it is gone
 ##   ["climb", piece]                use a ladder or stairs piece
+##   ["mantle", dx, dz]              onto the block one cell that way
 ##   ["open", piece]
 ##   ["take", place, item]           item.take; `place` a StringName, `item` an id
 ##   ["hack", target] / ["logout", target]
@@ -83,6 +84,8 @@ func _issue(action: String, step: Array) -> void:
 			submit(&"build.breach", {"actor": actor, "piece": step[1]})
 		"climb":
 			submit(&"actor.climb", {"actor": actor, "piece": step[1]})
+		"mantle":
+			submit(&"actor.mantle", {"actor": actor, "dx": step[1], "dz": step[2]})
 		"open":
 			submit(&"opening.open", {"actor": actor, "piece": step[1]})
 		"take":

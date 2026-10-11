@@ -60,3 +60,14 @@ func test_front_the_keycard_from_the_yard_opens_the_front_door_quietly() -> void
 	assert_eq(_of(BuildSystem.EVENT_CHECK_FAILED).size(), 0, "the heat check passed")
 	assert_eq(_of(SensorSystem.EVENT_ALARM).size(), 0, "and no alarm was raised")
 	assert_true(SimAssembly.standing_of(_sim).standing_of(PLAYER, &"heat") <= 300, "heat stayed at or under the door's 300")
+
+
+func test_side_the_monitor_is_spoofed_the_window_cut_and_no_alarm() -> void:
+	_replay("m6-side")
+	var hacks: Array[Dictionary] = _of(HackSystem.EVENT_COMPLETED)
+	assert_eq(hacks.size(), 1, "one hack completed: the junction box")
+	var cut: Array[Dictionary] = _of(BuildSystem.EVENT_BREACHED)
+	assert_eq(cut.size(), 1, "one piece cut: the window")
+	assert_eq(_of(SensorSystem.EVENT_ALARM).size(), 0, "the spoofed monitor raised no alarm")
+	var at: Vector3i = BuildSystem.cell_of(SimAssembly.actors_of(_sim).position_of(PLAYER))
+	assert_eq(at, Vector3i(49, 1, 1), "the player stands inside the maintenance window, on storey 1")
