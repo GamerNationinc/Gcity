@@ -199,6 +199,43 @@ func add_parcel(id: StringName, district: StringName, owner: StringName, footpri
 	return OK
 
 
+## Whether a set of new parcel volumes, each {"footprint": [[x, z]...], "floor_y",
+## "ceiling_y"}, could all be added: each a valid volume, none overlapping an existing
+## parcel or another of the set (M6 claim 12: a site's parcels go in whole or not at all).
+func parcels_fit(volumes: Array) -> bool:
+	var polys: Array = []
+	for v: Variant in volumes:
+		if typeof(v) != TYPE_DICTIONARY:
+			return false
+		var vol: Dictionary = v
+		if typeof(vol.get("footprint")) != TYPE_ARRAY or typeof(vol.get("floor_y")) != TYPE_INT or typeof(vol.get("ceiling_y")) != TYPE_INT:
+			return false
+		var floor_y: int = vol["floor_y"]
+		var ceiling_y: int = vol["ceiling_y"]
+		if floor_y < -MAX_COORD or ceiling_y > MAX_COORD or floor_y >= ceiling_y:
+			return false
+		var footprint: Array = vol["footprint"]
+		var poly: Array[Vector2i] = _normalised_polygon(footprint)
+		if poly.is_empty():
+			return false
+		for other_id: StringName in _candidates_for_polygon(poly):
+			var other: Dictionary = _parcels[other_id]
+			var other_poly: Array[Vector2i] = other["footprint"]
+			var other_floor: int = other["floor_y"]
+			var other_ceiling: int = other["ceiling_y"]
+			if _volumes_overlap(poly, floor_y, ceiling_y, other_poly, other_floor, other_ceiling):
+				return false
+		for prev: Variant in polys:
+			var p: Array = prev
+			var prev_poly: Array[Vector2i] = p[0]
+			var prev_floor: int = p[1]
+			var prev_ceiling: int = p[2]
+			if _volumes_overlap(poly, floor_y, ceiling_y, prev_poly, prev_floor, prev_ceiling):
+				return false
+		polys.append([poly, floor_y, ceiling_y])
+	return true
+
+
 func has_parcel(id: StringName) -> bool:
 	return _parcels.has(id)
 

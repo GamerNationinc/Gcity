@@ -308,3 +308,46 @@ func test_snapshot_restore_round_trip_including_generated_parcels() -> void:
 	var before: String = StateHash.of(fresh.snapshot())
 	assert_eq(fresh.restore(bad), ERR_INVALID_DATA, "bad footprint rejected")
 	assert_eq(StateHash.of(fresh.snapshot()), before, "a rejected restore changes nothing")
+
+
+# ---------------------------------------------------------------- parcels_fit (M6 claim 12)
+
+## Property: for 10 000 generated pairs of volumes near the seeded parcels,
+## parcels_fit([a, b]) is true exactly when adding a and then b both succeed.
+func test_property_parcels_fit_agrees_with_adding_them() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var sim: SimRoot = SimAssembly.build(20261035, db)
+	var land: LandSystem = SimAssembly.land_of(sim)
+	var clean: Dictionary = land.snapshot()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 20261036
+	var disagreements: int = 0
+	var fitted: int = 0
+	for case: int in 10_000:
+		var vols: Array = []
+		for k: int in 2:
+			var x: int = rng.randi_range(-40, 40) * 1000
+			var z: int = rng.randi_range(-40, 40) * 1000
+			var w: int = rng.randi_range(0, 12) * 1000
+			var d: int = rng.randi_range(1, 12) * 1000
+			var floor_y: int = rng.randi_range(-2, 2) * 1000
+			var ceiling_y: int = floor_y + rng.randi_range(0, 3) * 1000
+			vols.append({"footprint": [[x, z], [x + w, z], [x + w, z + d], [x, z + d]], "floor_y": floor_y, "ceiling_y": ceiling_y})
+		var fits: bool = land.parcels_fit(vols)
+		var added: bool = true
+		for k: int in 2:
+			var v: Dictionary = vols[k]
+			var floor_v: int = v["floor_y"]
+			var ceiling_v: int = v["ceiling_y"]
+			var footprint: Array = v["footprint"]
+			if land.add_parcel(StringName("zz_case_%d" % k), &"starter_ghetto", &"", footprint, floor_v, ceiling_v) != OK:
+				added = false
+				break
+		if fits != added:
+			disagreements += 1
+		if fits:
+			fitted += 1
+		assert_eq(land.restore(clean.duplicate(true)), OK, "restored")
+	assert_eq(disagreements, 0, "fits exactly when both add")
+	assert_true(fitted > 500 and fitted < 9500, "both outcomes covered (%d fitted)" % fitted)
