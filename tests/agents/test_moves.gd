@@ -231,3 +231,35 @@ func test_an_actor_can_act_only_when_neither_falling_nor_mid_move() -> void:
 	_actors.set_position(_player, _feet(6, 2, 6))
 	_tick(1)
 	assert_false(_movement.can_act(_player), "not while falling")
+
+
+## M6 claim 13: climbing a ladder through a closed hatch passes the hatch, so its lock or
+## latch applies: a latched access hatch is climbed from below (inside the enclosed
+## shaft) but not from the street above, and a locked one needs its key.
+func test_a_ladder_through_a_closed_hatch_obeys_its_lock_and_latch() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var latched: Dictionary = db.get_entry(&"build_piece", &"ladder_hatch").duplicate(true)
+	latched["latched"] = true
+	assert_eq(db.add(&"build_piece", &"zz_exit_hatch", latched), OK, "a latched access hatch")
+	var locked: Dictionary = db.get_entry(&"build_piece", &"ladder_hatch").duplicate(true)
+	locked["lock"] = "maintenance_key"
+	assert_eq(db.add(&"build_piece", &"zz_locked_hatch", locked), OK, "a locked one")
+	for template: StringName in [&"zz_exit_hatch", &"zz_locked_hatch"]:
+		_setup(db)
+		assert_eq(_build.excavate([_cell(0, -1, 0)] as Array[Vector3i]), OK, "a shaft")
+		assert_true(_build.place(_player, &"foundation_block", _at(1, 0, 0), "") > 0, "foundation")
+		var hatch: int = _build.place(_player, template, _at(0, -1, 0), "py")
+		assert_true(hatch > 0, "%s in the street" % template)
+		_sim.step_n(20)
+		assert_eq(_where(_player), _cell(0, 0, 0), "%s: standing on it in the street" % template)
+		assert_false(_do(&"actor.climb", {"actor": _player, "piece": hatch}), "%s: not down from the street" % template)
+		SimAssembly.actors_of(_sim).set_position(_player, _feet(0, -1, 0))
+		_sim.step_n(5)
+		var up: bool = _do(&"actor.climb", {"actor": _player, "piece": hatch})
+		if template == &"zz_exit_hatch":
+			assert_true(up, "the latched hatch: up from inside the shaft")
+		else:
+			assert_false(up, "the locked hatch: not without the key")
+			SimAssembly.items_of(_sim).spawn(&"key_item", &"cold_storage_keycard", ItemSystem.inventory_of(_player), 1)
+			assert_false(_do(&"actor.climb", {"actor": _player, "piece": hatch}), "nor with the wrong key")

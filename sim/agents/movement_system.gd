@@ -148,6 +148,9 @@ func climb(actor: int, piece: int) -> bool:
 	var to: Array[Vector3i] = climb_destination(here, piece)
 	if to.is_empty():
 		return false
+	# a ladder through a closed hatch passes the hatch: its lock or latch applies (claim 13)
+	if _build.is_opening(piece) and not _build.is_open(piece) and not _build.may_pass(actor, piece):
+		return false
 	return _start(actor, MOVE_CLIMB, to[0], _build.climb_ticks_of(piece))
 
 
