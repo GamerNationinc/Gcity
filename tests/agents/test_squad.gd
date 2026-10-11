@@ -95,13 +95,11 @@ func test_a_report_reaches_the_squad_after_the_latency_and_only_by_radio() -> vo
 	assert_eq(_reports[0]["informed"], [behind] as Array[int], "to the one who did not know")
 	assert_eq(_perception.last_known(behind, _player), _at(2, 14), "who now knows where the contact is")
 	assert_false(_perception.is_alerted(other_squad, _player), "another squad hears nothing")
-	assert_eq(_squads.pending_count(), 1, "delivered, and the informed member's own alert is already on the air")
-	# that echo is delivered, but nobody is newly informed
-	_sim.step_n(25)
-	assert_eq(_squads.delivered_count(), 2, "the echo delivered")
-	assert_eq(_reports[1]["informed"], [] as Array[int], "to no one new")
-	_sim.step_n(30)
-	assert_eq(_squads.delivered_count(), 2, "and it stops there")
+	# M6 (found by the claims 14-15 showcase): an alert caused by the radio is not
+	# reported again, since the whole squad heard the same report (M4 sent an echo here)
+	assert_eq(_squads.pending_count(), 0, "delivered, and nothing echoes it")
+	_sim.step_n(55)
+	assert_eq(_squads.delivered_count(), 1, "one report, and it stops there")
 	# no radio, no report
 	_reports.clear()
 	_setup(_db(false))
@@ -236,3 +234,28 @@ func test_a_queued_report_from_no_agent_reaches_every_member_after_its_latency()
 	assert_true(_perception.is_alerted(a, _player) and _perception.is_alerted(b, _player), "both members after it")
 	assert_eq(_perception.last_known(a, _player), BuildSystem.cell_centre(BuildSystem.cell_of(_at(0, 20))) - Vector3i(0, 500, 0), "at the reported cell")
 	assert_eq(_reports.back()["reporter"], EntityIds.NONE, "reported by nobody in the squad")
+
+
+func test_an_echo_carries_what_was_heard_and_dies_out() -> void:
+	# Found by the M6 claims 14-15 showcase: with three or more members out of sight,
+	# each echo re-alerted the others (their awareness had fallen back below the
+	# threshold) and the echoes ran on for as long as anyone remembered, each carrying
+	# the contact's live position. Only a first-hand alert is reported now.
+	_setup()
+	_screen()
+	var lookout: int = _perception.spawn(&"watcher", _cell(2, 8), 90, 1, "")
+	var b: int = _perception.spawn(&"watcher", _cell(1, 2), 90, 1, "")
+	var c: int = _perception.spawn(&"watcher", _cell(3, 2), 90, 1, "")
+	_sim.step()
+	_actors.set_position(_player, _at(2, 14))
+	assert_true(_ticks_until(func() -> bool: return _perception.is_alerted(lookout, _player), 100) < NEVER, "the lookout is alerted")
+	var seen_cell: Array[int] = PathingSystem._arr(BuildSystem.cell_of(_at(2, 14)))
+	# the contact slips away out of everyone's sight before the first report lands
+	_actors.set_position(_player, _at(2, 60))
+	var alerts_before: int = _perception.alert_count()
+	_sim.step_n(600)
+	for r: Dictionary in _reports:
+		assert_eq(r["cell"], seen_cell, "every report carries the cell the lookout saw, never the live one (reporter %d)" % r["reporter"])
+	assert_eq(_squads.delivered_count(), 1, "the lookout's report alone")
+	assert_eq(_perception.alert_count() - alerts_before, 2, "b and c are alerted once each")
+	assert_eq(_squads.pending_count(), 0, "nothing left on the air")

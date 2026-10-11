@@ -3,7 +3,9 @@
 ## When a member is alerted to a contact, and its profile has a radio, a report
 ## `squad.report {squad, contact, cell}` reaches the other living members after the
 ## reporter's `radio_latency_ticks`: each learns the contact's cell as a last-known
-## position and rises to its own alert threshold, so it acts. Reports in flight are
+## position and rises to its own alert threshold, so it acts. Only a first-hand alert
+## (sight or sound) is reported: a member alerted by the radio has nothing to add,
+## since the whole squad heard the same report. Reports in flight are
 ## state. The planner then assigns each member outside the contact's volume a
 ## distinct entry edge of that volume, cheapest first in member order, so one takes
 ## the door while another covers the window; the stance layer walks to the cell
@@ -28,6 +30,8 @@ var _assignments: Dictionary = {}
 var _delivered: int = 0
 ## Set by build.changed: every assignment is re-planned on the next tick.
 var _replan: bool = false
+## true while a report is being delivered: the alerts it causes are not first-hand
+var _delivering: bool = false
 
 
 func _init(content: ContentDb, actors: ActorSystem, perception: PerceptionSystem, portals: PortalGraph, build: BuildSystem, events: EventBus) -> void:
@@ -123,7 +127,7 @@ func _on_alerted(payload: Dictionary) -> void:
 	var contact: int = payload["contact"]
 	var tick_now: int = payload["tick"]
 	var squad: int = _perception.squad_of(observer)
-	if squad <= 0 or not has_radio(observer):
+	if _delivering or squad <= 0 or not has_radio(observer):
 		return
 	var cell: Vector3i = BuildSystem.cell_of(_actors.position_of(contact))
 	_reports.append({"due": tick_now + radio_latency(observer), "squad": squad, "reporter": observer, "contact": contact, "cell": PathingSystem._arr(cell)})
@@ -148,7 +152,6 @@ func _on_build_changed(_payload: Dictionary) -> void:
 
 func tick(sim: SimRoot) -> void:
 	var tick_now: int = sim.get_tick()
-	# delivery alerts receivers, whose alerts append new reports: take the list first
 	var pending: Array = _reports
 	_reports = []
 	var kept: Array = []
@@ -188,7 +191,10 @@ func _deliver(report: Dictionary, tick_now: int) -> void:
 			continue
 		var ground: Vector3i = BuildSystem.cell_centre(cell)
 		ground.y = cell.y * BuildSystem.CELL
-		if _perception.receive_report(member, contact, ground, tick_now):
+		_delivering = true
+		var told: bool = _perception.receive_report(member, contact, ground, tick_now)
+		_delivering = false
+		if told:
 			informed.append(member)
 	_delivered += 1
 	_events.emit(EVENT_REPORT, {"squad": squad, "reporter": reporter, "contact": contact, "cell": PathingSystem._arr(cell), "informed": informed})
