@@ -118,3 +118,37 @@ func test_hack_interrupt_a_hit_during_the_hack_loses_its_progress() -> void:
 	assert_false(SimAssembly.hacks_of(_sim).is_hacking(PLAYER), "it stopped")
 	var window: int = SimAssembly.build_of(_sim).face_piece_at(BuildSystem.face_key(Vector3i(49, 1, 1), "px"))
 	assert_false(SimAssembly.sensors_of(_sim).is_spoofed(window), "the monitor is not spoofed: the progress was lost")
+
+
+func test_death_the_drive_lies_in_the_body_and_the_recovery_run_delivers_it() -> void:
+	_replay("m6-death")
+	var deaths: Array[Dictionary] = []
+	for e: Dictionary in _of(ActorSystem.EVENT_DIED):
+		var p: Dictionary = e["p"]
+		if p["actor"] == PLAYER:
+			deaths.append(e)
+	assert_eq(deaths.size(), 1, "the player died once, mid-run")
+	var respawns: Array[Dictionary] = _of(ActorSystem.EVENT_RESPAWNED)
+	assert_eq(respawns.size(), 1, "and woke at home once")
+	var home: Dictionary = respawns[0]["p"]
+	var hx: int = home["x"]
+	var hy: int = home["y"]
+	var hz: int = home["z"]
+	var home_at: Vector3i = Vector3i(hx, hy, hz)
+	assert_eq(SimAssembly.land_of(_sim).parcel_at(home_at), &"starter_plot", "on the starter plot")
+	var took_back: bool = false
+	for e: Dictionary in _of(CorpseSystem.EVENT_MOVED):
+		var p: Dictionary = e["p"]
+		var item: int = p["item"]
+		var from: String = p["from"]
+		if p["actor"] == PLAYER and from.begins_with("corpse.") and SimAssembly.items_of(_sim).item_template(item) == &"cold_storage_data":
+			took_back = true
+	assert_true(took_back, "the drive was taken back from the player's own body")
+	assert_eq(_of(RecoverySystem.EVENT_RETURNED).size(), 0, "with no credits the city returned nothing")
+	assert_eq(_of(QuestSystem.EVENT_EXFIL).size(), 1, "the run's exfil came after the death")
+	var delivered: Array[Dictionary] = _of(QuestSystem.EVENT_DELIVERED)
+	assert_eq(delivered.size(), 1, "and the contract was delivered")
+	var pay: Dictionary = delivered[0]["p"]
+	var credits: int = pay["credits"]
+	assert_true(credits > 0, "and paid (%d credits)" % credits)
+	assert_eq(SimAssembly.wallet_of(_sim).balance_of(PLAYER), credits, "into the wallet")

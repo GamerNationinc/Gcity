@@ -25,7 +25,7 @@
 				"seed": 11,
 				"template": "g19"
 			},
-			"tick": 8
+			"tick": 10
 		},
 		{
 			"kind": "item.spawn",
@@ -36,7 +36,7 @@
 				"seed": 12,
 				"template": "g19_mag_15"
 			},
-			"tick": 10
+			"tick": 12
 		},
 		{
 			"kind": "item.spawn",
@@ -47,7 +47,7 @@
 				"seed": 13,
 				"template": "9x19_fmj"
 			},
-			"tick": 12
+			"tick": 14
 		},
 		{
 			"kind": "magazine.load",
@@ -56,7 +56,7 @@
 				"magazine": 4,
 				"round": 5
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -65,7 +65,7 @@
 				"magazine": 4,
 				"round": 6
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -74,7 +74,7 @@
 				"magazine": 4,
 				"round": 7
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -83,7 +83,7 @@
 				"magazine": 4,
 				"round": 8
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -92,7 +92,7 @@
 				"magazine": 4,
 				"round": 9
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -101,7 +101,7 @@
 				"magazine": 4,
 				"round": 10
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -110,7 +110,7 @@
 				"magazine": 4,
 				"round": 11
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -119,7 +119,7 @@
 				"magazine": 4,
 				"round": 12
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -128,7 +128,7 @@
 				"magazine": 4,
 				"round": 13
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -137,7 +137,7 @@
 				"magazine": 4,
 				"round": 14
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -146,7 +146,7 @@
 				"magazine": 4,
 				"round": 15
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -155,7 +155,7 @@
 				"magazine": 4,
 				"round": 16
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -164,7 +164,7 @@
 				"magazine": 4,
 				"round": 17
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -173,7 +173,7 @@
 				"magazine": 4,
 				"round": 18
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "magazine.load",
@@ -182,7 +182,7 @@
 				"magazine": 4,
 				"round": 19
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "actor.wield",
@@ -190,7 +190,7 @@
 				"actor": 2,
 				"weapon": 3
 			},
-			"tick": 17
+			"tick": 19
 		},
 		{
 			"kind": "weapon.reload_tactical",
@@ -199,7 +199,7 @@
 				"magazine": 4,
 				"weapon": 3
 			},
-			"tick": 22
+			"tick": 24
 		},
 		{
 			"kind": "item.spawn",
@@ -210,7 +210,7 @@
 				"seed": 1,
 				"template": "plasma_cutter"
 			},
-			"tick": 24
+			"tick": 26
 		},
 		{
 			"kind": "item.spawn",
@@ -221,7 +221,7 @@
 				"seed": 2,
 				"template": "handset"
 			},
-			"tick": 26
+			"tick": 28
 		},
 		{
 			"kind": "item.spawn",
@@ -232,7 +232,7 @@
 				"seed": 3,
 				"template": "daemon_coprocessor"
 			},
-			"tick": 28
+			"tick": 30
 		},
 		{
 			"kind": "actor.wield",
@@ -240,7 +240,7 @@
 				"actor": 1,
 				"weapon": 20
 			},
-			"tick": 33
+			"tick": 35
 		},
 		{
 			"kind": "actor.equip_device",
@@ -248,7 +248,7 @@
 				"actor": 1,
 				"device": 21
 			},
-			"tick": 33
+			"tick": 35
 		},
 		{
 			"kind": "item.attach",
@@ -257,25 +257,7 @@
 				"part": 22,
 				"weapon": 21
 			},
-			"tick": 38
-		},
-		{
-			"kind": "actor.move",
-			"payload": {
-				"actor": 1,
-				"dx": 150,
-				"dz": 0
-			},
-			"tick": 43
-		},
-		{
-			"kind": "actor.move",
-			"payload": {
-				"actor": 1,
-				"dx": 150,
-				"dz": 0
-			},
-			"tick": 44
+			"tick": 40
 		},
 		{
 			"kind": "actor.move",
@@ -290,7 +272,7 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 1,
-				"dx": 50,
+				"dx": 150,
 				"dz": 0
 			},
 			"tick": 46
@@ -299,8 +281,8 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 1,
-				"dx": 0,
-				"dz": -150
+				"dx": 150,
+				"dz": 0
 			},
 			"tick": 47
 		},
@@ -308,8 +290,8 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 1,
-				"dx": 0,
-				"dz": -150
+				"dx": 50,
+				"dz": 0
 			},
 			"tick": 48
 		},
@@ -386,30 +368,30 @@
 			"tick": 56
 		},
 		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dz": -150
+			},
+			"tick": 57
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dz": -150
+			},
+			"tick": 58
+		},
+		{
 			"kind": "quest.accept",
 			"payload": {
 				"actor": 1,
 				"quest": "cold_storage_contract"
 			},
-			"tick": 58
-		},
-		{
-			"kind": "actor.move",
-			"payload": {
-				"actor": 1,
-				"dx": 0,
-				"dz": -150
-			},
-			"tick": 63
-		},
-		{
-			"kind": "actor.move",
-			"payload": {
-				"actor": 1,
-				"dx": 0,
-				"dz": -150
-			},
-			"tick": 64
+			"tick": 60
 		},
 		{
 			"kind": "actor.move",
@@ -632,7 +614,7 @@
 			"payload": {
 				"actor": 1,
 				"dx": 0,
-				"dz": -100
+				"dz": -150
 			},
 			"tick": 89
 		},
@@ -640,8 +622,8 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 1,
-				"dx": 150,
-				"dz": 0
+				"dx": 0,
+				"dz": -150
 			},
 			"tick": 90
 		},
@@ -649,8 +631,8 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 1,
-				"dx": 150,
-				"dz": 0
+				"dx": 0,
+				"dz": -100
 			},
 			"tick": 91
 		},
@@ -2854,7 +2836,7 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 1,
-				"dx": 100,
+				"dx": 150,
 				"dz": 0
 			},
 			"tick": 336
@@ -2863,8 +2845,8 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 1,
-				"dx": 0,
-				"dz": 150
+				"dx": 150,
+				"dz": 0
 			},
 			"tick": 337
 		},
@@ -2872,8 +2854,8 @@
 			"kind": "actor.move",
 			"payload": {
 				"actor": 1,
-				"dx": 0,
-				"dz": 150
+				"dx": 100,
+				"dz": 0
 			},
 			"tick": 338
 		},
@@ -3278,9 +3260,27 @@
 			"payload": {
 				"actor": 1,
 				"dx": 0,
-				"dz": 100
+				"dz": 150
 			},
 			"tick": 383
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dz": 150
+			},
+			"tick": 384
+		},
+		{
+			"kind": "actor.move",
+			"payload": {
+				"actor": 1,
+				"dx": 0,
+				"dz": 100
+			},
+			"tick": 385
 		},
 		{
 			"kind": "hack.start",
@@ -3288,7 +3288,7 @@
 				"actor": 1,
 				"target": 2
 			},
-			"tick": 386
+			"tick": 388
 		},
 		{
 			"kind": "weapon.fire",
@@ -3296,12 +3296,12 @@
 				"actor": 2,
 				"target": 1
 			},
-			"tick": 449
+			"tick": 451
 		}
 	],
-	"expected_hash": "6d87c9c129437b44287178a7fa4dfa35e32e90a2cdd96697f72e3128e404a64a",
+	"expected_hash": "3b1da3ae38171a253b17d374c826bf3064dcc647968fe28d23c893e97b553818",
 	"name": "m6-hack-interrupt",
 	"schema_version": 1,
 	"seed": 20261200,
-	"ticks": 531
+	"ticks": 533
 }
