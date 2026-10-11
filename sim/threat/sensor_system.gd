@@ -12,7 +12,9 @@ const COMMAND_INSTALL: StringName = &"sensor.install"
 const EVENT_ALARM: StringName = &"security.alarm"
 const TRIGGER_OPENED: StringName = &"opened"
 const TRIGGER_BREACHED: StringName = &"breached"
-const TRIGGERS: Array[StringName] = [TRIGGER_OPENED, TRIGGER_BREACHED]
+## A door's check failed: the opener was too hot (claim 10's watching camera).
+const TRIGGER_CHECK_FAILED: StringName = &"check_failed"
+const TRIGGERS: Array[StringName] = [TRIGGER_OPENED, TRIGGER_BREACHED, TRIGGER_CHECK_FAILED]
 ## The hack effect this system registers with the hack system (claim 9).
 const EFFECT_SPOOF: StringName = &"spoof_sensor"
 
@@ -67,6 +69,9 @@ func attach(sim: SimRoot) -> Error:
 	if err != OK:
 		return err
 	err = _events.subscribe(BuildSystem.EVENT_BREACHED, _on_breached)
+	if err != OK:
+		return err
+	err = _events.subscribe(BuildSystem.EVENT_CHECK_FAILED, _on_check_failed)
 	if err != OK:
 		return err
 	return _events.subscribe(BuildSystem.EVENT_CHANGED, _on_build_changed)
@@ -161,6 +166,12 @@ func _on_breached(payload: Dictionary) -> void:
 	for v: Variant in removed:
 		var piece: int = v
 		_trip(piece, TRIGGER_BREACHED, actor)
+
+
+func _on_check_failed(payload: Dictionary) -> void:
+	var piece: int = payload["piece"]
+	var actor: int = payload["actor"]
+	_trip(piece, TRIGGER_CHECK_FAILED, actor)
 
 
 ## A sensor goes with its piece, whatever removed it, at the end of the tick.

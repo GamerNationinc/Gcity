@@ -198,3 +198,36 @@ func test_a_spoof_naming_an_unknown_sensor_stops_assembly() -> void:
 	assert_eq(db.add(&"hack_target", &"zz_bad", {"schema_version": 1, "description": "test", "ticks": 10, "daemons": 1, "noise": 0, "reach_mm": 1000,
 		"effect": {"kind": "spoof_sensor", "params": {"sensor": "power_monitor", "extra": 1}}}), OK, "an extra param")
 	assert_eq(SimAssembly.build(SEED, db), null, "rejected")
+
+
+## M6 claim 10: the door's watching camera is a door_camera sensor on it. A hot opener
+## with the card gets in, and the camera raises the alarm; a cool one gets in quietly,
+## and an ordinary opening is not what a door camera reports.
+func _front_door() -> int:
+	for c: Vector3i in [Vector3i(-1, 0, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]:
+		assert_true(_build.place(_player, &"foundation_block", _at(c.x, c.y, c.z), "") > 0, "foundation")
+	assert_true(_build.place(_player, &"floor_panel", _at(0, 0, 0), "py") > 0, "roof")
+	var door: int = _build.place(_player, &"cold_storage_door", _at(0, 0, 0), "px")
+	assert_true(door > 0, "the front door")
+	assert_true(_sensors.install(&"door_camera", door, 1), "its camera")
+	SimAssembly.items_of(_sim).spawn(&"key_item", &"cold_storage_keycard", ItemSystem.inventory_of(_player), 1)
+	_actors.set_position(_player, _feet(1, 0))
+	return door
+
+
+func test_a_cool_opener_passes_the_door_camera_quietly() -> void:
+	_setup()
+	var door: int = _front_door()
+	assert_true(_do(&"opening.open", {"actor": _player, "piece": door}), "opens")
+	assert_eq(_alarms.size(), 0, "no alarm")
+
+
+func test_a_hot_opener_sets_off_the_door_camera() -> void:
+	_setup()
+	var door: int = _front_door()
+	for i: int in 2:
+		SimAssembly.combat_of(_sim).events().emit(SensorSystem.EVENT_ALARM, {"sensor": &"power_monitor", "piece": 0, "squad": 1, "actor": _player})
+	_alarms.clear()
+	assert_true(_do(&"opening.open", {"actor": _player, "piece": door}), "the door still opens")
+	assert_eq(_alarms, [{"sensor": &"door_camera", "piece": door, "squad": 1, "actor": _player}], "and the camera raises the alarm")
+	assert_eq(SimAssembly.standing_of(_sim).standing_of(_player, &"heat"), 600, "which heats the opener further")
