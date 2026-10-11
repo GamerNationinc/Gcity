@@ -152,6 +152,8 @@ func _check_site(t: Dictionary) -> String:
 			return "has a hack target with unknown target '%s' or piece index %d" % [target, index]
 	if LandSystem._normalised_polygon(_scaled(t["exfil"], Vector3i.ZERO)).is_empty():
 		return "has an exfil that is not a polygon"
+	if typeof(t.get("placement")) != TYPE_ARRAY or not _cell_ok_any(t["placement"]):
+		return "needs a placement cell"
 	return ""
 
 
@@ -272,6 +274,15 @@ func _ids_of(site: StringName, key: String) -> Array[int]:
 		var id: int = v
 		out.append(id)
 	return out
+
+
+## Where the city's authored copy of a site stands (design doc §5.3: a quest names the
+## site; the site says where it is, until M7's slots bind sites per player).
+func placement_of(site: StringName) -> Vector3i:
+	if not _content.has(KIND_SITE, site):
+		return Vector3i.ZERO
+	var t: Dictionary = _content.get_entry(KIND_SITE, site)
+	return _cell(t["placement"])
 
 
 ## The land id of a site's parcel.

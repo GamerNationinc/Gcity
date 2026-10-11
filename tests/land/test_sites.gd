@@ -25,7 +25,7 @@ func _site() -> Dictionary:
 		"pieces": pieces,
 		"agents": [{"profile": "guard_sim", "cell": [1, 0, 3], "facing": 0, "squad": 1, "route": "zz_rel"}],
 		"hack_targets": [{"target": "power_monitor_spoof", "cell": [1, 0, 0], "piece": 5}],
-		"exfil": [[6, 6], [9, 6], [9, 9], [6, 9]]}
+		"placement": [0, 0, 0], "exfil": [[6, 6], [9, 6], [9, 9], [6, 9]]}
 
 
 func _db(patch: Dictionary = {}) -> ContentDb:
@@ -147,7 +147,7 @@ func test_site_content_is_validated() -> void:
 		{"pieces": [{"piece": "window_frame", "cell": [0, 0, 0], "facing": "px", "sensor": "power_monitor", "squad": 0}]},
 		{"hack_targets": [{"target": "power_monitor_spoof", "cell": [0, 0, 0], "piece": 99}]},
 		{"agents": [{"profile": "guard_sim", "cell": [0, 0, 0], "facing": 0, "squad": 1, "route": "zz_nothing"}]},
-		{"exfil": [[0, 0], [1, 0]]},
+		{"placement": [0, 0, 0], "exfil": [[0, 0], [1, 0]]},
 		{"parcels": [{"id": "a", "footprint": [[0, 0], [1, 0], [1, 1], [0, 1]], "floor": 1, "ceiling": 1, "district": "", "owner": ""}]},
 	]
 	for patch: Dictionary in patches:

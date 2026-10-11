@@ -107,5 +107,6 @@
 		{"cell": [10, 0, 16], "facing": 180, "profile": "guard_sim", "route": "wing_patrol_reverse", "squad": 1}
 	],
 	"hack_targets": [],
+	"placement": [0, 0, 0],
 	"exfil": [[0, 0], [12, 0], [12, 6], [0, 6]]
 }

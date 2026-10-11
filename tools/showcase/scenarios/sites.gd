@@ -31,7 +31,7 @@ func content(db: ContentDb) -> void:
 		"excavate": [[2, -1, 0]], "pieces": pieces,
 		"agents": [{"profile": "guard_sim", "cell": [1, 0, 3], "facing": 0, "squad": 1, "route": "showcase_outpost_loop"}],
 		"hack_targets": [{"target": "power_monitor_spoof", "cell": [1, 0, -1], "piece": 5}],
-		"exfil": [[8, -3], [11, -3], [11, 5], [8, 5]]})
+		"placement": [0, 0, 0], "exfil": [[8, -3], [11, -3], [11, 5], [8, 5]]})
 
 
 func setup(_sim: SimRoot, view: Node3D) -> void:

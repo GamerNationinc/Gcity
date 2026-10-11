@@ -376,5 +376,6 @@
 		{"target": "cold_storage_terminal", "cell": [1, 1, 6], "piece": -1},
 		{"target": "power_monitor_spoof", "cell": [11, 0, 2], "piece": 188}
 	],
+	"placement": [40, 0, 0],
 	"exfil": [[-3, -6], [17, -6], [17, 11], [-3, 11]]
 }
