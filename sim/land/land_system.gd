@@ -161,7 +161,30 @@ func validate_content() -> Error:
 		var t: Dictionary = _content.get_entry(KIND_PARCEL, id)
 		if not _content.has(KIND_DISTRICT, _as_name(t["district"])):
 			return _content_fail("parcel/%s names unknown district '%s'" % [id, t["district"]])
+		if t.has("spawn") and not _spawn_inside(t):
+			return _content_fail("parcel/%s has a spawn point outside it" % id)
 	return OK
+
+
+## An authored parcel's optional spawn point lies inside its footprint and extent.
+static func _spawn_inside(t: Dictionary) -> bool:
+	var spawn_v: Variant = t["spawn"]
+	if typeof(spawn_v) != TYPE_ARRAY:
+		return false
+	var spawn: Array = spawn_v
+	if spawn.size() != 3:
+		return false
+	for v: Variant in spawn:
+		if typeof(v) != TYPE_INT:
+			return false
+	var x: int = spawn[0]
+	var y: int = spawn[1]
+	var z: int = spawn[2]
+	var floor_y: int = t["floor_y"]
+	var ceiling_y: int = t["ceiling_y"]
+	var footprint: Array = t["footprint"]
+	var poly: Array[Vector2i] = _normalised_polygon(footprint)
+	return not poly.is_empty() and y >= floor_y and y < ceiling_y and _contains_half_open(poly, x, z)
 
 
 func _content_fail(reason: String) -> Error:
@@ -300,6 +323,43 @@ func parcel_at(position: Vector3i) -> StringName:
 
 func owner_tag_of_actor(actor: int) -> StringName:
 	return _as_name(_actor_owner.get(actor))
+
+
+## M6 claim 17: an actor's home is the first parcel, in id order, owned by its owner
+## tag whose authored content declares a spawn point (the starter plot, design doc
+## §8.1). Generated and site parcels declare none.
+func has_home(actor: int) -> bool:
+	return not _home_of(actor).is_empty()
+
+
+## The home's spawn point in millimetres, or Vector3i.ZERO with no home.
+func home_spawn_of(actor: int) -> Vector3i:
+	var home: StringName = _home_of(actor)
+	if home.is_empty():
+		return Vector3i.ZERO
+	var t: Dictionary = _content.get_entry(KIND_PARCEL, home)
+	var spawn: Array = t["spawn"]
+	var x: int = spawn[0]
+	var y: int = spawn[1]
+	var z: int = spawn[2]
+	return Vector3i(x, y, z)
+
+
+func _home_of(actor: int) -> StringName:
+	var tag: StringName = owner_tag_of_actor(actor)
+	if tag.is_empty():
+		return &""
+	for id: StringName in parcel_ids():
+		if owner_of(id) == tag and _content.has(KIND_PARCEL, id) and _content.get_entry(KIND_PARCEL, id).has("spawn"):
+			return id
+	return &""
+
+
+## The law index (0..1000) of the district a position lies in (design doc §7.2).
+func law_index_at(position: Vector3i) -> int:
+	var t: Dictionary = _content.get_entry(KIND_DISTRICT, district_of(parcel_at(position)))
+	var law: int = t["law_index"]
+	return law
 
 
 ## The five rights the actor holds at the position. Total: every position and every

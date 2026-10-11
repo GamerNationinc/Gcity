@@ -8,7 +8,8 @@
 		"owner": {"type": "string", "pattern": "([a-z0-9][a-z0-9_.]*)?"},
 		"footprint": {"type": "array", "min_length": 3, "max_length": 64, "items": {"type": "array", "min_length": 2, "max_length": 2, "items": {"type": "int", "min": -100000000, "max": 100000000}}},
 		"floor_y": {"type": "int", "min": -100000000, "max": 100000000},
-		"ceiling_y": {"type": "int", "min": -100000000, "max": 100000000}
+		"ceiling_y": {"type": "int", "min": -100000000, "max": 100000000},
+		"spawn": {"type": "array", "min_length": 3, "max_length": 3, "items": {"type": "int", "min": -100000000, "max": 100000000}}
 	},
 	"required": ["schema_version", "description", "district", "owner", "footprint", "floor_y", "ceiling_y"],
 	"additional_properties": false
