@@ -71,3 +71,22 @@ func test_side_the_monitor_is_spoofed_the_window_cut_and_no_alarm() -> void:
 	assert_eq(_of(SensorSystem.EVENT_ALARM).size(), 0, "the spoofed monitor raised no alarm")
 	var at: Vector3i = BuildSystem.cell_of(SimAssembly.actors_of(_sim).position_of(PLAYER))
 	assert_eq(at, Vector3i(49, 1, 1), "the player stands inside the maintenance window, on storey 1")
+
+
+func test_front_hot_the_door_opens_but_the_camera_raises_the_alarm() -> void:
+	_replay("m6-front-hot")
+	var opened: Array[Dictionary] = _of(BuildSystem.EVENT_OPENING)
+	assert_eq(opened.size(), 1, "the front door opened")
+	var door_tick: int = opened[0]["tick"]
+	var failed: Array[Dictionary] = _of(BuildSystem.EVENT_CHECK_FAILED)
+	assert_eq(failed.size(), 1, "its heat check failed once")
+	var alarms_at_door: int = 0
+	for a: Dictionary in _of(SensorSystem.EVENT_ALARM):
+		var p: Dictionary = a["p"]
+		if a["tick"] == door_tick and p["sensor"] == &"door_camera":
+			alarms_at_door += 1
+	assert_eq(alarms_at_door, 1, "and the door's camera raised the alarm as it opened")
+	var first_alarm: Dictionary = _of(SensorSystem.EVENT_ALARM)[0]
+	var first: Dictionary = first_alarm["p"]
+	assert_eq(first["sensor"], &"power_monitor", "the heat came from cutting the unspoofed window first")
+	assert_true(SimAssembly.standing_of(_sim).standing_of(PLAYER, &"heat") > 300, "heat over the door's 300")

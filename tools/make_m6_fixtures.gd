@@ -18,7 +18,7 @@ var _drive: RefCounted
 
 func _initialize() -> void:
 	var only: PackedStringArray = OS.get_cmdline_user_args()
-	var all: Dictionary = {"m6-front": _front, "m6-side": _side}
+	var all: Dictionary = {"m6-front": _front, "m6-side": _side, "m6-front-hot": _front_hot}
 	var failed: int = 0
 	for name: String in all:
 		if not only.is_empty() and not only.has(name):
@@ -166,3 +166,29 @@ func _side() -> Array:
 
 func _side_window() -> int:
 	return SimAssembly.build_of(_sim).face_piece_at(BuildSystem.face_key(_site(Vector3i(9, 1, 1)), "px"))
+
+
+# ---------------------------------------------------------------- m6-front-hot
+
+## Hot at the front door: take the keycard from the yard crate, then cut the side
+## window without spoofing its monitor (an alarm, and the guards it calls see a
+## trespasser), drop back into the yard, walk round and open the front door with the
+## card while heat is over the door's 300: the door opens, and the lobby camera
+## raises the alarm.
+func _front_hot() -> Array:
+	var plan: Array = _kit()
+	plan.append_array(_accept())
+	plan.append(["walk", [Vector3i(14, 0, -6), _site(Vector3i(11, 0, -6)), _site(Vector3i(11, 0, 1))]])
+	plan.append(["call", _take_card])
+	plan.append(["mantle", -1, 0])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"build.breach", {"actor": _player, "piece": _side_window()})
+		return true])
+	plan.append(["wait", 3])
+	plan.append(["call", func(_d: RefCounted) -> bool: return not SimAssembly.build_of(_sim).is_breaching(_player)])
+	plan.append(["walk", [_site(Vector3i(11, 1, 1))]])
+	plan.append(["wait", 20])
+	plan.append(["walk", [_site(Vector3i(11, 0, -6)), _site(Vector3i(2, 0, -6)), _site(Vector3i(2, 0, -1))]])
+	plan.append(["call", _open_front_door])
+	plan.append(["wait", 40])
+	return plan
