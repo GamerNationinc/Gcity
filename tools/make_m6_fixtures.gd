@@ -18,7 +18,7 @@ var _drive: RefCounted
 
 func _initialize() -> void:
 	var only: PackedStringArray = OS.get_cmdline_user_args()
-	var all: Dictionary = {"m6-front": _front, "m6-side": _side, "m6-front-hot": _front_hot}
+	var all: Dictionary = {"m6-front": _front, "m6-side": _side, "m6-front-hot": _front_hot, "m6-hack-interrupt": _hack_interrupt}
 	var failed: int = 0
 	for name: String in all:
 		if not only.is_empty() and not only.has(name):
@@ -192,3 +192,72 @@ func _front_hot() -> Array:
 	plan.append(["call", _open_front_door])
 	plan.append(["wait", 40])
 	return plan
+
+
+# ---------------------------------------------------------------- m6-hack-interrupt
+
+const SHOOTER: int = 2
+
+
+## Hit during the hack: someone already in the yard (actor 2, armed with a loaded
+## pistol) opens fire while the player works the junction box; the first hit ends the
+## hack, its progress is lost and the monitor is never spoofed.
+func _hack_interrupt() -> Array:
+	var theirs: String = String(ItemSystem.inventory_of(SHOOTER))
+	var plan: Array = [["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"actor.spawn", {"profile": "arcade", "range_m": 51})
+		return true], ["wait", 2]]
+	for spec: Array in [["weapon_frame", "g19", 11, 1], ["weapon_part", "g19_mag_15", 12, 1], ["ammo", "9x19_fmj", 13, 15]]:
+		plan.append(["call", func(d: RefCounted) -> bool:
+			d.call("submit", &"item.spawn", {"kind": spec[0], "template": spec[1], "container": theirs, "seed": spec[2], "count": spec[3]})
+			return true])
+	plan.append(["wait", 2])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		var items: ItemSystem = SimAssembly.items_of(_sim)
+		var frame: int = 0
+		var mag: int = 0
+		for id: int in items.items_in(ItemSystem.inventory_of(SHOOTER)):
+			var kind: StringName = items.item_kind(id)
+			if kind == &"weapon_frame":
+				frame = id
+			elif kind == &"weapon_part":
+				mag = id
+			else:
+				d.call("submit", &"magazine.load", {"actor": SHOOTER, "magazine": mag, "round": id})
+		d.call("submit", &"actor.wield", {"actor": SHOOTER, "weapon": frame})
+		return true])
+	plan.append(["wait", 2])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"weapon.reload_tactical", {"actor": SHOOTER, "weapon": _shooter_frame(), "magazine": _shooter_mag()})
+		return true])
+	plan.append_array(_kit())
+	plan.append_array(_accept())
+	plan.append(["walk", [Vector3i(14, 0, -6), _site(Vector3i(11, 0, -6)), _site(Vector3i(11, 0, 1))]])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"hack.start", {"actor": _player, "target": _target(&"power_monitor_spoof")})
+		return true])
+	plan.append(["wait", 60])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		if not SimAssembly.hacks_of(_sim).is_hacking(_player):
+			return true
+		if not SimAssembly.items_of(_sim).is_busy(_shooter_frame(), _sim.get_tick() + 1):
+			d.call("submit", &"weapon.fire", {"actor": SHOOTER, "target": _player})
+		return false])
+	plan.append(["wait", 40])
+	return plan
+
+
+func _shooter_frame() -> int:
+	var items: ItemSystem = SimAssembly.items_of(_sim)
+	for id: int in items.items_in(ItemSystem.inventory_of(SHOOTER)):
+		if items.item_kind(id) == &"weapon_frame":
+			return id
+	return EntityIds.NONE
+
+
+func _shooter_mag() -> int:
+	var items: ItemSystem = SimAssembly.items_of(_sim)
+	for id: int in items.items_in(ItemSystem.inventory_of(SHOOTER)):
+		if items.item_kind(id) == &"weapon_part":
+			return id
+	return EntityIds.NONE

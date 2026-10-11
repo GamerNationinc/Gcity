@@ -9,6 +9,7 @@ const PLAYER: int = 1
 
 var _sim: SimRoot
 var _events: Array[Dictionary] = []
+var _commands: Array[SimCommand] = []
 
 
 func _replay(name: String) -> void:
@@ -23,8 +24,9 @@ func _replay(name: String) -> void:
 	var bus: EventBus = SimAssembly.combat_of(_sim).events()
 	for kind: StringName in [SensorSystem.EVENT_ALARM, BuildSystem.EVENT_OPENING, BuildSystem.EVENT_CHECK_FAILED, PerceptionSystem.EVENT_ALERTED,
 			QuestSystem.EVENT_DELIVERED, QuestSystem.EVENT_EXFIL, ActorSystem.EVENT_DIED, ActorSystem.EVENT_RESPAWNED, CorpseSystem.EVENT_MOVED,
-			RecoverySystem.EVENT_RETURNED, HackSystem.EVENT_COMPLETED, MovementSystem.EVENT_LANDED, BuildSystem.EVENT_BREACHED]:
+			RecoverySystem.EVENT_RETURNED, HackSystem.EVENT_COMPLETED, MovementSystem.EVENT_LANDED, BuildSystem.EVENT_BREACHED, CombatSystem.EVENT_HIT]:
 		bus.subscribe(kind, func(p: Dictionary) -> void: log.append({"kind": kind, "tick": _sim.get_tick(), "p": p}))
+	_commands = fixture.commands
 	for c: SimCommand in fixture.commands:
 		assert_eq(_sim.submit(c), OK, "submit")
 	var rejected: int = 0
@@ -90,3 +92,29 @@ func test_front_hot_the_door_opens_but_the_camera_raises_the_alarm() -> void:
 	var first: Dictionary = first_alarm["p"]
 	assert_eq(first["sensor"], &"power_monitor", "the heat came from cutting the unspoofed window first")
 	assert_true(SimAssembly.standing_of(_sim).standing_of(PLAYER, &"heat") > 300, "heat over the door's 300")
+
+
+
+## The tick of the first command of `kind` in the fixture.
+func _first_command(kind: StringName) -> int:
+	for c: SimCommand in _commands:
+		if c.kind == kind:
+			return c.tick
+	return -1
+
+
+func test_hack_interrupt_a_hit_during_the_hack_loses_its_progress() -> void:
+	_replay("m6-hack-interrupt")
+	var started: int = _first_command(&"hack.start")
+	assert_true(started > 0, "a hack was started")
+	var hits_during: int = 0
+	for h: Dictionary in _of(CombatSystem.EVENT_HIT):
+		var p: Dictionary = h["p"]
+		var tick: int = h["tick"]
+		if p["target"] == PLAYER and tick > started:
+			hits_during += 1
+	assert_true(hits_during >= 1, "the player was hit while hacking")
+	assert_eq(_of(HackSystem.EVENT_COMPLETED).size(), 0, "the hack never completed")
+	assert_false(SimAssembly.hacks_of(_sim).is_hacking(PLAYER), "it stopped")
+	var window: int = SimAssembly.build_of(_sim).face_piece_at(BuildSystem.face_key(Vector3i(49, 1, 1), "px"))
+	assert_false(SimAssembly.sensors_of(_sim).is_spoofed(window), "the monitor is not spoofed: the progress was lost")
