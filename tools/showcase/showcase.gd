@@ -39,6 +39,8 @@ var _pinned: Dictionary = {}
 var _names: Dictionary = {}
 var _watch: Array[int] = []
 var _extra: Node3D
+var _cut: int = 1 << 20
+var _markers: Array[MeshInstance3D] = []
 var _feed: Label
 var _feed_lines: Array[String] = []
 var _pending: Array[Array] = []
@@ -118,6 +120,36 @@ func slab(at: Vector3, size: Vector2, colour: Color) -> void:
 	var node: MeshInstance3D = _box(Vector3(size.x, 0.04, size.y), colour)
 	node.position = at + Vector3(size.x / 2.0, 0.03, size.y / 2.0)
 	_extra.add_child(node)
+
+
+## Hides every piece above storey `max_storey` and the floors over it, and the actors up
+## there, so a building can be shown storey by storey. A large number shows everything.
+func cutaway(max_storey: int) -> void:
+	_cut = max_storey
+	_extra.visible = max_storey >= 0  # the street-level slabs would hide the basement
+	var build: BuildSystem = SimAssembly.build_of(_sim)
+	for k: Variant in _piece_nodes:
+		var id: int = k
+		var node: MeshInstance3D = _piece_nodes[k]
+		node.visible = _piece_shown(build, id)
+
+
+func _piece_shown(build: BuildSystem, id: int) -> bool:
+	var cell: Vector3i = build.cell_of_piece(id)
+	var face: String = build.face_of(id)
+	if not face.is_empty() and face.ends_with("|y"):
+		return cell.y < _cut
+	return cell.y <= _cut
+
+
+## A path of small coloured tiles over cells (absolute), to show a route.
+func marker_path(cells: Array[Vector3i], colour: Color) -> void:
+	for c: Vector3i in cells:
+		var tile: MeshInstance3D = _box(Vector3(0.5, 0.05, 0.5), colour)
+		tile.position = Vector3(c.x + 0.5, c.y + 0.08, c.z + 0.5)
+		tile.set_meta("storey", c.y)
+		_markers.append(tile)
+		add_child(tile)
 
 
 func place_camera(eye: Vector3, target: Vector3, ortho_size: float) -> void:
@@ -295,30 +327,48 @@ func _on_site_spawned(p: Dictionary) -> void:
 	var t: Dictionary = content.get_entry(SiteSystem.KIND_SITE, site)
 	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
 	var fresh: int = 0
+	var guards_named: int = 0
+	for named: Variant in _names.values():
+		var n: String = named
+		if n.begins_with("Guard"):
+			guards_named += 1
 	for agent: int in perception.agent_ids():
 		if not _names.has(agent):
 			fresh += 1
-			_names[agent] = "Guard %d" % (_names.size() + 1)
+			if perception.profile_of(agent) == &"camera":
+				_names[agent] = "Camera"
+			else:
+				guards_named += 1
+				_names[agent] = "Guard %d" % guards_named
 	var pieces: Array = t["pieces"]
-	note("site.spawn \"%s\": %d pieces and %d guards appeared in one step" % [site, pieces.size(), fresh], 1)
+	note("site.spawn \"%s\": %d pieces and %d guards and cameras appeared in one step" % [site, pieces.size(), fresh], 1)
+	# dug cells: a dark floor tile each, so a basement and a tunnel show their shape
+	var dug: Array = t["excavate"]
+	for c: Variant in dug:
+		var dc: Vector3i = SiteSystem._cell(c) + origin
+		var tile: MeshInstance3D = _box(Vector3(0.96, 0.04, 0.96), Color(0.33, 0.27, 0.2))
+		tile.position = Vector3(dc.x + 0.5, dc.y + 0.02, dc.z + 0.5)
+		tile.set_meta("storey", dc.y)
+		_markers.append(tile)
+		add_child(tile)
 	var land: LandSystem = SimAssembly.land_of(_sim)
 	var parcels: Array = t["parcels"]
-	for v: Variant in parcels:
-		var pr: Dictionary = v
+	for i: int in parcels.size():
+		var pr: Dictionary = parcels[i]
 		var pid: String = pr["id"]
 		var land_id: StringName = SiteSystem.parcel_id(site, pid)
 		_footprint_slab(pr["footprint"], origin, Color(0.55, 0.35, 0.15, 0.35))
 		var f: Array = pr["footprint"]
-		var first: Array = f[0]
+		var first: Array = f[(i * 2 + 1) % f.size()]
 		var fx: int = first[0]
 		var fz: int = first[1]
 		pin("parcel_" + String(land_id), Vector3(origin.x + fx + 0.5, 0.3, origin.z + fz + 0.5), "parcel owned by '%s'" % land.owner_of(land_id), Color(1.0, 0.75, 0.45))
-	_footprint_slab(t["exfil"], origin, Color(0.2, 0.9, 0.4, 0.35))
+	_footprint_slab(t["exfil"], origin, Color(0.2, 0.9, 0.4, 0.18))
 	var ex: Array = t["exfil"]
-	var c0: Array = ex[0]
+	var c0: Array = ex[2 % ex.size()]
 	var ex_x: int = c0[0]
 	var ex_z: int = c0[1]
-	pin("exfil_" + String(site), Vector3(origin.x + ex_x + 1.5, 0.3, origin.z + ex_z + 1.0), "EXIT ZONE\n(leave here with the goods)", Color(0.5, 1.0, 0.6))
+	pin("exfil_" + String(site), Vector3(origin.x + ex_x - 2.0, 0.3, origin.z + ex_z - 1.0), "ESCAPE: get out of the\ngreen area with the goods", Color(0.5, 1.0, 0.6))
 	var targets: Dictionary = SimAssembly.hacks_of(_sim).snapshot()["targets"]
 	for k: Variant in targets:
 		var target_id: int = k
@@ -329,7 +379,9 @@ func _on_site_spawned(p: Dictionary) -> void:
 		var cz: int = cell[2]
 		var box: MeshInstance3D = _box(Vector3(0.35, 0.9, 0.35), Color(0.2, 0.95, 1.0))
 		box.position = Vector3(cx + 0.5, cy + 0.45, cz + 0.5)
-		_extra.add_child(box)
+		box.set_meta("storey", cy)
+		_markers.append(box)
+		add_child(box)
 		pin("hack_%d" % target_id, Vector3(cx + 0.5, cy + 1.4, cz + 0.5), "hack target: %s" % rec["target"], Color(0.6, 1.0, 1.0))
 	for agent: int in perception.agent_ids():
 		var route_s: String = perception.route_of(agent)
@@ -398,6 +450,7 @@ func _sync(dt: float) -> void:
 			existing.queue_free()
 		var node: MeshInstance3D = _piece_mesh(build, id, open)
 		node.set_meta("open", open)
+		node.visible = _piece_shown(build, id)
 		_piece_nodes[id] = node
 		add_child(node)
 	for id: int in _piece_nodes.keys():
@@ -422,6 +475,12 @@ func _sync(dt: float) -> void:
 		var capsule: MeshInstance3D = _actor_nodes[actor]
 		var tag: Label3D = _actor_labels[actor]
 		var feet: Vector3 = world(actors.position_of(actor))
+		var shown: bool = BuildSystem.cell_of(actors.position_of(actor)).y <= _cut
+		capsule.visible = shown
+		tag.visible = shown
+		if _cones.has(actor):
+			var cone_node: MeshInstance3D = _cones[actor]
+			cone_node.visible = shown
 		capsule.position = feet + Vector3(0, 0.9, 0)
 		var label_text: String = _names[actor]
 		var colour: Color = PLAYER
@@ -460,6 +519,9 @@ func _sync(dt: float) -> void:
 		tag.text = label_text
 	# sensors: a dot on each watched piece, red while live, green once spoofed
 	_sync_sensors()
+	for tile: MeshInstance3D in _markers:
+		var storey: int = tile.get_meta("storey", 0)
+		tile.visible = storey <= _cut
 	# noise rings
 	for c: MeshInstance3D in _ring_nodes:
 		c.queue_free()
@@ -514,6 +576,7 @@ func _sync_sensors() -> void:
 			var b: Vector3 = Vector3(cells[cells.size() - 1]) + Vector3(0.5, 0.5, 0.5)
 			node.position = (a + b) / 2.0 + Vector3(0, 0.45, 0)
 		node.material_override = _material(Color(0.3, 1.0, 0.4) if sensors.is_spoofed(piece) else Color(1.0, 0.15, 0.15))
+		node.visible = _piece_shown(build, piece)
 
 
 func _sync_cone(actor: int, feet: Vector3, colour: Color) -> void:
