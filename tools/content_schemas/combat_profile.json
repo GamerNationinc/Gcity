@@ -10,6 +10,8 @@
 		"mantle_ticks": {"type": "int", "min": 1, "max": 10000},
 		"jump_ticks": {"type": "int", "min": 1, "max": 10000},
 		"moves": {"type": "array", "min_length": 1, "max_length": 16, "items": {"type": "string", "ref": "move"}},
+		"aim_profile": {"type": "string", "ref": "aim_profile"},
+		"stress_profile": {"type": "string", "ref": "stress_profile"},
 		"fall": {"type": "object", "properties": {
 			"ticks_per_storey": {"type": "int", "min": 1, "max": 1000},
 			"free_storeys": {"type": "int", "min": 0, "max": 16},

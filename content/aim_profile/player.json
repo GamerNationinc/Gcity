@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "The player (M6 claim 18): aims by hand, so no system cone of its own and nothing to settle or swing; stress is what widens it, through the stress profile.",
+	"cone_start_mdeg": 0,
+	"cone_settled_mdeg": 0,
+	"settle_ticks": 1,
+	"swing_penalty_mdeg": 0,
+	"swing_ticks": 0,
+	"penalty_per_mdeg": 50
+}

@@ -7,6 +7,8 @@
 	"mantle_ticks": 24,
 	"jump_ticks": 16,
 	"moves": ["walk", "drop", "climb", "mantle", "jump"],
+	"aim_profile": "player",
+	"stress_profile": "player",
 	"fall": {"ticks_per_storey": 12, "free_storeys": 1, "damage_per_storey": 50000, "node": "body", "noise_per_storey": 20000},
 	"health": {
 		"nodes": [{"id": "body", "max": 100000, "fatal": true}],

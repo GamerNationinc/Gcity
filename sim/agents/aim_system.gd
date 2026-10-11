@@ -5,8 +5,11 @@
 ## `swing_ticks` after a target appears (a swing outlives a broken contact). The cone reaches combat as one `aim`
 ## modifier on the agent's `hit_chance`, tagged `weapon` so the wielded weapon
 ## inherits it (design doc §10.2): `hit_roll` needs no branch, and an actor without
-## an aim profile (the player) is untouched. With no target the cone sits at its
-## widest, so breaking contact never improves a shot.
+## an aim profile is untouched. With no target the cone sits at its widest, so
+## breaking contact never improves a shot. An agent's aim profile comes from its
+## agent profile; any other actor's (the player's, M6 claim 18) from the optional
+## `aim_profile` of its combat profile. Such an actor has no awareness to settle on,
+## so its cone is its profile's start.
 class_name AimSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"aim"
@@ -58,19 +61,45 @@ func validate_content() -> Error:
 		if not _content.has(KIND_AIM, StringName(aim_s)):
 			push_error("AimSystem: agent_profile/%s: no aim_profile/%s" % [id, aim_s])
 			return ERR_INVALID_DATA
+	for id: StringName in _content.ids(ActorSystem.KIND_PROFILE):
+		var c: Dictionary = _content.get_entry(ActorSystem.KIND_PROFILE, id)
+		if not c.has("aim_profile"):
+			continue
+		var bound_v: Variant = c["aim_profile"]
+		if typeof(bound_v) != TYPE_STRING:
+			push_error("AimSystem: combat_profile/%s: aim_profile is not a string" % id)
+			return ERR_INVALID_DATA
+		var bound: String = bound_v
+		if not _content.has(KIND_AIM, StringName(bound)):
+			push_error("AimSystem: combat_profile/%s: no aim_profile/%s" % [id, bound])
+			return ERR_INVALID_DATA
 	return OK
 
 
 # ---------------------------------------------------------------- queries
 
-## The aim profile entry of an agent, or an empty dictionary.
+## The aim profile entry of an actor, or an empty dictionary: an agent's from its
+## agent profile, any other actor's from its combat profile, if that binds one.
 func aim_profile_of(agent: int) -> Dictionary:
 	var profile: StringName = _perception.profile_of(agent)
 	if profile.is_empty():
-		return {}
+		var c: Dictionary = _actors.profile_data(agent)
+		if typeof(c.get("aim_profile")) != TYPE_STRING:
+			return {}
+		var bound: String = c["aim_profile"]
+		return _content.get_entry(KIND_AIM, StringName(bound))
 	var t: Dictionary = _content.get_entry(PerceptionSystem.KIND_AGENT, profile)
 	var aim_s: String = t["aim_profile"]
 	return _content.get_entry(KIND_AIM, StringName(aim_s))
+
+
+## Every actor with an aim profile: the agents in id order, then the others in id order.
+func _aimers() -> Array[int]:
+	var out: Array[int] = _perception.agent_ids()
+	for actor: int in _actors.actor_ids():
+		if not _perception.is_agent(actor) and not aim_profile_of(actor).is_empty():
+			out.append(actor)
+	return out
 
 
 func target_of(agent: int) -> int:
@@ -134,7 +163,7 @@ static func cone_mdeg(p: Dictionary, settle: int, swing: int) -> int:
 # ---------------------------------------------------------------- the tick
 
 func tick(_sim: SimRoot) -> void:
-	for agent: int in _perception.agent_ids():
+	for agent: int in _aimers():
 		if not _actors.is_alive(agent):
 			continue
 		var p: Dictionary = aim_profile_of(agent)
@@ -177,6 +206,8 @@ func tick(_sim: SimRoot) -> void:
 ## noticed) is never a target.
 func _best_target(agent: int) -> int:
 	var best: int = EntityIds.NONE
+	if not _perception.is_agent(agent):
+		return best
 	var best_aw: int = 0
 	for contact: int in _actors.actor_ids():
 		if contact == agent or not _actors.is_alive(contact):
@@ -199,8 +230,8 @@ func restore(state: Dictionary) -> Error:
 		if typeof(key) != TYPE_INT or typeof(aim_in[key]) != TYPE_DICTIONARY:
 			return _restore_fail("agent key")
 		var agent: int = key
-		if not _perception.is_agent(agent):
-			return _restore_fail("agent %d is not an agent" % agent)
+		if not _actors.has_actor(agent) or aim_profile_of(agent).is_empty():
+			return _restore_fail("actor %d has no aim profile" % agent)
 		var rec: Dictionary = aim_in[key]
 		if rec.size() != 5:
 			return _restore_fail("agent %d record" % agent)

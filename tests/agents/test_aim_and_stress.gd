@@ -61,6 +61,12 @@ func _armed_guard(profile: StringName = &"guard_sim") -> Array[int]:
 	return [guard, pistol]
 
 
+## An actor whose combat profile binds no aim or stress profile; spawned in this
+## sim, so a restore into a fresh sim does not know it either way.
+func _dummy() -> int:
+	return _actors.spawn(&"range_dummy", 0)
+
+
 func _chance(guard: int, pistol: int) -> int:
 	return _combat.hit_chance_at(guard, pistol, 10)
 
@@ -106,7 +112,7 @@ func test_the_cone_settles_on_a_visible_target_resets_on_break_and_swings_on_ret
 	_sim.step_n(12)
 	assert_eq(_aim.cone_of(guard), 8000 - 7000 * 12 / 48, "the swing has passed after 12 ticks; 12 ticks of settling")
 	var own: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(_player), 1)
-	assert_eq(_combat.hit_chance_at(_player, own, 10), 600000, "the player, without an aim profile, carries no aim modifier")
+	assert_eq(_combat.hit_chance_at(_player, own, 10), 600000, "a pistol the player only carries inherits nothing")
 
 
 func test_a_swing_outlives_a_broken_contact() -> void:
@@ -221,8 +227,8 @@ func test_restore_round_trip_and_rejections() -> void:
 	assert_eq(aim.restore({}), ERR_INVALID_DATA, "empty")
 	var bad: Dictionary = state.duplicate(true)
 	var records: Dictionary = bad["aim"]
-	records[_player] = records[guard]
-	assert_eq(aim.restore(bad), ERR_INVALID_DATA, "a record for a non-agent")
+	records[_dummy()] = records[guard]
+	assert_eq(aim.restore(bad), ERR_INVALID_DATA, "a record for an actor with no aim profile")
 	bad = state.duplicate(true)
 	records = bad["aim"]
 	var rec: Dictionary = records[guard]
@@ -299,7 +305,7 @@ func test_stress_degrades_aim_through_the_resolver_and_never_improves_it() -> vo
 	assert_eq(_stress.stress_of(guard), 997500, "full stress less one tick of decay")
 	assert_eq(_chance(guard, pistol), 550000 - 299250, "29.925 % off")
 	var own: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(_player), 1)
-	assert_eq(_combat.hit_chance_at(_player, own, 10), 600000, "the player, without a profile, is untouched")
+	assert_eq(_combat.hit_chance_at(_player, own, 10), 600000, "the player was never hit or shot at: calm")
 
 
 func test_property_stress_penalty_is_monotone() -> void:
@@ -343,6 +349,87 @@ func test_stress_restore_round_trip_and_rejections() -> void:
 	assert_eq(stress.restore(bad), ERR_INVALID_DATA, "over the maximum")
 	bad = state.duplicate(true)
 	records = bad["stress"]
-	records[_player] = records[guard]
-	assert_eq(stress.restore(bad), ERR_INVALID_DATA, "a record for a non-agent")
+	records[_dummy()] = records[guard]
+	assert_eq(stress.restore(bad), ERR_INVALID_DATA, "a record for an actor with no stress profile")
 	assert_eq(stress.snapshot(), state, "rejections leave the state untouched")
+
+
+# ---------------------------------------------------------------- M6 claim 18: the player
+
+func test_the_player_carries_its_aim_and_stress_profiles_from_content() -> void:
+	_setup()
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	assert_eq(_aim.aim_profile_of(_player), db.get_entry(AimSystem.KIND_AIM, &"player"), "aim_profile/player, bound by the arcade combat profile")
+	assert_eq(_stress.stress_profile_of(_player), db.get_entry(StressSystem.KIND_STRESS, &"player"), "stress_profile/player")
+	var dummy: int = _actors.spawn(&"range_dummy", 0)
+	assert_eq(_aim.aim_profile_of(dummy), {}, "a combat profile that binds none: no aim profile")
+	assert_eq(_stress.stress_profile_of(dummy), {}, "and no stress profile")
+	_sim.step()
+	assert_eq(_aim.cone_of(_player), 0, "the player's cone: none of its own")
+	assert_eq(_aim.target_of(_player), EntityIds.NONE, "it has no awareness to settle on")
+	var aims: Dictionary = _aim.snapshot()["aim"]
+	var stresses: Dictionary = _stress.snapshot()["stress"]
+	assert_false(aims.has(dummy), "nothing kept for the dummy")
+	assert_true(stresses.has(_player), "the player's stress is kept")
+
+
+func test_hits_on_the_player_raise_stress_and_widen_its_aim() -> void:
+	_setup()
+	var armed: Array[int] = _armed_guard()
+	var guard: int = armed[0]
+	var own: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(_player), 1)
+	assert_eq(_sim.submit(SimCommand.new(_sim.get_tick() + 1, ActorSystem.COMMAND_WIELD, {"actor": _player, "weapon": own})), OK, "submit wield")
+	_sim.step()
+	assert_eq(_combat.hit_chance_at(_player, own, 10), 600000, "calm")
+	_fire_event(guard, _player)
+	assert_eq(_stress.stress_of(_player), 150000, "shot at, like any agent")
+	_hit_event(guard, _player, false)
+	assert_eq(_stress.stress_of(_player), 450000, "and hit")
+	_sim.step()
+	assert_eq(_stress.stress_of(_player), 447500, "one tick of decay")
+	assert_eq(_stress.penalty_of(_player), 134250, "30 % of the hit chance at full stress, pro rata")
+	assert_eq(_combat.hit_chance_at(_player, own, 10), 600000 - 134250, "stress widens the player's aim")
+	var previous: int = _combat.hit_chance_at(_player, own, 10)
+	for i: int in 200:
+		_sim.step()
+		var now: int = _combat.hit_chance_at(_player, own, 10)
+		assert_true(now >= previous, "tick %d: calming down never worsens aim (%d -> %d)" % [i, previous, now])
+		previous = now
+	assert_eq(_combat.hit_chance_at(_player, own, 10), 600000, "recovered in under 5 s")
+	assert_false(_stress.is_broken(_player) or _stress.is_routed(_player), "the player never breaks")
+
+
+func test_the_players_aim_is_data() -> void:
+	# Q4: a wider player cone is a content edit, no code
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var p: Dictionary = db.get_entry(AimSystem.KIND_AIM, &"player").duplicate()
+	p["cone_start_mdeg"] = 2000
+	p["cone_settled_mdeg"] = 2000
+	db.add(AimSystem.KIND_AIM, &"zz_shaky", p)
+	var profile: Dictionary = db.get_entry(ActorSystem.KIND_PROFILE, &"arcade").duplicate(true)
+	profile["aim_profile"] = "zz_shaky"
+	db.add(ActorSystem.KIND_PROFILE, &"zz_shaky_hands", profile)
+	_setup(db)
+	var shaky: int = _actors.spawn(&"zz_shaky_hands", 0)
+	var own: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(shaky), 1)
+	assert_eq(_sim.submit(SimCommand.new(_sim.get_tick() + 1, ActorSystem.COMMAND_WIELD, {"actor": shaky, "weapon": own})), OK, "submit wield")
+	_sim.step()
+	assert_eq(_combat.hit_chance_at(shaky, own, 10), 600000 - 2000 * 50, "a 2 degree cone takes 10 % off")
+
+
+func test_the_players_records_survive_the_restore() -> void:
+	_setup()
+	_hit_event(EntityIds.NONE, _player, false)
+	_sim.step_n(3)
+	var snap: Dictionary = _sim.snapshot()
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content loads")
+	var other: SimRoot = SimAssembly.build(SEED, db)
+	assert_eq(SimAssembly.restore_systems(other, snap), OK, "restored")
+	assert_eq(other.restore_root(snap), OK, "root restored")
+	assert_eq(SimAssembly.stress_of(other).stress_of(_player), 292500, "the player's stress carried over")
+	_sim.step()
+	other.step()
+	assert_eq(other.state_hash(), _sim.state_hash(), "steps on together")

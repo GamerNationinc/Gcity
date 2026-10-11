@@ -5,7 +5,10 @@
 ## modifier on `hit_chance` tagged `weapon` (design doc §10.2), and the profile's
 ## thresholds tell the stance scorer when the agent prefers to retreat (broken) or
 ## may only retreat or surrender (routed). Suppression that changes behaviour is
-## readable across the room; suppression that only changes accuracy is not.
+## readable across the room; suppression that only changes accuracy is not. An
+## agent's stress profile comes from its agent profile; any other actor's (the
+## player's, M6 claim 18) from the optional `stress_profile` of its combat profile.
+## Such an actor has no squad, and nothing reads its thresholds.
 class_name StressSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"stress"
@@ -63,16 +66,33 @@ func validate_content() -> Error:
 		if not _content.has(KIND_STRESS, StringName(stress_s)):
 			push_error("StressSystem: agent_profile/%s: no stress_profile/%s" % [id, stress_s])
 			return ERR_INVALID_DATA
+	for id: StringName in _content.ids(ActorSystem.KIND_PROFILE):
+		var c: Dictionary = _content.get_entry(ActorSystem.KIND_PROFILE, id)
+		if not c.has("stress_profile"):
+			continue
+		var bound_v: Variant = c["stress_profile"]
+		if typeof(bound_v) != TYPE_STRING:
+			push_error("StressSystem: combat_profile/%s: stress_profile is not a string" % id)
+			return ERR_INVALID_DATA
+		var bound: String = bound_v
+		if not _content.has(KIND_STRESS, StringName(bound)):
+			push_error("StressSystem: combat_profile/%s: no stress_profile/%s" % [id, bound])
+			return ERR_INVALID_DATA
 	return OK
 
 
 # ---------------------------------------------------------------- queries
 
-## The stress profile entry of an agent, or an empty dictionary.
+## The stress profile entry of an actor, or an empty dictionary: an agent's from its
+## agent profile, any other actor's from its combat profile, if that binds one.
 func stress_profile_of(agent: int) -> Dictionary:
 	var profile: StringName = _perception.profile_of(agent)
 	if profile.is_empty():
-		return {}
+		var c: Dictionary = _actors.profile_data(agent)
+		if typeof(c.get("stress_profile")) != TYPE_STRING:
+			return {}
+		var bound: String = c["stress_profile"]
+		return _content.get_entry(KIND_STRESS, StringName(bound))
 	var t: Dictionary = _content.get_entry(PerceptionSystem.KIND_AGENT, profile)
 	var stress_s: String = t["stress_profile"]
 	return _content.get_entry(KIND_STRESS, StringName(stress_s))
@@ -116,6 +136,15 @@ static func penalty(p: Dictionary, stress: int) -> int:
 	return clampi(stress, 0, STRESS_MAX) * at_max / STRESS_MAX
 
 
+## Every actor with a stress profile: the agents in id order, then the others in id order.
+func _stressed() -> Array[int]:
+	var out: Array[int] = _perception.agent_ids()
+	for actor: int in _actors.actor_ids():
+		if not _perception.is_agent(actor) and not stress_profile_of(actor).is_empty():
+			out.append(actor)
+	return out
+
+
 func _record(agent: int) -> Dictionary:
 	var stored: Variant = _stress.get(agent)
 	if typeof(stored) != TYPE_DICTIONARY:
@@ -148,7 +177,7 @@ func _on_fire(payload: Dictionary) -> void:
 		return
 	var a: Vector3i = _actors.position_of(shooter)
 	var b: Vector3i = _actors.position_of(target)
-	for agent: int in _perception.agent_ids():
+	for agent: int in _stressed():
 		if agent == shooter or not _actors.is_alive(agent) or _same_squad(agent, shooter):
 			continue
 		var p: Dictionary = stress_profile_of(agent)
@@ -163,10 +192,10 @@ func _on_fire(payload: Dictionary) -> void:
 func _on_hit(payload: Dictionary) -> void:
 	var target: int = payload["target"]
 	var killed: bool = payload["killed"]
-	if _perception.is_agent(target):
-		var p: Dictionary = stress_profile_of(target)
-		var gain: int = p["gain_hit"]
-		_add(target, gain)
+	var hit: Dictionary = stress_profile_of(target)
+	if not hit.is_empty():
+		var gain_hit: int = hit["gain_hit"]
+		_add(target, gain_hit)
 	if not killed or not _perception.is_agent(target):
 		return
 	var squad: int = _perception.squad_of(target)
@@ -199,7 +228,7 @@ func _add(agent: int, gain: int) -> void:
 # ---------------------------------------------------------------- the tick
 
 func tick(_sim: SimRoot) -> void:
-	for agent: int in _perception.agent_ids():
+	for agent: int in _stressed():
 		if not _actors.is_alive(agent):
 			continue
 		var p: Dictionary = stress_profile_of(agent)
@@ -235,8 +264,8 @@ func restore(state: Dictionary) -> Error:
 		if typeof(key) != TYPE_INT or typeof(stress_in[key]) != TYPE_DICTIONARY:
 			return _restore_fail("agent key")
 		var agent: int = key
-		if not _perception.is_agent(agent):
-			return _restore_fail("agent %d is not an agent" % agent)
+		if not _actors.has_actor(agent) or stress_profile_of(agent).is_empty():
+			return _restore_fail("actor %d has no stress profile" % agent)
 		var rec: Dictionary = stress_in[key]
 		if rec.size() != 3 or typeof(rec.get("stress")) != TYPE_INT or typeof(rec.get("handle")) != TYPE_INT or typeof(rec.get("value")) != TYPE_INT:
 			return _restore_fail("agent %d record" % agent)
