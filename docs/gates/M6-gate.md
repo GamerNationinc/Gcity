@@ -41,9 +41,43 @@ replay table, the mutation score from the scheduled job, the Deck numbers.
 Showcases (CLAUDE.md §13): every claim from 10 on has a scenario under
 `tools/showcase/scenarios/` rendered by `tools/showcase.sh`.
 
-## 3. Demo script
+## 3. Demo script (draft)
 
-To be written with the client (claim 19).
+Steps 1–3 on any Linux x86_64 machine; steps 4–15 on the Deck from `tools/export.sh`.
+Counts are filled in at submission.
+
+1. `tools/test.sh` → every test passes, twenty-five `ok` replay lines (nine of them
+   `m6-*`), `all stages passed`.
+2. `tools/showcase.sh stealth_run out.gif` → the m6-stealth fixture played back in
+   plain words: the counters stay at zero and Marlow pays 2000 credits.
+3. `DEMO=cold_storage tools/screenshot.sh out.png 7.5` and `… 17` → the contract
+   view on the device; the front door with its prompt.
+4. Launch, walk east along the street to the purple figure labelled *Marlow (fixer)*.
+   → The prompt reads `[D-pad left] take Marlow's contract: Cold Storage`.
+5. Press D-pad left. → Cold Storage appears to the east, its exit zone outlined green.
+6. Press View, R1 to Quests, D-pad down to *Cold Storage*. → `[active]`, Marlow's
+   briefing, `detected 0 alarms 0 bodies 0 traces 0`, `pays now: ghost x2.0 = 2000
+   credits`; `credits 0` on the bar. View to lower.
+7. Walk to the city's utility box on the pavement in front of the site. → `[D-pad
+   left] take maintenance key from the crate`; press it.
+8. Stand on the street grate. → `open street grate`; press it: you drop into the
+   tunnel. No alarm, no cut.
+9. Along the tunnel, face the basement grate, D-pad left. → It opens with the key.
+10. Up the stairs (`climb stair steel` at each), into the maintenance room; watch the
+    hall's patrols turn away before crossing to the server room. → Above you the
+    building is cut away; below, the storey you are on.
+11. At the terminal, View, R1 to Hacking. → `daemons 0 / 2`, `cold storage terminal
+    ready 15 s`; A starts it: the panel goes see-through, a progress bar fills. Moving
+    or being hit stops it (B cancels). When done: `logged in`; A logs out.
+12. Back down and out by the tunnel's hatch (`climb tunnel hatch` from below), off
+    the site (the exit zone), back to Marlow. → `deliver cold storage data to Marlow`.
+13. Press it. → Paid; the shell bar's credits show the pay and the tier by how quiet
+    the run was.
+14. Try it loud: a plasma cutter wielded, face the front door. → `cut cold storage
+    door with the plasma cutter`; the lobby camera's cone (on the floor, cut by the
+    walls) turns amber, then red, and the alarm rings.
+15. The device at a second resolution: dock the Deck at 1920×1080. → The panel fills
+    the same share of the screen.
 
 ## 4. Debt, deviations and decisions
 
