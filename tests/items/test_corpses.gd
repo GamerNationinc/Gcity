@@ -208,3 +208,20 @@ func test_places_survive_the_restore_and_bad_ones_are_refused() -> void:
 	for bad: Dictionary in bads:
 		assert_eq(_corpses.restore(bad), ERR_INVALID_DATA, "refused: %s" % str(bad))
 	assert_eq(_corpses.snapshot(), state, "and nothing changed")
+
+
+func test_a_crate_is_a_place_its_contents_are_taken_from() -> void:
+	# M6 claims 13 and 16: the keycard lies in an unlocked crate in the yard
+	_setup()
+	var crate: StringName = _corpses.make_crate(_at(2, 0))
+	assert_eq(crate, &"crate.1", "a crate place")
+	var card: int = _items.spawn(&"key_item", &"cold_storage_keycard", crate, 1)
+	assert_true(card != EntityIds.NONE, "spawned into the crate")
+	assert_eq(_corpses.owner_of(crate), EntityIds.NONE, "nobody's body")
+	assert_false(_do(&"item.spawn", {"kind": "key_item", "template": "cold_storage_keycard", "container": "crate.1", "seed": 2, "count": 1}), "the debug spawn command still only spawns into the world or an inventory")
+	_actors.set_position(_player, _at(1, 0))
+	var before: int = _land.violation_count()
+	assert_true(_do(CorpseSystem.COMMAND_TAKE, {"actor": _player, "from": "crate.1", "item": card}), "taken")
+	assert_eq(_land.violation_count(), before, "a crate is not a body: no loot check (the spec names corpses)")
+	assert_eq(_items.container_of(card), ItemSystem.inventory_of(_player), "the keycard is yours")
+	assert_false(_corpses.has_place(crate), "the emptied crate's container is gone (the crate piece is not the system's)")

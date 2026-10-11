@@ -31,7 +31,7 @@ const KIND_TOOL: StringName = &"tool"
 const KIND_KEY_ITEM: StringName = &"key_item"
 ## Containers that lie somewhere in the world (M6 claim 16): "<prefix>.<n>", n >= 1.
 ## The corpse system keeps where each one is; items only checks the name.
-const PLACE_PREFIXES: Array[String] = ["corpse", "pile"]
+const PLACE_PREFIXES: Array[String] = ["corpse", "pile", "crate"]
 const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_TOOL, KIND_KEY_ITEM]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
@@ -356,7 +356,8 @@ func busy_until(weapon: int) -> int:
 
 # ---------------------------------------------------------------- spawning
 
-## Creates an instance of a template inside `world` or an `inv.<actor>` container.
+## Creates an instance of a template inside `world`, an `inv.<actor>` container or a
+## place (a site's crate, M6 claim 16; the item.spawn command keeps to the first two).
 ## Returns the new item id, or 0 with an error.
 func spawn(kind: StringName, template: StringName, container: StringName, seed: int) -> int:
 	if not SPAWNABLE.has(kind):
@@ -365,8 +366,8 @@ func spawn(kind: StringName, template: StringName, container: StringName, seed: 
 	if not _content.has(kind, template):
 		push_error("ItemSystem: no template %s/%s" % [kind, template])
 		return EntityIds.NONE
-	if not _is_open_container(container):
-		push_error("ItemSystem: can only spawn into world or an inventory, not '%s'" % container)
+	if not _is_open_container(container) and not is_place(container):
+		push_error("ItemSystem: can only spawn into world, an inventory or a place, not '%s'" % container)
 		return EntityIds.NONE
 	var id: int = _ids.allocate()
 	_items[id] = {"kind": kind, "template": template, "seed": seed, "affixes": [] as Array}
@@ -874,7 +875,7 @@ static func fixer_container(fixer: StringName) -> StringName:
 	return StringName("fixer.%s" % fixer)
 
 
-## A world place's name: "corpse.<n>" or "pile.<n>" with n >= 1.
+## A world place's name: "corpse.<n>", "pile.<n>" or "crate.<n>" with n >= 1.
 static func is_place(name: StringName) -> bool:
 	var parts: PackedStringArray = String(name).split(".")
 	if parts.size() != 2 or not PLACE_PREFIXES.has(parts[0]) or not parts[1].is_valid_int():

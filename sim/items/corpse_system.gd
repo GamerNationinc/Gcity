@@ -7,7 +7,9 @@
 ## {actor, item}` puts one on the pile at the actor's feet (made if there is none).
 ## Taking from a corpse that is not the actor's own needs `loot` where it lies: a
 ## violation is recorded like any other and the take still happens, as trespass and
-## breaching are recorded and not prevented. A place goes when it is emptied.
+## breaching are recorded and not prevented. A site's crate (`crate.<n>`, made by
+## the site system) is a place too, with no loot check: the spec names corpses. A place
+## goes when it is emptied.
 class_name CorpseSystem extends SimSystem
 
 const SYSTEM_ID: StringName = &"corpses"
@@ -19,6 +21,7 @@ const EVENT_CREATED: StringName = &"corpse.created"
 const EVENT_MOVED: StringName = &"item.moved"
 const KIND_CORPSE: String = "corpse"
 const KIND_PILE: String = "pile"
+const KIND_CRATE: String = "crate"
 ## How far a hand reaches into a place: the neighbouring cell, on the same storey.
 const REACH_MM: int = 1500
 
@@ -190,6 +193,12 @@ func _on_drop(_sim: SimRoot, payload: Dictionary) -> bool:
 	return true
 
 
+## A crate place at `at` (M6 claims 13 and 16: a site's container), empty; the
+## caller fills it with ItemSystem.spawn.
+func make_crate(at: Vector3i) -> StringName:
+	return _make(KIND_CRATE, EntityIds.NONE, at)
+
+
 func _pile_at(cell: Vector3i) -> StringName:
 	for place: StringName in place_ids():
 		var rec: Dictionary = _places[String(place)]
@@ -238,7 +247,7 @@ func restore(state: Dictionary) -> Error:
 		var parts: PackedStringArray = name.split(".")
 		if kind != parts[0] or int(parts[1]) >= next:
 			return _restore_fail("place %s kind or number" % name)
-		if (kind == KIND_CORPSE and not _actors.has_actor(owner)) or (kind == KIND_PILE and owner != EntityIds.NONE):
+		if (kind == KIND_CORPSE and not _actors.has_actor(owner)) or (kind != KIND_CORPSE and owner != EntityIds.NONE):
 			return _restore_fail("place %s owner" % name)
 		if pos.size() != 3:
 			return _restore_fail("place %s position" % name)
