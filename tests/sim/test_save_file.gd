@@ -113,7 +113,7 @@ func test_envelope_and_root_validation() -> void:
 	var sim: SimRoot = _populated()
 	var text: String = _save(sim)
 	var cases: Dictionary[String, Callable] = {
-		"wrong schema version": func(e: Dictionary) -> void: e["save_schema_version"] = 2,
+		"wrong schema version": func(e: Dictionary) -> void: e["save_schema_version"] = SaveFile.SCHEMA_VERSION + 1,
 		"fractional schema version": func(e: Dictionary) -> void: e["save_schema_version"] = 1.5,
 		"missing digest": func(e: Dictionary) -> void: e.erase("content_digest"),
 		"short digest": func(e: Dictionary) -> void: e["content_digest"] = "abc",
@@ -286,7 +286,7 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 	var out: Array = []
 	for _i: int in count:
 		var at: int = rng.randi_range(1, 3)
-		match rng.randi_range(0, 21):
+		match rng.randi_range(0, 33):
 			0:
 				out.append([at, &"actor.spawn", {"profile": "arcade", "range_m": rng.randi_range(0, 20)}])
 			10:
@@ -318,6 +318,31 @@ func _command_stream(rng: RandomNumberGenerator, count: int) -> Array:
 				out.append([at, &"quest.accept" if rng.randi_range(0, 1) == 0 else &"quest.abandon", {"actor": rng.randi_range(1, 3), "quest": ["first_blood", "break_ground", "nothing"][rng.randi_range(0, 2)]}])
 			21:
 				out.append([at, &"sim.pause" if rng.randi_range(0, 1) == 0 else &"sim.resume", {"actor": rng.randi_range(1, 3)}])
+			22:
+				# M6 claim 21: every new command kind
+				out.append([at, [&"actor.mantle", &"actor.jump"][rng.randi_range(0, 1)], {"actor": rng.randi_range(1, 3), "dx": rng.randi_range(-1, 1), "dz": rng.randi_range(-1, 1)}])
+			23:
+				out.append([at, &"actor.climb", {"actor": rng.randi_range(1, 3), "piece": rng.randi_range(1, 20)}])
+			24:
+				out.append([at, [&"opening.open", &"opening.close"][rng.randi_range(0, 1)], {"actor": rng.randi_range(1, 3), "piece": rng.randi_range(1, 20)}])
+			25:
+				out.append([at, &"build.breach", {"actor": rng.randi_range(1, 3), "piece": rng.randi_range(1, 20)}])
+			26:
+				out.append([at, [&"hack.start", &"hack.logout"][rng.randi_range(0, 1)], {"actor": rng.randi_range(1, 3), "target": rng.randi_range(1, 4)}])
+			27:
+				out.append([at, &"hack.cancel", {"actor": rng.randi_range(1, 3)}])
+			28:
+				out.append([at, &"sensor.install", {"sensor": ["power_monitor", "door_camera", "nothing"][rng.randi_range(0, 2)], "piece": rng.randi_range(1, 20), "squad": rng.randi_range(0, 2)}])
+			29:
+				out.append([at, &"site.spawn", {"site": ["m4_test_building", "cold_storage", "nowhere"][rng.randi_range(0, 2)], "origin": [rng.randi_range(-2, 60), 0, rng.randi_range(-2, 30)]}])
+			30:
+				out.append([at, &"contract.deliver", {"actor": rng.randi_range(1, 3), "quest": ["cold_storage_contract", "first_blood"][rng.randi_range(0, 1)]}])
+			31:
+				out.append([at, &"item.take", {"actor": rng.randi_range(1, 3), "from": ["corpse.1", "pile.2", "crate.1"][rng.randi_range(0, 2)], "item": rng.randi_range(1, 14)}])
+			32:
+				out.append([at, &"item.drop", {"actor": rng.randi_range(1, 3), "item": rng.randi_range(1, 14)}])
+			33:
+				out.append([at, &"actor.respawn", {"actor": rng.randi_range(1, 3)}])
 			1:
 				out.append([at, &"item.spawn", {"kind": "weapon_frame", "template": "g19", "container": "inv.%d" % rng.randi_range(1, 3), "seed": rng.randi(), "count": 1}])
 			2:

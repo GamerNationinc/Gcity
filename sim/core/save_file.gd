@@ -12,7 +12,10 @@
 ## [method SimRoot.restore_root]. Nothing is applied unless the whole file is valid.
 class_name SaveFile extends RefCounted
 
-const SCHEMA_VERSION: int = 1
+## Version 2 (M6 spec claim 21) adds the M6 systems and fields; version 1 (M2 to M5)
+## still loads, migrated by SimAssembly.load_save (SaveMigration).
+const SCHEMA_VERSION: int = 2
+const SUPPORTED_VERSIONS: Array[int] = [1, 2]
 const MAX_BYTES: int = 16 * 1024 * 1024
 const MAX_DEPTH: int = 64
 ## Beyond this magnitude a double no longer represents every integer.
@@ -20,6 +23,8 @@ const MAX_EXACT_INT: int = 1 << 53
 const _KEYS: Array[String] = ["save_schema_version", "content_digest", "snapshot"]
 
 var content_digest: String = ""
+## The file's save_schema_version, one of SUPPORTED_VERSIONS once valid.
+var version: int = 0
 var snapshot: Dictionary = {}
 ## Empty when the file is valid; otherwise the first problem found.
 var error: String = ""
@@ -71,8 +76,9 @@ func _load(text: String) -> String:
 	if typeof(version_v) != TYPE_FLOAT and typeof(version_v) != TYPE_INT:
 		return "save_schema_version must be an integer"
 	var version_f: float = version_v
-	if version_f != float(SCHEMA_VERSION):
-		return "save_schema_version %s is not supported (expected %d)" % [version_v, SCHEMA_VERSION]
+	if version_f != floorf(version_f) or not SUPPORTED_VERSIONS.has(int(version_f)):
+		return "save_schema_version %s is not supported (expected one of %s)" % [version_v, str(SUPPORTED_VERSIONS)]
+	version = int(version_f)
 	if typeof(envelope["content_digest"]) != TYPE_STRING:
 		return "content_digest must be a string"
 	content_digest = envelope["content_digest"]

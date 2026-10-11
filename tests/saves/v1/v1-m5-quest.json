@@ -1,0 +1,651 @@
+{
+	"content_digest": "d111b8ffca13d3dc50b3f98c722e54b3c49ec13bc410ee2c65ef3e081595d0e8",
+	"save_schema_version": 1,
+	"snapshot": {
+		"s:dispatched": 42,
+		"s:inbox": {
+
+		},
+		"s:paused": false,
+		"s:paused_steps": 0,
+		"s:rejected": 16,
+		"s:rng_state": "int:-7837880324421668275",
+		"s:schema_version": 1,
+		"s:seed": 20261150,
+		"s:systems": {
+			"s:actors": {
+				"s:actors": {
+					"i:1": {
+						"s:alive": true,
+						"s:device": 0,
+						"s:health": {
+							"s:body": 100000
+						},
+						"s:pos": [
+							0,
+							0,
+							0
+						],
+						"s:profile": "arcade",
+						"s:wielded": 4
+					},
+					"i:26": {
+						"s:alive": true,
+						"s:device": 0,
+						"s:health": {
+							"s:body": 99620500
+						},
+						"s:pos": [
+							6000,
+							0,
+							0
+						],
+						"s:profile": "range_dummy",
+						"s:wielded": 0
+					}
+				}
+			},
+			"s:aim": {
+				"s:aim": {
+
+				}
+			},
+			"s:build": {
+				"s:pieces": {
+
+				}
+			},
+			"s:combat": {
+				"s:damage_dealt": 379500,
+				"s:hits": 11,
+				"s:kills": 0,
+				"s:last": {
+					"s:chance": 620000,
+					"s:damage": 34500,
+					"s:hit": true,
+					"s:killed": false,
+					"s:node": "body",
+					"s:reason": "",
+					"s:round": 6,
+					"s:shooter": 1,
+					"s:target": 26,
+					"s:tick": 216,
+					"s:weapon": 4
+				},
+				"s:shots": 15
+			},
+			"s:content": {
+				"s:digest": "d111b8ffca13d3dc50b3f98c722e54b3c49ec13bc410ee2c65ef3e081595d0e8",
+				"s:entries": 113
+			},
+			"s:entities": {
+				"s:next": 42
+			},
+			"s:items": {
+				"s:busy_until": {
+					"i:4": 222
+				},
+				"s:containers": {
+					"s:inv.1": [
+						2,
+						3,
+						4,
+						21,
+						22,
+						23,
+						24,
+						25,
+						27,
+						28,
+						29,
+						30,
+						31,
+						32,
+						33,
+						34,
+						35,
+						36,
+						37,
+						38,
+						39,
+						40,
+						41
+					],
+					"s:socket.4.magazine": [
+						5
+					],
+					"s:world": []
+				},
+				"s:items": {
+					"i:2": {
+						"s:affixes": [],
+						"s:kind": "device_frame",
+						"s:seed": 1,
+						"s:template": "handset"
+					},
+					"i:21": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 115,
+						"s:template": "9x19_fmj"
+					},
+					"i:22": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 116,
+						"s:template": "9x19_fmj"
+					},
+					"i:23": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 117,
+						"s:template": "9x19_fmj"
+					},
+					"i:24": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 118,
+						"s:template": "9x19_fmj"
+					},
+					"i:25": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 119,
+						"s:template": "9x19_fmj"
+					},
+					"i:27": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 1,
+						"s:template": "9x19_fmj"
+					},
+					"i:28": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 2,
+						"s:template": "9x19_fmj"
+					},
+					"i:29": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 3,
+						"s:template": "9x19_fmj"
+					},
+					"i:3": {
+						"s:affixes": [],
+						"s:kind": "device_module",
+						"s:seed": 2,
+						"s:template": "radio_module"
+					},
+					"i:30": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 4,
+						"s:template": "9x19_fmj"
+					},
+					"i:31": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 5,
+						"s:template": "9x19_fmj"
+					},
+					"i:32": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 6,
+						"s:template": "9x19_fmj"
+					},
+					"i:33": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 7,
+						"s:template": "9x19_fmj"
+					},
+					"i:34": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 8,
+						"s:template": "9x19_fmj"
+					},
+					"i:35": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 9,
+						"s:template": "9x19_fmj"
+					},
+					"i:36": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 10,
+						"s:template": "9x19_fmj"
+					},
+					"i:37": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 11,
+						"s:template": "9x19_fmj"
+					},
+					"i:38": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 12,
+						"s:template": "9x19_fmj"
+					},
+					"i:39": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 13,
+						"s:template": "9x19_fmj"
+					},
+					"i:4": {
+						"s:affixes": [],
+						"s:kind": "weapon_frame",
+						"s:seed": 3,
+						"s:template": "g19"
+					},
+					"i:40": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 14,
+						"s:template": "9x19_fmj"
+					},
+					"i:41": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 15,
+						"s:template": "9x19_fmj"
+					},
+					"i:5": {
+						"s:affixes": [],
+						"s:kind": "weapon_part",
+						"s:seed": 4,
+						"s:template": "g19_mag_15"
+					}
+				},
+				"s:part_handles": {
+					"i:5": [
+						1
+					]
+				},
+				"s:sockets": {
+					"i:4": {
+						"s:magazine": 5
+					}
+				}
+			},
+			"s:land": {
+				"s:actor_owner": {
+					"i:1": "player"
+				},
+				"s:parcels": {
+					"s:neighbour_east": {
+						"s:ceiling_y": 9000,
+						"s:district": "starter_ghetto",
+						"s:floor_y": -3000,
+						"s:footprint": [
+							[
+								12192,
+								0
+							],
+							[
+								24384,
+								0
+							],
+							[
+								24384,
+								12192
+							],
+							[
+								12192,
+								12192
+							]
+						],
+						"s:owner": "npc.landlord_east"
+					},
+					"s:neighbour_north": {
+						"s:ceiling_y": 9000,
+						"s:district": "starter_ghetto",
+						"s:floor_y": -3000,
+						"s:footprint": [
+							[
+								0,
+								12192
+							],
+							[
+								24384,
+								12192
+							],
+							[
+								24384,
+								18288
+							],
+							[
+								12192,
+								18288
+							],
+							[
+								12192,
+								24384
+							],
+							[
+								0,
+								24384
+							]
+						],
+						"s:owner": "npc.landlord_north"
+					},
+					"s:starter_plot": {
+						"s:ceiling_y": 9000,
+						"s:district": "starter_ghetto",
+						"s:floor_y": -3000,
+						"s:footprint": [
+							[
+								0,
+								0
+							],
+							[
+								12192,
+								0
+							],
+							[
+								12192,
+								12192
+							],
+							[
+								0,
+								12192
+							]
+						],
+						"s:owner": "player"
+					}
+				},
+				"s:violations": 0,
+				"s:wild_district": "badlands_outskirts"
+			},
+			"s:movement": {
+				"s:blocked": 0,
+				"s:moves": 0
+			},
+			"s:pathing": {
+				"s:expanded": 0,
+				"s:replan": false,
+				"s:routes": {
+
+				}
+			},
+			"s:perception": {
+				"s:agents": {
+
+				},
+				"s:alerts": 0,
+				"s:contacts": {
+
+				},
+				"s:last_pos": {
+					"i:1": [
+						0,
+						0,
+						0
+					],
+					"i:26": [
+						6000,
+						0,
+						0
+					]
+				}
+			},
+			"s:portals": {
+				"s:edges": [],
+				"s:nodes": {
+
+				},
+				"s:targets": {
+
+				}
+			},
+			"s:progression": {
+				"s:perks": {
+
+				},
+				"s:skills": {
+					"i:1": {
+						"s:handguns": {
+							"s:level": 2,
+							"s:points": 2,
+							"s:xp": 1100
+						}
+					}
+				}
+			},
+			"s:quests": {
+				"s:completed": 1,
+				"s:quests": {
+					"i:1": {
+						"s:first_blood": {
+							"s:progress": [
+								3
+							],
+							"s:status": "completed"
+						}
+					}
+				}
+			},
+			"s:raids": {
+				"s:next_token": 1,
+				"s:tokens": {
+
+				}
+			},
+			"s:squads": {
+				"s:assignments": {
+
+				},
+				"s:delivered": 0,
+				"s:replan": false,
+				"s:reports": []
+			},
+			"s:stances": {
+				"s:fires": 0,
+				"s:scored": 0,
+				"s:stances": {
+
+				}
+			},
+			"s:stats": {
+				"s:bases": {
+					"i:2": {
+						"s:antenna_gain": 0,
+						"s:battery_reserve": 1000,
+						"s:memory_capacity": 1000
+					},
+					"i:21": {
+						"s:damage": 34500
+					},
+					"i:22": {
+						"s:damage": 34500
+					},
+					"i:23": {
+						"s:damage": 34500
+					},
+					"i:24": {
+						"s:damage": 34500
+					},
+					"i:25": {
+						"s:damage": 34500
+					},
+					"i:27": {
+						"s:damage": 34500
+					},
+					"i:28": {
+						"s:damage": 34500
+					},
+					"i:29": {
+						"s:damage": 34500
+					},
+					"i:30": {
+						"s:damage": 34500
+					},
+					"i:31": {
+						"s:damage": 34500
+					},
+					"i:32": {
+						"s:damage": 34500
+					},
+					"i:33": {
+						"s:damage": 34500
+					},
+					"i:34": {
+						"s:damage": 34500
+					},
+					"i:35": {
+						"s:damage": 34500
+					},
+					"i:36": {
+						"s:damage": 34500
+					},
+					"i:37": {
+						"s:damage": 34500
+					},
+					"i:38": {
+						"s:damage": 34500
+					},
+					"i:39": {
+						"s:damage": 34500
+					},
+					"i:4": {
+						"s:aim_in_ticks": 12000,
+						"s:cycle_ticks": 6000,
+						"s:ergonomics": 7000,
+						"s:hit_chance": 650000,
+						"s:noise": 60000,
+						"s:recoil": 3000,
+						"s:reload_ticks": 80000,
+						"s:sway": 2000
+					},
+					"i:40": {
+						"s:damage": 34500
+					},
+					"i:41": {
+						"s:damage": 34500
+					}
+				},
+				"s:classes": {
+					"s:add": 0,
+					"s:mul": 100
+				},
+				"s:inherits": {
+					"i:4": 1
+				},
+				"s:modifiers": {
+					"i:1": {
+						"s:class": "add",
+						"s:entity": 4,
+						"s:source": "part.g19_mag_15",
+						"s:stat": "ergonomics",
+						"s:tags": [],
+						"s:value": -300
+					}
+				},
+				"s:next_handle": 2,
+				"s:stats": {
+					"s:aim_in_ticks": 0,
+					"s:antenna_gain": 0,
+					"s:battery_reserve": 1000,
+					"s:breach_noise": 0,
+					"s:cycle_ticks": 0,
+					"s:damage": 0,
+					"s:ergonomics": 0,
+					"s:heat_headroom": 0,
+					"s:hit_chance": 0,
+					"s:memory_capacity": 1000,
+					"s:noise": 0,
+					"s:piece_hp": 0,
+					"s:power_available": 0,
+					"s:recoil": 0,
+					"s:reload_ticks": 0,
+					"s:sway": 0
+				},
+				"s:tags": {
+					"i:2": [
+						"device"
+					],
+					"i:21": [
+						"ammo"
+					],
+					"i:22": [
+						"ammo"
+					],
+					"i:23": [
+						"ammo"
+					],
+					"i:24": [
+						"ammo"
+					],
+					"i:25": [
+						"ammo"
+					],
+					"i:27": [
+						"ammo"
+					],
+					"i:28": [
+						"ammo"
+					],
+					"i:29": [
+						"ammo"
+					],
+					"i:30": [
+						"ammo"
+					],
+					"i:31": [
+						"ammo"
+					],
+					"i:32": [
+						"ammo"
+					],
+					"i:33": [
+						"ammo"
+					],
+					"i:34": [
+						"ammo"
+					],
+					"i:35": [
+						"ammo"
+					],
+					"i:36": [
+						"ammo"
+					],
+					"i:37": [
+						"ammo"
+					],
+					"i:38": [
+						"ammo"
+					],
+					"i:39": [
+						"ammo"
+					],
+					"i:4": [
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:40": [
+						"ammo"
+					],
+					"i:41": [
+						"ammo"
+					]
+				}
+			},
+			"s:stress": {
+				"s:stress": {
+
+				}
+			},
+			"s:structures": {
+				"s:structures": {
+
+				}
+			}
+		},
+		"s:tick": 338
+	}
+}

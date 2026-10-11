@@ -108,12 +108,14 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 
 ## Loads a save (M2 spec claim 13): a fresh sim over the same content, every system
 ## restored in registration order, then the root. Returns null (after an error) when
-## the content digest differs or any part of the save is rejected.
+## the content digest differs or any part of the save is rejected. A version-1 save
+## (M6 claim 21) is migrated first; it was made over older content, so its digest
+## cannot match, and it rests on every system's own restore validation instead.
 static func load_save(file: SaveFile, content: ContentDb) -> SimRoot:
 	if not file.is_valid():
 		push_error("SimAssembly.load_save: invalid save: %s" % file.error)
 		return null
-	if file.content_digest != content.digest():
+	if file.version == SaveFile.SCHEMA_VERSION and file.content_digest != content.digest():
 		push_error("SimAssembly.load_save: save was made over different content (%s, have %s)" % [file.content_digest, content.digest()])
 		return null
 	var seed_v: Variant = file.snapshot.get("seed")
@@ -124,9 +126,12 @@ static func load_save(file: SaveFile, content: ContentDb) -> SimRoot:
 	var sim: SimRoot = build(seed, content)
 	if sim == null:
 		return null
-	if restore_systems(sim, file.snapshot) != OK:
+	var snapshot: Dictionary = file.snapshot
+	if file.version == 1:
+		snapshot = SaveMigration.v1_to_v2(file.snapshot, sim, content)
+	if restore_systems(sim, snapshot) != OK:
 		return null
-	if sim.restore_root(file.snapshot) != OK:
+	if sim.restore_root(snapshot) != OK:
 		return null
 	return sim
 

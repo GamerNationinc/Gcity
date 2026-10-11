@@ -1,0 +1,3458 @@
+{
+	"content_digest": "d111b8ffca13d3dc50b3f98c722e54b3c49ec13bc410ee2c65ef3e081595d0e8",
+	"save_schema_version": 1,
+	"snapshot": {
+		"s:dispatched": 325,
+		"s:inbox": {
+
+		},
+		"s:paused": false,
+		"s:paused_steps": 0,
+		"s:rejected": 0,
+		"s:rng_state": "int:7243610564889210845",
+		"s:schema_version": 1,
+		"s:seed": 20261100,
+		"s:systems": {
+			"s:actors": {
+				"s:actors": {
+					"i:1": {
+						"s:alive": false,
+						"s:device": 0,
+						"s:health": {
+							"s:body": 0
+						},
+						"s:pos": [
+							5000,
+							0,
+							0
+						],
+						"s:profile": "arcade",
+						"s:wielded": 99
+					},
+					"i:95": {
+						"s:alive": true,
+						"s:device": 0,
+						"s:health": {
+							"s:body": 100000
+						},
+						"s:pos": [
+							5500,
+							0,
+							10120
+						],
+						"s:profile": "guard",
+						"s:wielded": 132
+					},
+					"i:96": {
+						"s:alive": true,
+						"s:device": 0,
+						"s:health": {
+							"s:body": 100000
+						},
+						"s:pos": [
+							3680,
+							0,
+							11200
+						],
+						"s:profile": "guard",
+						"s:wielded": 149
+					},
+					"i:97": {
+						"s:alive": true,
+						"s:device": 0,
+						"s:health": {
+							"s:body": 100000
+						},
+						"s:pos": [
+							7500,
+							0,
+							14820
+						],
+						"s:profile": "guard",
+						"s:wielded": 166
+					},
+					"i:98": {
+						"s:alive": true,
+						"s:device": 0,
+						"s:health": {
+							"s:body": 100000
+						},
+						"s:pos": [
+							9300,
+							0,
+							16500
+						],
+						"s:profile": "guard",
+						"s:wielded": 183
+					}
+				}
+			},
+			"s:aim": {
+				"s:aim": {
+					"i:95": {
+						"s:handle": 94,
+						"s:settle": 0,
+						"s:swing": 0,
+						"s:target": 0,
+						"s:value": -400000
+					},
+					"i:96": {
+						"s:handle": 95,
+						"s:settle": 0,
+						"s:swing": 0,
+						"s:target": 0,
+						"s:value": -400000
+					},
+					"i:97": {
+						"s:handle": 3,
+						"s:settle": 0,
+						"s:swing": 0,
+						"s:target": 0,
+						"s:value": -400000
+					},
+					"i:98": {
+						"s:handle": 4,
+						"s:settle": 0,
+						"s:swing": 0,
+						"s:target": 0,
+						"s:value": -400000
+					}
+				}
+			},
+			"s:build": {
+				"s:pieces": {
+					"i:10": {
+						"s:cell": [
+							2,
+							0,
+							18
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:11": {
+						"s:cell": [
+							12,
+							0,
+							14
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:12": {
+						"s:cell": [
+							12,
+							0,
+							18
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:13": {
+						"s:cell": [
+							3,
+							0,
+							7
+						],
+						"s:face": "3,0,7|z",
+						"s:template": "wall_panel"
+					},
+					"i:14": {
+						"s:cell": [
+							4,
+							0,
+							7
+						],
+						"s:face": "4,0,7|z",
+						"s:template": "wall_panel"
+					},
+					"i:15": {
+						"s:cell": [
+							5,
+							0,
+							7
+						],
+						"s:face": "5,0,7|z",
+						"s:template": "door_frame"
+					},
+					"i:16": {
+						"s:cell": [
+							6,
+							0,
+							7
+						],
+						"s:face": "6,0,7|z",
+						"s:template": "wall_panel"
+					},
+					"i:17": {
+						"s:cell": [
+							7,
+							0,
+							7
+						],
+						"s:face": "7,0,7|z",
+						"s:template": "wall_panel"
+					},
+					"i:18": {
+						"s:cell": [
+							2,
+							0,
+							8
+						],
+						"s:face": "2,0,8|x",
+						"s:template": "wall_panel"
+					},
+					"i:19": {
+						"s:cell": [
+							7,
+							0,
+							8
+						],
+						"s:face": "7,0,8|x",
+						"s:template": "wall_panel"
+					},
+					"i:2": {
+						"s:cell": [
+							2,
+							0,
+							7
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:20": {
+						"s:cell": [
+							2,
+							0,
+							9
+						],
+						"s:face": "2,0,9|x",
+						"s:template": "wall_panel"
+					},
+					"i:21": {
+						"s:cell": [
+							7,
+							0,
+							9
+						],
+						"s:face": "7,0,9|x",
+						"s:template": "wall_panel"
+					},
+					"i:22": {
+						"s:cell": [
+							2,
+							0,
+							10
+						],
+						"s:face": "2,0,10|x",
+						"s:template": "window_frame"
+					},
+					"i:23": {
+						"s:cell": [
+							7,
+							0,
+							10
+						],
+						"s:face": "7,0,10|x",
+						"s:template": "window_frame"
+					},
+					"i:24": {
+						"s:cell": [
+							2,
+							0,
+							11
+						],
+						"s:face": "2,0,11|x",
+						"s:template": "wall_panel"
+					},
+					"i:25": {
+						"s:cell": [
+							7,
+							0,
+							11
+						],
+						"s:face": "7,0,11|x",
+						"s:template": "wall_panel"
+					},
+					"i:26": {
+						"s:cell": [
+							3,
+							0,
+							11
+						],
+						"s:face": "3,0,11|z",
+						"s:template": "wall_panel"
+					},
+					"i:27": {
+						"s:cell": [
+							4,
+							0,
+							11
+						],
+						"s:face": "4,0,11|z",
+						"s:template": "wall_panel"
+					},
+					"i:28": {
+						"s:cell": [
+							5,
+							0,
+							11
+						],
+						"s:face": "5,0,11|z",
+						"s:template": "wall_panel"
+					},
+					"i:29": {
+						"s:cell": [
+							6,
+							0,
+							11
+						],
+						"s:face": "6,0,11|z",
+						"s:template": "wall_panel"
+					},
+					"i:3": {
+						"s:cell": [
+							8,
+							0,
+							7
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:30": {
+						"s:cell": [
+							6,
+							0,
+							12
+						],
+						"s:face": "6,0,12|x",
+						"s:template": "wall_panel"
+					},
+					"i:31": {
+						"s:cell": [
+							7,
+							0,
+							12
+						],
+						"s:face": "7,0,12|x",
+						"s:template": "wall_panel"
+					},
+					"i:32": {
+						"s:cell": [
+							6,
+							0,
+							13
+						],
+						"s:face": "6,0,13|x",
+						"s:template": "wall_panel"
+					},
+					"i:33": {
+						"s:cell": [
+							7,
+							0,
+							13
+						],
+						"s:face": "7,0,13|x",
+						"s:template": "wall_panel"
+					},
+					"i:34": {
+						"s:cell": [
+							6,
+							0,
+							14
+						],
+						"s:face": "6,0,14|x",
+						"s:template": "wall_panel"
+					},
+					"i:35": {
+						"s:cell": [
+							7,
+							0,
+							14
+						],
+						"s:face": "7,0,14|x",
+						"s:template": "wall_panel"
+					},
+					"i:36": {
+						"s:cell": [
+							6,
+							0,
+							15
+						],
+						"s:face": "6,0,15|x",
+						"s:template": "wall_panel"
+					},
+					"i:37": {
+						"s:cell": [
+							7,
+							0,
+							15
+						],
+						"s:face": "7,0,15|x",
+						"s:template": "wall_panel"
+					},
+					"i:38": {
+						"s:cell": [
+							6,
+							0,
+							16
+						],
+						"s:face": "6,0,16|x",
+						"s:template": "door_frame"
+					},
+					"i:39": {
+						"s:cell": [
+							7,
+							0,
+							16
+						],
+						"s:face": "7,0,16|x",
+						"s:template": "door_frame"
+					},
+					"i:4": {
+						"s:cell": [
+							2,
+							0,
+							12
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:40": {
+						"s:cell": [
+							6,
+							0,
+							17
+						],
+						"s:face": "6,0,17|x",
+						"s:template": "wall_panel"
+					},
+					"i:41": {
+						"s:cell": [
+							7,
+							0,
+							17
+						],
+						"s:face": "7,0,17|x",
+						"s:template": "wall_panel"
+					},
+					"i:42": {
+						"s:cell": [
+							7,
+							0,
+							17
+						],
+						"s:face": "7,0,17|z",
+						"s:template": "wall_panel"
+					},
+					"i:43": {
+						"s:cell": [
+							3,
+							0,
+							14
+						],
+						"s:face": "3,0,14|z",
+						"s:template": "wall_panel"
+					},
+					"i:44": {
+						"s:cell": [
+							3,
+							0,
+							17
+						],
+						"s:face": "3,0,17|z",
+						"s:template": "wall_panel"
+					},
+					"i:45": {
+						"s:cell": [
+							4,
+							0,
+							14
+						],
+						"s:face": "4,0,14|z",
+						"s:template": "wall_panel"
+					},
+					"i:46": {
+						"s:cell": [
+							4,
+							0,
+							17
+						],
+						"s:face": "4,0,17|z",
+						"s:template": "wall_panel"
+					},
+					"i:47": {
+						"s:cell": [
+							5,
+							0,
+							14
+						],
+						"s:face": "5,0,14|z",
+						"s:template": "wall_panel"
+					},
+					"i:48": {
+						"s:cell": [
+							5,
+							0,
+							17
+						],
+						"s:face": "5,0,17|z",
+						"s:template": "wall_panel"
+					},
+					"i:49": {
+						"s:cell": [
+							6,
+							0,
+							14
+						],
+						"s:face": "6,0,14|z",
+						"s:template": "wall_panel"
+					},
+					"i:5": {
+						"s:cell": [
+							8,
+							0,
+							12
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:50": {
+						"s:cell": [
+							6,
+							0,
+							17
+						],
+						"s:face": "6,0,17|z",
+						"s:template": "wall_panel"
+					},
+					"i:51": {
+						"s:cell": [
+							2,
+							0,
+							15
+						],
+						"s:face": "2,0,15|x",
+						"s:template": "wall_panel"
+					},
+					"i:52": {
+						"s:cell": [
+							2,
+							0,
+							16
+						],
+						"s:face": "2,0,16|x",
+						"s:template": "window_frame"
+					},
+					"i:53": {
+						"s:cell": [
+							2,
+							0,
+							17
+						],
+						"s:face": "2,0,17|x",
+						"s:template": "wall_panel"
+					},
+					"i:54": {
+						"s:cell": [
+							8,
+							0,
+							14
+						],
+						"s:face": "8,0,14|z",
+						"s:template": "wall_panel"
+					},
+					"i:55": {
+						"s:cell": [
+							8,
+							0,
+							17
+						],
+						"s:face": "8,0,17|z",
+						"s:template": "wall_panel"
+					},
+					"i:56": {
+						"s:cell": [
+							9,
+							0,
+							14
+						],
+						"s:face": "9,0,14|z",
+						"s:template": "wall_panel"
+					},
+					"i:57": {
+						"s:cell": [
+							9,
+							0,
+							17
+						],
+						"s:face": "9,0,17|z",
+						"s:template": "wall_panel"
+					},
+					"i:58": {
+						"s:cell": [
+							10,
+							0,
+							14
+						],
+						"s:face": "10,0,14|z",
+						"s:template": "wall_panel"
+					},
+					"i:59": {
+						"s:cell": [
+							10,
+							0,
+							17
+						],
+						"s:face": "10,0,17|z",
+						"s:template": "wall_panel"
+					},
+					"i:6": {
+						"s:cell": [
+							6,
+							0,
+							12
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:60": {
+						"s:cell": [
+							11,
+							0,
+							14
+						],
+						"s:face": "11,0,14|z",
+						"s:template": "wall_panel"
+					},
+					"i:61": {
+						"s:cell": [
+							11,
+							0,
+							17
+						],
+						"s:face": "11,0,17|z",
+						"s:template": "wall_panel"
+					},
+					"i:62": {
+						"s:cell": [
+							11,
+							0,
+							15
+						],
+						"s:face": "11,0,15|x",
+						"s:template": "wall_panel"
+					},
+					"i:63": {
+						"s:cell": [
+							11,
+							0,
+							16
+						],
+						"s:face": "11,0,16|x",
+						"s:template": "window_frame"
+					},
+					"i:64": {
+						"s:cell": [
+							11,
+							0,
+							17
+						],
+						"s:face": "11,0,17|x",
+						"s:template": "wall_panel"
+					},
+					"i:65": {
+						"s:cell": [
+							7,
+							0,
+							12
+						],
+						"s:face": "7,0,12|y",
+						"s:template": "floor_panel"
+					},
+					"i:66": {
+						"s:cell": [
+							7,
+							0,
+							13
+						],
+						"s:face": "7,0,13|y",
+						"s:template": "floor_panel"
+					},
+					"i:67": {
+						"s:cell": [
+							7,
+							0,
+							14
+						],
+						"s:face": "7,0,14|y",
+						"s:template": "floor_panel"
+					},
+					"i:68": {
+						"s:cell": [
+							7,
+							0,
+							15
+						],
+						"s:face": "7,0,15|y",
+						"s:template": "floor_panel"
+					},
+					"i:69": {
+						"s:cell": [
+							7,
+							0,
+							16
+						],
+						"s:face": "7,0,16|y",
+						"s:template": "floor_panel"
+					},
+					"i:7": {
+						"s:cell": [
+							6,
+							0,
+							18
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:70": {
+						"s:cell": [
+							7,
+							0,
+							17
+						],
+						"s:face": "7,0,17|y",
+						"s:template": "floor_panel"
+					},
+					"i:71": {
+						"s:cell": [
+							3,
+							0,
+							15
+						],
+						"s:face": "3,0,15|y",
+						"s:template": "floor_panel"
+					},
+					"i:72": {
+						"s:cell": [
+							4,
+							0,
+							15
+						],
+						"s:face": "4,0,15|y",
+						"s:template": "floor_panel"
+					},
+					"i:73": {
+						"s:cell": [
+							5,
+							0,
+							15
+						],
+						"s:face": "5,0,15|y",
+						"s:template": "floor_panel"
+					},
+					"i:74": {
+						"s:cell": [
+							6,
+							0,
+							15
+						],
+						"s:face": "6,0,15|y",
+						"s:template": "floor_panel"
+					},
+					"i:75": {
+						"s:cell": [
+							8,
+							0,
+							15
+						],
+						"s:face": "8,0,15|y",
+						"s:template": "floor_panel"
+					},
+					"i:76": {
+						"s:cell": [
+							9,
+							0,
+							15
+						],
+						"s:face": "9,0,15|y",
+						"s:template": "floor_panel"
+					},
+					"i:77": {
+						"s:cell": [
+							10,
+							0,
+							15
+						],
+						"s:face": "10,0,15|y",
+						"s:template": "floor_panel"
+					},
+					"i:78": {
+						"s:cell": [
+							11,
+							0,
+							15
+						],
+						"s:face": "11,0,15|y",
+						"s:template": "floor_panel"
+					},
+					"i:79": {
+						"s:cell": [
+							3,
+							0,
+							16
+						],
+						"s:face": "3,0,16|y",
+						"s:template": "floor_panel"
+					},
+					"i:8": {
+						"s:cell": [
+							8,
+							0,
+							18
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:80": {
+						"s:cell": [
+							4,
+							0,
+							16
+						],
+						"s:face": "4,0,16|y",
+						"s:template": "floor_panel"
+					},
+					"i:81": {
+						"s:cell": [
+							5,
+							0,
+							16
+						],
+						"s:face": "5,0,16|y",
+						"s:template": "floor_panel"
+					},
+					"i:82": {
+						"s:cell": [
+							6,
+							0,
+							16
+						],
+						"s:face": "6,0,16|y",
+						"s:template": "floor_panel"
+					},
+					"i:83": {
+						"s:cell": [
+							8,
+							0,
+							16
+						],
+						"s:face": "8,0,16|y",
+						"s:template": "floor_panel"
+					},
+					"i:84": {
+						"s:cell": [
+							9,
+							0,
+							16
+						],
+						"s:face": "9,0,16|y",
+						"s:template": "floor_panel"
+					},
+					"i:85": {
+						"s:cell": [
+							10,
+							0,
+							16
+						],
+						"s:face": "10,0,16|y",
+						"s:template": "floor_panel"
+					},
+					"i:86": {
+						"s:cell": [
+							11,
+							0,
+							16
+						],
+						"s:face": "11,0,16|y",
+						"s:template": "floor_panel"
+					},
+					"i:87": {
+						"s:cell": [
+							3,
+							0,
+							17
+						],
+						"s:face": "3,0,17|y",
+						"s:template": "floor_panel"
+					},
+					"i:88": {
+						"s:cell": [
+							4,
+							0,
+							17
+						],
+						"s:face": "4,0,17|y",
+						"s:template": "floor_panel"
+					},
+					"i:89": {
+						"s:cell": [
+							5,
+							0,
+							17
+						],
+						"s:face": "5,0,17|y",
+						"s:template": "floor_panel"
+					},
+					"i:9": {
+						"s:cell": [
+							2,
+							0,
+							14
+						],
+						"s:face": "",
+						"s:template": "foundation_block"
+					},
+					"i:90": {
+						"s:cell": [
+							6,
+							0,
+							17
+						],
+						"s:face": "6,0,17|y",
+						"s:template": "floor_panel"
+					},
+					"i:91": {
+						"s:cell": [
+							8,
+							0,
+							17
+						],
+						"s:face": "8,0,17|y",
+						"s:template": "floor_panel"
+					},
+					"i:92": {
+						"s:cell": [
+							9,
+							0,
+							17
+						],
+						"s:face": "9,0,17|y",
+						"s:template": "floor_panel"
+					},
+					"i:93": {
+						"s:cell": [
+							10,
+							0,
+							17
+						],
+						"s:face": "10,0,17|y",
+						"s:template": "floor_panel"
+					},
+					"i:94": {
+						"s:cell": [
+							11,
+							0,
+							17
+						],
+						"s:face": "11,0,17|y",
+						"s:template": "floor_panel"
+					}
+				}
+			},
+			"s:combat": {
+				"s:damage_dealt": 100000,
+				"s:hits": 3,
+				"s:kills": 1,
+				"s:last": {
+					"s:chance": 339000,
+					"s:damage": 31000,
+					"s:hit": true,
+					"s:killed": true,
+					"s:node": "body",
+					"s:reason": "",
+					"s:round": 161,
+					"s:shooter": 96,
+					"s:target": 1,
+					"s:tick": 198,
+					"s:weapon": 149
+				},
+				"s:shots": 9
+			},
+			"s:content": {
+				"s:digest": "d111b8ffca13d3dc50b3f98c722e54b3c49ec13bc410ee2c65ef3e081595d0e8",
+				"s:entries": 113
+			},
+			"s:entities": {
+				"s:next": 200
+			},
+			"s:items": {
+				"s:busy_until": {
+					"i:132": 203,
+					"i:149": 204,
+					"i:166": 85,
+					"i:183": 85,
+					"i:99": 85
+				},
+				"s:containers": {
+					"s:chamber.132": [
+						144
+					],
+					"s:chamber.149": [
+						160
+					],
+					"s:chamber.166": [
+						182
+					],
+					"s:chamber.183": [
+						199
+					],
+					"s:chamber.99": [
+						116
+					],
+					"s:inv.1": [
+						99,
+						101
+					],
+					"s:inv.95": [
+						132
+					],
+					"s:inv.96": [
+						149
+					],
+					"s:inv.97": [
+						166
+					],
+					"s:inv.98": [
+						183
+					],
+					"s:mag.100": [
+						102,
+						103,
+						104,
+						105,
+						106,
+						107,
+						108,
+						109,
+						110,
+						111,
+						112,
+						113,
+						114,
+						115
+					],
+					"s:mag.101": [
+						117,
+						118,
+						119,
+						120,
+						121,
+						122,
+						123,
+						124,
+						125,
+						126,
+						127,
+						128,
+						129,
+						130,
+						131
+					],
+					"s:mag.133": [
+						134,
+						135,
+						136,
+						137,
+						138,
+						139,
+						140,
+						141,
+						142,
+						143
+					],
+					"s:mag.150": [
+						151,
+						152,
+						153,
+						154,
+						155,
+						156,
+						157,
+						158,
+						159
+					],
+					"s:mag.167": [
+						168,
+						169,
+						170,
+						171,
+						172,
+						173,
+						174,
+						175,
+						176,
+						177,
+						178,
+						179,
+						180,
+						181
+					],
+					"s:mag.184": [
+						185,
+						186,
+						187,
+						188,
+						189,
+						190,
+						191,
+						192,
+						193,
+						194,
+						195,
+						196,
+						197,
+						198
+					],
+					"s:socket.132.magazine": [
+						133
+					],
+					"s:socket.149.magazine": [
+						150
+					],
+					"s:socket.166.magazine": [
+						167
+					],
+					"s:socket.183.magazine": [
+						184
+					],
+					"s:socket.99.magazine": [
+						100
+					],
+					"s:world": []
+				},
+				"s:items": {
+					"i:100": {
+						"s:affixes": [],
+						"s:kind": "weapon_part",
+						"s:seed": 2,
+						"s:template": "g19_mag_15"
+					},
+					"i:101": {
+						"s:affixes": [],
+						"s:kind": "weapon_part",
+						"s:seed": 3,
+						"s:template": "g19_mag_15"
+					},
+					"i:102": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 101,
+						"s:template": "9x19_fmj"
+					},
+					"i:103": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 102,
+						"s:template": "9x19_fmj"
+					},
+					"i:104": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 103,
+						"s:template": "9x19_fmj"
+					},
+					"i:105": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 104,
+						"s:template": "9x19_fmj"
+					},
+					"i:106": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 105,
+						"s:template": "9x19_fmj"
+					},
+					"i:107": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 106,
+						"s:template": "9x19_fmj"
+					},
+					"i:108": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 107,
+						"s:template": "9x19_fmj"
+					},
+					"i:109": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 108,
+						"s:template": "9x19_fmj"
+					},
+					"i:110": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 109,
+						"s:template": "9x19_fmj"
+					},
+					"i:111": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 110,
+						"s:template": "9x19_fmj"
+					},
+					"i:112": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 111,
+						"s:template": "9x19_fmj"
+					},
+					"i:113": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 112,
+						"s:template": "9x19_fmj"
+					},
+					"i:114": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 113,
+						"s:template": "9x19_fmj"
+					},
+					"i:115": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 114,
+						"s:template": "9x19_fmj"
+					},
+					"i:116": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 115,
+						"s:template": "9x19_fmj"
+					},
+					"i:117": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 116,
+						"s:template": "9x19_fmj"
+					},
+					"i:118": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 117,
+						"s:template": "9x19_fmj"
+					},
+					"i:119": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 118,
+						"s:template": "9x19_fmj"
+					},
+					"i:120": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 119,
+						"s:template": "9x19_fmj"
+					},
+					"i:121": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 120,
+						"s:template": "9x19_fmj"
+					},
+					"i:122": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 121,
+						"s:template": "9x19_fmj"
+					},
+					"i:123": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 122,
+						"s:template": "9x19_fmj"
+					},
+					"i:124": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 123,
+						"s:template": "9x19_fmj"
+					},
+					"i:125": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 124,
+						"s:template": "9x19_fmj"
+					},
+					"i:126": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 125,
+						"s:template": "9x19_fmj"
+					},
+					"i:127": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 126,
+						"s:template": "9x19_fmj"
+					},
+					"i:128": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 127,
+						"s:template": "9x19_fmj"
+					},
+					"i:129": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 128,
+						"s:template": "9x19_fmj"
+					},
+					"i:130": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 129,
+						"s:template": "9x19_fmj"
+					},
+					"i:131": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 130,
+						"s:template": "9x19_fmj"
+					},
+					"i:132": {
+						"s:affixes": [],
+						"s:kind": "weapon_frame",
+						"s:seed": 10,
+						"s:template": "g19"
+					},
+					"i:133": {
+						"s:affixes": [],
+						"s:kind": "weapon_part",
+						"s:seed": 11,
+						"s:template": "g19_mag_15"
+					},
+					"i:134": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 110,
+						"s:template": "9x19_fmj"
+					},
+					"i:135": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 111,
+						"s:template": "9x19_fmj"
+					},
+					"i:136": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 112,
+						"s:template": "9x19_fmj"
+					},
+					"i:137": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 113,
+						"s:template": "9x19_fmj"
+					},
+					"i:138": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 114,
+						"s:template": "9x19_fmj"
+					},
+					"i:139": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 115,
+						"s:template": "9x19_fmj"
+					},
+					"i:140": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 116,
+						"s:template": "9x19_fmj"
+					},
+					"i:141": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 117,
+						"s:template": "9x19_fmj"
+					},
+					"i:142": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 118,
+						"s:template": "9x19_fmj"
+					},
+					"i:143": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 119,
+						"s:template": "9x19_fmj"
+					},
+					"i:144": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 120,
+						"s:template": "9x19_fmj"
+					},
+					"i:149": {
+						"s:affixes": [],
+						"s:kind": "weapon_frame",
+						"s:seed": 110,
+						"s:template": "g19"
+					},
+					"i:150": {
+						"s:affixes": [],
+						"s:kind": "weapon_part",
+						"s:seed": 111,
+						"s:template": "g19_mag_15"
+					},
+					"i:151": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 210,
+						"s:template": "9x19_fmj"
+					},
+					"i:152": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 211,
+						"s:template": "9x19_fmj"
+					},
+					"i:153": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 212,
+						"s:template": "9x19_fmj"
+					},
+					"i:154": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 213,
+						"s:template": "9x19_fmj"
+					},
+					"i:155": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 214,
+						"s:template": "9x19_fmj"
+					},
+					"i:156": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 215,
+						"s:template": "9x19_fmj"
+					},
+					"i:157": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 216,
+						"s:template": "9x19_fmj"
+					},
+					"i:158": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 217,
+						"s:template": "9x19_fmj"
+					},
+					"i:159": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 218,
+						"s:template": "9x19_fmj"
+					},
+					"i:160": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 219,
+						"s:template": "9x19_fmj"
+					},
+					"i:166": {
+						"s:affixes": [],
+						"s:kind": "weapon_frame",
+						"s:seed": 210,
+						"s:template": "g19"
+					},
+					"i:167": {
+						"s:affixes": [],
+						"s:kind": "weapon_part",
+						"s:seed": 211,
+						"s:template": "g19_mag_15"
+					},
+					"i:168": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 310,
+						"s:template": "9x19_fmj"
+					},
+					"i:169": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 311,
+						"s:template": "9x19_fmj"
+					},
+					"i:170": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 312,
+						"s:template": "9x19_fmj"
+					},
+					"i:171": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 313,
+						"s:template": "9x19_fmj"
+					},
+					"i:172": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 314,
+						"s:template": "9x19_fmj"
+					},
+					"i:173": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 315,
+						"s:template": "9x19_fmj"
+					},
+					"i:174": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 316,
+						"s:template": "9x19_fmj"
+					},
+					"i:175": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 317,
+						"s:template": "9x19_fmj"
+					},
+					"i:176": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 318,
+						"s:template": "9x19_fmj"
+					},
+					"i:177": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 319,
+						"s:template": "9x19_fmj"
+					},
+					"i:178": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 320,
+						"s:template": "9x19_fmj"
+					},
+					"i:179": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 321,
+						"s:template": "9x19_fmj"
+					},
+					"i:180": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 322,
+						"s:template": "9x19_fmj"
+					},
+					"i:181": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 323,
+						"s:template": "9x19_fmj"
+					},
+					"i:182": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 324,
+						"s:template": "9x19_fmj"
+					},
+					"i:183": {
+						"s:affixes": [],
+						"s:kind": "weapon_frame",
+						"s:seed": 310,
+						"s:template": "g19"
+					},
+					"i:184": {
+						"s:affixes": [],
+						"s:kind": "weapon_part",
+						"s:seed": 311,
+						"s:template": "g19_mag_15"
+					},
+					"i:185": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 410,
+						"s:template": "9x19_fmj"
+					},
+					"i:186": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 411,
+						"s:template": "9x19_fmj"
+					},
+					"i:187": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 412,
+						"s:template": "9x19_fmj"
+					},
+					"i:188": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 413,
+						"s:template": "9x19_fmj"
+					},
+					"i:189": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 414,
+						"s:template": "9x19_fmj"
+					},
+					"i:190": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 415,
+						"s:template": "9x19_fmj"
+					},
+					"i:191": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 416,
+						"s:template": "9x19_fmj"
+					},
+					"i:192": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 417,
+						"s:template": "9x19_fmj"
+					},
+					"i:193": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 418,
+						"s:template": "9x19_fmj"
+					},
+					"i:194": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 419,
+						"s:template": "9x19_fmj"
+					},
+					"i:195": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 420,
+						"s:template": "9x19_fmj"
+					},
+					"i:196": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 421,
+						"s:template": "9x19_fmj"
+					},
+					"i:197": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 422,
+						"s:template": "9x19_fmj"
+					},
+					"i:198": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 423,
+						"s:template": "9x19_fmj"
+					},
+					"i:199": {
+						"s:affixes": [],
+						"s:kind": "ammo",
+						"s:seed": 424,
+						"s:template": "9x19_fmj"
+					},
+					"i:99": {
+						"s:affixes": [],
+						"s:kind": "weapon_frame",
+						"s:seed": 1,
+						"s:template": "g19"
+					}
+				},
+				"s:part_handles": {
+					"i:100": [
+						9
+					],
+					"i:133": [
+						10
+					],
+					"i:150": [
+						11
+					],
+					"i:167": [
+						12
+					],
+					"i:184": [
+						13
+					]
+				},
+				"s:sockets": {
+					"i:132": {
+						"s:magazine": 133
+					},
+					"i:149": {
+						"s:magazine": 150
+					},
+					"i:166": {
+						"s:magazine": 167
+					},
+					"i:183": {
+						"s:magazine": 184
+					},
+					"i:99": {
+						"s:magazine": 100
+					}
+				}
+			},
+			"s:land": {
+				"s:actor_owner": {
+					"i:1": "player"
+				},
+				"s:parcels": {
+					"s:neighbour_east": {
+						"s:ceiling_y": 9000,
+						"s:district": "starter_ghetto",
+						"s:floor_y": -3000,
+						"s:footprint": [
+							[
+								12192,
+								0
+							],
+							[
+								24384,
+								0
+							],
+							[
+								24384,
+								12192
+							],
+							[
+								12192,
+								12192
+							]
+						],
+						"s:owner": "npc.landlord_east"
+					},
+					"s:neighbour_north": {
+						"s:ceiling_y": 9000,
+						"s:district": "starter_ghetto",
+						"s:floor_y": -3000,
+						"s:footprint": [
+							[
+								0,
+								12192
+							],
+							[
+								24384,
+								12192
+							],
+							[
+								24384,
+								18288
+							],
+							[
+								12192,
+								18288
+							],
+							[
+								12192,
+								24384
+							],
+							[
+								0,
+								24384
+							]
+						],
+						"s:owner": "player"
+					},
+					"s:starter_plot": {
+						"s:ceiling_y": 9000,
+						"s:district": "starter_ghetto",
+						"s:floor_y": -3000,
+						"s:footprint": [
+							[
+								0,
+								0
+							],
+							[
+								12192,
+								0
+							],
+							[
+								12192,
+								12192
+							],
+							[
+								0,
+								12192
+							]
+						],
+						"s:owner": "player"
+					}
+				},
+				"s:violations": 0,
+				"s:wild_district": "badlands_outskirts"
+			},
+			"s:movement": {
+				"s:blocked": 0,
+				"s:moves": 1006
+			},
+			"s:pathing": {
+				"s:expanded": 490,
+				"s:replan": false,
+				"s:routes": {
+					"i:96": {
+						"s:goal": [
+							3,
+							0,
+							9
+						],
+						"s:index": 0,
+						"s:path": [
+							[
+								3,
+								0,
+								10
+							],
+							[
+								3,
+								0,
+								9
+							]
+						],
+						"s:search": {
+
+						},
+						"s:state": "following"
+					},
+					"i:97": {
+						"s:goal": [
+							7,
+							0,
+							12
+						],
+						"s:index": 2,
+						"s:path": [
+							[
+								7,
+								0,
+								15
+							],
+							[
+								7,
+								0,
+								14
+							],
+							[
+								7,
+								0,
+								13
+							],
+							[
+								7,
+								0,
+								12
+							]
+						],
+						"s:search": {
+
+						},
+						"s:state": "following"
+					},
+					"i:98": {
+						"s:goal": [
+							10,
+							0,
+							16
+						],
+						"s:index": 2,
+						"s:path": [
+							[
+								8,
+								0,
+								16
+							],
+							[
+								9,
+								0,
+								16
+							],
+							[
+								10,
+								0,
+								16
+							]
+						],
+						"s:search": {
+
+						},
+						"s:state": "following"
+					}
+				}
+			},
+			"s:perception": {
+				"s:agents": {
+					"i:95": {
+						"s:facing": 270,
+						"s:profile": "guard_sim",
+						"s:route": "",
+						"s:squad": 1
+					},
+					"i:96": {
+						"s:facing": 270,
+						"s:profile": "guard_sim",
+						"s:route": "lobby_round",
+						"s:squad": 1
+					},
+					"i:97": {
+						"s:facing": 270,
+						"s:profile": "guard_sim",
+						"s:route": "wing_patrol",
+						"s:squad": 1
+					},
+					"i:98": {
+						"s:facing": 0,
+						"s:profile": "guard_sim",
+						"s:route": "wing_patrol_reverse",
+						"s:squad": 1
+					}
+				},
+				"s:alerts": 7,
+				"s:contacts": {
+
+				},
+				"s:last_pos": {
+					"i:95": [
+						5500,
+						0,
+						10120
+					],
+					"i:96": [
+						3740,
+						0,
+						11260
+					],
+					"i:97": [
+						7500,
+						0,
+						14880
+					],
+					"i:98": [
+						9240,
+						0,
+						16500
+					]
+				}
+			},
+			"s:portals": {
+				"s:edges": [
+					[
+						36,
+						0,
+						1
+					],
+					[
+						37,
+						0,
+						2
+					],
+					[
+						38,
+						0,
+						1
+					],
+					[
+						39,
+						0,
+						2
+					],
+					[
+						40,
+						0,
+						1
+					],
+					[
+						41,
+						0,
+						2
+					],
+					[
+						43,
+						0,
+						1
+					],
+					[
+						44,
+						0,
+						1
+					],
+					[
+						45,
+						0,
+						1
+					],
+					[
+						46,
+						0,
+						1
+					],
+					[
+						47,
+						0,
+						1
+					],
+					[
+						48,
+						0,
+						1
+					],
+					[
+						49,
+						0,
+						1
+					],
+					[
+						51,
+						0,
+						1
+					],
+					[
+						52,
+						0,
+						1
+					],
+					[
+						53,
+						0,
+						1
+					],
+					[
+						54,
+						0,
+						2
+					],
+					[
+						56,
+						0,
+						2
+					],
+					[
+						57,
+						0,
+						2
+					],
+					[
+						58,
+						0,
+						2
+					],
+					[
+						59,
+						0,
+						2
+					],
+					[
+						60,
+						0,
+						2
+					],
+					[
+						61,
+						0,
+						2
+					],
+					[
+						62,
+						0,
+						2
+					],
+					[
+						63,
+						0,
+						2
+					],
+					[
+						64,
+						0,
+						2
+					],
+					[
+						71,
+						0,
+						1
+					],
+					[
+						72,
+						0,
+						1
+					],
+					[
+						73,
+						0,
+						1
+					],
+					[
+						74,
+						0,
+						1
+					],
+					[
+						75,
+						0,
+						2
+					],
+					[
+						76,
+						0,
+						2
+					],
+					[
+						77,
+						0,
+						2
+					],
+					[
+						78,
+						0,
+						2
+					],
+					[
+						79,
+						0,
+						1
+					],
+					[
+						80,
+						0,
+						1
+					],
+					[
+						81,
+						0,
+						1
+					],
+					[
+						82,
+						0,
+						1
+					],
+					[
+						83,
+						0,
+						2
+					],
+					[
+						84,
+						0,
+						2
+					],
+					[
+						85,
+						0,
+						2
+					],
+					[
+						86,
+						0,
+						2
+					],
+					[
+						87,
+						0,
+						1
+					],
+					[
+						88,
+						0,
+						1
+					],
+					[
+						89,
+						0,
+						1
+					],
+					[
+						90,
+						0,
+						1
+					],
+					[
+						91,
+						0,
+						2
+					],
+					[
+						92,
+						0,
+						2
+					],
+					[
+						93,
+						0,
+						2
+					],
+					[
+						94,
+						0,
+						2
+					]
+				],
+				"s:nodes": {
+					"i:1": {
+						"s:cells": 12,
+						"s:min": [
+							3,
+							0,
+							15
+						]
+					},
+					"i:2": {
+						"s:cells": 12,
+						"s:min": [
+							8,
+							0,
+							15
+						]
+					}
+				},
+				"s:targets": {
+
+				}
+			},
+			"s:progression": {
+				"s:perks": {
+
+				},
+				"s:skills": {
+					"i:95": {
+						"s:handguns": {
+							"s:level": 0,
+							"s:points": 0,
+							"s:xp": 200
+						}
+					},
+					"i:96": {
+						"s:handguns": {
+							"s:level": 0,
+							"s:points": 0,
+							"s:xp": 100
+						}
+					}
+				}
+			},
+			"s:quests": {
+				"s:completed": 0,
+				"s:quests": {
+
+				}
+			},
+			"s:raids": {
+				"s:next_token": 1,
+				"s:tokens": {
+
+				}
+			},
+			"s:squads": {
+				"s:assignments": {
+
+				},
+				"s:delivered": 4,
+				"s:replan": false,
+				"s:reports": []
+			},
+			"s:stances": {
+				"s:fires": 9,
+				"s:scored": 153,
+				"s:stances": {
+					"i:95": {
+						"s:goal": [],
+						"s:score": 700000,
+						"s:since": 215,
+						"s:stance": "hold",
+						"s:waypoint": 0
+					},
+					"i:96": {
+						"s:goal": [
+							3,
+							0,
+							9
+						],
+						"s:score": 700000,
+						"s:since": 200,
+						"s:stance": "hold",
+						"s:waypoint": 0
+					},
+					"i:97": {
+						"s:goal": [
+							7,
+							0,
+							12
+						],
+						"s:score": 700000,
+						"s:since": 217,
+						"s:stance": "hold",
+						"s:waypoint": 0
+					},
+					"i:98": {
+						"s:goal": [
+							10,
+							0,
+							16
+						],
+						"s:score": 700000,
+						"s:since": 218,
+						"s:stance": "hold",
+						"s:waypoint": 0
+					}
+				}
+			},
+			"s:stats": {
+				"s:bases": {
+					"i:10": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:102": {
+						"s:damage": 34500
+					},
+					"i:103": {
+						"s:damage": 34500
+					},
+					"i:104": {
+						"s:damage": 34500
+					},
+					"i:105": {
+						"s:damage": 34500
+					},
+					"i:106": {
+						"s:damage": 34500
+					},
+					"i:107": {
+						"s:damage": 34500
+					},
+					"i:108": {
+						"s:damage": 34500
+					},
+					"i:109": {
+						"s:damage": 34500
+					},
+					"i:11": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:110": {
+						"s:damage": 34500
+					},
+					"i:111": {
+						"s:damage": 34500
+					},
+					"i:112": {
+						"s:damage": 34500
+					},
+					"i:113": {
+						"s:damage": 34500
+					},
+					"i:114": {
+						"s:damage": 34500
+					},
+					"i:115": {
+						"s:damage": 34500
+					},
+					"i:116": {
+						"s:damage": 34500
+					},
+					"i:117": {
+						"s:damage": 34500
+					},
+					"i:118": {
+						"s:damage": 34500
+					},
+					"i:119": {
+						"s:damage": 34500
+					},
+					"i:12": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:120": {
+						"s:damage": 34500
+					},
+					"i:121": {
+						"s:damage": 34500
+					},
+					"i:122": {
+						"s:damage": 34500
+					},
+					"i:123": {
+						"s:damage": 34500
+					},
+					"i:124": {
+						"s:damage": 34500
+					},
+					"i:125": {
+						"s:damage": 34500
+					},
+					"i:126": {
+						"s:damage": 34500
+					},
+					"i:127": {
+						"s:damage": 34500
+					},
+					"i:128": {
+						"s:damage": 34500
+					},
+					"i:129": {
+						"s:damage": 34500
+					},
+					"i:13": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:130": {
+						"s:damage": 34500
+					},
+					"i:131": {
+						"s:damage": 34500
+					},
+					"i:132": {
+						"s:aim_in_ticks": 12000,
+						"s:cycle_ticks": 6000,
+						"s:ergonomics": 7000,
+						"s:hit_chance": 650000,
+						"s:noise": 60000,
+						"s:recoil": 3000,
+						"s:reload_ticks": 80000,
+						"s:sway": 2000
+					},
+					"i:134": {
+						"s:damage": 34500
+					},
+					"i:135": {
+						"s:damage": 34500
+					},
+					"i:136": {
+						"s:damage": 34500
+					},
+					"i:137": {
+						"s:damage": 34500
+					},
+					"i:138": {
+						"s:damage": 34500
+					},
+					"i:139": {
+						"s:damage": 34500
+					},
+					"i:14": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:140": {
+						"s:damage": 34500
+					},
+					"i:141": {
+						"s:damage": 34500
+					},
+					"i:142": {
+						"s:damage": 34500
+					},
+					"i:143": {
+						"s:damage": 34500
+					},
+					"i:144": {
+						"s:damage": 34500
+					},
+					"i:149": {
+						"s:aim_in_ticks": 12000,
+						"s:cycle_ticks": 6000,
+						"s:ergonomics": 7000,
+						"s:hit_chance": 650000,
+						"s:noise": 60000,
+						"s:recoil": 3000,
+						"s:reload_ticks": 80000,
+						"s:sway": 2000
+					},
+					"i:15": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:151": {
+						"s:damage": 34500
+					},
+					"i:152": {
+						"s:damage": 34500
+					},
+					"i:153": {
+						"s:damage": 34500
+					},
+					"i:154": {
+						"s:damage": 34500
+					},
+					"i:155": {
+						"s:damage": 34500
+					},
+					"i:156": {
+						"s:damage": 34500
+					},
+					"i:157": {
+						"s:damage": 34500
+					},
+					"i:158": {
+						"s:damage": 34500
+					},
+					"i:159": {
+						"s:damage": 34500
+					},
+					"i:16": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:160": {
+						"s:damage": 34500
+					},
+					"i:166": {
+						"s:aim_in_ticks": 12000,
+						"s:cycle_ticks": 6000,
+						"s:ergonomics": 7000,
+						"s:hit_chance": 650000,
+						"s:noise": 60000,
+						"s:recoil": 3000,
+						"s:reload_ticks": 80000,
+						"s:sway": 2000
+					},
+					"i:168": {
+						"s:damage": 34500
+					},
+					"i:169": {
+						"s:damage": 34500
+					},
+					"i:17": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:170": {
+						"s:damage": 34500
+					},
+					"i:171": {
+						"s:damage": 34500
+					},
+					"i:172": {
+						"s:damage": 34500
+					},
+					"i:173": {
+						"s:damage": 34500
+					},
+					"i:174": {
+						"s:damage": 34500
+					},
+					"i:175": {
+						"s:damage": 34500
+					},
+					"i:176": {
+						"s:damage": 34500
+					},
+					"i:177": {
+						"s:damage": 34500
+					},
+					"i:178": {
+						"s:damage": 34500
+					},
+					"i:179": {
+						"s:damage": 34500
+					},
+					"i:18": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:180": {
+						"s:damage": 34500
+					},
+					"i:181": {
+						"s:damage": 34500
+					},
+					"i:182": {
+						"s:damage": 34500
+					},
+					"i:183": {
+						"s:aim_in_ticks": 12000,
+						"s:cycle_ticks": 6000,
+						"s:ergonomics": 7000,
+						"s:hit_chance": 650000,
+						"s:noise": 60000,
+						"s:recoil": 3000,
+						"s:reload_ticks": 80000,
+						"s:sway": 2000
+					},
+					"i:185": {
+						"s:damage": 34500
+					},
+					"i:186": {
+						"s:damage": 34500
+					},
+					"i:187": {
+						"s:damage": 34500
+					},
+					"i:188": {
+						"s:damage": 34500
+					},
+					"i:189": {
+						"s:damage": 34500
+					},
+					"i:19": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:190": {
+						"s:damage": 34500
+					},
+					"i:191": {
+						"s:damage": 34500
+					},
+					"i:192": {
+						"s:damage": 34500
+					},
+					"i:193": {
+						"s:damage": 34500
+					},
+					"i:194": {
+						"s:damage": 34500
+					},
+					"i:195": {
+						"s:damage": 34500
+					},
+					"i:196": {
+						"s:damage": 34500
+					},
+					"i:197": {
+						"s:damage": 34500
+					},
+					"i:198": {
+						"s:damage": 34500
+					},
+					"i:199": {
+						"s:damage": 34500
+					},
+					"i:2": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:20": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:21": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:22": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:23": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:24": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:25": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:26": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:27": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:28": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:29": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:3": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:30": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:31": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:32": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:33": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:34": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:35": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:36": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:37": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:38": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:39": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:4": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:40": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:41": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:42": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:43": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:44": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:45": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:46": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:47": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:48": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:49": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:5": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:50": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:51": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:52": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:53": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:54": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:55": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:56": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:57": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:58": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:59": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:6": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:60": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:61": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:62": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:63": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:64": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:65": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:66": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:67": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:68": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:69": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:7": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:70": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:71": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:72": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:73": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:74": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:75": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:76": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:77": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:78": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:79": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:8": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:80": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:81": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:82": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:83": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:84": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:85": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:86": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:87": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:88": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:89": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:9": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:90": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:91": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:92": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:93": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:94": {
+						"s:breach_noise": 700,
+						"s:piece_hp": 400
+					},
+					"i:99": {
+						"s:aim_in_ticks": 12000,
+						"s:cycle_ticks": 6000,
+						"s:ergonomics": 7000,
+						"s:hit_chance": 650000,
+						"s:noise": 60000,
+						"s:recoil": 3000,
+						"s:reload_ticks": 80000,
+						"s:sway": 2000
+					}
+				},
+				"s:classes": {
+					"s:add": 0,
+					"s:mul": 100
+				},
+				"s:inherits": {
+					"i:116": 99,
+					"i:132": 95,
+					"i:144": 132,
+					"i:149": 96,
+					"i:160": 149,
+					"i:166": 97,
+					"i:182": 166,
+					"i:183": 98,
+					"i:199": 183,
+					"i:99": 1
+				},
+				"s:modifiers": {
+					"i:10": {
+						"s:class": "add",
+						"s:entity": 132,
+						"s:source": "part.g19_mag_15",
+						"s:stat": "ergonomics",
+						"s:tags": [],
+						"s:value": -300
+					},
+					"i:11": {
+						"s:class": "add",
+						"s:entity": 149,
+						"s:source": "part.g19_mag_15",
+						"s:stat": "ergonomics",
+						"s:tags": [],
+						"s:value": -300
+					},
+					"i:12": {
+						"s:class": "add",
+						"s:entity": 166,
+						"s:source": "part.g19_mag_15",
+						"s:stat": "ergonomics",
+						"s:tags": [],
+						"s:value": -300
+					},
+					"i:13": {
+						"s:class": "add",
+						"s:entity": 183,
+						"s:source": "part.g19_mag_15",
+						"s:stat": "ergonomics",
+						"s:tags": [],
+						"s:value": -300
+					},
+					"i:3": {
+						"s:class": "add",
+						"s:entity": 97,
+						"s:source": "aim",
+						"s:stat": "hit_chance",
+						"s:tags": [
+							"weapon"
+						],
+						"s:value": -400000
+					},
+					"i:4": {
+						"s:class": "add",
+						"s:entity": 98,
+						"s:source": "aim",
+						"s:stat": "hit_chance",
+						"s:tags": [
+							"weapon"
+						],
+						"s:value": -400000
+					},
+					"i:5": {
+						"s:class": "add",
+						"s:entity": 95,
+						"s:source": "stress",
+						"s:stat": "hit_chance",
+						"s:tags": [
+							"weapon"
+						],
+						"s:value": 0
+					},
+					"i:6": {
+						"s:class": "add",
+						"s:entity": 96,
+						"s:source": "stress",
+						"s:stat": "hit_chance",
+						"s:tags": [
+							"weapon"
+						],
+						"s:value": 0
+					},
+					"i:7": {
+						"s:class": "add",
+						"s:entity": 97,
+						"s:source": "stress",
+						"s:stat": "hit_chance",
+						"s:tags": [
+							"weapon"
+						],
+						"s:value": 0
+					},
+					"i:8": {
+						"s:class": "add",
+						"s:entity": 98,
+						"s:source": "stress",
+						"s:stat": "hit_chance",
+						"s:tags": [
+							"weapon"
+						],
+						"s:value": 0
+					},
+					"i:9": {
+						"s:class": "add",
+						"s:entity": 99,
+						"s:source": "part.g19_mag_15",
+						"s:stat": "ergonomics",
+						"s:tags": [],
+						"s:value": -300
+					},
+					"i:94": {
+						"s:class": "add",
+						"s:entity": 95,
+						"s:source": "aim",
+						"s:stat": "hit_chance",
+						"s:tags": [
+							"weapon"
+						],
+						"s:value": -400000
+					},
+					"i:95": {
+						"s:class": "add",
+						"s:entity": 96,
+						"s:source": "aim",
+						"s:stat": "hit_chance",
+						"s:tags": [
+							"weapon"
+						],
+						"s:value": -400000
+					}
+				},
+				"s:next_handle": 96,
+				"s:stats": {
+					"s:aim_in_ticks": 0,
+					"s:antenna_gain": 0,
+					"s:battery_reserve": 1000,
+					"s:breach_noise": 0,
+					"s:cycle_ticks": 0,
+					"s:damage": 0,
+					"s:ergonomics": 0,
+					"s:heat_headroom": 0,
+					"s:hit_chance": 0,
+					"s:memory_capacity": 1000,
+					"s:noise": 0,
+					"s:piece_hp": 0,
+					"s:power_available": 0,
+					"s:recoil": 0,
+					"s:reload_ticks": 0,
+					"s:sway": 0
+				},
+				"s:tags": {
+					"i:102": [
+						"ammo"
+					],
+					"i:103": [
+						"ammo"
+					],
+					"i:104": [
+						"ammo"
+					],
+					"i:105": [
+						"ammo"
+					],
+					"i:106": [
+						"ammo"
+					],
+					"i:107": [
+						"ammo"
+					],
+					"i:108": [
+						"ammo"
+					],
+					"i:109": [
+						"ammo"
+					],
+					"i:110": [
+						"ammo"
+					],
+					"i:111": [
+						"ammo"
+					],
+					"i:112": [
+						"ammo"
+					],
+					"i:113": [
+						"ammo"
+					],
+					"i:114": [
+						"ammo"
+					],
+					"i:115": [
+						"ammo"
+					],
+					"i:116": [
+						"ammo",
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:117": [
+						"ammo"
+					],
+					"i:118": [
+						"ammo"
+					],
+					"i:119": [
+						"ammo"
+					],
+					"i:120": [
+						"ammo"
+					],
+					"i:121": [
+						"ammo"
+					],
+					"i:122": [
+						"ammo"
+					],
+					"i:123": [
+						"ammo"
+					],
+					"i:124": [
+						"ammo"
+					],
+					"i:125": [
+						"ammo"
+					],
+					"i:126": [
+						"ammo"
+					],
+					"i:127": [
+						"ammo"
+					],
+					"i:128": [
+						"ammo"
+					],
+					"i:129": [
+						"ammo"
+					],
+					"i:130": [
+						"ammo"
+					],
+					"i:131": [
+						"ammo"
+					],
+					"i:132": [
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:134": [
+						"ammo"
+					],
+					"i:135": [
+						"ammo"
+					],
+					"i:136": [
+						"ammo"
+					],
+					"i:137": [
+						"ammo"
+					],
+					"i:138": [
+						"ammo"
+					],
+					"i:139": [
+						"ammo"
+					],
+					"i:140": [
+						"ammo"
+					],
+					"i:141": [
+						"ammo"
+					],
+					"i:142": [
+						"ammo"
+					],
+					"i:143": [
+						"ammo"
+					],
+					"i:144": [
+						"ammo",
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:149": [
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:151": [
+						"ammo"
+					],
+					"i:152": [
+						"ammo"
+					],
+					"i:153": [
+						"ammo"
+					],
+					"i:154": [
+						"ammo"
+					],
+					"i:155": [
+						"ammo"
+					],
+					"i:156": [
+						"ammo"
+					],
+					"i:157": [
+						"ammo"
+					],
+					"i:158": [
+						"ammo"
+					],
+					"i:159": [
+						"ammo"
+					],
+					"i:160": [
+						"ammo",
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:166": [
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:168": [
+						"ammo"
+					],
+					"i:169": [
+						"ammo"
+					],
+					"i:170": [
+						"ammo"
+					],
+					"i:171": [
+						"ammo"
+					],
+					"i:172": [
+						"ammo"
+					],
+					"i:173": [
+						"ammo"
+					],
+					"i:174": [
+						"ammo"
+					],
+					"i:175": [
+						"ammo"
+					],
+					"i:176": [
+						"ammo"
+					],
+					"i:177": [
+						"ammo"
+					],
+					"i:178": [
+						"ammo"
+					],
+					"i:179": [
+						"ammo"
+					],
+					"i:180": [
+						"ammo"
+					],
+					"i:181": [
+						"ammo"
+					],
+					"i:182": [
+						"ammo",
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:183": [
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:185": [
+						"ammo"
+					],
+					"i:186": [
+						"ammo"
+					],
+					"i:187": [
+						"ammo"
+					],
+					"i:188": [
+						"ammo"
+					],
+					"i:189": [
+						"ammo"
+					],
+					"i:190": [
+						"ammo"
+					],
+					"i:191": [
+						"ammo"
+					],
+					"i:192": [
+						"ammo"
+					],
+					"i:193": [
+						"ammo"
+					],
+					"i:194": [
+						"ammo"
+					],
+					"i:195": [
+						"ammo"
+					],
+					"i:196": [
+						"ammo"
+					],
+					"i:197": [
+						"ammo"
+					],
+					"i:198": [
+						"ammo"
+					],
+					"i:199": [
+						"ammo",
+						"weapon",
+						"weapon_class.handgun"
+					],
+					"i:99": [
+						"weapon",
+						"weapon_class.handgun"
+					]
+				}
+			},
+			"s:stress": {
+				"s:stress": {
+					"i:95": {
+						"s:handle": 5,
+						"s:stress": 0,
+						"s:value": 0
+					},
+					"i:96": {
+						"s:handle": 6,
+						"s:stress": 0,
+						"s:value": 0
+					},
+					"i:97": {
+						"s:handle": 7,
+						"s:stress": 0,
+						"s:value": 0
+					},
+					"i:98": {
+						"s:handle": 8,
+						"s:stress": 0,
+						"s:value": 0
+					}
+				}
+			},
+			"s:structures": {
+				"s:structures": {
+
+				}
+			}
+		},
+		"s:tick": 310
+	}
+}

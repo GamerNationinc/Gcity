@@ -1,0 +1,437 @@
+{
+	"content_digest": "d111b8ffca13d3dc50b3f98c722e54b3c49ec13bc410ee2c65ef3e081595d0e8",
+	"save_schema_version": 1,
+	"snapshot": {
+		"s:dispatched": 13,
+		"s:inbox": {
+
+		},
+		"s:paused": false,
+		"s:paused_steps": 0,
+		"s:rejected": 2,
+		"s:rng_state": "int:-4650051482731433321",
+		"s:schema_version": 1,
+		"s:seed": 20260921,
+		"s:systems": {
+			"s:actors": {
+				"s:actors": {
+					"i:1": {
+						"s:alive": true,
+						"s:device": 0,
+						"s:health": {
+							"s:body": 100000
+						},
+						"s:pos": [
+							0,
+							0,
+							0
+						],
+						"s:profile": "arcade",
+						"s:wielded": 0
+					}
+				}
+			},
+			"s:aim": {
+				"s:aim": {
+
+				}
+			},
+			"s:build": {
+				"s:pieces": {
+
+				}
+			},
+			"s:combat": {
+				"s:damage_dealt": 0,
+				"s:hits": 0,
+				"s:kills": 0,
+				"s:last": {
+
+				},
+				"s:shots": 0
+			},
+			"s:content": {
+				"s:digest": "d111b8ffca13d3dc50b3f98c722e54b3c49ec13bc410ee2c65ef3e081595d0e8",
+				"s:entries": 113
+			},
+			"s:entities": {
+				"s:next": 10
+			},
+			"s:items": {
+				"s:busy_until": {
+
+				},
+				"s:containers": {
+					"s:world": []
+				},
+				"s:items": {
+
+				},
+				"s:part_handles": {
+
+				},
+				"s:sockets": {
+
+				}
+			},
+			"s:land": {
+				"s:actor_owner": {
+					"i:1": "player"
+				},
+				"s:parcels": {
+					"s:neighbour_east": {
+						"s:ceiling_y": 9000,
+						"s:district": "starter_ghetto",
+						"s:floor_y": -3000,
+						"s:footprint": [
+							[
+								12192,
+								0
+							],
+							[
+								24384,
+								0
+							],
+							[
+								24384,
+								12192
+							],
+							[
+								12192,
+								12192
+							]
+						],
+						"s:owner": "player"
+					},
+					"s:neighbour_north": {
+						"s:ceiling_y": 9000,
+						"s:district": "starter_ghetto",
+						"s:floor_y": -3000,
+						"s:footprint": [
+							[
+								0,
+								12192
+							],
+							[
+								24384,
+								12192
+							],
+							[
+								24384,
+								18288
+							],
+							[
+								12192,
+								18288
+							],
+							[
+								12192,
+								24384
+							],
+							[
+								0,
+								24384
+							]
+						],
+						"s:owner": "npc.landlord_north"
+					},
+					"s:starter_plot": {
+						"s:ceiling_y": 9000,
+						"s:district": "starter_ghetto",
+						"s:floor_y": -3000,
+						"s:footprint": [
+							[
+								0,
+								0
+							],
+							[
+								12192,
+								0
+							],
+							[
+								12192,
+								12192
+							],
+							[
+								0,
+								12192
+							]
+						],
+						"s:owner": "player"
+					}
+				},
+				"s:violations": 1,
+				"s:wild_district": "badlands_outskirts"
+			},
+			"s:movement": {
+				"s:blocked": 0,
+				"s:moves": 0
+			},
+			"s:pathing": {
+				"s:expanded": 0,
+				"s:replan": false,
+				"s:routes": {
+
+				}
+			},
+			"s:perception": {
+				"s:agents": {
+
+				},
+				"s:alerts": 0,
+				"s:contacts": {
+
+				},
+				"s:last_pos": {
+					"i:1": [
+						0,
+						0,
+						0
+					]
+				}
+			},
+			"s:portals": {
+				"s:edges": [],
+				"s:nodes": {
+
+				},
+				"s:targets": {
+
+				}
+			},
+			"s:progression": {
+				"s:perks": {
+
+				},
+				"s:skills": {
+
+				}
+			},
+			"s:quests": {
+				"s:completed": 0,
+				"s:quests": {
+
+				}
+			},
+			"s:raids": {
+				"s:next_token": 1,
+				"s:tokens": {
+
+				}
+			},
+			"s:squads": {
+				"s:assignments": {
+
+				},
+				"s:delivered": 0,
+				"s:replan": false,
+				"s:reports": []
+			},
+			"s:stances": {
+				"s:fires": 0,
+				"s:scored": 0,
+				"s:stances": {
+
+				}
+			},
+			"s:stats": {
+				"s:bases": {
+					"i:2": {
+						"s:heat_headroom": 4000,
+						"s:power_available": 3000
+					},
+					"i:8": {
+						"s:heat_headroom": 4000,
+						"s:power_available": 3000
+					}
+				},
+				"s:classes": {
+					"s:add": 0,
+					"s:mul": 100
+				},
+				"s:inherits": {
+
+				},
+				"s:modifiers": {
+					"i:1": {
+						"s:class": "add",
+						"s:entity": 2,
+						"s:source": "module.3",
+						"s:stat": "power_available",
+						"s:tags": [],
+						"s:value": 2500
+					},
+					"i:10": {
+						"s:class": "add",
+						"s:entity": 2,
+						"s:source": "module.7",
+						"s:stat": "heat_headroom",
+						"s:tags": [],
+						"s:value": -900
+					},
+					"i:11": {
+						"s:class": "add",
+						"s:entity": 8,
+						"s:source": "module.9",
+						"s:stat": "power_available",
+						"s:tags": [],
+						"s:value": 2500
+					},
+					"i:12": {
+						"s:class": "add",
+						"s:entity": 8,
+						"s:source": "module.9",
+						"s:stat": "heat_headroom",
+						"s:tags": [],
+						"s:value": -600
+					},
+					"i:2": {
+						"s:class": "add",
+						"s:entity": 2,
+						"s:source": "module.3",
+						"s:stat": "heat_headroom",
+						"s:tags": [],
+						"s:value": -600
+					},
+					"i:3": {
+						"s:class": "add",
+						"s:entity": 2,
+						"s:source": "module.4",
+						"s:stat": "power_available",
+						"s:tags": [],
+						"s:value": -800
+					},
+					"i:4": {
+						"s:class": "add",
+						"s:entity": 2,
+						"s:source": "module.4",
+						"s:stat": "heat_headroom",
+						"s:tags": [],
+						"s:value": -500
+					},
+					"i:7": {
+						"s:class": "add",
+						"s:entity": 2,
+						"s:source": "module.6",
+						"s:stat": "power_available",
+						"s:tags": [],
+						"s:value": -1200
+					},
+					"i:8": {
+						"s:class": "add",
+						"s:entity": 2,
+						"s:source": "module.6",
+						"s:stat": "heat_headroom",
+						"s:tags": [],
+						"s:value": -900
+					},
+					"i:9": {
+						"s:class": "add",
+						"s:entity": 2,
+						"s:source": "module.7",
+						"s:stat": "power_available",
+						"s:tags": [],
+						"s:value": -1200
+					}
+				},
+				"s:next_handle": 13,
+				"s:stats": {
+					"s:aim_in_ticks": 0,
+					"s:antenna_gain": 0,
+					"s:battery_reserve": 1000,
+					"s:breach_noise": 0,
+					"s:cycle_ticks": 0,
+					"s:damage": 0,
+					"s:ergonomics": 0,
+					"s:heat_headroom": 0,
+					"s:hit_chance": 0,
+					"s:memory_capacity": 1000,
+					"s:noise": 0,
+					"s:piece_hp": 0,
+					"s:power_available": 0,
+					"s:recoil": 0,
+					"s:reload_ticks": 0,
+					"s:sway": 0
+				},
+				"s:tags": {
+
+				}
+			},
+			"s:stress": {
+				"s:stress": {
+
+				}
+			},
+			"s:structures": {
+				"s:structures": {
+					"i:2": {
+						"s:modules": {
+							"i:3": {
+								"s:col": 0,
+								"s:handles": [
+									1,
+									2
+								],
+								"s:row": 0,
+								"s:template": "power_cell_rack"
+							},
+							"i:4": {
+								"s:col": 2,
+								"s:handles": [
+									3,
+									4
+								],
+								"s:row": 0,
+								"s:template": "work_station"
+							},
+							"i:6": {
+								"s:col": 0,
+								"s:handles": [
+									7,
+									8
+								],
+								"s:row": 1,
+								"s:template": "sustainment"
+							},
+							"i:7": {
+								"s:col": 5,
+								"s:handles": [
+									9,
+									10
+								],
+								"s:row": 0,
+								"s:template": "sustainment"
+							}
+						},
+						"s:owner_at_placement": "player",
+						"s:rotation": 0,
+						"s:template": "container_20ft",
+						"s:x": 2000,
+						"s:y": 0,
+						"s:z": 4000
+					},
+					"i:8": {
+						"s:modules": {
+							"i:9": {
+								"s:col": 7,
+								"s:handles": [
+									11,
+									12
+								],
+								"s:row": 2,
+								"s:template": "power_cell_rack"
+							}
+						},
+						"s:owner_at_placement": "player",
+						"s:rotation": 0,
+						"s:template": "container_20ft",
+						"s:x": 14000,
+						"s:y": 0,
+						"s:z": 4000
+					}
+				}
+			}
+		},
+		"s:tick": 400
+	}
+}
