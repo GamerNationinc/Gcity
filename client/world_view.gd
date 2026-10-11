@@ -29,6 +29,29 @@ const THIRD_PERSON_BACK: float = 4.0
 const THIRD_PERSON_UP: float = 2.2
 const LOOK_SPEED: float = 2.0
 const AIM_CONE_DEG: float = 15.0
+## The M6 demo (claim 19), `--demo-script=cold_storage`: to Marlow on the street, the
+## contract taken with the context button, the contract view on the device, then east
+## to Cold Storage's front door, where the lobby camera's cone shows. [gap s, action];
+## a walk of n ticks takes n / 40 s.
+const COLD_STORAGE_DEMO: Array = [
+	[1.0, "look:90"],    # face +x
+	[0.1, "walk:80"],    # 12 m east
+	[2.2, "look:90"],    # face -z
+	[0.1, "walk:27"],    # 4 m north: at Marlow
+	[0.9, "interact"],   # take the contract (the site is raised)
+	[0.5, "device"],
+	[0.6, "device:device_next_app"], [0.6, "device:device_next_app"],
+	[0.6, "device:device_down"],     # the Cold Storage contract
+	[2.5, "device"],
+	[0.5, "look:180"],   # face +z
+	[0.1, "walk:7"],     # 1 m: off the utility box's row
+	[0.4, "look:90"],    # face +x
+	[0.1, "walk:187"],   # 28 m east, past the site's corner
+	[4.9, "look:-90"],   # face +z
+	[0.1, "walk:7"],     # to the front door: its prompt names it
+	[2.0, "look:-35"],   # towards the lobby camera's cone
+	[3.0, "wait"],
+]
 const SAVE_DIR: String = "user://saves/world"
 
 @onready var _host: LocalHost = $LocalHost
@@ -63,6 +86,13 @@ var _actor_nodes: Dictionary = {}
 var _bar_nodes: Dictionary = {}
 var _line_nodes: Dictionary = {}
 var _marker_nodes: Dictionary = {}
+## M6 claim 19: openings' last drawn state, camera cones, body and pile markers, site
+## exfil outlines and parcels drawn so far
+var _opening_open: Dictionary = {}
+var _cone_nodes: Dictionary = {}
+var _place_nodes: Dictionary = {}
+var _exfil_drawn: Dictionary = {}
+var _parcels_drawn: Dictionary = {}
 var _demo: bool = false
 var _demo_quit_s: float = -1.0
 var _demo_t: float = 0.0
@@ -77,6 +107,8 @@ var _screenshot_at_s: float = -1.0
 var _capture_path: String = ""
 var _frame_usec: PackedInt32Array = PackedInt32Array()
 var _demo_loop: bool = false
+## "" for the M5 demo; "cold_storage" for the M6 one (claim 19)
+var _demo_name: String = ""
 var _demo_loops: int = 0
 
 
@@ -94,6 +126,8 @@ func _ready() -> void:
 			_capture_path = arg.trim_prefix("--capture=")
 		elif arg == "--demo-loop":
 			_demo_loop = true
+		elif arg.begins_with("--demo-script="):
+			_demo_name = arg.trim_prefix("--demo-script=")
 	_piece_templates = _host.content().ids(&"build_piece")
 	_glyphs.set_deck(_steam.is_deck())
 	_glyphs.set_controller_active(_steam.is_deck() or not Input.get_connected_joypads().is_empty())
@@ -103,6 +137,8 @@ func _ready() -> void:
 
 
 func _build_demo_script() -> Array:
+	if _demo_name == "cold_storage":
+		return _timed(COLD_STORAGE_DEMO)
 	# [gap before the action in seconds of sim time, action]
 	var steps: Array = [
 		[1.0, "wield"],
@@ -120,6 +156,11 @@ func _build_demo_script() -> Array:
 		[0.4, "reload"],
 		[6.8, "restart"],   # the Deck's own way back after a death
 	]
+	return _timed(steps)
+
+
+## [[gap, action]] to [[time, action]].
+static func _timed(steps: Array) -> Array:
 	var script: Array = []
 	var t: float = 0.0
 	for step: Array in steps:
@@ -203,9 +244,38 @@ func _build_static_scene() -> void:
 	ground.material_override = _material(Color(0.32, 0.3, 0.28))
 	ground.position = Vector3(0.0, -0.02, 0.0)
 	add_child(ground)
-	var land: LandSystem = SimAssembly.land_of(_host.sim())
+	_sync_parcels(_host.sim())
+	var content: ContentDb = _host.content()
+	for fixer: StringName in content.ids(QuestSystem.KIND_FIXER):
+		var f: Dictionary = content.get_entry(QuestSystem.KIND_FIXER, fixer)
+		var cell: Vector3i = SiteSystem._cell(f["cell"])
+		var body: MeshInstance3D = _capsule(Color(0.6, 0.35, 0.8))
+		body.position = Vector3(float(cell.x) + 0.5, float(cell.y) + 0.9, float(cell.z) + 0.5)
+		add_child(body)
+		var name_s: String = f["name"]
+		add_child(_label3d("%s (fixer)" % name_s, body.position + Vector3(0.0, 1.3, 0.0), Color(0.85, 0.7, 1.0)))
+
+
+## Parcels as they appear: the starting ones, then a site's when it is raised.
+func _sync_parcels(sim: SimRoot) -> void:
+	var land: LandSystem = SimAssembly.land_of(sim)
 	for id: StringName in land.parcel_ids():
-		add_child(_parcel_node(land, id))
+		if not _parcels_drawn.has(id):
+			_parcels_drawn[id] = true
+			add_child(_parcel_node(land, id))
+
+
+func _label3d(text: String, at: Vector3, colour: Color) -> Label3D:
+	var label := Label3D.new()
+	label.text = text
+	label.position = at
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.pixel_size = 0.01
+	label.font_size = 48
+	label.outline_size = 12
+	label.modulate = colour
+	label.no_depth_test = true
+	return label
 
 
 func _parcel_node(land: LandSystem, id: StringName) -> MeshInstance3D:
@@ -244,6 +314,15 @@ func _material(colour: Color) -> StandardMaterial3D:
 	return m
 
 
+func _see_through(colour: Color, alpha: float) -> StandardMaterial3D:
+	var m := StandardMaterial3D.new()
+	m.albedo_color = Color(colour.r, colour.g, colour.b, alpha)
+	m.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	m.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	m.cull_mode = BaseMaterial3D.CULL_DISABLED
+	return m
+
+
 func _box(size: Vector3, colour: Color) -> MeshInstance3D:
 	var node := MeshInstance3D.new()
 	var mesh := BoxMesh.new()
@@ -271,20 +350,36 @@ func _capsule(colour: Color) -> MeshInstance3D:
 ## diff-based refresh is a G4 item if the profiler says so.
 func _sync_scene(sim: SimRoot) -> void:
 	var build: BuildSystem = SimAssembly.build_of(sim)
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	# the cutaway (M6 claim 19): nothing above the player's storey, nor its ceiling
+	var storey: int = BuildSystem.storey_of(actors.position_of(_player)) if _player != 0 else 0
 	var present: Dictionary = {}
 	for id: int in build.piece_ids():
 		present[id] = true
-		if _piece_nodes.has(id):
-			continue
-		var node: MeshInstance3D = _piece_mesh(build, id)
-		_piece_nodes[id] = node
-		add_child(node)
+		if not _piece_nodes.has(id):
+			var made: MeshInstance3D = _piece_mesh(build, id)
+			_piece_nodes[id] = made
+			add_child(made)
+		var node: MeshInstance3D = _piece_nodes[id]
+		var cell: Vector3i = build.cell_of_piece(id)
+		var rec: Dictionary = build.piece(id)
+		var face: String = rec["face"]
+		node.visible = cell.y < storey if face.ends_with("|y") else cell.y <= storey
+		if build.is_opening(id):
+			var open: bool = build.is_open(id)
+			if _opening_open.get(id, not open) != open:
+				_opening_open[id] = open
+				var colour: Color = _piece_colour(build, id)
+				node.material_override = _see_through(colour, 0.22) if open else _material(colour)
 	for id: int in _piece_nodes.keys():
 		if not present.has(id):
 			var node: MeshInstance3D = _piece_nodes[id]
 			node.queue_free()
 			_piece_nodes.erase(id)
-	var actors: ActorSystem = SimAssembly.actors_of(sim)
+			_opening_open.erase(id)
+	_sync_parcels(sim)
+	_sync_exfil(sim)
+	_sync_places(sim, storey)
 	var perception: PerceptionSystem = SimAssembly.perception_of(sim)
 	var stances: StanceSystem = SimAssembly.stances_of(sim)
 	for actor: int in actors.actor_ids():
@@ -294,12 +389,13 @@ func _sync_scene(sim: SimRoot) -> void:
 			add_child(node)
 		var capsule: MeshInstance3D = _actor_nodes[actor]
 		var p: Vector3i = actors.position_of(actor)
-		capsule.position = Vector3(float(p.x) / M, 0.9, float(p.z) / M)
+		var floor_y: float = float(p.y) / M
+		capsule.position = Vector3(float(p.x) / M, floor_y + 0.9, float(p.z) / M)
 		var alive: bool = actors.is_alive(actor)
-		capsule.visible = not (_first_person and actor == _player)
+		capsule.visible = not (_first_person and actor == _player) and BuildSystem.storey_of(p) <= storey
 		if not alive:
 			# down: a dark slab where the body fell
-			capsule.position.y = 0.15
+			capsule.position.y = floor_y + 0.15
 			capsule.scale = Vector3(1.0, 0.15, 1.0)
 			capsule.material_override = _material(Color(0.15, 0.13, 0.13))
 		if actor == _player:
@@ -311,6 +407,8 @@ func _sync_scene(sim: SimRoot) -> void:
 				var colour: Color = STANCE_COLOURS[stance] if STANCE_COLOURS.has(stance) else Color(0.85, 0.3, 0.25)
 				capsule.material_override = _material(colour)
 			_sync_guard_overlay(actor, alive, p, perception)
+			if perception.profile_of(actor) == &"camera":
+				_sync_cone(actor, alive and BuildSystem.storey_of(p) <= storey, p, perception)
 	var raids: RaidTokenSystem = SimAssembly.raids_of(sim)
 	var tokens: Dictionary = {}
 	for token: int in raids.token_ids():
@@ -368,9 +466,103 @@ func _sync_guard_overlay(guard: int, alive: bool, p: Vector3i, perception: Perce
 		marker.position = Vector3(float(last.x) / M, 0.15, float(last.z) / M)
 
 
-func _piece_mesh(build: BuildSystem, id: int) -> MeshInstance3D:
-	var rec: Dictionary = build.piece(id)
-	var face: String = rec["face"]
+## A camera's view cone on its floor (M6 claim 19), turned with its sweep and cut
+## short where the sim's own line of sight stops (each ray binary-searched against
+## PerceptionSystem.line_of_sight), in the standard colours: green unaware of the
+## player, amber noticing, red alerted.
+func _sync_cone(camera: int, show: bool, p: Vector3i, perception: PerceptionSystem) -> void:
+	if not _cone_nodes.has(camera):
+		var made := MeshInstance3D.new()
+		_cone_nodes[camera] = made
+		add_child(made)
+	var cone: MeshInstance3D = _cone_nodes[camera]
+	cone.visible = show
+	if not show:
+		return
+	var spec: Dictionary = perception.perception_of(camera)
+	var range_mm: int = spec["sight_range_mm"]
+	var fov: int = spec["fov_deg"]
+	var facing: float = deg_to_rad(float(perception.facing_of(camera)))
+	var half: float = deg_to_rad(float(fov) / 2.0)
+	var steps: int = 12
+	var rim: Array[Vector3] = []
+	for i: int in steps + 1:
+		# facing 0 is +x and 90 is +z in the sim
+		var a: float = facing - half + 2.0 * half * float(i) / float(steps)
+		var dir: Vector2 = Vector2(cos(a), sin(a))
+		var lo: int = 0
+		var hi: int = range_mm
+		for k: int in 7:
+			var mid: int = (lo + hi + 1) / 2
+			var to: Vector3i = p + Vector3i(roundi(dir.x * mid), 0, roundi(dir.y * mid))
+			if perception.line_of_sight(p, to):
+				lo = mid
+			else:
+				hi = mid - 1
+		rim.append(Vector3(dir.x, 0.0, dir.y) * float(lo) / M)
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i: int in steps:
+		st.add_vertex(Vector3.ZERO)
+		st.add_vertex(rim[i])
+		st.add_vertex(rim[i + 1])
+	cone.mesh = st.commit()
+	cone.position = Vector3(float(p.x) / M, float(p.y) / M + 0.08, float(p.z) / M)
+	var colour: Color = Color(0.3, 0.85, 0.35)
+	if perception.is_alerted(camera, _player):
+		colour = Color(0.95, 0.2, 0.2)
+	elif perception.awareness_of(camera, _player) > 0:
+		colour = Color(0.95, 0.65, 0.1)
+	cone.material_override = _see_through(colour, 0.35)
+
+
+## Bodies and piles (M6 claims 16, 19): a marker and a word where the sim keeps them.
+## A crate place is its crate piece, already drawn.
+func _sync_places(sim: SimRoot, storey: int) -> void:
+	var corpses: CorpseSystem = SimAssembly.corpses_of(sim)
+	var present: Dictionary = {}
+	for place: StringName in corpses.place_ids():
+		var what: String = String(place).get_slice(".", 0)
+		if what == "crate":
+			continue
+		present[place] = true
+		if not _place_nodes.has(place):
+			var colour: Color = Color(0.45, 0.1, 0.1) if what == "corpse" else Color(0.5, 0.4, 0.25)
+			var made: MeshInstance3D = _box(Vector3(0.6, 0.12, 0.6), colour)
+			made.add_child(_label3d("body" if what == "corpse" else "dropped items", Vector3(0.0, 0.5, 0.0), Color(1.0, 0.85, 0.8)))
+			_place_nodes[place] = made
+			add_child(made)
+		var node: MeshInstance3D = _place_nodes[place]
+		var at: Vector3i = corpses.position_of(place)
+		node.position = Vector3(float(at.x) / M, float(at.y) / M + 0.06, float(at.z) / M)
+		node.visible = corpses.storey_of(place) <= storey
+	for place: Variant in _place_nodes.keys():
+		if not present.has(place):
+			var node: MeshInstance3D = _place_nodes[place]
+			node.queue_free()
+			_place_nodes.erase(place)
+
+
+## A raised site's exfil zone (M6 claims 14, 19): its outline on the ground, green.
+## Leaving it with the goods is getting out.
+func _sync_exfil(sim: SimRoot) -> void:
+	var sites: SiteSystem = SimAssembly.sites_of(sim)
+	for site: StringName in _host.content().ids(SiteSystem.KIND_SITE):
+		if _exfil_drawn.has(site) or not sites.is_spawned(site):
+			continue
+		_exfil_drawn[site] = true
+		var poly: Array[Vector2i] = sites.exfil_of(site)
+		for i: int in poly.size():
+			var a: Vector2 = Vector2(poly[i]) / M
+			var b: Vector2 = Vector2(poly[(i + 1) % poly.size()]) / M
+			var edge: MeshInstance3D = _box(Vector3(a.distance_to(b), 0.04, 0.15), Color(0.2, 0.9, 0.4))
+			edge.position = Vector3((a.x + b.x) / 2.0, 0.03, (a.y + b.y) / 2.0)
+			edge.rotation.y = -(b - a).angle()
+			add_child(edge)
+		add_child(_label3d("exit zone: leave it carrying the goods", Vector3(float(poly[0].x) / M, 0.6, float(poly[0].y) / M), Color(0.6, 1.0, 0.7)))
+
+
+func _piece_colour(build: BuildSystem, id: int) -> Color:
 	var kind: StringName = build.kind_of(id)
 	var colour: Color = Color(0.6, 0.6, 0.62)
 	match kind:
@@ -384,6 +576,13 @@ func _piece_mesh(build: BuildSystem, id: int) -> MeshInstance3D:
 			colour = Color(0.85, 0.7, 0.2)
 		&"foundation":
 			colour = Color(0.45, 0.45, 0.47)
+	return colour
+
+
+func _piece_mesh(build: BuildSystem, id: int) -> MeshInstance3D:
+	var rec: Dictionary = build.piece(id)
+	var face: String = rec["face"]
+	var colour: Color = _piece_colour(build, id)
 	var cell: Vector3i = build.cell_of_piece(id)
 	var node: MeshInstance3D
 	if face.is_empty():
@@ -467,7 +666,7 @@ func _place_camera(sim: SimRoot) -> void:
 	if _player == 0:
 		return
 	var p: Vector3i = SimAssembly.actors_of(sim).position_of(_player)
-	var feet: Vector3 = Vector3(float(p.x) / M, 0.0, float(p.z) / M)
+	var feet: Vector3 = Vector3(float(p.x) / M, float(p.y) / M, float(p.z) / M)
 	var forward: Vector3 = Vector3(-sin(_yaw), 0.0, -cos(_yaw))
 	if _first_person:
 		_camera.position = feet + Vector3(0.0, EYE_HEIGHT, 0.0)
@@ -589,7 +788,7 @@ func _advance_setup(sim: SimRoot) -> void:
 			_submit(sim, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"})
 			for command: Dictionary in SiteSystem.place_commands(_host.content(), &"m4_test_building", Vector3i.ZERO, _player):
 				_submit(sim, &"build.place", command)
-			for guard: Dictionary in SiteSystem.agent_commands(_host.content(), &"m4_test_building", GUARD_PROFILES[_guard_profile]):
+			for guard: Dictionary in _m4_guards():
 				_submit(sim, &"agent.spawn", guard)
 			_submit_kit(sim, _player, 1, 2, 30)
 			var inv: String = String(ItemSystem.inventory_of(_player))
@@ -599,7 +798,7 @@ func _advance_setup(sim: SimRoot) -> void:
 			_setup_stage = 2
 		2:
 			var ids: Array[int] = actors.actor_ids()
-			if ids.size() < 5:
+			if ids.size() < 1 + _m4_guards().size():
 				return
 			_guards = []
 			for id: int in ids:
@@ -641,6 +840,14 @@ func _advance_setup(sim: SimRoot) -> void:
 					return
 			_note("t%d ready: player %d, %d guards armed (%s), %d pieces, %d rejected" % [sim.get_tick(), _player, _guards.size(), GUARD_PROFILES[_guard_profile], SimAssembly.build_of(sim).piece_ids().size(), sim.rejected_count()])
 			_setup_stage = READY
+
+
+## The M4 building's guards, as agent.spawn payloads; none in the Cold Storage demo,
+## whose street they would cover (Cold Storage brings its own).
+func _m4_guards() -> Array[Dictionary]:
+	if _demo_name == "cold_storage":
+		return [] as Array[Dictionary]
+	return SiteSystem.agent_commands(_host.content(), &"m4_test_building", GUARD_PROFILES[_guard_profile])
 
 
 ## A G19, magazines and rounds into an actor's inventory. Seeds only need to differ
@@ -774,6 +981,8 @@ func _perform(action: String) -> void:
 			elif action.begins_with("walk:"):
 				_demo_walk_ticks = action.trim_prefix("walk:").to_int()
 				_demo_walk_dir = Vector2(0.0, -1.0)
+			elif action == "wait":
+				pass
 			elif action.begins_with("look:"):
 				_yaw += deg_to_rad(float(action.trim_prefix("look:")))
 			else:
