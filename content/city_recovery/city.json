@@ -1,0 +1,6 @@
+{
+	"schema_version": 1,
+	"description": "City softening on death (M6 claim 17, ADR-007 C): where law_index >= min_law_index each item in the body comes home with probability law_index / 1000, for fee credits each. First values, to tune.",
+	"min_law_index": 400,
+	"fee": 100
+}

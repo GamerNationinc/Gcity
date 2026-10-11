@@ -227,6 +227,12 @@ static func inventory_of(actor: int) -> StringName:
 	return StringName("inv.%d" % actor)
 
 
+## The actor's base container (M6 claim 17): where the city returns kit from a body.
+## A stand-in for storage in the plot's 20 ft container (design doc §8.1).
+static func base_of(actor: int) -> StringName:
+	return StringName("base.%d" % actor)
+
+
 static func magazine_container(magazine: int) -> StringName:
 	return StringName("mag.%d" % magazine)
 
@@ -863,9 +869,10 @@ func _is_open_container(name: StringName) -> bool:
 	if name == WORLD:
 		return true
 	var text: String = String(name)
-	if not text.begins_with("inv."):
+	var prefix: String = "inv." if text.begins_with("inv.") else "base."
+	if not text.begins_with(prefix):
 		return false
-	var rest: String = text.trim_prefix("inv.")
+	var rest: String = text.trim_prefix(prefix)
 	return rest.is_valid_int() and int(rest) >= 1 and str(int(rest)) == rest
 
 

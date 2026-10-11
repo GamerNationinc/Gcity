@@ -199,6 +199,15 @@ func make_crate(at: Vector3i) -> StringName:
 	return _make(KIND_CRATE, EntityIds.NONE, at)
 
 
+## Forgets a place that holds nothing any more (the city may empty a body, M6 claim
+## 17). True when it went.
+func forget_if_empty(place: StringName) -> bool:
+	if not has_place(place) or not _items.items_in(place).is_empty():
+		return false
+	_places.erase(String(place))
+	return true
+
+
 func _pile_at(cell: Vector3i) -> StringName:
 	for place: StringName in place_ids():
 		var rec: Dictionary = _places[String(place)]
