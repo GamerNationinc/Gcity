@@ -12,6 +12,8 @@
 ## `--demo-loop` repeats the demo until quit and `--capture=<path>` writes frame times.
 class_name WorldView extends Node3D
 
+## Where the player starts for the M4 building: on the street, off the door's axis.
+const M4_PLAYER_START: Vector3i = Vector3i(2500, 0, 1500)
 const M: float = 1000.0
 const PROFILE: StringName = &"arcade"
 const GUARD_PROFILES: Array[String] = ["guard_sim", "guard_arcade"]
@@ -567,7 +569,7 @@ func _unhandled_input(event: InputEvent) -> void:
 # ---------------------------------------------------------------- setup and actions
 
 ## The player on the street with the pistol kit and both parcels owned; the M4
-## building raised from `M4Building.commands`; four guards spawned and armed the same
+## building raised from `content/site/m4_test_building` (SiteSystem.place_commands); four guards spawned and armed the same
 ## way the player is, through commands. Stages wait for the sim to catch up.
 func _advance_setup(sim: SimRoot) -> void:
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
@@ -581,13 +583,13 @@ func _advance_setup(sim: SimRoot) -> void:
 			if ids.is_empty():
 				return
 			_player = ids[0]
-			actors.set_position(_player, M4Building.PLAYER_START)
+			actors.set_position(_player, M4_PLAYER_START)
 			_submit(sim, &"land.identify", {"actor": _player, "owner": "player"})
 			_submit(sim, &"land.transfer", {"parcel": "starter_plot", "owner": "player"})
 			_submit(sim, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"})
-			for command: Dictionary in M4Building.commands(_player):
+			for command: Dictionary in SiteSystem.place_commands(_host.content(), &"m4_test_building", Vector3i.ZERO, _player):
 				_submit(sim, &"build.place", command)
-			for guard: Dictionary in M4Building.guards(GUARD_PROFILES[_guard_profile]):
+			for guard: Dictionary in SiteSystem.agent_commands(_host.content(), &"m4_test_building", GUARD_PROFILES[_guard_profile]):
 				_submit(sim, &"agent.spawn", guard)
 			_submit_kit(sim, _player, 1, 2, 30)
 			var inv: String = String(ItemSystem.inventory_of(_player))

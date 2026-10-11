@@ -10,6 +10,8 @@
 ## checkout on the Deck, plugged and on battery.
 extends SceneTree
 
+## The M4 test building's lobby south-west interior cell (content/site/m4_test_building).
+const M4_BASE: Vector3i = Vector3i(3, 0, 8)
 const DEFAULT_TICKS: int = 12_000
 const REBUILD_EVERY: int = 400
 const EXTRA_GUARDS: Array[Vector3i] = [Vector3i(1, 0, 2), Vector3i(3, 0, 2)]
@@ -56,18 +58,18 @@ func _run(ticks: int, agents: bool) -> Dictionary:
 	var owner: int = actors.spawn(&"arcade", 0)
 	actors.set_position(owner, Vector3i(-20_000, 0, -20_000))
 	var target: int = actors.spawn(&"range_dummy", 0)
-	actors.set_position(target, BuildSystem.cell_centre(M4Building.BASE + Vector3i(1, 0, 1)) - Vector3i(0, 500, 0))
+	actors.set_position(target, BuildSystem.cell_centre(M4_BASE + Vector3i(1, 0, 1)) - Vector3i(0, 500, 0))
 	var at: int = sim.get_tick() + 1
 	sim.submit(SimCommand.new(at, &"land.identify", {"actor": owner, "owner": "player"}))
 	sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "starter_plot", "owner": "player"}))
 	sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"}))
-	for c: Dictionary in M4Building.commands(owner):
+	for c: Dictionary in SiteSystem.place_commands(db, &"m4_test_building", Vector3i.ZERO, owner):
 		sim.submit(SimCommand.new(at, &"build.place", c))
 	if agents:
-		for g: Dictionary in M4Building.guards("guard_sim"):
+		for g: Dictionary in SiteSystem.agent_commands(db, &"m4_test_building", "guard_sim"):
 			sim.submit(SimCommand.new(at, &"agent.spawn", g))
 		for rel: Vector3i in EXTRA_GUARDS:
-			var cell: Vector3i = M4Building.BASE + rel
+			var cell: Vector3i = M4_BASE + rel
 			sim.submit(SimCommand.new(at, &"agent.spawn", {"profile": "guard_sim", "cell": [cell.x, cell.y, cell.z], "facing": 270, "squad": 1, "route": ""}))
 	sim.step()
 	assert(sim.rejected_count() == 0, "setup applied")
@@ -75,7 +77,7 @@ func _run(ticks: int, agents: bool) -> Dictionary:
 	for g: int in guards:
 		_arm(sim, items, g)
 	sim.step_n(100)
-	var wall_cell: Vector3i = BuildSystem.cell_centre(M4Building.BASE + Vector3i(-3, 0, -3))
+	var wall_cell: Vector3i = BuildSystem.cell_centre(M4_BASE + Vector3i(-3, 0, -3))
 	var wall: int = 0
 	var build: BuildSystem = SimAssembly.build_of(sim)
 	var all: Array[int] = []

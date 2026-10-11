@@ -1,5 +1,5 @@
 ## Writes the M4 replay fixtures (spec claim 14) into tests/replay/: the building
-## from M4Building, four armed guards, and one scripted player per scenario. Runs a
+## from content/site/m4_test_building, four armed guards, and one scripted player per scenario. Runs a
 ## sim while writing so that item ids in later commands come from the sim itself.
 ##   godot --headless --path . -s tools/make_m4_fixtures.gd
 ## Then `tools/test.sh replay` prints each hash to paste into "expected_hash".
@@ -47,9 +47,9 @@ func _write(name: String, profile: String, range_m: int, moves: Array, tail: int
 	_at(2, &"land.identify", {"actor": player, "owner": "player"})
 	_at(2, &"land.transfer", {"parcel": "starter_plot", "owner": "player"})
 	_at(2, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"})
-	for c: Dictionary in M4Building.commands(player):
+	for c: Dictionary in SiteSystem.place_commands(db, &"m4_test_building", Vector3i.ZERO, player):
 		_at(2, &"build.place", c)
-	for g: Dictionary in M4Building.guards(profile):
+	for g: Dictionary in SiteSystem.agent_commands(db, &"m4_test_building", profile):
 		_at(2, &"agent.spawn", g)
 	for cell: Vector3i in cover:
 		var c: Vector3i = BuildSystem.cell_centre(cell)

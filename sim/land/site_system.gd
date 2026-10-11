@@ -205,6 +205,36 @@ static func _scaled(footprint: Variant, origin: Vector3i) -> Array:
 	return out
 
 
+# ---------------------------------------------------------------- as commands
+
+## A site's pieces as `build.place` payloads for `actor` at `origin`, in the file's order:
+## how the client demo and the M4 fixtures raise the M4 test building piece by piece on
+## the player's own parcels, with the player's rights (M4 spec claim 14).
+static func place_commands(content: ContentDb, site: StringName, origin: Vector3i, actor: int) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var t: Dictionary = content.get_entry(KIND_SITE, site)
+	var pieces: Array = t["pieces"]
+	for v: Variant in pieces:
+		var e: Dictionary = v
+		var centre: Vector3i = BuildSystem.cell_centre(_cell(e["cell"]) + origin)
+		out.append({"actor": actor, "piece": e["piece"], "x": centre.x, "y": centre.y, "z": centre.z, "facing": e["facing"]})
+	return out
+
+
+## A site's agents as `agent.spawn` payloads, with `profile` in place of each agent's
+## own when it is not empty. agent.spawn measures routes from cell zero, so this is for
+## a site whose cells are absolute (origin zero), as the M4 test building's are.
+static func agent_commands(content: ContentDb, site: StringName, profile: String) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var t: Dictionary = content.get_entry(KIND_SITE, site)
+	var agents: Array = t["agents"]
+	for v: Variant in agents:
+		var a: Dictionary = v
+		var c: Vector3i = _cell(a["cell"])
+		out.append({"profile": a["profile"] if profile.is_empty() else profile, "cell": [c.x, c.y, c.z], "facing": a["facing"], "squad": a["squad"], "route": a["route"]})
+	return out
+
+
 # ---------------------------------------------------------------- spawning
 
 func is_spawned(site: StringName) -> bool:

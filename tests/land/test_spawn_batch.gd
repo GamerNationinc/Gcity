@@ -4,8 +4,11 @@ extends GcityTest
 ## first, then every piece in order with no rights check, support checked once for the
 ## whole set, one build.changed. All or nothing: any piece that does not fit leaves the
 ## build, the excavation and the id counter exactly as they were. Oracle: the M4 building
-## spawned as one batch is the same build as the M4 building placed piece by piece.
+## (content/site/m4_test_building) spawned as one batch is the same build as the M4
+## building placed piece by piece.
 
+## Where the player starts for the M4 building: on the street, off the door's axis.
+const M4_PLAYER_START: Vector3i = Vector3i(2500, 0, 1500)
 const SEED: int = 20261034
 const M: int = 1000
 const FAR: Vector3i = Vector3i(500 * M, 0, 500 * M)
@@ -53,6 +56,11 @@ func _own(player: int) -> void:
 	_sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "starter_plot", "owner": "player"}))
 	_sim.submit(SimCommand.new(at, &"land.transfer", {"parcel": "neighbour_north", "owner": "player"}))
 	_sim.step()
+
+
+func _content() -> ContentDb:
+	var content: ContentDb = _sim.get_system(ContentDb.SYSTEM_ID)
+	return content
 
 
 func _state() -> String:
@@ -110,10 +118,10 @@ func test_a_batch_that_does_not_fit_changes_nothing() -> void:
 func test_oracle_the_m4_building_as_one_batch_equals_it_placed_piece_by_piece() -> void:
 	_setup()
 	var player: int = _actors.spawn(&"arcade", 0)
-	_actors.set_position(player, M4Building.PLAYER_START)
+	_actors.set_position(player, M4_PLAYER_START)
 	_own(player)
 	var entries: Array[Dictionary] = []
-	for c: Dictionary in M4Building.commands(player):
+	for c: Dictionary in SiteSystem.place_commands(_content(), &"m4_test_building", Vector3i.ZERO, player):
 		var x: int = c["x"]
 		var y: int = c["y"]
 		var z: int = c["z"]
@@ -125,9 +133,9 @@ func test_oracle_the_m4_building_as_one_batch_equals_it_placed_piece_by_piece() 
 	var batched: Dictionary = _build.snapshot()
 	_setup()
 	player = _actors.spawn(&"arcade", 0)
-	_actors.set_position(player, M4Building.PLAYER_START)
+	_actors.set_position(player, M4_PLAYER_START)
 	_own(player)
-	for c: Dictionary in M4Building.commands(player):
+	for c: Dictionary in SiteSystem.place_commands(_content(), &"m4_test_building", Vector3i.ZERO, player):
 		var x2: int = c["x"]
 		var y2: int = c["y"]
 		var z2: int = c["z"]
