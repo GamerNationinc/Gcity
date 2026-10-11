@@ -17,6 +17,7 @@
 ##   ["wield", item] / ["equip", device] / ["attach", device, module]
 ##   ["respawn"]
 ##   ["call", Callable]              runs Callable(driver) -> bool once a tick until true
+##   ["call", Callable, patience]    the same, giving up after `patience` ticks
 extends RefCounted
 
 const PATIENCE: int = 2400
@@ -48,11 +49,15 @@ func submit(kind: StringName, payload: Dictionary) -> void:
 
 ## Runs the plan to its end (or to a failure), stepping the sim. True when every step
 ## finished.
-func run(plan: Array) -> bool:
+func run(plan: Array, limit: int = -1) -> bool:
 	_plan = plan
 	_step = 0
 	_issued = false
+	var start: int = sim.get_tick()
 	while _step < _plan.size() and failure.is_empty():
+		if limit >= 0 and sim.get_tick() - start >= limit:
+			failure = "the plan ran past %d ticks" % limit
+			break
 		_tick()
 		sim.step()
 	return failure.is_empty()
@@ -77,8 +82,12 @@ func _tick() -> void:
 	if _done(action, step):
 		_step += 1
 		_issued = false
-	elif sim.get_tick() - _started > PATIENCE:
-		failure = "step %d (%s) did not finish in %d ticks" % [_step, action, PATIENCE]
+	else:
+		var patience: int = PATIENCE
+		if action == "call" and step.size() > 2:
+			patience = step[2]
+		if sim.get_tick() - _started > patience:
+			failure = "step %d (%s) did not finish in %d ticks" % [_step, action, patience]
 
 
 func _issue(action: String, step: Array) -> void:

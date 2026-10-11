@@ -4813,7 +4813,7 @@
 		{
 			"kind": "item.spawn",
 			"payload": {
-				"container": "inv.320",
+				"container": "inv.322",
 				"count": 1,
 				"kind": "weapon_frame",
 				"seed": 11,
@@ -4824,7 +4824,7 @@
 		{
 			"kind": "item.spawn",
 			"payload": {
-				"container": "inv.320",
+				"container": "inv.322",
 				"count": 1,
 				"kind": "weapon_part",
 				"seed": 12,
@@ -4835,7 +4835,7 @@
 		{
 			"kind": "item.spawn",
 			"payload": {
-				"container": "inv.320",
+				"container": "inv.322",
 				"count": 15,
 				"kind": "ammo",
 				"seed": 13,
@@ -4846,26 +4846,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
-				"round": 323
-			},
-			"tick": 1885
-		},
-		{
-			"kind": "magazine.load",
-			"payload": {
-				"actor": 320,
-				"magazine": 322,
-				"round": 324
-			},
-			"tick": 1885
-		},
-		{
-			"kind": "magazine.load",
-			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 325
 			},
 			"tick": 1885
@@ -4873,8 +4855,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 326
 			},
 			"tick": 1885
@@ -4882,8 +4864,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 327
 			},
 			"tick": 1885
@@ -4891,8 +4873,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 328
 			},
 			"tick": 1885
@@ -4900,8 +4882,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 329
 			},
 			"tick": 1885
@@ -4909,8 +4891,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 330
 			},
 			"tick": 1885
@@ -4918,8 +4900,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 331
 			},
 			"tick": 1885
@@ -4927,8 +4909,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 332
 			},
 			"tick": 1885
@@ -4936,8 +4918,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 333
 			},
 			"tick": 1885
@@ -4945,8 +4927,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 334
 			},
 			"tick": 1885
@@ -4954,8 +4936,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 335
 			},
 			"tick": 1885
@@ -4963,8 +4945,8 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 336
 			},
 			"tick": 1885
@@ -4972,33 +4954,51 @@
 		{
 			"kind": "magazine.load",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
+				"actor": 322,
+				"magazine": 324,
 				"round": 337
+			},
+			"tick": 1885
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 322,
+				"magazine": 324,
+				"round": 338
+			},
+			"tick": 1885
+		},
+		{
+			"kind": "magazine.load",
+			"payload": {
+				"actor": 322,
+				"magazine": 324,
+				"round": 339
 			},
 			"tick": 1885
 		},
 		{
 			"kind": "actor.wield",
 			"payload": {
-				"actor": 320,
-				"weapon": 321
+				"actor": 322,
+				"weapon": 323
 			},
 			"tick": 1885
 		},
 		{
 			"kind": "weapon.reload_tactical",
 			"payload": {
-				"actor": 320,
-				"magazine": 322,
-				"weapon": 321
+				"actor": 322,
+				"magazine": 324,
+				"weapon": 323
 			},
 			"tick": 1890
 		},
 		{
 			"kind": "weapon.fire",
 			"payload": {
-				"actor": 320,
+				"actor": 322,
 				"target": 1
 			},
 			"tick": 1983
@@ -5006,7 +5006,7 @@
 		{
 			"kind": "weapon.fire",
 			"payload": {
-				"actor": 320,
+				"actor": 322,
 				"target": 1
 			},
 			"tick": 1989
@@ -5014,7 +5014,7 @@
 		{
 			"kind": "weapon.fire",
 			"payload": {
-				"actor": 320,
+				"actor": 322,
 				"target": 1
 			},
 			"tick": 1995
@@ -5022,7 +5022,7 @@
 		{
 			"kind": "weapon.fire",
 			"payload": {
-				"actor": 320,
+				"actor": 322,
 				"target": 1
 			},
 			"tick": 2001
@@ -8827,8 +8827,8 @@
 			"kind": "item.take",
 			"payload": {
 				"actor": 1,
-				"from": "corpse.2",
-				"item": 319
+				"from": "corpse.3",
+				"item": 321
 			},
 			"tick": 2472
 		},
@@ -11784,7 +11784,7 @@
 			"tick": 2803
 		}
 	],
-	"expected_hash": "a2df17d62460c0873957b01eeca8b8657906e5c478f0fc5b255522e579110b4e",
+	"expected_hash": "0806551152eb2f4c0cb809ddbafca4154deff95528bee78ff7bd4d8f433ebde1",
 	"name": "m6-death",
 	"schema_version": 1,
 	"seed": 20261200,

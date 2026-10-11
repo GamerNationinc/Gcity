@@ -3178,7 +3178,7 @@
 			"tick": 1040
 		}
 	],
-	"expected_hash": "558f23c5bb929880e67e3e867a204cd11dc8a98be2ed0db8fb38c13c10825e33",
+	"expected_hash": "d71d80f203dc0b109dcb26fb96980df4219b8f6624028fa0b3a53aa7aa448c2e",
 	"name": "m6-side",
 	"schema_version": 1,
 	"seed": 20261200,

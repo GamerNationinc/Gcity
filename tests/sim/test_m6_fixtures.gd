@@ -223,3 +223,22 @@ func test_fall_a_jump_a_free_drop_a_guard_dropped_two_storeys_and_a_hurt_one() -
 	assert_true(drops.has(1 * 1000000 + 0), "the player's one-storey drop off the far block was free")
 	assert_true(drops.has(2 * 1000000 + 50000), "and the two-storey step off the tower's edge hurt (50 000)")
 	assert_true(SimAssembly.actors_of(_sim).is_alive(PLAYER), "and the player lived")
+
+
+func test_stealth_the_under_route_unseen_pays_the_full_bonus() -> void:
+	_replay("m6-stealth")
+	assert_eq(_of(PerceptionSystem.EVENT_ALERTED).size(), 0, "nobody was alerted to anyone")
+	assert_eq(_of(SensorSystem.EVENT_ALARM).size(), 0, "no alarm")
+	assert_eq(_of(BuildSystem.EVENT_BREACHED).size(), 0, "nothing was cut: the grates were unlocked with the maintenance key")
+	assert_eq(_of(ActorSystem.EVENT_DIED).size(), 0, "nobody died")
+	assert_eq(_of(HackSystem.EVENT_COMPLETED).size(), 1, "the terminal was hacked")
+	var delivered: Array[Dictionary] = _of(QuestSystem.EVENT_DELIVERED)
+	assert_eq(delivered.size(), 1, "delivered")
+	var pay: Dictionary = delivered[0]["p"]
+	for counter: String in QuestSystem.COUNTERS:
+		var n: int = pay[counter]
+		assert_eq(n, 0, "%s is zero" % counter)
+	assert_eq(pay["tier"], "ghost", "the ghost tier")
+	assert_eq(pay["multiplier_milli"], 2000, "the full-stealth bonus: twice the base")
+	assert_eq(pay["credits"], 2000, "2000 credits")
+	assert_eq(SimAssembly.wallet_of(_sim).balance_of(PLAYER), 2000, "in the wallet")

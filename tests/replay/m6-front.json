@@ -3036,7 +3036,7 @@
 			"payload": {
 				"actor": 1,
 				"from": "crate.1",
-				"item": 315
+				"item": 316
 			},
 			"tick": 346
 		},
@@ -4309,7 +4309,7 @@
 			"tick": 491
 		}
 	],
-	"expected_hash": "75691237040c9e0538ee5723311f55cc827563f6612f9f7d95d12f3d1269c99c",
+	"expected_hash": "54d571a549452feb8c63d20fc6162bb13765d9bcef289b382afd52af53521caa",
 	"name": "m6-front",
 	"schema_version": 1,
 	"seed": 20261200,
