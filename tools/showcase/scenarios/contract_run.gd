@@ -4,7 +4,9 @@
 ## accept, walk to the street grate, cut it and drop into the tunnel, cut the basement
 ## grate, climb the stairs to storey 1, hack the server-room terminal, log out, climb
 ## back down, out up the tunnel's access hatch, leave the site, deliver, get paid.
-## A step that fails is reported in the feed, never skipped silently.
+## A step that fails is reported in the feed, never skipped silently. The cutter is
+## loud: the guards hear it and radio it in, so this is a loud run, and the last
+## caption shows the pay and the run's record exactly as the sim reported them.
 extends RefCounted
 
 const QUEST: String = "cold_storage_contract"
@@ -59,18 +61,19 @@ func setup(sim: SimRoot, view: Node3D) -> void:
 	post.position = f + Vector3(0, 0.9, 0)
 	view.add_child(post)
 	view.call("slab", Vector3(10, -0.02, -10), Vector2(52, 24), Color(0.3, 0.32, 0.36))
+	SimAssembly.combat_of(sim).events().subscribe(QuestSystem.EVENT_DELIVERED, _on_delivered)
 	var o: Vector3i = _o
 	_plan = [
 		["wait", 3, "Kit up: a plasma cutter in hand, a handset with a daemon coprocessor."],
 		["kit", 0, ""],
 		["accept", 0, "At Marlow: accept the Cold Storage job. Cold Storage appears on the docklands."],
 		["walk", [Vector3i(15, 0, -4), Vector3i(o.x + 1, 0, -4), Vector3i(o.x + 1, 0, -3)], "Walk along the street to the city's grate in front of Cold Storage."],
-		["breach", ["face", o + Vector3i(1, -1, -3), "py"], "Cut the street grate (10 s, noisy) and drop into the service tunnel."],
+		["breach", ["face", o + Vector3i(1, -1, -3), "py"], "Cut the street grate (10 s). The cutter is loud: the guards inside hear it."],
 		["wait", 30, ""],
 		["walk", [o + Vector3i(4, -1, -3), o + Vector3i(4, -1, -1)], "Crawl the tunnel to the grate into Cold Storage's basement."],
 		["breach", ["face", o + Vector3i(4, -1, -1), "pz"], "Cut the basement grate (10 s)."],
-		["walk", [o + Vector3i(4, -1, 1), o + Vector3i(3, -1, 1), o + Vector3i(3, -1, 4), o + Vector3i(7, -1, 4)], "Through the basement, round the guard's back, to the stairs."],
-		["climb", ["cell", o + Vector3i(7, -1, 5)], "Up the stairs into the hall, out of the lobby camera's sight."],
+		["walk", [o + Vector3i(4, -1, 1), o + Vector3i(3, -1, 1), o + Vector3i(3, -1, 4), o + Vector3i(7, -1, 4)], "Through the basement, past the guards the noise drew in, to the stairs."],
+		["climb", ["cell", o + Vector3i(7, -1, 5)], "Up the stairs. This route never crosses the lobby camera's view."],
 		["walk", [o + Vector3i(9, 0, 5)], ""],
 		["climb", ["cell", o + Vector3i(9, 0, 6)], "Up to storey 1."],
 		["walk", [o + Vector3i(9, 1, 5), o + Vector3i(2, 1, 5), o + Vector3i(2, 1, 6)], "Along the corridor into the server room."],
@@ -84,8 +87,16 @@ func setup(sim: SimRoot, view: Node3D) -> void:
 		["climb", ["face", o + Vector3i(2, -1, -3), "py"], "Up the latched hatch to the street: it opens from below only."],
 		["walk", [Vector3i(o.x + 2, 0, -7), Vector3i(15, 0, -7), Vector3i(15, 0, -3)], "Off the site with the drive (that is the exfil), and back to Marlow."],
 		["deliver", 0, "Hand Marlow the drive. Pay depends on how quiet the job was."],
-		["wait", 120, "Done: the job, the pay and the run's record, all from the simulation."],
+		["wait", 120, ""],
 	]
+
+
+func _on_delivered(p: Dictionary) -> void:
+	var credits: int = p["credits"]
+	var tier: String = p["tier"]
+	_caption = "PAID %d credits (%s). Spotted %d times, %d radio calls, %d traces left." % [credits,
+		"top rate" if tier == "ghost" else ("rate: " + tier if not tier.is_empty() else "loud run, lowest rate"),
+		p["times_detected"], p["alarms_raised"], p["traces_left"]]
 
 
 func _feet(c: Vector3i) -> Vector3i:
