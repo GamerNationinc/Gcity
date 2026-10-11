@@ -8,6 +8,8 @@ containers of round instances (design doc §11, §13.3; ADR-009).
 | `item_system.gd` | `ItemSystem` (system id `items`): named containers, spawning from `weapon_frame` / `weapon_part` / `ammo` templates, attach/detach with resolver modifiers, load/unload, tactical and emergency reloads with auto-chambering and a busy window, snapshot/restore with full validation. Owns the seven `item.*` / `magazine.*` / `weapon.*` command kinds. |
 | `hack_system.gd` | `HackSystem` (system id `hacks`, M6 claim 9): placed `hack_target` instances, the timed hack on the carried device (daemon slots from `memory_capacity`, reach, noise every 40 ticks, interruptions), logins held until `hack.logout`, and the registry of effect kinds (`spawn_item` built in). Owns `hack.start`, `hack.cancel` and the pause-safe `hack.logout`. |
 
+| `wallet_system.gd` | `WalletSystem` (system id `wallet`, M6 claim 15): per-actor credit balances, changed only by registered sources (`register_source`), never negative; `wallet.changed {actor, amount, source, balance}`. No shops in M6. |
+
 **Allowed imports:** `sim/` only.
 
 **Introduced at:** M1 (one pistol). Modules follow at M2.
