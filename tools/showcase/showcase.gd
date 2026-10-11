@@ -93,6 +93,8 @@ func _ready() -> void:
 	bus.subscribe(CorpseSystem.EVENT_CREATED, _on_corpse)
 	bus.subscribe(CorpseSystem.EVENT_MOVED, _on_item_moved)
 	bus.subscribe(LandSystem.EVENT_VIOLATION, _on_violation)
+	bus.subscribe(RecoverySystem.EVENT_RETURNED, _on_recovered)
+	bus.subscribe(ActorSystem.EVENT_RESPAWNED, _on_respawned)
 	_scenario.call("setup", _sim, self)
 
 
@@ -556,7 +558,7 @@ func _sync(dt: float) -> void:
 				var dead_cone: MeshInstance3D = _cones[actor]
 				dead_cone.visible = false
 		else:
-			capsule.rotation.y = 0.0
+			capsule.rotation = Vector3.ZERO
 		if not actors.is_alive(actor):
 			colour = Color(0.2, 0.2, 0.2)
 			label_text += "\n(down)"
@@ -652,7 +654,7 @@ func _sync_places() -> void:
 func _on_corpse(p: Dictionary) -> void:
 	var actor: int = p["actor"]
 	var count: int = p["items"]
-	note("%s died: a body is left where they fell, holding %d item(s)" % [_who(actor), count], 3)
+	note("%s died: a body is left where they fell, holding %d item(s)" % [_who(actor), count], 2)
 
 
 func _on_item_moved(p: Dictionary) -> void:
@@ -667,6 +669,18 @@ func _on_item_moved(p: Dictionary) -> void:
 		note("%s took %s from %s" % [_who(actor), what, where], 4)
 	else:
 		note("%s dropped %s on the floor" % [_who(actor), what], 4)
+
+
+func _on_recovered(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	var returned: Array = p["returned"]
+	var fee: int = p["fee"]
+	note("The city recovered %d item(s) from %s's body and sent them home, %d credits each" % [returned.size(), _who(actor), fee], 4)
+
+
+func _on_respawned(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	note("%s woke up at home, unhurt" % _who(actor), 5)
 
 
 func _on_violation(p: Dictionary) -> void:
