@@ -38,8 +38,18 @@ const TESTS_ROOT: String = "res://tests"
 
 
 func _initialize() -> void:
+	# `-- --only=res://tests/items` limits the run to one directory, and `--fail-fast`
+	# stops at the first failure (both for tools/mutate.py, where a mutant is killed by
+	# any one failing test)
+	var root: String = TESTS_ROOT
+	var fail_fast: bool = false
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("--only="):
+			root = arg.trim_prefix("--only=")
+		elif arg == "--fail-fast":
+			fail_fast = true
 	var paths: PackedStringArray = PackedStringArray()
-	_discover(TESTS_ROOT, paths)
+	_discover(root, paths)
 	paths.sort()
 	var total: int = 0
 	var failed: int = 0
@@ -52,6 +62,9 @@ func _initialize() -> void:
 			print("FAIL %s: script did not compile" % path)
 			failed += 1
 			total += 1
+			if fail_fast:
+				quit(1)
+				return
 			continue
 		for method: String in _test_methods(script):
 			total += 1
@@ -75,10 +88,14 @@ func _initialize() -> void:
 				print("FAIL %s::%s" % [path, method])
 				for failure: String in failures:
 					print("     - %s" % failure)
+				if fail_fast:
+					print("stopped at the first failure (--fail-fast)")
+					quit(1)
+					return
 	print("")
 	print("%d tests, %d assertions, %d failed" % [total, assertions, failed])
 	if total == 0:
-		print("no tests found under %s" % TESTS_ROOT)
+		print("no tests found under %s" % root)
 		quit(2)
 		return
 	quit(1 if failed > 0 else 0)
