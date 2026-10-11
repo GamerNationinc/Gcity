@@ -1,0 +1,41 @@
+{
+	"schema_version": 1,
+	"description": "A site (M6 spec claim 12): a place raised by site.spawn at a cell origin. Cells and footprints are in cells relative to the origin; parcel floors and ceilings are storeys. A parcel's empty district or owner means the site's. A piece may be watched by a sensor for a squad; a hack target may be tied to a piece by its index (-1: none); agents' routes are measured from the origin.",
+	"properties": {
+		"schema_version": {"type": "int", "min": 1, "max": 1},
+		"description": {"type": "string", "min_length": 1, "max_length": 400},
+		"district": {"type": "string", "ref": "district"},
+		"owner": {"type": "string", "pattern": "[a-z0-9][a-z0-9_.]*"},
+		"parcels": {"type": "array", "max_length": 16, "items": {"type": "object", "properties": {
+			"id": {"type": "string", "pattern": "[a-z0-9][a-z0-9_]*"},
+			"footprint": {"type": "array", "min_length": 3, "max_length": 32, "items": {"type": "array", "min_length": 2, "max_length": 2, "items": {"type": "int", "min": -1000, "max": 1000}}},
+			"floor": {"type": "int", "min": -2, "max": 3},
+			"ceiling": {"type": "int", "min": -2, "max": 3},
+			"district": {"type": "string", "max_length": 64},
+			"owner": {"type": "string", "max_length": 64}
+		}, "required": ["id", "footprint", "floor", "ceiling", "district", "owner"], "additional_properties": false}},
+		"excavate": {"type": "array", "max_length": 4096, "items": {"type": "array", "min_length": 3, "max_length": 3, "items": {"type": "int", "min": -1000, "max": 1000}}},
+		"pieces": {"type": "array", "max_length": 4096, "items": {"type": "object", "properties": {
+			"piece": {"type": "string", "ref": "build_piece"},
+			"cell": {"type": "array", "min_length": 3, "max_length": 3, "items": {"type": "int", "min": -1000, "max": 1000}},
+			"facing": {"type": "string", "max_length": 2},
+			"sensor": {"type": "string", "max_length": 64},
+			"squad": {"type": "int", "min": 0, "max": 1000}
+		}, "required": ["piece", "cell", "facing", "sensor", "squad"], "additional_properties": false}},
+		"agents": {"type": "array", "max_length": 64, "items": {"type": "object", "properties": {
+			"profile": {"type": "string", "ref": "agent_profile"},
+			"cell": {"type": "array", "min_length": 3, "max_length": 3, "items": {"type": "int", "min": -1000, "max": 1000}},
+			"facing": {"type": "int", "min": 0, "max": 359},
+			"squad": {"type": "int", "min": 0, "max": 1000},
+			"route": {"type": "string", "max_length": 64}
+		}, "required": ["profile", "cell", "facing", "squad", "route"], "additional_properties": false}},
+		"hack_targets": {"type": "array", "max_length": 64, "items": {"type": "object", "properties": {
+			"target": {"type": "string", "ref": "hack_target"},
+			"cell": {"type": "array", "min_length": 3, "max_length": 3, "items": {"type": "int", "min": -1000, "max": 1000}},
+			"piece": {"type": "int", "min": -1, "max": 4095}
+		}, "required": ["target", "cell", "piece"], "additional_properties": false}},
+		"exfil": {"type": "array", "min_length": 3, "max_length": 32, "items": {"type": "array", "min_length": 2, "max_length": 2, "items": {"type": "int", "min": -1000, "max": 1000}}}
+	},
+	"required": ["schema_version", "description", "district", "owner", "parcels", "excavate", "pieces", "agents", "hack_targets", "exfil"],
+	"additional_properties": false
+}

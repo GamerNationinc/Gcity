@@ -87,6 +87,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	if standing.attach(sim) != OK:
 		return null
 	build.set_standing_check(standing.standing_of)
+	var sites: SiteSystem = SiteSystem.new(content, land, build, perception, sensors, hacks, events)
+	if sites.attach(sim) != OK:
+		return null
 	var quests: QuestSystem = QuestSystem.new(content, actors, items, events)
 	if quests.attach(sim) != OK:
 		return null
@@ -127,7 +130,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, SensorSystem.SYSTEM_ID, HackSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, SensorSystem.SYSTEM_ID, HackSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -177,6 +180,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = hacks_of(sim).restore(state)
 			StandingSystem.SYSTEM_ID:
 				err = standing_of(sim).restore(state)
+			SiteSystem.SYSTEM_ID:
+				err = sites_of(sim).restore(state)
 			QuestSystem.SYSTEM_ID:
 				err = quests_of(sim).restore(state)
 		if err != OK:
@@ -380,3 +385,12 @@ static func standing_of(sim: SimRoot) -> StandingSystem:
 		return null
 	var standing: StandingSystem = system
 	return standing
+
+
+static func sites_of(sim: SimRoot) -> SiteSystem:
+	var system: SimSystem = sim.get_system(SiteSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % SiteSystem.SYSTEM_ID)
+		return null
+	var sites: SiteSystem = system
+	return sites
