@@ -1,5 +1,7 @@
 ## The quests app (M5 spec claims 3, 9): every quest on record with its status and
-## objectives; select accepts, secondary abandons. Offers are the director's (M6).
+## objectives; select accepts, secondary abandons. Offers are the director's (M6). A
+## contract (a quest with a fixer) shows the fixer's briefing and, while it runs, its
+## four counters live and the tier and credits they would pay now (M6 claim 19).
 class_name QuestsApp extends DeviceApp
 
 var _cursor: int = 0
@@ -29,6 +31,7 @@ func refresh(sim: SimRoot, player: int) -> bool:
 		lines.append(("[color=#ffd866]> %s[/color]" if i == _cursor else "  %s") % head)
 		if i == _cursor:
 			lines.append("[font_size=%d]    %s[/font_size]" % [DeviceShell.SECONDARY_PX, t["text"]])
+			lines.append_array(_contract_lines(quests, content, player, ids[i], t))
 			var objectives: Array = t["objectives"]
 			var progress: Array[int] = quests.progress_of(player, ids[i])
 			for j: int in objectives.size():
@@ -42,6 +45,31 @@ func refresh(sim: SimRoot, player: int) -> bool:
 				reward_text.append("%s ×%d" % [rd["template"], rd["count"]])
 			lines.append("[font_size=%d]    reward: %s[/font_size]" % [DeviceShell.SECONDARY_PX, ", ".join(reward_text)])
 	return _set_text(_label, "\n".join(lines))
+
+
+## The briefing, the run's counters and the pay now, for a contract; nothing otherwise.
+static func _contract_lines(quests: QuestSystem, content: ContentDb, player: int, quest: StringName, t: Dictionary) -> PackedStringArray:
+	var out: PackedStringArray = PackedStringArray()
+	var giver_v: Variant = t.get("giver", "")
+	var giver: String = giver_v if typeof(giver_v) == TYPE_STRING else ""
+	if giver.is_empty():
+		return out
+	var f: Dictionary = content.get_entry(QuestSystem.KIND_FIXER, StringName(giver))
+	var lines: Dictionary = f["lines"]
+	out.append("[font_size=%d]    %s: \"%s\"[/font_size]" % [DeviceShell.SECONDARY_PX, f["name"], lines["briefing"]])
+	var run: Dictionary = quests.run_of(player, quest)
+	if run.is_empty():
+		return out
+	var c: Dictionary = run["counters"]
+	var exfil: bool = run["exfil"]
+	var scoring: Dictionary = t["scoring"]
+	out.append("[font_size=%d]    detected %d   alarms %d   bodies %d   traces %d%s[/font_size]" % [DeviceShell.SECONDARY_PX, c["times_detected"], c["alarms_raised"], c["bodies"], c["traces_left"], "   (out of the site)" if exfil else ""])
+	var scored: Array = QuestSystem.score(scoring, c)
+	var milli: int = scored[0]
+	var tier: String = scored[1]
+	var base: int = f["base_credits"]
+	out.append("[font_size=%d]    pays now: %s x%d.%d = %d credits[/font_size]" % [DeviceShell.SECONDARY_PX, tier if not tier.is_empty() else "no tier", milli / 1000, milli % 1000 / 100, base * milli / 1000])
+	return out
 
 
 func handle(action: StringName, sim: SimRoot, player: int) -> bool:

@@ -224,6 +224,34 @@ func _pane_text(app: StringName) -> String:
 	return ""
 
 
+## M6 claim 19: a contract in the quests app shows the fixer's briefing, the run's four
+## counters live, and the tier and credits they would pay now.
+func test_the_contract_view_shows_the_briefing_counters_and_payout() -> void:
+	_setup()
+	_equip()
+	_actors.set_position(_player, BuildSystem.cell_centre(Vector3i(14, 0, -3)) - Vector3i(0, BuildSystem.CELL / 2, 0))
+	_submit(&"quest.accept", {"actor": _player, "quest": "cold_storage_contract"})
+	_step()
+	var quests: QuestSystem = SimAssembly.quests_of(_sim)
+	assert_eq(quests.status_of(_player, &"cold_storage_contract"), QuestSystem.STATUS_ACTIVE, "the contract is taken")
+	_open(&"quests")
+	for i: int in quests.quest_ids().find(&"cold_storage_contract"):
+		_shell.handle(&"device_down", _sim, _player)
+	_shell.refresh(_sim, _player)
+	var text: String = _pane_text(&"quests")
+	assert_true(text.contains("Front door takes a staff keycard"), "Marlow's briefing: %s" % text)
+	assert_true(text.contains("detected 0   alarms 0   bodies 0   traces 0"), "the four counters")
+	assert_true(text.contains("ghost") and text.contains("2000 credits"), "the tier and pay now")
+	var events: EventBus = SimAssembly.combat_of(_sim).events()
+	for i: int in 2:
+		events.emit(PerceptionSystem.EVENT_ALERTED, {"observer": 999, "contact": _player, "tick": _sim.get_tick()})
+	assert_true(_shell.refresh(_sim, _player), "a counter moved: a redraw")
+	text = _pane_text(&"quests")
+	assert_true(text.contains("detected 2"), "live: %s" % text)
+	assert_true(text.contains("quiet") and text.contains("1500 credits"), "a lower tier")
+	_teardown()
+
+
 ## M6 claim 19: the shell bar shows the credit balance, read from the wallet, and a
 ## change of balance redraws it.
 func test_the_shell_bar_shows_the_credit_balance() -> void:
