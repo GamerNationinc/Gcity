@@ -18,7 +18,7 @@ var _drive: RefCounted
 
 func _initialize() -> void:
 	var only: PackedStringArray = OS.get_cmdline_user_args()
-	var all: Dictionary = {"m6-front": _front, "m6-side": _side, "m6-front-hot": _front_hot, "m6-hack-interrupt": _hack_interrupt, "m6-death": _death, "m6-city-death": _city_death, "m6-loud": _loud}
+	var all: Dictionary = {"m6-front": _front, "m6-side": _side, "m6-front-hot": _front_hot, "m6-hack-interrupt": _hack_interrupt, "m6-death": _death, "m6-city-death": _city_death, "m6-loud": _loud, "m6-fall": _fall}
 	var failed: int = 0
 	for name: String in all:
 		if not only.is_empty() and not only.has(name):
@@ -49,6 +49,10 @@ func _write(name: String, plan_of: Callable) -> bool:
 			var items: ItemSystem = SimAssembly.items_of(_sim)
 			print("  shooter alive %s at %s wields %d, inventory %s, mag holds %d, chambered %d" % [a.is_alive(_shooter), BuildSystem.cell_of(a.position_of(_shooter)), a.wielded(_shooter),
 				str(items.items_in(ItemSystem.inventory_of(_shooter))), items.rounds_in(_shooter_mag()).size() if _shooter_mag() != 0 else -1, items.chambered(_shooter_frame()) if _shooter_frame() != 0 else -1])
+		var here: Vector3i = BuildSystem.cell_of(SimAssembly.actors_of(_sim).position_of(_player))
+		var b: BuildSystem = SimAssembly.build_of(_sim)
+		var east: int = b.cell_piece_at(here + Vector3i(1, 0, 0))
+		print("  east of the player: piece %d %s, pieces placed %d, can act %s" % [east, b.template_of(east) if east != 0 else &"", b.piece_ids().size(), SimAssembly.movement_of(_sim).can_act(_player)])
 		var cmds: Array = _drive.get("commands")
 		for c: Variant in cmds.slice(maxi(0, cmds.size() - 6)):
 			print("  ", c)
@@ -476,3 +480,74 @@ func _loud() -> Array:
 ## camera first and then this guard.
 func _lobby_guard() -> int:
 	return SimAssembly.sites_of(_sim).agents_of(&"cold_storage")[1]
+
+
+# ---------------------------------------------------------------- m6-fall
+
+## The tower on the player's own starter plot, along z = ROW, x left to right (only
+## crates can be mantled; a crate stands by a foundation or on one):
+##   x 1  crate                  a step up to storey 1
+##   x 2  foundation + crate     a step up to storey 2
+##   x 3  crate on storey 1      over open air, held by its neighbours: the guard's post
+##   x 4  foundation + crate     its other neighbour
+##   z = ROW - 1, x 1..3         foundations: a storey-1 walkway beside the guard's crate
+##   x 6, x 8  crates            storey-1 blocks with a one-cell gap between them, each
+##                               held by a foundation just north of it (z = ROW + 1)
+const ROW: int = 5
+const TOWER: Array = [
+	["foundation_block", 2, 0, 0], ["foundation_block", 4, 0, 0], ["foundation_block", 1, 0, -1], ["foundation_block", 2, 0, -1],
+	["foundation_block", 3, 0, -1], ["foundation_block", 6, 0, 1], ["foundation_block", 8, 0, 1],
+	["storage_crate", 1, 0, 0], ["storage_crate", 2, 1, 0], ["storage_crate", 4, 1, 0], ["storage_crate", 3, 1, 0],
+	["storage_crate", 6, 0, 0], ["storage_crate", 8, 0, 0],
+]
+
+
+## Falls: build the tower, jump the gap between the storey-1 blocks, climb onto the
+## walkway, cut the crate out from under a guard standing on it (two storeys down: the
+## content's damage), then up onto the storey-2 crate and off its edge (hurt too).
+func _fall() -> Array:
+	var plan: Array = [["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"land.identify", {"actor": _player, "owner": "player"})
+		d.call("submit", &"land.transfer", {"parcel": "starter_plot", "owner": "player"})
+		return true], ["wait", 2]]
+	plan.append_array(_kit())
+	for piece: Array in TOWER:
+		plan.append(["call", func(d: RefCounted) -> bool:
+			var x: int = piece[1]
+			var y: int = piece[2]
+			var dz: int = piece[3]
+			d.call("submit", &"build.place", {"actor": _player, "piece": piece[0], "x": x * 1000 + 500, "y": y * 1000 + 500, "z": (ROW + dz) * 1000 + 500, "facing": ""})
+			return true])
+		plan.append(["wait", 1])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"agent.spawn", {"profile": "guard_sim", "cell": [3, 2, ROW], "facing": 0, "squad": 1, "route": ""})
+		return true])
+	plan.append(["wait", 2])
+	# the jump: up onto the x 6 block, across the gap to x 8, and off its far side (one
+	# storey: free)
+	plan.append(["walk", [Vector3i(14, 0, -1), Vector3i(5, 0, -1), Vector3i(5, 0, ROW)]])
+	plan.append(["mantle", 1, 0])
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"actor.jump", {"actor": _player, "dx": 1, "dz": 0})
+		return true])
+	plan.append(["wait", 3])
+	plan.append(["call", func(_d: RefCounted) -> bool: return SimAssembly.movement_of(_sim).can_act(_player)])
+	plan.append(["walk", [Vector3i(9, 1, ROW)]])
+	plan.append(["wait", 30])
+	# round to the west end, up onto the x 1 crate and along the walkway
+	plan.append(["walk", [Vector3i(9, 0, ROW - 3), Vector3i(0, 0, ROW - 3), Vector3i(0, 0, ROW)]])
+	plan.append(["mantle", 1, 0])
+	plan.append(["walk", [Vector3i(1, 1, ROW - 1), Vector3i(3, 1, ROW - 1)]])
+	# cut the crate under the guard
+	plan.append(["call", func(d: RefCounted) -> bool:
+		d.call("submit", &"build.breach", {"actor": _player, "piece": SimAssembly.build_of(_sim).cell_piece_at(Vector3i(3, 1, ROW))})
+		return true])
+	plan.append(["wait", 3])
+	plan.append(["call", func(_d: RefCounted) -> bool: return not SimAssembly.build_of(_sim).is_breaching(_player)])
+	plan.append(["wait", 60])
+	# up onto the x 2 crate (storey 2) and off its north edge: two storeys down
+	plan.append(["walk", [Vector3i(2, 1, ROW - 1)]])
+	plan.append(["mantle", 0, 1])
+	plan.append(["walk", [Vector3i(2, 2, ROW + 1)]])
+	plan.append(["wait", 60])
+	return plan

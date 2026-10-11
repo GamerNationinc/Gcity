@@ -30,7 +30,7 @@ var _step: int = 0
 var _issued: bool = false
 var _started: int = 0
 var _waypoint: int = 0
-var _rejected_before: int = 0
+var _rejected_seen: int = 0
 
 
 func _init(p_sim: SimRoot, p_actor: int) -> void:
@@ -65,12 +65,15 @@ func _tick() -> void:
 		_issued = true
 		_started = sim.get_tick()
 		_waypoint = 0
-		_rejected_before = sim.rejected_count()
 		_issue(action, step)
 		return
-	if sim.rejected_count() > _rejected_before and action != "walk":
-		failure = "step %d (%s) was refused at tick %d" % [_step, action, sim.get_tick()]
-		return
+	# any command refused since the last tick fails the plan; a walk's bumped step is
+	# the one refusal a plan expects
+	if sim.rejected_count() > _rejected_seen:
+		_rejected_seen = sim.rejected_count()
+		if action != "walk":
+			failure = "step %d (%s): a command was refused by tick %d" % [_step, action, sim.get_tick()]
+			return
 	if _done(action, step):
 		_step += 1
 		_issued = false

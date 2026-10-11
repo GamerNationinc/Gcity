@@ -198,3 +198,28 @@ func test_loud_breach_alarm_body_and_a_reduced_payout() -> void:
 	assert_true(alarms >= 1, "and the alarms (%d)" % alarms)
 	assert_true(multiplier < 1000, "for less than the base pay (multiplier %d of 1000)" % multiplier)
 	assert_true(SimAssembly.standing_of(_sim).standing_of(PLAYER, &"heat") > 0, "and the heat stays on the player")
+
+
+func test_fall_a_jump_a_free_drop_a_guard_dropped_two_storeys_and_a_hurt_one() -> void:
+	_replay("m6-fall")
+	assert_true(_first_command(&"actor.jump") > 0, "the gap was jumped (and nothing was refused)")
+	var player_landings: Array[Dictionary] = []
+	var guard_landings: Array[Dictionary] = []
+	for e: Dictionary in _of(MovementSystem.EVENT_LANDED):
+		var p: Dictionary = e["p"]
+		if p["actor"] == PLAYER:
+			player_landings.append(p)
+		else:
+			guard_landings.append(p)
+	assert_eq(guard_landings.size(), 1, "the guard fell once, when the crate was cut from under it")
+	var guard: Dictionary = guard_landings[0]
+	assert_eq(guard["storeys"], 2, "two storeys")
+	assert_eq(guard["damage"], 50000, "taking the guard profile's damage for the storey past the free one")
+	var drops: Array[int] = []
+	for p: Dictionary in player_landings:
+		var storeys: int = p["storeys"]
+		var damage: int = p["damage"]
+		drops.append(storeys * 1000000 + damage)
+	assert_true(drops.has(1 * 1000000 + 0), "the player's one-storey drop off the far block was free")
+	assert_true(drops.has(2 * 1000000 + 50000), "and the two-storey step off the tower's edge hurt (50 000)")
+	assert_true(SimAssembly.actors_of(_sim).is_alive(PLAYER), "and the player lived")
