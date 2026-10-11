@@ -41,6 +41,7 @@ var _watch: Array[int] = []
 var _extra: Node3D
 var _feed: Label
 var _feed_lines: Array[String] = []
+var _pending: Array[Array] = []
 var _last_heat: Dictionary = {}
 
 
@@ -75,6 +76,8 @@ func _ready() -> void:
 	bus.subscribe(PerceptionSystem.EVENT_ALERTED, _on_alerted)
 	bus.subscribe(SensorSystem.EVENT_ALARM, _on_alarm)
 	bus.subscribe(HackSystem.EVENT_COMPLETED, _on_hack)
+	bus.subscribe(BuildSystem.EVENT_OPENING, _on_opening)
+	bus.subscribe(BuildSystem.EVENT_CHECK_FAILED, _on_check_failed)
 	_scenario.call("setup", _sim, self)
 
 
@@ -152,7 +155,7 @@ func _build_stage() -> void:
 	_header = _label2d(17, Vector2(18, 12))
 	layer.add_child(_header)
 	_legend = _label2d(16, Vector2(900, 12))
-	_legend.text = "KEY\nblue  = player\ngreen = guard/camera unaware\namber = suspicious\nred   = alerted\ncone  = what it can see\nrings = noise"
+	_legend.text = "KEY\nblue  = player\ngreen = guard/camera unaware\namber = suspicious / remembers\nred   = alerted\ncone  = what it can see\nrings = noise"
 	layer.add_child(_legend)
 	var banner := ColorRect.new()
 	banner.color = Color(0, 0, 0, 0.7)
@@ -202,6 +205,7 @@ func _process(delta: float) -> void:
 		_scenario.call("before_tick", _sim, self, _sim.get_tick() + 1)
 		_sim.step()
 		_heat_changes()
+		_flush_notes()
 	_sync(float(per_frame) / float(SimRoot.TICK_HZ))
 	var caption: String = _scenario.call("caption", _sim.get_tick())
 	_caption.text = caption
@@ -220,9 +224,28 @@ func _process(delta: float) -> void:
 
 
 ## The event feed: what just happened, in words, with the sim time it happened at.
-func note(text: String) -> void:
-	_feed_lines.append("%5.1f s  %s" % [float(_sim.get_tick()) / float(SimRoot.TICK_HZ), text])
-	if _feed_lines.size() > 8:
+## Notes from one tick are shown cause first (a lower `order`), whatever order the bus
+## delivered them in: a door check before the alarm it set off.
+func note(text: String, order: int = 5) -> void:
+	_pending.append([order, _pending.size(), "%5.1f s  %s" % [float(_sim.get_tick()) / float(SimRoot.TICK_HZ), text]])
+
+
+func _flush_notes() -> void:
+	if _pending.is_empty():
+		return
+	_pending.sort_custom(func(a: Array, b: Array) -> bool:
+		var oa: int = a[0]
+		var ob: int = b[0]
+		if oa != ob:
+			return oa < ob
+		var ia: int = a[1]
+		var ib: int = b[1]
+		return ia < ib)
+	for entry: Array in _pending:
+		var line: String = entry[2]
+		_feed_lines.append(line)
+	_pending.clear()
+	while _feed_lines.size() > 8:
 		_feed_lines.remove_at(0)
 	_feed.text = "WHAT JUST HAPPENED\n" + "\n".join(_feed_lines)
 
@@ -243,7 +266,20 @@ func _on_alerted(p: Dictionary) -> void:
 
 func _on_alarm(p: Dictionary) -> void:
 	var actor: int = p["actor"]
-	note("ALARM: %s tripped, raised against %s" % [p["sensor"], _who(actor)])
+	note("ALARM: %s tripped, raised against %s" % [p["sensor"], _who(actor)], 3)
+
+
+func _on_opening(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	var open: bool = p["open"]
+	if _names.has(actor):
+		note("%s %s a door" % [_who(actor), "opened" if open else "closed"], 1)
+
+
+func _on_check_failed(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	var value: int = p["value"]
+	note("Door check FAILED: %s's %s is %d, over the door's limit" % [_who(actor), p["standing"], value], 2)
 
 
 func _on_hack(p: Dictionary) -> void:
@@ -258,7 +294,7 @@ func _heat_changes() -> void:
 		var now: int = standing.standing_of(w, &"heat")
 		var before: int = _last_heat.get(w, 0)
 		if now > before:
-			note("%s HEAT +%d  (now %d)" % [_who(w), now - before, now])
+			note("%s HEAT +%d  (now %d)" % [_who(w), now - before, now], 4)
 		elif now < before:
 			note("%s HEAT cooled -%d  (now %d)" % [_who(w), before - now, now])
 		_last_heat[w] = now
@@ -322,6 +358,9 @@ func _sync(dt: float) -> void:
 				if perception.is_alerted(actor, w):
 					var who: String = _names[w]
 					seen.append(who)
+				elif seen.is_empty() and perception.has_last_known(actor, w):
+					colour = SUSPICIOUS
+					state = "remembers %s" % _names[w]
 				elif perception.awareness_of(actor, w) > PerceptionSystem.AWARENESS_MAX / 20 and seen.is_empty():
 					colour = SUSPICIOUS
 					state = "suspicious"
