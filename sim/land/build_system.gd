@@ -440,21 +440,31 @@ func set_open(actor: int, id: int, open: bool) -> bool:
 	var here: Vector3i = cell_of(_actors.position_of(actor))
 	if not cells_of_piece(id).has(here):
 		return false
-	if open:
-		var t: Dictionary = _content.get_entry(KIND_PIECE, template_of(id))
-		var lock: String = t["lock"]
-		var latched: bool = t["latched"]
-		if not lock.is_empty():
-			if not _credential.is_valid() or not _credential.call(actor, StringName(lock)):
-				return false
-		elif latched:
-			if not _inside.is_valid() or not _inside.call(here):
-				return false
+	if open and not may_pass(actor, id):
+		return false
 	var record: Dictionary = _pieces[id]
 	record["open"] = open
 	_events.emit(EVENT_OPENING, {"piece": id, "open": open, "actor": actor})
 	if open:
 		_check(actor, id)
+	return true
+
+
+## Whether an opening's access rules let `actor` through, open or not: a lock needs its
+## credential carried; a latched piece, the actor's cell inside an enclosed volume
+## (M6 claim 3). What opening it asks, and what climbing a ladder through a closed
+## hatch asks (claim 13: a latched access hatch is an exit from below). False for a
+## piece that is no opening.
+func may_pass(actor: int, id: int) -> bool:
+	if not _actors.has_actor(actor) or not is_opening(id):
+		return false
+	var t: Dictionary = _content.get_entry(KIND_PIECE, template_of(id))
+	var lock: String = t["lock"]
+	var latched: bool = t["latched"]
+	if not lock.is_empty():
+		return _credential.is_valid() and _credential.call(actor, StringName(lock))
+	if latched:
+		return _inside.is_valid() and _inside.call(cell_of(_actors.position_of(actor)))
 	return true
 
 

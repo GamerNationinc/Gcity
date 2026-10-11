@@ -175,3 +175,25 @@ func test_a_hole_cut_over_unexcavated_earth_is_still_stood_on() -> void:
 	assert_true(grate > 0, "a grate over no shaft")
 	assert_false(_build.breach(grate).is_empty(), "cut out")
 	assert_true(_build.is_standable(_cell(0, 0, 0)), "the earth below still holds you up")
+
+
+## M6 claims 3 and 13: may_pass is an opening's access rules on their own, open or not:
+## what opening it asks, and what climbing a ladder through its closed hatch asks.
+func test_may_pass_is_the_access_rule_of_an_opening() -> void:
+	_setup()
+	var door: int = _room(&"door_frame")
+	assert_true(_build.may_pass(_player, door), "an unlocked, unlatched door")
+	var wall: int = _build.cell_piece_at(_cell(-1, 0, 0))
+	assert_false(_build.may_pass(_player, wall), "a foundation is no opening")
+	_setup()
+	var window: int = _room(&"window_frame")
+	_actors.set_position(_player, _feet(1, 0, 0))
+	assert_false(_build.may_pass(_player, window), "a latched window, from outside: no")
+	_actors.set_position(_player, _feet(0, 0, 0))
+	assert_true(_build.may_pass(_player, window), "from inside: yes")
+	_setup()
+	assert_eq(_build.excavate([_cell(0, -1, 0)] as Array[Vector3i]), OK, "a shaft")
+	assert_true(_build.place(_player, &"foundation_block", _at(1, 0, 0), "") > 0, "foundation")
+	var grate: int = _build.place(_player, &"street_grate", _at(0, -1, 0), "py")
+	_actors.set_position(_player, _feet(0, 0, 0))
+	assert_false(_build.may_pass(_player, grate), "a locked grate without the key: no")
