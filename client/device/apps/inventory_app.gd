@@ -3,8 +3,13 @@
 ## wields or holsters it, on a device carries or puts it away, on a magazine swaps
 ## it into the wielded weapon, on loose rounds fills the first loose magazine, on a
 ## part or module fits it to the wielded weapon or carried device; secondary on a
-## magazine unloads a round, on a fitted part removes it.
+## magazine unloads a round, on a fitted part removes it; select on a tool wields or
+## holsters it. Rows are sorted by kind, in `KIND_ORDER`, then by name (M6 spec claim
+## 19, M5 debt 11); a frame's socket rows stay under it.
 class_name InventoryApp extends DeviceApp
+
+## The order kinds are listed in: what a hand reaches for first.
+const KIND_ORDER: Array[String] = ["weapon", "tool", "magazine", "part", "rounds", "device", "module", "key"]
 
 var _cursor: int = 0
 var _label: RichTextLabel
@@ -21,7 +26,7 @@ func _init() -> void:
 
 ## The rows, rebuilt from the sim: [{"text", "kind", "id"}].
 func _rows(sim: SimRoot, player: int) -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
+	var blocks: Array[Dictionary] = []
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
 	var items: ItemSystem = SimAssembly.items_of(sim)
 	var stats: StatResolver = SimAssembly.stats_of(sim)
@@ -31,30 +36,61 @@ func _rows(sim: SimRoot, player: int) -> Array[Dictionary]:
 	for id: int in items.items_in(ItemSystem.inventory_of(player)):
 		var kind: StringName = items.item_kind(id)
 		var template: StringName = items.item_template(id)
+		var rows: Array[Dictionary] = []
 		if kind == ItemSystem.KIND_FRAME:
 			var mag: int = items.magazine_of(id)
 			var mag_text: String = "no magazine" if mag == EntityIds.NONE else "%d rounds in the magazine" % items.rounds_in(mag).size()
-			out.append({"text": "%s%s   chamber %s   %s   hit %d %%" % [template, "   [wielded]" if id == wielded else "", "loaded" if items.chambered(id) != EntityIds.NONE else "empty", mag_text, stats.resolve(id, &"hit_chance") / 10000], "kind": "weapon", "id": id})
-			out.append_array(_socket_rows(sim, id, ItemSystem.KIND_SOCKET))
+			rows.append({"text": "%s%s   chamber %s   %s   hit %d %%" % [template, "   [wielded]" if id == wielded else "", "loaded" if items.chambered(id) != EntityIds.NONE else "empty", mag_text, stats.resolve(id, &"hit_chance") / 10000], "kind": "weapon", "id": id})
+			rows.append_array(_socket_rows(sim, id, ItemSystem.KIND_SOCKET))
 		elif kind == ItemSystem.KIND_DEVICE_FRAME:
-			out.append({"text": "%s%s   antenna %d m   memory %d" % [template, "   [carried]" if id == device else "", stats.resolve(id, &"antenna_gain") / 1000, stats.resolve(id, &"memory_capacity") / 1000], "kind": "device", "id": id})
-			out.append_array(_socket_rows(sim, id, ItemSystem.KIND_DEVICE_SOCKET))
+			rows.append({"text": "%s%s   antenna %d m   memory %d" % [template, "   [carried]" if id == device else "", stats.resolve(id, &"antenna_gain") / 1000, stats.resolve(id, &"memory_capacity") / 1000], "kind": "device", "id": id})
+			rows.append_array(_socket_rows(sim, id, ItemSystem.KIND_DEVICE_SOCKET))
 		elif kind == ItemSystem.KIND_PART:
 			if items.capacity_of(ItemSystem.magazine_container(id)) > 0:
-				out.append({"text": "%s   %d / %d rounds" % [template, items.rounds_in(id).size(), items.capacity_of(ItemSystem.magazine_container(id))], "kind": "magazine", "id": id})
+				rows.append({"text": "%s   %d / %d rounds" % [template, items.rounds_in(id).size(), items.capacity_of(ItemSystem.magazine_container(id))], "kind": "magazine", "id": id})
 			else:
-				out.append({"text": "%s   (part, loose)" % template, "kind": "part", "id": id})
+				rows.append({"text": "%s   (part, loose)" % template, "kind": "part", "id": id})
 		elif kind == ItemSystem.KIND_DEVICE_MODULE:
-			out.append({"text": "%s   (module, loose)" % template, "kind": "module", "id": id})
+			rows.append({"text": "%s   (module, loose)" % template, "kind": "module", "id": id})
+		elif kind == ItemSystem.KIND_TOOL:
+			rows.append({"text": "%s%s   (tool)" % [template, "   [wielded]" if id == wielded else ""], "kind": "tool", "id": id})
+		elif kind == ItemSystem.KIND_KEY_ITEM:
+			rows.append({"text": "%s   (key)" % template, "kind": "key", "id": id})
 		elif kind == ItemSystem.KIND_AMMO:
 			loose_rounds[template] = loose_rounds.get(template, 0) + 1
-	var templates: Array = loose_rounds.keys()
-	templates.sort()
-	for t: Variant in templates:
+		if not rows.is_empty():
+			blocks.append(_block(rows, template, id))
+	for t: Variant in loose_rounds.keys():
 		var template: StringName = t
 		var n: int = loose_rounds[t]
-		out.append({"text": "%s   ×%d loose" % [template, n], "kind": "rounds", "id": 0, "template": template})
+		var rows: Array[Dictionary] = [{"text": "%s   ×%d loose" % [template, n], "kind": "rounds", "id": 0, "template": template}]
+		blocks.append(_block(rows, template, 0))
+	blocks.sort_custom(_before)
+	var out: Array[Dictionary] = []
+	for b: Dictionary in blocks:
+		var rows: Array[Dictionary] = b["rows"]
+		out.append_array(rows)
 	return out
+
+
+## One item's rows with what they sort by: its kind's place, its name, its id.
+static func _block(rows: Array[Dictionary], name: StringName, id: int) -> Dictionary:
+	var kind: String = rows[0]["kind"]
+	return {"order": KIND_ORDER.find(kind), "name": String(name), "id": id, "rows": rows}
+
+
+static func _before(a: Dictionary, b: Dictionary) -> bool:
+	var ao: int = a["order"]
+	var bo: int = b["order"]
+	if ao != bo:
+		return ao < bo
+	var an: String = a["name"]
+	var bn: String = b["name"]
+	if an != bn:
+		return an < bn
+	var ai: int = a["id"]
+	var bi: int = b["id"]
+	return ai < bi
 
 
 func _socket_rows(sim: SimRoot, frame: int, socket_kind: StringName) -> Array[Dictionary]:
@@ -111,7 +147,7 @@ func _primary(row: Dictionary, sim: SimRoot, player: int) -> void:
 	var id: int = row["id"]
 	var row_kind: String = row["kind"]
 	match row_kind:
-		"weapon":
+		"weapon", "tool":
 			submit(&"actor.wield", {"actor": player, "weapon": 0 if actors.wielded(player) == id else id})
 		"device":
 			submit(&"actor.equip_device", {"actor": player, "device": 0 if actors.device_of(player) == id else id})
@@ -153,6 +189,8 @@ func _primary(row: Dictionary, sim: SimRoot, player: int) -> void:
 			if part != EntityIds.NONE:
 				var socket: StringName = row["socket"]
 				submit(&"item.detach", {"actor": player, "weapon": id, "socket": String(socket)})
+		"key":
+			note("a key opens its lock while carried")
 
 
 func _secondary(row: Dictionary, _sim: SimRoot, player: int) -> void:

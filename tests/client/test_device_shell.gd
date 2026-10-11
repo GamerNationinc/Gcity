@@ -115,45 +115,82 @@ func test_the_inventory_app_fits_loads_wields_and_swaps_through_commands() -> vo
 		_items.spawn(&"ammo", &"9x19_fmj", inv, 100 + i)
 	_shell.refresh(_sim, _player)
 	assert_eq(_shell.open_app(), &"inventory", "inventory open")
-	# rows in spawn order: 0 handset, 1-2 its bays, 3 radio module, 4 pistol, 5-8 its
-	# four non-magazine sockets, 9 magazine, 10 barrel, 11 loose rounds
-	_go(4)
+	# rows by kind, then name: 0 pistol, 1-4 its four non-magazine sockets, 5 magazine,
+	# 6 barrel, 7 loose rounds, 8 handset, 9-10 its bays, 11 radio module
+	_go(0)
 	_submitted.clear()
 	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "select the pistol")
 	_step()
 	assert_eq(_actors.wielded(_player), pistol, "wielded through actor.wield")
-	_go(9)
+	_go(5)
 	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "select the magazine")
 	_step()
 	assert_eq(_items.magazine_of(pistol), mag, "swapped in through weapon.reload_tactical")
 	_sim.step_n(90)
-	# the magazine moved into the pistol's socket, so it left the list: the rounds are row 10
-	_go(10)
+	# the magazine moved into the pistol's socket, so it left the list: the rounds are row 6
+	_go(6)
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
 	assert_eq(_submitted.size(), 0, "no loose magazine with room: nothing submitted")
 	var mag2: int = _items.spawn(&"weapon_part", &"g19_mag_15", inv, 6)
 	_shell.refresh(_sim, _player)
-	_go(11)  # the new magazine took row 10; the rounds moved to 11
+	_go(7)  # the new magazine took row 5; the barrel moved to 6, the rounds to 7
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
 	assert_eq(_submitted.size(), 15, "fifteen magazine.load commands: a full magazine in one press")
 	_step()
 	assert_eq(_items.rounds_in(mag2).size(), 15, "loaded")
-	_go(9)  # the barrel
+	_go(6)  # the barrel
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
 	_step()
 	assert_eq(_items.socket_part(pistol, &"barrel"), barrel, "fitted through item.attach")
-	_go(1)
+	_go(8)
 	_submitted.clear()
 	_shell.handle(&"device_select", _sim, _player)
 	assert_eq(_submitted.size(), 0, "an empty bay does nothing")
-	_go(3)
+	_go(10)
 	_shell.handle(&"device_select", _sim, _player)
 	_step()
 	assert_eq(_items.socket_part(_handset, &"radio"), _radio, "the module fitted to the carried device")
 	_teardown()
+
+
+## M6 claim 19 (M5 debt 11): rows are grouped by kind (weapons, tools, magazines,
+## parts, rounds, devices, modules, keys) and named in order within a kind, whatever
+## order the items came in; a frame's sockets stay under it.
+func test_the_inventory_sorts_by_kind_then_name() -> void:
+	_setup()
+	_equip()
+	var inv: StringName = ItemSystem.inventory_of(_player)
+	_items.spawn(&"key_item", &"maintenance_key", inv, 3)
+	_items.spawn(&"ammo", &"9x19_fmj", inv, 4)
+	_items.spawn(&"weapon_part", &"g19_barrel", inv, 5)
+	_items.spawn(&"tool", &"plasma_cutter", inv, 6)
+	_items.spawn(&"key_item", &"cold_storage_keycard", inv, 7)
+	_items.spawn(&"weapon_part", &"g19_mag_15", inv, 8)
+	_items.spawn(&"tool", &"breaching_kit", inv, 9)
+	_items.spawn(&"weapon_frame", &"g19", inv, 10)
+	_shell.refresh(_sim, _player)
+	var names: Array[String] = []
+	for line: String in _inventory_text().split("\n"):
+		var plain: String = line.replace("[color=#ffd866]> ", "").replace("[/color]", "").strip_edges()
+		if not plain.contains(":"):
+			names.append(plain.get_slice(" ", 0))
+	assert_eq(names, ["g19", "breaching_kit", "plasma_cutter", "g19_mag_15", "g19_barrel", "9x19_fmj", "handset", "radio_module", "cold_storage_keycard", "maintenance_key"] as Array[String], "kind, then name")
+	_go(1)
+	_submitted.clear()
+	assert_eq(_shell.handle(&"device_select", _sim, _player), "handled", "select a socket row")
+	assert_eq(_submitted.size(), 0, "the pistol's first socket row sits under it (empty, nothing to do)")
+	_teardown()
+
+
+func _inventory_text() -> String:
+	for node: Node in _all_nodes(_shell):
+		if node is RichTextLabel and node.get_parent() is InventoryApp:
+			var rich: RichTextLabel = node
+			return rich.text
+	return ""
 
 
 ## Leaving an app and coming back rebuilds its pane with the cursor at the top (the
