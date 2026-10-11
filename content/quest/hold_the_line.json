@@ -18,5 +18,12 @@
 			"template": "9x19_jhp",
 			"count": 10
 		}
-	]
+	],
+	"giver": "",
+	"site": "",
+	"deliver": "",
+	"scoring": {
+		"tiers": [],
+		"otherwise_milli": 1000
+	}
 }

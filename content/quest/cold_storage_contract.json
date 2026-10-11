@@ -1,0 +1,56 @@
+{
+	"schema_version": 1,
+	"description": "The Cold Storage contract (M6 spec claims 13-14): Marlow wants the records off the server-room terminal.",
+	"title": "Cold Storage",
+	"text": "Marlow wants Cold Storage's records. They sit on the terminal in the server room, upstairs. Get them out of the site and bring them to Marlow. The quieter the job, the more it pays.",
+	"objectives": [
+		{
+			"description": "Deliver the records to Marlow",
+			"event": "contract.delivered",
+			"credit": "actor",
+			"tags_any": [
+				"quest.cold_storage_contract"
+			],
+			"count": 1
+		}
+	],
+	"reward": [],
+	"giver": "marlow",
+	"site": "cold_storage",
+	"deliver": "cold_storage_data",
+	"scoring": {
+		"tiers": [
+			{
+				"name": "ghost",
+				"max": {
+					"times_detected": 0,
+					"alarms_raised": 0,
+					"bodies": 0,
+					"traces_left": 0
+				},
+				"multiplier_milli": 2000
+			},
+			{
+				"name": "quiet",
+				"max": {
+					"times_detected": 2,
+					"alarms_raised": 0,
+					"bodies": 0,
+					"traces_left": 1
+				},
+				"multiplier_milli": 1500
+			},
+			{
+				"name": "rough",
+				"max": {
+					"times_detected": 6,
+					"alarms_raised": 2,
+					"bodies": 1,
+					"traces_left": 3
+				},
+				"multiplier_milli": 1000
+			}
+		],
+		"otherwise_milli": 500
+	}
+}

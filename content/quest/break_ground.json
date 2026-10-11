@@ -18,5 +18,12 @@
 			"template": "g19_mag_15",
 			"count": 1
 		}
-	]
+	],
+	"giver": "",
+	"site": "",
+	"deliver": "",
+	"scoring": {
+		"tiers": [],
+		"otherwise_milli": 1000
+	}
 }

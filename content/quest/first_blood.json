@@ -20,5 +20,12 @@
 			"template": "9x19_fmj",
 			"count": 15
 		}
-	]
+	],
+	"giver": "",
+	"site": "",
+	"deliver": "",
+	"scoring": {
+		"tiers": [],
+		"otherwise_milli": 1000
+	}
 }

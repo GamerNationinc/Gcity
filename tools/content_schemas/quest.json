@@ -1,6 +1,6 @@
 {
 	"schema_version": 1,
-	"description": "A quest record (M5 spec claim 9): objectives are bus events credited to an actor field of the payload, optionally filtered by tags, counted to a target; the reward is item templates spawned into the actor's inventory once on completion. Offers, dialogue and site binding are the director's (M6/M7).",
+	"description": "A quest record (M5 spec claim 9): objectives are bus events credited to an actor field of the payload, optionally filtered by tags, counted to a target; the reward is item templates spawned into the actor's inventory once on completion. Offers, dialogue and site binding are the director's (M6/M7). A contract (M6 claim 14) names its giver (a fixer), its site (a handle: where it stands is the site's placement, design doc §5.3), the item the fixer takes, and scoring tiers on the run's four counters; for any other quest these are empty.",
 	"properties": {
 		"schema_version": {
 			"type": "int",
@@ -93,6 +93,90 @@
 				],
 				"additional_properties": false
 			}
+		},
+		"giver": {
+			"type": "string",
+			"max_length": 64
+		},
+		"site": {
+			"type": "string",
+			"max_length": 64
+		},
+		"deliver": {
+			"type": "string",
+			"max_length": 64
+		},
+		"scoring": {
+			"type": "object",
+			"properties": {
+				"tiers": {
+					"type": "array",
+					"max_length": 8,
+					"items": {
+						"type": "object",
+						"properties": {
+							"name": {
+								"type": "string",
+								"min_length": 1,
+								"max_length": 40
+							},
+							"max": {
+								"type": "object",
+								"properties": {
+									"times_detected": {
+										"type": "int",
+										"min": 0,
+										"max": 1000000
+									},
+									"alarms_raised": {
+										"type": "int",
+										"min": 0,
+										"max": 1000000
+									},
+									"bodies": {
+										"type": "int",
+										"min": 0,
+										"max": 1000000
+									},
+									"traces_left": {
+										"type": "int",
+										"min": 0,
+										"max": 1000000
+									}
+								},
+								"required": [
+									"times_detected",
+									"alarms_raised",
+									"bodies",
+									"traces_left"
+								],
+								"additional_properties": false
+							},
+							"multiplier_milli": {
+								"type": "int",
+								"min": 0,
+								"max": 100000
+							}
+						},
+						"required": [
+							"name",
+							"max",
+							"multiplier_milli"
+						],
+						"additional_properties": false
+					}
+				},
+				"otherwise_milli": {
+					"type": "int",
+					"min": 0,
+					"max": 100000
+				}
+			},
+			"required": [
+				"tiers",
+				"otherwise_milli"
+			],
+			"additional_properties": false
 		}
 	},
 	"required": [
@@ -101,7 +185,11 @@
 		"title",
 		"text",
 		"objectives",
-		"reward"
+		"reward",
+		"giver",
+		"site",
+		"deliver",
+		"scoring"
 	],
 	"additional_properties": false
 }

@@ -93,7 +93,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var wallet: WalletSystem = WalletSystem.new(actors, events)
 	if wallet.attach(sim) != OK:
 		return null
-	var quests: QuestSystem = QuestSystem.new(content, actors, items, events)
+	var quests: QuestSystem = QuestSystem.new(content, actors, items, events, sites, wallet, hacks, perception)
 	if quests.attach(sim) != OK:
 		return null
 	return sim

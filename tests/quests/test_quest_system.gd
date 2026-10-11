@@ -122,7 +122,8 @@ func test_property_counts_are_bounded_and_completion_and_reward_happen_once() ->
 		db.add(&"quest", &"t_quest", {"schema_version": 1, "description": "generated", "title": "t", "text": "t",
 			"objectives": [{"description": "a", "event": "combat.hit", "credit": "shooter", "tags_any": ["weapon_class.handgun"], "count": count},
 				{"description": "b", "event": "combat.fire", "credit": "shooter", "tags_any": [], "count": rng.randi_range(1, 4)}],
-			"reward": [{"kind": "ammo", "template": "9x19_fmj", "count": 2}]})
+			"reward": [{"kind": "ammo", "template": "9x19_fmj", "count": 2}],
+			"giver": "", "site": "", "deliver": "", "scoring": {"tiers": [], "otherwise_milli": 1000}})
 		_setup(db)
 		var other: int = _actors.spawn(&"arcade", 5)
 		assert_true(_do(&"quest.accept", {"actor": _player, "quest": "t_quest"}), "accept")
