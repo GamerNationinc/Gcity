@@ -1,8 +1,7 @@
 # G6 — M6 Cold Storage: gate evidence package (DRAFT, in progress)
 
-**Status: draft, not submitted.** Phases 1 to 3 and most of phase 4 are built; the client
-(claim 19), the m6-stealth fixture (blocked on a decision, §4 item D1) and the Deck run
-(claim 24) are not. Nothing here is marked complete on its author's authority: CEOGG
+**Status: draft, not submitted.** Phases 1 to 4 are built except the m6-stealth fixture
+(decided, D1; in progress) and the Deck run (claim 24). Nothing here is marked complete on its author's authority: CEOGG
 signs the gate. Spec: [`docs/specs/M6-cold-storage.md`](../specs/M6-cold-storage.md).
 
 ## 1. Specification
@@ -21,14 +20,14 @@ signs the gate. Spec: [`docs/specs/M6-cold-storage.md`](../specs/M6-cold-storage
 | 10 credentials | key items; the door's heat check; the door camera (and, since `f0b5c36`, a cut door) | `1e88b93` … `63b92b5`, `f0b5c36` | built |
 | 11 heat and notoriety | `StandingSystem`, content rules | `22324a6` | built |
 | 12 a site is content | `SiteSystem`, `site.spawn`, one batch; the M4 building as a site file | `6241457` … `5fa063f` | built |
-| 13 Cold Storage | `content/site/cold_storage.json` (generated), three routes, the keycard in the yard crate | `f7eb35f` … `d536f02`, `79c824c` | built; see D1 |
+| 13 Cold Storage | `content/site/cold_storage.json` (generated), three routes, the keycard in the yard crate | `f7eb35f` … `d536f02`, `79c824c` | built; D1 decided, D14, D15 |
 | 14 the contract | run record, exfil, delivery, scoring tiers | `e381295` … `c91bcb2` | built |
 | 15 credits | `WalletSystem` | `b6b2913` | built |
-| 16 corpses | `actor.died`; `CorpseSystem` (bodies, piles, crates; `item.take` / `item.drop`; loot recorded) | `bd512b3` … `79c824c` | built; G4 debt 8 open (D2) |
+| 16 corpses | `actor.died`; `CorpseSystem` (bodies, piles, crates; `item.take` / `item.drop`; loot recorded) | `bd512b3` … `79c824c` | built; G4 debt 8 closed by D2 (`4501582`) |
 | 17 respawn, recovery, the city | home spawn, `actor.respawn`, `RecoverySystem`, the item conservation property | `5ef30fb` … `3e3c3a2`, `75af716` | built |
 | 18 the player's aim and stress | content bound by the combat profile (not data-only: D5) | `340da99` | built |
-| 19 client | — | — | **not started** |
-| 20 fixtures | `tools/fixture_driver.gd`, `tools/make_m6_fixtures.gd`, `tests/sim/test_m6_fixtures.gd`: m6-front, m6-front-hot, m6-side, m6-fall, m6-loud, m6-death, m6-city-death, m6-hack-interrupt | `b096f10` … `ae772ec` | 8 of 9; **m6-stealth blocked (D1)** |
+| 19 client | world view (storey cutaway, openings, camera cones cut by line of sight, bodies, the fixer, exfil zones, site parcels), the context button (`Interact`), the hacking pane, the contract view, credits on the shell bar, the panel at 1920×1080, the inventory sorted, the range demo on ticks; `--demo-script=cold_storage` | `e6b0e12` … `b60c007` | built; screenshots `M6-world-*.png`, `M6-device-*.png`, `M6-range-ticks.png` |
+| 20 fixtures | `tools/fixture_driver.gd`, `tools/make_m6_fixtures.gd`, `tests/sim/test_m6_fixtures.gd`: m6-front, m6-front-hot, m6-side, m6-fall, m6-loud, m6-death, m6-city-death, m6-hack-interrupt | `b096f10` … `ae772ec` | 8 of 9; m6-stealth in progress |
 | 21 snapshot and save v2 | save schema 2, migration from real version-1 saves, the save property over every new command | `b8a9394` | built |
 | 22 schemas and corpus | every new kind has a schema; hostile commands and hostile site files | `4fa91f4` and with each claim | built |
 | 23 mutation testing | `tools/mutate.py`, weekly sharded CI job | `46580c3` | built; **no full score yet** (the scheduled job gives it) |
@@ -48,12 +47,12 @@ To be written with the client (claim 19).
 
 ## 4. Debt, deviations and decisions
 
-### Decisions needed from CEOGG
+### Decisions taken by CEOGG
 
-| # | What | Options |
+| # | What | Decision |
 |---|---|---|
-| D1 | **m6-stealth cannot be built with Cold Storage as authored.** A grate is scrap steel, audible 40 m away on its storey and 20 m one storey off; a guard's awareness gains 0.5 of its threshold per breach noise (every 40 ticks) and loses 0.4 meanwhile, so any guard within earshot is alerted. The basement guard stands 4 m from the basement grate. | (a) a thin-grate material with a short noise reach, and the basement guard posted out of earshot of the grate (recommended: keeps a basement guard); (b) remove the basement guard (the spec's pre-approved lever) and a thin-grate material; (c) keep the content and prove stealth on another route (a deviation from the spec) |
-| D2 | **G4 debt 8 cannot be fixed as the spec says.** A guard's shot is submitted at tick T for T+1; another guard's earlier-queued shot kills the target at T+1, so at T there is no dead contact to drop. | (a) guards fire inside the stance tick through a sim-internal call (an M4 design change; every M4 combat fixture moves); (b) a fire at a target that died earlier the same tick is a recorded no-op, not a rejection |
+| D1 | m6-stealth could not be built with Cold Storage as first authored: a grate was scrap steel, audible 40 m away, and the basement guard stood 4 m from the basement grate. | "Quieter grates, move guard": grates are `grate_steel` (noise reach 6 m), and the basement guard is posted at the basement's north-east desk, facing west (`6eb873d`). Then "Add a maintenance key": unlocking a grate with the city's maintenance key is silent and leaves no trace; cutting stays the fallback (D14). |
+| D2 | G4 debt 8 could not be fixed as the spec says: a guard's shot is submitted at T for T+1, and another guard's earlier-queued shot can kill the target at T+1. | "Quiet no-op": a fire by a living shooter at a target killed by a shot earlier the same tick is accepted and does nothing; the sim counts it (`CombatSystem.late_shots()`, in the snapshot) (`4501582`). |
 
 ### Deviations and interpretations (for review)
 
@@ -70,6 +69,11 @@ To be written with the client (claim 19).
 | D11 | Heat's "witnessed trespass" counts every `perception.alerted` whose contact stands in violation, including alerts by noise and by report, per the spec's wording; a loud run's heat runs into the thousands. | claim 11 |
 | D12 | The crate place for the keycard has no loot check (the spec's loot rule names corpses). | `43afba6` |
 | D13 | `key_item` is a new item kind (the spec names a keycard but no kind). | `1e88b93` |
+| D14 | The maintenance key (`content/key_item/maintenance_key.json`) is new content: it lies in the city's utility box on the pavement (a crate place spawned with the site, like the keycard's) and unlocks both grates (D1). The fixer's briefing names it. | `6eb873d` |
+| D15 | `grate_steel` is a new material (hp 150, cutter, noise reach 6 m); both grates use it (D1). | `6eb873d` |
+| D17 | The world view's camera cone is drawn from the sim's own line of sight, ray by ray; it is the camera's sight on its storey, not hearing. The cold_storage demo leaves out the M4 guards, whose street it crosses. | `b60c007` |
+| D18 | The context button is D-pad left / G (`world_interact`): A is taken by building in the world set. | `4e29918` |
+| D16 | The m6-stealth fixture is made by a plan that, before each stretch past the patrols, waits until a look ahead on a copy of the sim shows the stretch going unseen, as a careful player watching the patrols would. The look ahead runs only in the generator; the fixture is an ordinary command log. | `tools/make_m6_fixtures.gd` |
 
 ### Debt
 
