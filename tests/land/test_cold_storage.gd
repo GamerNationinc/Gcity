@@ -174,3 +174,12 @@ func test_the_tunnel_hatch_is_a_way_out_not_a_way_in() -> void:
 	assert_true(SimAssembly.movement_of(_sim).climb(player, hatch), "up it from the tunnel")
 	_sim.step_n(build.climb_ticks_of(hatch) + 2)
 	assert_eq(BuildSystem.cell_of(actors.position_of(player)), O + Vector3i(2, 0, -3), "out on the street")
+
+
+func test_cutting_the_street_grate_leaves_the_tunnel_hatch_standing() -> void:
+	_setup()
+	var build: BuildSystem = SimAssembly.build_of(_sim)
+	var grate: int = build.face_piece_at(BuildSystem.face_key(O + Vector3i(1, -1, -3), "py"))
+	var hatch: int = build.face_piece_at(BuildSystem.face_key(O + Vector3i(2, -1, -3), "py"))
+	assert_eq(build.breach(grate), [grate] as Array[int], "only the grate comes out")
+	assert_true(build.has_piece(hatch), "the hatch stands on its own bollard")

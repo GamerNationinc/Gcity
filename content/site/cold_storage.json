@@ -360,6 +360,7 @@
 		{"piece": "storage_crate", "cell": [10, 0, 1], "facing": "", "sensor": "", "squad": 0},
 		{"piece": "foundation_block", "cell": [0, 0, -3], "facing": "", "sensor": "", "squad": 0},
 		{"piece": "street_grate", "cell": [1, -1, -3], "facing": "py", "sensor": "", "squad": 0},
+		{"piece": "foundation_block", "cell": [3, 0, -3], "facing": "", "sensor": "", "squad": 0},
 		{"piece": "tunnel_hatch", "cell": [2, -1, -3], "facing": "py", "sensor": "", "squad": 0},
 		{"piece": "basement_grate", "cell": [4, -1, -1], "facing": "pz", "sensor": "", "squad": 0},
 		{"piece": "stair_steel", "cell": [7, -1, 5], "facing": "nz", "sensor": "", "squad": 0},
