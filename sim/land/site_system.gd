@@ -23,7 +23,8 @@ var _sensors: SensorSystem
 var _hacks: HackSystem
 var _events: EventBus
 var _owner_regex: RegEx = RegEx.create_from_string(LandSystem.OWNER_PATTERN)
-## site id -> [x, y, z] origin cell
+## site id -> {"origin": [x, y, z] cell, "pieces": [ids], "agents": [ids], "targets": [ids]}:
+## what the site raised, so a contract can tell a body, a breach or a login on the site
 var _spawned: Dictionary = {}
 
 
@@ -244,7 +245,33 @@ func is_spawned(site: StringName) -> bool:
 func origin_of(site: StringName) -> Vector3i:
 	if not is_spawned(site):
 		return Vector3i.ZERO
-	return _cell(_spawned[String(site)])
+	var rec: Dictionary = _spawned[String(site)]
+	return _cell(rec["origin"])
+
+
+## The piece, agent and hack-target ids a spawned site raised (empty if not spawned).
+func pieces_of(site: StringName) -> Array[int]:
+	return _ids_of(site, "pieces")
+
+
+func agents_of(site: StringName) -> Array[int]:
+	return _ids_of(site, "agents")
+
+
+func targets_of(site: StringName) -> Array[int]:
+	return _ids_of(site, "targets")
+
+
+func _ids_of(site: StringName, key: String) -> Array[int]:
+	var out: Array[int] = []
+	if not is_spawned(site):
+		return out
+	var rec: Dictionary = _spawned[String(site)]
+	var list: Array = rec[key]
+	for v: Variant in list:
+		var id: int = v
+		out.append(id)
+	return out
 
 
 ## The land id of a site's parcel.
@@ -318,13 +345,16 @@ func spawn(site: StringName, origin: Vector3i) -> bool:
 			var installed: bool = _sensors.install(StringName(sensor), ids[i], squad)
 			assert(installed, "a sensor on a site piece installs")
 	var targets: Array = t["hack_targets"]
+	var target_ids: Array[int] = []
 	for v: Variant in targets:
 		var h: Dictionary = v
 		var target: String = h["target"]
 		var index: int = h["piece"]
 		var placed: int = _hacks.place(StringName(target), _cell(h["cell"]) + origin, EntityIds.NONE if index < 0 else ids[index])
 		assert(placed != EntityIds.NONE, "a site's hack target places")
+		target_ids.append(placed)
 	var agents: Array = t["agents"]
+	var agent_ids: Array[int] = []
 	for v: Variant in agents:
 		var a: Dictionary = v
 		var profile: String = a["profile"]
@@ -333,7 +363,8 @@ func spawn(site: StringName, origin: Vector3i) -> bool:
 		var route: String = a["route"]
 		var agent: int = _perception.spawn(StringName(profile), _cell(a["cell"]) + origin, facing, squad_a, route, origin)
 		assert(agent != EntityIds.NONE, "a site's agent stands where the site put it")
-	_spawned[String(site)] = [origin.x, origin.y, origin.z]
+		agent_ids.append(agent)
+	_spawned[String(site)] = {"origin": [origin.x, origin.y, origin.z] as Array[int], "pieces": ids, "agents": agent_ids, "targets": target_ids}
 	_events.emit(EVENT_SPAWNED, {"site": site, "x": origin.x, "y": origin.y, "z": origin.z})
 	return true
 
@@ -370,13 +401,30 @@ func restore(state: Dictionary) -> Error:
 	var src: Dictionary = state["spawned"]
 	var out: Dictionary = {}
 	for k: Variant in src:
-		if typeof(k) != TYPE_STRING or not _cell_ok_any(src[k]):
+		if typeof(k) != TYPE_STRING or typeof(src[k]) != TYPE_DICTIONARY:
 			return _restore_fail("entry")
 		var site: String = k
 		if not _content.has(KIND_SITE, StringName(site)):
 			return _restore_fail("unknown site '%s'" % site)
-		var o: Vector3i = _cell(src[k])
-		out[site] = [o.x, o.y, o.z]
+		var rec: Dictionary = src[k]
+		if rec.size() != 4 or not _cell_ok_any(rec.get("origin")):
+			return _restore_fail("site '%s' record" % site)
+		var o: Vector3i = _cell(rec["origin"])
+		var clean: Dictionary = {"origin": [o.x, o.y, o.z] as Array[int]}
+		for key: String in ["pieces", "agents", "targets"]:
+			if typeof(rec.get(key)) != TYPE_ARRAY:
+				return _restore_fail("site '%s' %s" % [site, key])
+			var list_in: Array = rec[key]
+			var list: Array[int] = []
+			for v: Variant in list_in:
+				if typeof(v) != TYPE_INT:
+					return _restore_fail("site '%s' %s entry" % [site, key])
+				var id: int = v
+				if id <= 0 or list.has(id):
+					return _restore_fail("site '%s' %s id" % [site, key])
+				list.append(id)
+			clean[key] = list
+		out[site] = clean
 	_spawned = out
 	return OK
 

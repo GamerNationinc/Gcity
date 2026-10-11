@@ -161,5 +161,12 @@ func test_the_spawned_record_survives_the_restore() -> void:
 	assert_eq(SimAssembly.restore_systems(other, sim.snapshot()), OK, "restores")
 	assert_true(SimAssembly.sites_of(other).is_spawned(&"zz_shed"), "spawned")
 	assert_eq(SimAssembly.sites_of(other).origin_of(&"zz_shed"), O1, "where")
-	assert_eq(SimAssembly.sites_of(other).restore({"spawned": {"zz_nothing": [0, 0, 0]}}), ERR_INVALID_DATA, "an unknown site is refused")
-	assert_eq(SimAssembly.sites_of(other).restore({"spawned": {"zz_shed": [0, 0]}}), ERR_INVALID_DATA, "a bad origin is refused")
+	var good: Dictionary = {"origin": [0, 0, 0], "pieces": [1, 2], "agents": [3], "targets": [1]}
+	assert_eq(SimAssembly.sites_of(other).restore({"spawned": {"zz_nothing": good}}), ERR_INVALID_DATA, "an unknown site is refused")
+	for patch: Dictionary in [{"origin": [0, 0]}, {"pieces": [1, 1]}, {"agents": [0]}, {"targets": ["1"]}, {"extra": 1}]:
+		var bad: Dictionary = good.duplicate(true)
+		bad.merge(patch, true)
+		assert_eq(SimAssembly.sites_of(other).restore({"spawned": {"zz_shed": bad}}), ERR_INVALID_DATA, "refused: %s" % str(patch))
+	assert_eq(SimAssembly.sites_of(other).pieces_of(&"zz_shed").size(), 7, "the shed's seven pieces are remembered")
+	assert_eq(SimAssembly.sites_of(other).agents_of(&"zz_shed").size(), 1, "its guard")
+	assert_eq(SimAssembly.sites_of(other).targets_of(&"zz_shed").size(), 1, "its hack target")
