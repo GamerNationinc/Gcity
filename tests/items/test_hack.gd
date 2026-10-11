@@ -159,6 +159,33 @@ func test_a_hack_completes_once_and_stays_logged_in_until_logout() -> void:
 	assert_false(_do(&"hack.logout", {"actor": _player, "target": terminal}), "not twice")
 
 
+## M6 claim 19's hacking pane reads, never writes: the targets in reach (exactly those
+## a start would accept by place), each one's name and length, the running target and
+## the actor's logins, oldest first.
+func test_the_queries_a_client_reads() -> void:
+	_setup()
+	var terminal: int = _hacks.place(&"zz_terminal", _cell(1, 0, 0), EntityIds.NONE)
+	var vault: int = _hacks.place(&"zz_vault", _cell(0, 0, 1), EntityIds.NONE)
+	var far: int = _hacks.place(&"zz_terminal", _cell(4, 0, 0), EntityIds.NONE)
+	var above: int = _hacks.place(&"zz_terminal", _cell(0, 1, 0), EntityIds.NONE)
+	assert_eq(_hacks.targets_in_reach(_player), [terminal, vault] as Array[int], "in reach on the storey, by id")
+	assert_eq(_hacks.target_name(terminal), &"zz_terminal", "its content id")
+	assert_eq(_hacks.target_name(far + above), &"", "an unknown id has none")
+	assert_eq(_hacks.target_ticks(vault), 200, "its length")
+	assert_eq(_hacks.target_ticks(far + above), -1, "an unknown id has none")
+	assert_eq(_hacks.running_target(_player), EntityIds.NONE, "nothing running")
+	assert_false(_start(far), "a start agrees: out of reach")
+	assert_false(_start(above), "and off the storey")
+	assert_true(_start(terminal), "started")
+	assert_eq(_hacks.running_target(_player), terminal, "running")
+	_sim.step_n(119)
+	assert_eq(_hacks.running_target(_player), EntityIds.NONE, "done")
+	assert_eq(_hacks.logins_of(_player), [terminal] as Array[int], "logged in")
+	_actors.set_position(_player, _feet(4, 0))
+	assert_eq(_hacks.targets_in_reach(_player), [far] as Array[int], "reach follows the actor")
+	assert_eq(_hacks.logins_of(_player + 100), [] as Array[int], "an actor with none")
+
+
 func test_a_paused_sim_does_not_advance_or_start_a_hack() -> void:
 	_setup()
 	var terminal: int = _hacks.place(&"zz_terminal", _cell(1, 0, 0), EntityIds.NONE)

@@ -245,6 +245,56 @@ func login_of(target: int) -> int:
 	return EntityIds.NONE
 
 
+## The targets within the actor's reach on its storey, by id: those a start would
+## accept by place.
+func targets_in_reach(actor: int) -> Array[int]:
+	var out: Array[int] = []
+	if not _actors.has_actor(actor):
+		return out
+	var ids: Array = _targets.keys()
+	ids.sort()
+	for v: Variant in ids:
+		var id: int = v
+		if _in_reach(actor, id):
+			out.append(id)
+	return out
+
+
+## The target's content id, or &"" for an unknown id.
+func target_name(target: int) -> StringName:
+	if not _targets.has(target):
+		return &""
+	var rec: Dictionary = _targets[target]
+	return rec["target"]
+
+
+## The target's length in ticks, or -1 for an unknown id.
+func target_ticks(target: int) -> int:
+	if not _targets.has(target):
+		return -1
+	var ticks: int = _template(target)["ticks"]
+	return ticks
+
+
+## The target the actor's running hack works, or NONE.
+func running_target(actor: int) -> int:
+	if not _running.has(actor):
+		return EntityIds.NONE
+	var rec: Dictionary = _running[actor]
+	return rec["target"]
+
+
+## The targets the actor is logged in to, oldest first.
+func logins_of(actor: int) -> Array[int]:
+	var out: Array[int] = []
+	if _logins.has(actor):
+		var list: Array = _logins[actor]
+		for v: Variant in list:
+			var id: int = v
+			out.append(id)
+	return out
+
+
 func completed_count() -> int:
 	return _completed
 
@@ -318,6 +368,15 @@ func start(actor: int, target: int) -> bool:
 	var daemons: int = t["daemons"]
 	if free_slots(actor) < daemons:
 		return false
+	if not _in_reach(actor, target):
+		return false
+	var pos: Vector3i = _actors.position_of(actor)
+	var ticks: int = t["ticks"]
+	_running[actor] = {"target": target, "ticks": ticks, "pos": [pos.x, pos.y, pos.z] as Array[int], "health": _health_total(actor)}
+	return true
+
+
+func _in_reach(actor: int, target: int) -> bool:
 	var rec: Dictionary = _targets[target]
 	var c: Array[int] = rec["cell"]
 	var cell: Vector3i = Vector3i(c[0], c[1], c[2])
@@ -327,12 +386,8 @@ func start(actor: int, target: int) -> bool:
 	var at: Vector3i = BuildSystem.cell_centre(cell)
 	var dx: int = pos.x - at.x
 	var dz: int = pos.z - at.z
-	var reach: int = t["reach_mm"]
-	if dx * dx + dz * dz > reach * reach:
-		return false
-	var ticks: int = t["ticks"]
-	_running[actor] = {"target": target, "ticks": ticks, "pos": [pos.x, pos.y, pos.z] as Array[int], "health": _health_total(actor)}
-	return true
+	var reach: int = _template(target)["reach_mm"]
+	return dx * dx + dz * dz <= reach * reach
 
 
 func cancel(actor: int) -> bool:
