@@ -177,3 +177,25 @@ func test_property_random_walks_never_cross_walls() -> void:
 			failures += 1
 	assert_eq(failures, 0, "every accepted move obeyed the rules (%d moves)" % moves)
 	assert_true(moves > 1000, "the walk moved (%d)" % moves)
+
+
+## M6 claims 11 and 13: stepping into a parcel without `enter` goes ahead and is a
+## recorded violation (trespass), once per crossing; no shipped district forbade entry
+## before the docklands, so the M3 refusal was never exercised.
+func test_stepping_into_a_parcel_without_enter_is_a_recorded_trespass() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var sim: SimRoot = SimAssembly.build(SEED, db)
+	var land: LandSystem = SimAssembly.land_of(sim)
+	var actors: ActorSystem = SimAssembly.actors_of(sim)
+	var movement: MovementSystem = SimAssembly.movement_of(sim)
+	var x0: int = 800 * M
+	assert_eq(land.add_parcel(&"zz_dock", &"docklands", &"zz_corp", [[x0, x0], [x0 + 10 * M, x0], [x0 + 10 * M, x0 + 10 * M], [x0, x0 + 10 * M]], 0, 3 * M), OK, "a docklands parcel")
+	var player: int = actors.spawn(&"arcade", 0)
+	actors.set_position(player, Vector3i(x0 - 100, 0, x0 + 5 * M))
+	var before: int = land.violation_count()
+	assert_true(movement.move(player, 150, 0), "the step into it goes ahead")
+	assert_eq(land.parcel_at(actors.position_of(player)), &"zz_dock", "inside")
+	assert_eq(land.violation_count(), before + 1, "recorded as one violation")
+	assert_true(movement.move(player, 150, 0), "walking on inside")
+	assert_eq(land.violation_count(), before + 1, "no new violation without a new crossing")

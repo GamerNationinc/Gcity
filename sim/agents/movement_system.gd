@@ -3,8 +3,11 @@
 ## `speed_mm_per_tick`, on its storey (y never changes here; climbing is M6 claim 2). A
 ## move is rejected when it would enter a cell nobody can stand in (a solid piece fills
 ## it, or nothing holds it up: M6 claim 1), cross a face that carries a solid piece or
-## a closed opening (M6 claim 3), or enter a parcel the actor may not `enter` (a land violation). A profile with
-## the `drop` move may step into a cell with nothing under it (ADR-011 C).
+## a closed opening (M6 claim 3). Stepping into a parcel the actor may not `enter` goes
+## ahead and is recorded as a land violation: trespass is possible, and being seen doing
+## it is what raises heat (M6 claims 11, 13; before M6 no district forbade entry, and
+## the step was refused). A profile with the `drop` move may step into a cell with
+## nothing under it (ADR-011 C).
 ##
 ## Gravity (M6 claim 1): every tick, an actor (living or dead) whose cell is not
 ## standable falls one storey per `fall.ticks_per_storey` ticks of its combat profile
@@ -255,14 +258,14 @@ func _can_start(actor: int, move_id: StringName) -> bool:
 	return _actors.is_alive(actor) and not _falling.has(actor) and not _in_move.has(actor) and has_move(actor, move_id)
 
 
-## Holds the actor for `ticks` and sets it down in `to`, after the `enter` right of a
-## new parcel is checked (a violation refuses the move, as a step would be).
+## Holds the actor for `ticks` and sets it down in `to`. Entering a new parcel without
+## `enter` is recorded as a violation and goes ahead, as a step does.
 func _start(actor: int, move_id: StringName, to: Vector3i, ticks: int) -> bool:
 	var c: int = BuildSystem.CELL
 	var dest: Vector3i = Vector3i(to.x * c + c / 2, to.y * BuildSystem.STOREY_MM, to.z * c + c / 2)
 	var from: Vector3i = _actors.position_of(actor)
-	if _land.parcel_at(dest) != _land.parcel_at(from) and not _land.require(dest, actor, &"enter"):
-		return false
+	if _land.parcel_at(dest) != _land.parcel_at(from):
+		_land.require(dest, actor, &"enter")
 	_in_move[actor] = {"move": String(move_id), "to": [dest.x, dest.y, dest.z] as Array[int], "ticks": ticks}
 	return true
 
@@ -375,6 +378,8 @@ func move(actor: int, dx: int, dz: int) -> bool:
 		return false
 	if _actors.set_position(actor, to) != OK:
 		return false
+	if _land.parcel_at(to) != _land.parcel_at(from):
+		_land.require(to, actor, &"enter")  # a trespass is recorded, not refused
 	_moves += 1
 	return true
 
@@ -390,9 +395,6 @@ func _can_step(actor: int, from: Vector3i, to: Vector3i) -> bool:
 		var d: Vector3i = to_cell - from_cell
 		var facing: String = "px" if d.x > 0 else ("nx" if d.x < 0 else ("pz" if d.z > 0 else "nz"))
 		if _build.blocks_passage(BuildSystem.face_key(from_cell, facing)):
-			return false
-	if _land.parcel_at(to) != _land.parcel_at(from):
-		if not _land.require(to, actor, &"enter"):
 			return false
 	return true
 
