@@ -90,6 +90,9 @@ func test_a_site_spawns_everything_it_declares() -> void:
 	assert_eq(perception.route_origin_of(guard), O1, "patrolling from the site's origin")
 	assert_true(sites.in_exfil(&"zz_shed", BuildSystem.cell_centre(O1 + Vector3i(7, 0, 7))), "the exfil zone")
 	assert_false(sites.in_exfil(&"zz_shed", BuildSystem.cell_centre(O1)), "the shed is not out")
+	var corner: Vector2i = Vector2i((O1.x + 6) * BuildSystem.CELL, (O1.z + 6) * BuildSystem.CELL)
+	assert_eq(sites.exfil_of(&"zz_shed"), [corner, corner + Vector2i(3000, 0), corner + Vector2i(3000, 3000), corner + Vector2i(0, 3000)] as Array[Vector2i], "the exfil polygon in mm (x, z), for the client to draw")
+	assert_eq(sites.exfil_of(&"no_such_site"), [] as Array[Vector2i], "none for a site not spawned")
 	assert_eq(spawned, [{"site": &"zz_shed", "x": O1.x, "y": O1.y, "z": O1.z}], "site.spawned")
 	# M6 claims 13 and 16: a site's crate is a place holding what the site puts in it
 	var crates: Array[StringName] = sites.crates_of(&"zz_shed")

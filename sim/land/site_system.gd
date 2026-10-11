@@ -357,6 +357,21 @@ static func parcel_id(site: StringName, parcel: String) -> StringName:
 	return StringName("%s_%s" % [site, parcel])
 
 
+## A spawned site's exfil polygon in mm (x, z), in the file's order; empty when the site
+## is not spawned. For the client to draw (M6 claim 19).
+func exfil_of(site: StringName) -> Array[Vector2i]:
+	var out: Array[Vector2i] = []
+	if not is_spawned(site):
+		return out
+	var t: Dictionary = _content.get_entry(KIND_SITE, site)
+	for v: Variant in _scaled(t["exfil"], origin_of(site)):
+		var pair: Array = v
+		var x: int = pair[0]
+		var z: int = pair[1]
+		out.append(Vector2i(x, z))
+	return out
+
+
 ## Whether a position lies in a spawned site's exfil polygon (M6 claim 14).
 func in_exfil(site: StringName, position: Vector3i) -> bool:
 	if not is_spawned(site):
