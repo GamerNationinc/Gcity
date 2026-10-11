@@ -206,10 +206,10 @@ func _make(kind: String, owner: int, at: Vector3i) -> StringName:
 
 
 func _moved(actor: int, item: int, from: StringName, to: StringName) -> void:
-	# a place goes when it is emptied
+	_events.emit(EVENT_MOVED, {"actor": actor, "item": item, "from": String(from), "to": String(to)})
+	# a place goes when it is emptied (after the event, so listeners can still read it)
 	if has_place(from) and _items.items_in(from).is_empty():
 		_places.erase(String(from))
-	_events.emit(EVENT_MOVED, {"actor": actor, "item": item, "from": String(from), "to": String(to)})
 
 
 # ---------------------------------------------------------------- state
