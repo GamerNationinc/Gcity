@@ -294,3 +294,37 @@ func test_a_shot_makes_its_noise_where_the_shooter_stands() -> void:
 	var at: Vector3i = _actors.position_of(_player)
 	assert_eq(heard, [{"source": _player, "x": at.x, "y": at.y, "z": at.z, "loudness": _stats.resolve(_pistol, &"noise")}] as Array[Dictionary], "one noise at the shooter")
 	assert_eq(order, [PerceptionSystem.EVENT_NOISE, CombatSystem.EVENT_FIRE] as Array[StringName], "the noise first")
+
+
+func test_a_second_shot_at_a_target_killed_this_tick_is_a_recorded_no_op() -> void:
+	# G4 debt 8 (CEOGG, M6): two shots for the same tick at one target; the first
+	# kills it. The second is not a rejected command: it is accepted, fires nothing and
+	# is counted as late. A fire at an actor already dead before this tick is refused.
+	_build()
+	_range()
+	var second: int = _actors.spawn(&"arcade", 0)
+	var inv: StringName = ItemSystem.inventory_of(second)
+	var pistol: int = _items.spawn(&"weapon_frame", &"g19", inv, 51)
+	var mag: int = _items.spawn(&"weapon_part", &"g19_mag_15", inv, 52)
+	for i: int in 3:
+		var round: int = _items.spawn(&"ammo", &"9x19_fmj", inv, 60 + i)
+		assert_true(_do(&"magazine.load", {"actor": second, "magazine": mag, "round": round}), "load")
+	assert_true(_do(&"actor.wield", {"actor": second, "weapon": pistol}), "wield")
+	assert_true(_do(&"weapon.reload_tactical", {"actor": second, "weapon": pistol, "magazine": mag}), "reload")
+	_sim.step_n(80)
+	for shooter: int in [_player, second]:
+		var sure: int = _stats.add_modifier(shooter, {"stat": CombatSystem.STAT_HIT_CHANCE, "class": &"add", "value": 1_000_000, "source": &"test.sure", "tags": [&"weapon"] as Array[StringName]})
+		assert_true(sure > 0, "a sure shot")
+	_actors.damage_node(_dummy, &"body", _actors.max_health(_dummy, &"body") - 1)
+	var chambered: int = _items.chambered(pistol)
+	var rejected: int = _sim.rejected_count()
+	var tick: int = _sim.get_tick() + 1
+	_sim.submit(SimCommand.new(tick, &"weapon.fire", {"actor": _player, "target": _dummy}))
+	_sim.submit(SimCommand.new(tick, &"weapon.fire", {"actor": second, "target": _dummy}))
+	_sim.step()
+	assert_false(_actors.is_alive(_dummy), "the first shot killed")
+	assert_eq(_sim.rejected_count(), rejected, "the second is not a rejected command")
+	assert_eq(_combat.late_shots(), 1, "it is counted as late")
+	assert_eq(_items.chambered(pistol), chambered, "and fired nothing")
+	assert_false(_do(&"weapon.fire", {"actor": second, "target": _dummy}), "a tick later, a fire at the dead is refused")
+	assert_eq(_combat.late_shots(), 1, "and not counted as late")

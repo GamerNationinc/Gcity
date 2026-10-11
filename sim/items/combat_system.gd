@@ -40,6 +40,13 @@ var _kills: int = 0
 ## Sum of damage actually applied to targets, milli-hp.
 var _damage_dealt: int = 0
 var _last: Dictionary = {}
+## Shots accepted as no-ops: at a target another shot killed earlier the same tick
+## (G4 debt 8, CEOGG's decision at M6)
+var _late: int = 0
+## the tick of _killed_now, and the targets shots killed in it (transient within a tick,
+## between commands: a save is taken between ticks, so it is not state)
+var _killed_tick: int = -1
+var _killed_now: Array[int] = []
 ## Callable(shooter: int, target: int) -> bool, set at assembly once perception
 ## exists (M4 spec claim 7). Unset, every target is in sight, as at M1.
 var _sight: Callable = Callable()
@@ -67,7 +74,7 @@ func tick(_sim: SimRoot) -> void:
 
 
 func snapshot() -> Dictionary:
-	return {"shots": _shots, "hits": _hits, "kills": _kills, "damage_dealt": _damage_dealt, "last": _last.duplicate(true)}
+	return {"shots": _shots, "hits": _hits, "kills": _kills, "damage_dealt": _damage_dealt, "last": _last.duplicate(true), "late": _late}
 
 
 func events() -> EventBus:
@@ -144,6 +151,11 @@ func shots() -> int:
 	return _shots
 
 
+## Shots accepted as no-ops at a target already killed this tick (G4 debt 8).
+func late_shots() -> int:
+	return _late
+
+
 func hits() -> int:
 	return _hits
 
@@ -179,6 +191,13 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 		return false
 	var shooter: int = payload["actor"]
 	var target: int = payload["target"]
+	if sim.get_tick() != _killed_tick:
+		_killed_tick = sim.get_tick()
+		_killed_now.clear()
+	if shooter != target and _actors.is_alive(shooter) and _killed_now.has(target):
+		# a shot decided before the target fell to another this tick: nothing to shoot at
+		_late += 1
+		return true
 	if shooter == target or not _actors.is_alive(shooter) or not _actors.is_alive(target):
 		return false
 	if _footing.is_valid() and not _footing.call(shooter):
@@ -223,6 +242,7 @@ func _on_fire(sim: SimRoot, payload: Dictionary) -> bool:
 	var killed: bool = ctx["killed"]
 	if killed:
 		_kills += 1
+		_killed_now.append(target)
 	var applied: int = ctx["applied"]
 	_damage_dealt += applied
 	_last = {"tick": ctx["tick"], "shooter": shooter, "weapon": weapon, "target": target, "round": round,
@@ -290,16 +310,17 @@ func _stage_routing(ctx: Dictionary, sim: SimRoot) -> void:
 # ---------------------------------------------------------------- restore
 
 func restore(state: Dictionary) -> Error:
-	if state.size() != 5 or typeof(state.get("shots")) != TYPE_INT or typeof(state.get("hits")) != TYPE_INT \
+	if state.size() != 6 or typeof(state.get("shots")) != TYPE_INT or typeof(state.get("hits")) != TYPE_INT \
 			or typeof(state.get("kills")) != TYPE_INT or typeof(state.get("damage_dealt")) != TYPE_INT \
-			or typeof(state.get("last")) != TYPE_DICTIONARY:
+			or typeof(state.get("last")) != TYPE_DICTIONARY or typeof(state.get("late")) != TYPE_INT:
 		push_error("CombatSystem.restore: rejected snapshot: shape")
 		return ERR_INVALID_DATA
 	var shots: int = state["shots"]
 	var hits: int = state["hits"]
 	var kills: int = state["kills"]
 	var dealt: int = state["damage_dealt"]
-	if shots < 0 or hits < 0 or kills < 0 or dealt < 0 or hits > shots or kills > hits:
+	var late: int = state["late"]
+	if shots < 0 or hits < 0 or kills < 0 or dealt < 0 or late < 0 or hits > shots or kills > hits:
 		push_error("CombatSystem.restore: rejected snapshot: counters")
 		return ERR_INVALID_DATA
 	var last: Dictionary = state["last"]
@@ -323,6 +344,7 @@ func restore(state: Dictionary) -> Error:
 	_hits = hits
 	_kills = kills
 	_damage_dealt = dealt
+	_late = late
 	_last = last.duplicate(true)
 	if not _last.is_empty():
 		var node_v: Variant = _last["node"]
