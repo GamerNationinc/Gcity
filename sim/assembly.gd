@@ -36,6 +36,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var land: LandSystem = LandSystem.new(content, actors, events)
 	if land.attach(sim) != OK:
 		return null
+	actors.set_home_lookup(land.has_home, land.home_spawn_of)
 	var corpses: CorpseSystem = CorpseSystem.new(items, actors, land, events)
 	if corpses.attach(sim) != OK:
 		return null

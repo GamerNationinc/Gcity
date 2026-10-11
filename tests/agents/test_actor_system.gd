@@ -187,3 +187,33 @@ func test_death_is_one_event_and_drops_what_the_actor_wields() -> void:
 	assert_eq(_items.container_of(pistol), &"corpse.1", "and the corpse system, listening, has laid it in the body")
 	assert_eq(_actors.damage_node(a, &"body", 1), 0, "nothing left to damage")
 	assert_eq(died.size(), 1, "dying is once")
+
+
+func test_a_dead_actor_with_a_home_respawns_there_whole() -> void:
+	# M6 claim 17: actor.respawn brings a dead player back alive at its home's spawn
+	# point with full health; its inventory holds only the device (the corpse has the
+	# rest)
+	_build()
+	_do(&"actor.spawn", {"profile": "arcade", "range_m": 0})
+	var a: int = _actors.actor_ids()[0]
+	var handset: int = _items.spawn(&"device_frame", &"handset", ItemSystem.inventory_of(a), 1)
+	var pistol: int = _items.spawn(&"weapon_frame", &"g19", ItemSystem.inventory_of(a), 2)
+	assert_true(_do(&"actor.equip_device", {"actor": a, "device": handset}), "carry the device")
+	assert_false(_do(ActorSystem.COMMAND_RESPAWN, {"actor": a}), "the living do not respawn")
+	_actors.damage_node(a, &"body", 100000)
+	assert_false(_do(ActorSystem.COMMAND_RESPAWN, {"actor": a}), "no home, no respawn")
+	assert_true(_do(&"land.identify", {"actor": a, "owner": "player"}), "the player")
+	assert_true(_do(&"land.transfer", {"parcel": "starter_plot", "owner": "player"}), "owns the starter plot")
+	var respawned: Array[Dictionary] = []
+	SimAssembly.combat_of(_sim).events().subscribe(ActorSystem.EVENT_RESPAWNED, func(p: Dictionary) -> void: respawned.append(p))
+	assert_true(_do(ActorSystem.COMMAND_RESPAWN, {"actor": a}), "respawned")
+	var home: Vector3i = SimAssembly.land_of(_sim).home_spawn_of(a)
+	assert_true(_actors.is_alive(a), "alive")
+	assert_eq(_actors.health_of(a), {&"body": 100000}, "whole")
+	assert_eq(_actors.position_of(a), home, "at home")
+	assert_eq(respawned, [{"actor": a, "x": home.x, "y": home.y, "z": home.z}], "actor.respawned")
+	assert_eq(_items.items_in(ItemSystem.inventory_of(a)), [handset] as Array[int], "only the device")
+	assert_eq(_items.container_of(pistol), &"corpse.1", "the pistol is in the body")
+	assert_false(_do(ActorSystem.COMMAND_RESPAWN, {"actor": a}), "once")
+	assert_false(_do(ActorSystem.COMMAND_RESPAWN, {"actor": 999}), "an unknown actor")
+	assert_false(_do(ActorSystem.COMMAND_RESPAWN, {"actor": "1"}), "a bad payload")

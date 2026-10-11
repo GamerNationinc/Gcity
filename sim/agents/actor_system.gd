@@ -11,6 +11,10 @@ const COMMAND_WIELD: StringName = &"actor.wield"
 ## The personal device an actor carries (design doc §12; M5 spec claim 2): one device
 ## frame in its inventory, inheriting its modifiers like a wielded weapon.
 const COMMAND_EQUIP_DEVICE: StringName = &"actor.equip_device"
+## {"actor": int}: a dead actor with a home comes back there, whole (M6 claim 17)
+const COMMAND_RESPAWN: StringName = &"actor.respawn"
+## {actor, x, y, z}
+const EVENT_RESPAWNED: StringName = &"actor.respawned"
 ## {actor, x, y, z}: once, the moment any death path takes a fatal node to zero
 ## (M6 claim 16: where the corpse lies)
 const EVENT_DIED: StringName = &"actor.died"
@@ -22,6 +26,10 @@ var _stats: StatResolver
 var _ids: EntityIds
 var _items: ItemSystem
 var _events: EventBus
+## where a dead actor respawns: set by the assembly to the land system's home lookup
+## (sim/land is built after this system)
+var _has_home: Callable = Callable()
+var _home_of: Callable = Callable()
 ## actor id -> {"profile": StringName, "health": {node: int}, "wielded": int, "device": int, "pos": [x, y, z] mm, "alive": bool}
 ## Positions are integer millimetres (M3 claim set P1). `actor.spawn`'s range_m places
 ## the actor at (range_m × 1000, 0, 0) so the M1 range keeps its meaning.
@@ -61,7 +69,45 @@ func attach(sim: SimRoot) -> Error:
 	err = sim.commands().register(COMMAND_WIELD, _on_wield, true)
 	if err != OK:
 		return err
-	return sim.commands().register(COMMAND_EQUIP_DEVICE, _on_equip_device, true)
+	err = sim.commands().register(COMMAND_EQUIP_DEVICE, _on_equip_device, true)
+	if err != OK:
+		return err
+	return sim.commands().register(COMMAND_RESPAWN, _on_respawn)
+
+
+## Sets where actors respawn: `has_home(actor) -> bool`, `home_of(actor) -> Vector3i`.
+func set_home_lookup(has_home: Callable, home_of: Callable) -> void:
+	_has_home = has_home
+	_home_of = home_of
+
+
+## {"actor": int}: a dead actor with a home comes back alive at its home's spawn point
+## with every health node full. What it carries is untouched: on death the corpse
+## took all but its device. False for the living, the unknown and the homeless.
+func _on_respawn(_sim: SimRoot, payload: Dictionary) -> bool:
+	if payload.size() != 1 or typeof(payload.get("actor")) != TYPE_INT:
+		return false
+	var actor: int = payload["actor"]
+	if not _actors.has(actor) or is_alive(actor) or not _has_home.is_valid():
+		return false
+	var homed: bool = _has_home.call(actor)
+	if not homed:
+		return false
+	var home: Vector3i = _home_of.call(actor)
+	var rec: Dictionary = _actors[actor]
+	var profile: StringName = rec["profile"]
+	var t: Dictionary = _content.get_entry(KIND_PROFILE, profile)
+	var health_t: Dictionary = t["health"]
+	var nodes: Array = health_t["nodes"]
+	var health: Dictionary = rec["health"]
+	for n: Variant in nodes:
+		var nd: Dictionary = n
+		var id_s: String = nd["id"]
+		health[StringName(id_s)] = nd["max"]
+	rec["alive"] = true
+	rec["pos"] = [home.x, home.y, home.z] as Array[int]
+	_events.emit(EVENT_RESPAWNED, {"actor": actor, "x": home.x, "y": home.y, "z": home.z})
+	return true
 
 
 ## Health nodes must be unique and every routing entry, and the fall node (M6 claim 1),
