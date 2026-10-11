@@ -29,6 +29,9 @@ const KIND_TOOL: StringName = &"tool"
 ## An item that matters by being carried: a credential a lock names, a deliverable a
 ## fixer takes (M6 spec claim 10). Only its tags.
 const KIND_KEY_ITEM: StringName = &"key_item"
+## Containers that lie somewhere in the world (M6 claim 16): "<prefix>.<n>", n >= 1.
+## The corpse system keeps where each one is; items only checks the name.
+const PLACE_PREFIXES: Array[String] = ["corpse", "pile"]
 const SPAWNABLE: Array[StringName] = [KIND_FRAME, KIND_PART, KIND_AMMO, KIND_DEVICE_FRAME, KIND_DEVICE_MODULE, KIND_TOOL, KIND_KEY_ITEM]
 
 const COMMAND_SPAWN: StringName = &"item.spawn"
@@ -648,7 +651,7 @@ func restore(state: Dictionary) -> Error:
 		var name: StringName = _as_name(ck)
 		if name.is_empty() or typeof(containers_in[ck]) != TYPE_ARRAY:
 			return _restore_fail("container key or list")
-		if not _is_open_container(name) and not _is_closed_container_name(name, new_items) and not _is_fixer_container(name):
+		if not _is_open_container(name) and not _is_closed_container_name(name, new_items) and not _is_fixer_container(name) and not is_place(name):
 			return _restore_fail("unknown container '%s'" % name)
 		var arr: Array = containers_in[ck]
 		var list: Array[int] = []
@@ -869,6 +872,39 @@ func _is_open_container(name: StringName) -> bool:
 ## delivered contract item goes.
 static func fixer_container(fixer: StringName) -> StringName:
 	return StringName("fixer.%s" % fixer)
+
+
+## A world place's name: "corpse.<n>" or "pile.<n>" with n >= 1.
+static func is_place(name: StringName) -> bool:
+	var parts: PackedStringArray = String(name).split(".")
+	if parts.size() != 2 or not PLACE_PREFIXES.has(parts[0]) or not parts[1].is_valid_int():
+		return false
+	var n: int = int(parts[1])
+	return n >= 1 and str(n) == parts[1]
+
+
+## Moves a loose item (one lying directly in an inventory, the world or a place) to
+## an inventory or a place (M6 claim 16). False, changing nothing, for anything else:
+## an item inside a weapon, a socket or a magazine moves with what holds it.
+func transfer(item: int, to: StringName) -> bool:
+	if not _items.has(item):
+		return false
+	var from: StringName = _location[item]
+	if from == to or not (_is_loose(from)) or not (is_place(to) or _is_inventory(to)):
+		return false
+	var cap: int = capacity_of(to)
+	if cap >= 0 and items_in(to).size() >= cap:
+		return false
+	_move(item, to)
+	return true
+
+
+func _is_loose(container: StringName) -> bool:
+	return container == WORLD or _is_inventory(container) or is_place(container)
+
+
+func _is_inventory(container: StringName) -> bool:
+	return container != WORLD and _is_open_container(container)
 
 
 func _is_fixer_container(name: StringName) -> bool:

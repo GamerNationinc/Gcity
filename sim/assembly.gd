@@ -36,6 +36,9 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var land: LandSystem = LandSystem.new(content, actors, events)
 	if land.attach(sim) != OK:
 		return null
+	var corpses: CorpseSystem = CorpseSystem.new(items, actors, land, events)
+	if corpses.attach(sim) != OK:
+		return null
 	var structures: StructureSystem = StructureSystem.new(content, stats, ids, land, actors)
 	if structures.attach(sim) != OK:
 		return null
@@ -133,7 +136,7 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 		push_error("SimAssembly.restore_systems: snapshot has no systems")
 		return ERR_INVALID_DATA
 	var systems: Dictionary = systems_v
-	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, SensorSystem.SYSTEM_ID, HackSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, WalletSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID]:
+	for id: StringName in [EntityIds.SYSTEM_ID, StatResolver.SYSTEM_ID, ItemSystem.SYSTEM_ID, ActorSystem.SYSTEM_ID, CombatSystem.SYSTEM_ID, ProgressionSystem.SYSTEM_ID, LandSystem.SYSTEM_ID, CorpseSystem.SYSTEM_ID, StructureSystem.SYSTEM_ID, BuildSystem.SYSTEM_ID, PortalGraph.SYSTEM_ID, MovementSystem.SYSTEM_ID, RaidTokenSystem.SYSTEM_ID, PerceptionSystem.SYSTEM_ID, AimSystem.SYSTEM_ID, StressSystem.SYSTEM_ID, PathingSystem.SYSTEM_ID, SquadSystem.SYSTEM_ID, StanceSystem.SYSTEM_ID, SensorSystem.SYSTEM_ID, HackSystem.SYSTEM_ID, StandingSystem.SYSTEM_ID, SiteSystem.SYSTEM_ID, WalletSystem.SYSTEM_ID, QuestSystem.SYSTEM_ID]:
 		var state_v: Variant = systems.get(id)
 		if typeof(state_v) != TYPE_DICTIONARY:
 			push_error("SimAssembly.restore_systems: no state for '%s'" % id)
@@ -155,6 +158,8 @@ static func restore_systems(sim: SimRoot, snapshot: Dictionary) -> Error:
 				err = progression_of(sim).restore(state)
 			LandSystem.SYSTEM_ID:
 				err = land_of(sim).restore(state)
+			CorpseSystem.SYSTEM_ID:
+				err = corpses_of(sim).restore(state)
 			StructureSystem.SYSTEM_ID:
 				err = structures_of(sim).restore(state)
 			BuildSystem.SYSTEM_ID:
@@ -408,3 +413,12 @@ static func wallet_of(sim: SimRoot) -> WalletSystem:
 		return null
 	var wallet: WalletSystem = system
 	return wallet
+
+
+static func corpses_of(sim: SimRoot) -> CorpseSystem:
+	var system: SimSystem = sim.get_system(CorpseSystem.SYSTEM_ID)
+	if system == null:
+		push_error("SimAssembly: sim has no '%s' system" % CorpseSystem.SYSTEM_ID)
+		return null
+	var corpses: CorpseSystem = system
+	return corpses
