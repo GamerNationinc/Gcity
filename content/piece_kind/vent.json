@@ -1,0 +1,11 @@
+{
+	"schema_version": 1,
+	"description": "A vent or grate set into a wall (M6 claim 13): a vertical opening you can see and crawl through when it is open.",
+	"occupies": "face",
+	"orientation": "vertical",
+	"passable": true,
+	"target": false,
+	"climb_ticks": 0,
+	"mantle": false,
+	"transparent": true
+}

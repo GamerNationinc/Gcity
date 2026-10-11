@@ -1,0 +1,14 @@
+{
+	"schema_version": 1,
+	"description": "The docklands (M6 spec claim 13): warehouses and cold stores under middling law. Non-owners may not even enter a parcel here, so being seen inside one is trespass.",
+	"law_index": 500,
+	"wealth_index": 400,
+	"informant_density": 400,
+	"gang_control": {"faction": "faction.scrapline", "strength": 300},
+	"covers_unparcelled": false,
+	"rights": {
+		"owner":   {"build": true,  "dig": true,  "enter": true,  "carry": true, "loot": true,  "safe": true},
+		"other":   {"build": false, "dig": false, "enter": false, "carry": true, "loot": false, "safe": false},
+		"unowned": {"build": false, "dig": false, "enter": true,  "carry": true, "loot": true,  "safe": false}
+	}
+}

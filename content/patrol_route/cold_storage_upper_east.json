@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"description": "The east patrol on Cold Storage's storey 1, in cells measured from the site origin (M6 claims 12, 13).",
+	"cells": [[6, 1, 5], [8, 1, 5], [8, 1, 7], [6, 1, 7]]
+}

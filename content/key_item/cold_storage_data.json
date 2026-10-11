@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"description": "A drive of Cold Storage's records, pulled from the server-room terminal (M6 spec claim 13): the contract's deliverable.",
+	"tags": ["key_item", "deliverable", "cold_storage_data"]
+}

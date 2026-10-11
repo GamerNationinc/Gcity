@@ -9,6 +9,8 @@ const SEED: int = 20261090
 const M: int = 1000
 const FAR: Vector3i = Vector3i(500 * M, 0, 500 * M)
 const NEVER: int = 100_000
+## Where a site is raised to try the routes its agents walk.
+const SITE_ORIGIN: Vector3i = Vector3i(900, 0, 900)
 
 var _sim: SimRoot
 var _actors: ActorSystem
@@ -60,12 +62,29 @@ func test_every_agent_profile_spawns_and_every_route_is_walkable() -> void:
 		i += 1
 	_sim.step_n(10)
 	assert_eq(_sim.rejected_count(), 0, "nothing rejected")
-	# every route's cells are cells an agent can be sent to (a spawn on each route works)
+	# every route's cells are cells an agent can be sent to (a spawn on each route works).
+	# A route a site's agents walk is measured from that site's origin (M6 claim 12), so
+	# it is tried inside its site, spawned at SITE_ORIGIN; any other route on open ground.
+	var site_of_route: Dictionary = {}
+	for site: StringName in db.ids(&"site"):
+		var st: Dictionary = db.get_entry(&"site", site)
+		var agents: Array = st["agents"]
+		for a: Variant in agents:
+			var ad: Dictionary = a
+			var r: String = ad["route"]
+			if not r.is_empty():
+				site_of_route[StringName(r)] = site
 	for route: StringName in routes:
 		var t: Dictionary = db.get_entry(&"patrol_route", route)
 		var cells: Array = t["cells"]
 		var first: Vector3i = PathingSystem._vec(cells[0])
-		assert_true(_perception.spawn(profiles[0], first, 0, 2, String(route)) > 0, "patrol_route/%s takes an agent" % route)
+		if site_of_route.has(route):
+			var site_sim: SimRoot = SimAssembly.build(SEED, _db())
+			var site_id: StringName = site_of_route[route]
+			assert_true(SimAssembly.sites_of(site_sim).spawn(site_id, SITE_ORIGIN), "site/%s spawns for its routes" % site_id)
+			assert_true(SimAssembly.perception_of(site_sim).spawn(profiles[0], first + SITE_ORIGIN, 0, 2, String(route), SITE_ORIGIN) > 0, "patrol_route/%s takes an agent in site/%s" % [route, site_id])
+		else:
+			assert_true(_perception.spawn(profiles[0], first, 0, 2, String(route)) > 0, "patrol_route/%s takes an agent" % route)
 
 
 func test_metamorphic_relations_hold_for_every_profile() -> void:

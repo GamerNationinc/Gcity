@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"description": "Cold Storage's roamer, up and down the stairs between the hall and storey 1, in cells measured from the site origin (M6 claims 12, 13).",
+	"cells": [[6, 0, 4], [9, 0, 5], [8, 1, 5], [6, 1, 6]]
+}

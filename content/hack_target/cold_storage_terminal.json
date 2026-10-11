@@ -1,0 +1,9 @@
+{
+	"schema_version": 1,
+	"description": "The server-room terminal at Cold Storage (M6 spec claim 13): fifteen seconds standing still at it copies the records onto a drive.",
+	"ticks": 600,
+	"daemons": 1,
+	"noise": 3000,
+	"reach_mm": 1500,
+	"effect": {"kind": "spawn_item", "params": {"template": "cold_storage_data"}}
+}
