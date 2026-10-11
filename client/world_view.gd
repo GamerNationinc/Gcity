@@ -560,7 +560,7 @@ func _unhandled_input(event: InputEvent) -> void:
 					_device_viewport.render_target_update_mode = SubViewport.UPDATE_ONCE
 				return
 		return
-	for action: String in ["fire", "reload", "wield", "camera", "build_place", "build_remove", "build_next", "raid", "save", "load", "profile", "overlay", "restart"]:
+	for action: String in ["interact", "fire", "reload", "wield", "camera", "build_place", "build_remove", "build_next", "raid", "save", "load", "profile", "overlay", "restart"]:
 		if event.is_action("world_" + action):
 			_perform(action)
 			return
@@ -697,10 +697,20 @@ func _perform(action: String) -> void:
 	var sim: SimRoot = _host.sim()
 	var items: ItemSystem = SimAssembly.items_of(sim)
 	var actors: ActorSystem = SimAssembly.actors_of(sim)
-	if not actors.is_alive(_player) and ["fire", "reload", "wield", "build_place", "build_remove", "build_room", "raid"].has(action):
+	if not actors.is_alive(_player) and ["interact", "fire", "reload", "wield", "build_place", "build_remove", "build_room", "raid"].has(action):
 		_note("you are down: restart or load")
 		return
 	match action:
+		"interact":
+			var choice: Dictionary = Interact.choose(sim, _player, _facing_ahead())
+			if choice.is_empty():
+				_note("nothing here to use")
+				return
+			var kind: StringName = choice["kind"]
+			var payload: Dictionary = choice["payload"]
+			var label: String = choice["label"]
+			_submit(sim, kind, payload)
+			_note(label)
 		"fire":
 			var target: int = _aimed_target(sim)
 			if target == 0:
@@ -963,7 +973,9 @@ func _render(sim: SimRoot) -> void:
 		lines.append("guard #%d: %-11s aware %3d%%%s  stress %2d%%  %2d m  %s" % [guard, stances.stance_of(guard), perception.awareness_of(guard, _player) / 10000,
 			"!" if perception.is_alerted(guard, _player) else " ", stress.stress_of(guard) / 10000, ActorSystem.metres_between(p, gp), "sees you" if sees else ("remembers" if perception.has_last_known(guard, _player) else "unaware")])
 	lines.append("guards: %s   overlay %s   piece to place: %s" % [GUARD_PROFILES[_guard_profile], "on" if _overlay else "off", _piece_templates[_piece_index]])
-	lines.append("")
+	var choice: Dictionary = Interact.choose(sim, _player, _facing_ahead())
+	var use_label: String = choice.get("label", "")
+	lines.append(_glyphs.prompt(&"world_interact", use_label) if not use_label.is_empty() else "")
 	lines.append(_glyphs.line([[&"world_move_forward", "move"], [&"world_look_left", "look"], [&"world_camera", "camera"], [&"world_fire", "fire"], [&"world_reload", "reload"], [&"world_wield", "wield"]]))
 	lines.append(_glyphs.line([[&"world_build_place", "place"], [&"world_build_remove", "remove"], [&"world_build_next", "next piece"], [&"world_device", "device (hold: restart)"], [&"world_profile", "guard profile"], [&"world_overlay", "overlay"], [&"world_restart", "restart"], [&"world_save", "save"], [&"world_load", "load"]]))
 	lines.append("steam: %s%s" % [_steam.status(), ("  (%s)" % _steam.persona()) if _steam.is_online() else ""])

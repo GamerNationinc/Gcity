@@ -45,6 +45,7 @@ func test_deck_and_xbox_name_the_same_button_differently() -> void:
 	assert_eq(glyphs.glyph(&"world_profile"), "D-pad up", "the D-pad")
 	glyphs.set_deck(false)
 	assert_eq(glyphs.glyph(&"world_build_next"), "LB", "and LB on an Xbox pad")
+	assert_eq(glyphs.glyph(&"world_interact"), "D-pad left", "the context button (M6 claim 19)")
 	assert_eq(glyphs.glyph(&"world_fire"), "RB", "fire on the right shoulder")
 	assert_eq(glyphs.prompt(&"world_fire", "fire"), "[RB] fire", "a prompt")
 	assert_eq(glyphs.prompt(&"world_save", "save"), "", "no pad binding, no prompt")
@@ -81,7 +82,7 @@ func test_the_last_event_decides_the_active_device() -> void:
 func test_the_action_manifest_names_every_world_action() -> void:
 	var text: String = read_text("res://steam_input/game_actions.vdf")
 	assert_true(text.contains('"world"') and text.contains('"device"'), "two action sets")
-	for name: String in ["fire", "reload", "wield", "camera", "place", "remove", "next_piece", "raid", "device", "overlay", "profile", "restart", "move", "look"]:
+	for name: String in ["fire", "reload", "wield", "camera", "place", "remove", "next_piece", "raid", "device", "overlay", "profile", "restart", "move", "look", "interact"]:
 		assert_true(text.contains('"%s"' % name), "the manifest names %s" % name)
 	for key: String in ["Set_World", "Set_Device", "Action_Fire", "Action_Lower"]:
 		assert_true(text.count(key) >= 2, "%s is declared and localised" % key)
