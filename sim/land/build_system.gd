@@ -451,8 +451,8 @@ func set_open(actor: int, id: int, open: bool) -> bool:
 
 
 ## Whether an opening's access rules let `actor` through, open or not: a lock needs its
-## credential carried; a latched piece, the actor's cell inside an enclosed volume
-## (M6 claim 3). What opening it asks, and what climbing a ladder through a closed
+## credential carried; a latched piece, the actor on its inside: for a door or window
+## the actor's cell inside an enclosed volume (M6 claim 3), for a hatch the cell below. What opening it asks, and what climbing a ladder through a closed
 ## hatch asks (claim 13: a latched access hatch is an exit from below). False for a
 ## piece that is no opening.
 func may_pass(actor: int, id: int) -> bool:
@@ -464,7 +464,13 @@ func may_pass(actor: int, id: int) -> bool:
 	if not lock.is_empty():
 		return _credential.is_valid() and _credential.call(actor, StringName(lock))
 	if latched:
-		return _inside.is_valid() and _inside.call(cell_of(_actors.position_of(actor)))
+		var here: Vector3i = cell_of(_actors.position_of(actor))
+		var face: String = face_of(id)
+		if face.ends_with("|y"):
+			# a latched hatch opens from below, whatever lies around it (claim 13: the
+			# tunnel's access hatch stays an exit after the grate beside it is cut)
+			return here == face_cells(face)[0]
+		return _inside.is_valid() and _inside.call(here)
 	return true
 
 

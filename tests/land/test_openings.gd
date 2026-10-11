@@ -197,3 +197,21 @@ func test_may_pass_is_the_access_rule_of_an_opening() -> void:
 	var grate: int = _build.place(_player, &"street_grate", _at(0, -1, 0), "py")
 	_actors.set_position(_player, _feet(0, 0, 0))
 	assert_false(_build.may_pass(_player, grate), "a locked grate without the key: no")
+
+
+## M6 claim 13: a latched hatch's inside is below it, enclosed or not: the tunnel's
+## access hatch stays an exit after the street grate beside it has been cut open.
+func test_a_latched_hatch_is_passed_from_below_even_when_the_shaft_is_open() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	_setup(db)
+	assert_eq(_build.excavate([_cell(0, -1, 0), _cell(1, -1, 0)] as Array[Vector3i]), OK, "a two-cell shaft")
+	assert_true(_build.place(_player, &"foundation_block", _at(2, 0, 0), "") > 0, "foundation")
+	var hatch: int = _build.place(_player, &"tunnel_hatch", _at(1, -1, 0), "py")
+	var grate: int = _build.place(_player, &"street_grate", _at(0, -1, 0), "py")
+	assert_true(hatch > 0 and grate > 0, "an access hatch beside a street grate")
+	assert_false(_build.breach(grate).is_empty(), "the grate cut out: the shaft is open to the street")
+	_actors.set_position(_player, _feet(1, -1, 0))
+	assert_true(_build.may_pass(_player, hatch), "from below: yes")
+	_actors.set_position(_player, _feet(1, 0, 0))
+	assert_false(_build.may_pass(_player, hatch), "from the street above: no")
