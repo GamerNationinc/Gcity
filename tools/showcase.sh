@@ -13,7 +13,7 @@ case "$out" in /*) abs="$out" ;; *) abs="$root/$out" ;; esac
 mkdir -p "$(dirname "$abs")"
 frames="$(mktemp -d)"
 trap 'rm -rf "$frames"' EXIT
-xvfb-run -a -s "-screen 0 1280x800x24" "$godot" --path . res://tools/showcase/showcase.tscn \
+timeout 3000 xvfb-run -a -s "-screen 0 1280x800x24" "$godot" --path . res://tools/showcase/showcase.tscn \
 	--rendering-driver opengl3 --audio-driver Dummy --resolution 1280x800 \
 	-- "--scenario=$scenario" "--frames=$frames" 2>&1 | grep -E "SCRIPT ERROR|ERROR" || true
 count="$(find "$frames" -name 'f*.png' | wc -l)"

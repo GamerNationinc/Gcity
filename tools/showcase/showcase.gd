@@ -59,6 +59,10 @@ func _ready() -> void:
 		push_error("showcase: no scenario '%s'" % name)
 		get_tree().quit(1)
 		return
+	if not script.can_instantiate():
+		push_error("showcase: scenario '%s' does not compile" % name)
+		get_tree().quit(1)
+		return
 	var made: Variant = script.new()
 	_scenario = made
 	var db := ContentDb.new()
@@ -81,6 +85,11 @@ func _ready() -> void:
 	bus.subscribe(BuildSystem.EVENT_OPENING, _on_opening)
 	bus.subscribe(BuildSystem.EVENT_CHECK_FAILED, _on_check_failed)
 	bus.subscribe(SiteSystem.EVENT_SPAWNED, _on_site_spawned)
+	bus.subscribe(QuestSystem.EVENT_EXFIL, _on_exfil)
+	bus.subscribe(QuestSystem.EVENT_DELIVERED, _on_delivered)
+	bus.subscribe(WalletSystem.EVENT_CHANGED, _on_wallet)
+	bus.subscribe(BuildSystem.EVENT_BREACHED, _on_breached)
+	bus.subscribe(MovementSystem.EVENT_LANDED, _on_landed)
 	_scenario.call("setup", _sim, self)
 
 
@@ -131,7 +140,8 @@ func cutaway(max_storey: int) -> void:
 	for k: Variant in _piece_nodes:
 		var id: int = k
 		var node: MeshInstance3D = _piece_nodes[k]
-		node.visible = _piece_shown(build, id)
+		if build.has_piece(id):  # a piece cut out this frame is dropped by the next sync
+			node.visible = _piece_shown(build, id)
 
 
 func _piece_shown(build: BuildSystem, id: int) -> bool:
@@ -410,10 +420,44 @@ func _footprint_slab(footprint: Variant, origin: Vector3i, colour: Color) -> voi
 	slab(Vector3(origin.x + lo.x, 0.0, origin.z + lo.y), Vector2(hi.x - lo.x, hi.y - lo.y), colour)
 
 
+func _on_exfil(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	note("%s got out of the site with the goods (exfil)" % _who(actor), 1)
+
+
+func _on_delivered(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	var tier: String = p["tier"]
+	note("DELIVERED: %s paid %d credits (%s run: detected %d, alarms %d, bodies %d, traces %d)" % [_who(actor), p["credits"],
+		tier if not tier.is_empty() else "loud", p["times_detected"], p["alarms_raised"], p["bodies"], p["traces_left"]], 2)
+
+
+func _on_wallet(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	var amount: int = p["amount"]
+	note("%s's wallet %+d credits (now %d)" % [_who(actor), amount, p["balance"]], 3)
+
+
+func _on_breached(p: Dictionary) -> void:
+	if not p.has("actor"):
+		return
+	var actor: int = p["actor"]
+	var removed: Array = p["removed"]
+	note("%s cut through (%d piece%s removed)" % [_who(actor), removed.size(), "" if removed.size() == 1 else "s"], 1)
+
+
+func _on_landed(p: Dictionary) -> void:
+	var actor: int = p["actor"]
+	if _names.has(actor):
+		var storeys: int = p["storeys"]
+		var damage: int = p["damage"]
+		note("%s dropped %d storey%s%s" % [_who(actor), storeys, "" if storeys == 1 else "s", "" if damage == 0 else " (hurt %d)" % (damage / 1000)], 1)
+
+
 func _on_hack(p: Dictionary) -> void:
 	var actor: int = p["actor"]
 	var applied: bool = p["applied"]
-	note("%s finished a hack%s" % [_who(actor), "" if applied else " (nothing to affect)"])
+	note("%s finished a hack%s" % [_who(actor), "" if applied else " (nothing to affect)"], 1)
 
 
 func _heat_changes() -> void:
