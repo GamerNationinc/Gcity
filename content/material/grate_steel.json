@@ -1,0 +1,10 @@
+{
+	"schema_version": 1,
+	"description": "Thin steel bars (M6, CEOGG 2026-10-11): a grate cuts fast and quietly, heard only within 6 m on its own storey and not at all a storey away.",
+	"hp": 150,
+	"breach_tool": "cutter",
+	"breach_noise": 200,
+	"breach_ticks": 240,
+	"breach_reach_mm": 6000,
+	"max_span": 4
+}

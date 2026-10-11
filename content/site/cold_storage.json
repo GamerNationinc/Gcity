@@ -360,6 +360,7 @@
 		{"piece": "storage_crate", "cell": [10, 0, 1], "facing": "", "sensor": "", "squad": 0},
 		{"piece": "foundation_block", "cell": [0, 0, -3], "facing": "", "sensor": "", "squad": 0},
 		{"piece": "street_grate", "cell": [1, -1, -3], "facing": "py", "sensor": "", "squad": 0},
+		{"piece": "storage_crate", "cell": [-1, 0, -3], "facing": "", "sensor": "", "squad": 0},
 		{"piece": "foundation_block", "cell": [3, 0, -3], "facing": "", "sensor": "", "squad": 0},
 		{"piece": "tunnel_hatch", "cell": [2, -1, -3], "facing": "py", "sensor": "", "squad": 0},
 		{"piece": "basement_grate", "cell": [4, -1, -1], "facing": "pz", "sensor": "", "squad": 0},
@@ -372,13 +373,13 @@
 		{"profile": "guard_sim", "cell": [1, 1, 1], "facing": 0, "squad": 1, "route": "cold_storage_upper_west"},
 		{"profile": "guard_sim", "cell": [6, 1, 5], "facing": 0, "squad": 1, "route": "cold_storage_upper_east"},
 		{"profile": "guard_sim", "cell": [6, 0, 4], "facing": 0, "squad": 1, "route": "cold_storage_stairs"},
-		{"profile": "guard_sim", "cell": [5, -1, 3], "facing": 0, "squad": 1, "route": ""}
+		{"profile": "guard_sim", "cell": [3, -1, 6], "facing": 180, "squad": 1, "route": ""}
 	],
 	"hack_targets": [
 		{"target": "cold_storage_terminal", "cell": [1, 1, 6], "piece": -1},
 		{"target": "power_monitor_spoof", "cell": [11, 0, 2], "piece": 188}
 	],
-	"containers": [{"piece": 299, "items": [{"kind": "key_item", "template": "cold_storage_keycard"}]}],
+	"containers": [{"piece": 299, "items": [{"kind": "key_item", "template": "cold_storage_keycard"}]}, {"piece": 302, "items": [{"kind": "key_item", "template": "maintenance_key"}]}],
 	"placement": [40, 0, 0],
 	"exfil": [[-3, -6], [17, -6], [17, 11], [-3, 11]]
 }

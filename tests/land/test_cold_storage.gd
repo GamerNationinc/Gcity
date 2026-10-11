@@ -190,7 +190,7 @@ func test_the_keycard_lies_in_the_yard_crate() -> void:
 	# briefing names"; claim 16 makes the crate a place it is taken from
 	_setup()
 	var crates: Array[StringName] = SimAssembly.sites_of(_sim).crates_of(&"cold_storage")
-	assert_eq(crates.size(), 1, "one crate holds anything")
+	assert_eq(crates.size(), 2, "two crates hold anything: the yard's and the city's utility box")
 	var corpses: CorpseSystem = SimAssembly.corpses_of(_sim)
 	assert_eq(corpses.position_of(crates[0]), _feet(Vector3i(10, 0, 1)), "the yard crate under the window")
 	var items: ItemSystem = SimAssembly.items_of(_sim)
@@ -206,3 +206,32 @@ func test_the_keycard_lies_in_the_yard_crate() -> void:
 	_sim.step()
 	assert_eq(items.container_of(held[0]), ItemSystem.inventory_of(player), "taken from the yard")
 	assert_true(build.may_pass(player, door), "and with it, it does")
+
+
+
+func test_the_maintenance_key_in_the_utility_box_opens_both_grates_quietly() -> void:
+	# CEOGG (2026-10-11): the under route's silent way in is the city's maintenance key,
+	# kept in the utility box on the pavement; the grates are thin, quiet steel to cut
+	_setup()
+	var box: StringName = SimAssembly.sites_of(_sim).crates_of(&"cold_storage")[1]
+	var corpses: CorpseSystem = SimAssembly.corpses_of(_sim)
+	assert_eq(corpses.position_of(box), _feet(Vector3i(-1, 0, -3)), "the box on the pavement by the bollard")
+	var items: ItemSystem = SimAssembly.items_of(_sim)
+	var held: Array[int] = items.items_in(box)
+	assert_eq(held.size(), 1, "one item")
+	assert_eq(items.item_template(held[0]), &"maintenance_key", "the maintenance key")
+	var build: BuildSystem = SimAssembly.build_of(_sim)
+	var player: int = SimAssembly.actors_of(_sim).spawn(&"arcade", 0)
+	SimAssembly.actors_of(_sim).set_position(player, _feet(Vector3i(-1, 0, -4)))
+	var street: int = build.face_piece_at(BuildSystem.face_key(O + Vector3i(1, -1, -3), "py"))
+	var basement: int = build.face_piece_at(BuildSystem.face_key(O + Vector3i(4, -1, -1), "pz"))
+	assert_false(build.may_pass(player, street), "without the key the street grate stays shut")
+	_sim.submit(SimCommand.new(_sim.get_tick() + 1, CorpseSystem.COMMAND_TAKE, {"actor": player, "from": String(box), "item": held[0]}))
+	_sim.step()
+	assert_true(build.may_pass(player, street), "with it, the street grate opens")
+	assert_true(build.may_pass(player, basement), "and the basement grate")
+	for piece: int in [street, basement]:
+		assert_eq(build.material_of(piece), &"grate_steel", "a thin, quiet grate")
+	var desk: int = SimAssembly.sites_of(_sim).agents_of(&"cold_storage")[5]
+	assert_eq(BuildSystem.cell_of(SimAssembly.actors_of(_sim).position_of(desk)), O + Vector3i(3, -1, 6), "the basement guard at his desk in the far corner")
+	assert_eq(SimAssembly.perception_of(_sim).facing_of(desk), 180, "facing west, his back to the way through")

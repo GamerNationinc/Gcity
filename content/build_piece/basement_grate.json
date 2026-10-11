@@ -2,7 +2,7 @@
 	"schema_version": 1,
 	"description": "A steel grate between the city's service tunnel and a basement, bolted from the tunnel side: cut it, or carry a maintenance key.",
 	"kind": "vent",
-	"material": "scrap_steel",
+	"material": "grate_steel",
 	"open_cost": 60,
 	"value": 0,
 	"starts_open": false,

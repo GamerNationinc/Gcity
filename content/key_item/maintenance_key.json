@@ -1,0 +1,5 @@
+{
+	"schema_version": 1,
+	"description": "A city maintenance key (M6 claim 20, CEOGG 2026-10-11): unlocks the docklands' street and service-tunnel grates without a sound or a trace. Kept in the utility box on the street.",
+	"tags": ["key_item", "credential", "maintenance_key"]
+}
