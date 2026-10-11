@@ -1,7 +1,7 @@
 # G6 — M6 Cold Storage: gate evidence package (DRAFT, in progress)
 
-**Status: draft, not submitted.** Phases 1 to 4 are built except the m6-stealth fixture
-(decided, D1; in progress) and the Deck run (claim 24). Nothing here is marked complete on its author's authority: CEOGG
+**Status: draft, not submitted.** Phases 1 to 4 are built; the Deck run (claim 24) is
+not, and the mutation score waits on the scheduled job. Nothing here is marked complete on its author's authority: CEOGG
 signs the gate. Spec: [`docs/specs/M6-cold-storage.md`](../specs/M6-cold-storage.md).
 
 ## 1. Specification
@@ -27,7 +27,7 @@ signs the gate. Spec: [`docs/specs/M6-cold-storage.md`](../specs/M6-cold-storage
 | 17 respawn, recovery, the city | home spawn, `actor.respawn`, `RecoverySystem`, the item conservation property | `5ef30fb` … `3e3c3a2`, `75af716` | built |
 | 18 the player's aim and stress | content bound by the combat profile (not data-only: D5) | `340da99` | built |
 | 19 client | world view (storey cutaway, openings, camera cones cut by line of sight, bodies, the fixer, exfil zones, site parcels), the context button (`Interact`), the hacking pane, the contract view, credits on the shell bar, the panel at 1920×1080, the inventory sorted, the range demo on ticks; `--demo-script=cold_storage` | `e6b0e12` … `b60c007` | built; screenshots `M6-world-*.png`, `M6-device-*.png`, `M6-range-ticks.png` |
-| 20 fixtures | `tools/fixture_driver.gd`, `tools/make_m6_fixtures.gd`, `tests/sim/test_m6_fixtures.gd`: m6-front, m6-front-hot, m6-side, m6-fall, m6-loud, m6-death, m6-city-death, m6-hack-interrupt | `b096f10` … `ae772ec` | 8 of 9; m6-stealth in progress |
+| 20 fixtures | `tools/fixture_driver.gd`, `tools/make_m6_fixtures.gd`, `tests/sim/test_m6_fixtures.gd`: m6-front, m6-front-hot, m6-side, m6-fall, m6-loud, m6-death, m6-city-death, m6-hack-interrupt, m6-stealth (all counters zero, the ghost rate); showcase `stealth_run` replays m6-stealth | `b096f10` … `ae772ec`, `ef04a51`, `980ce2a` | built, 9 of 9 |
 | 21 snapshot and save v2 | save schema 2, migration from real version-1 saves, the save property over every new command | `b8a9394` | built |
 | 22 schemas and corpus | every new kind has a schema; hostile commands and hostile site files | `4fa91f4` and with each claim | built |
 | 23 mutation testing | `tools/mutate.py`, weekly sharded CI job | `46580c3` | built; **no full score yet** (the scheduled job gives it) |
@@ -73,7 +73,7 @@ To be written with the client (claim 19).
 | D15 | `grate_steel` is a new material (hp 150, cutter, noise reach 6 m); both grates use it (D1). | `6eb873d` |
 | D17 | The world view's camera cone is drawn from the sim's own line of sight, ray by ray; it is the camera's sight on its storey, not hearing. The cold_storage demo leaves out the M4 guards, whose street it crosses. | `b60c007` |
 | D18 | The context button is D-pad left / G (`world_interact`): A is taken by building in the world set. | `4e29918` |
-| D16 | The m6-stealth fixture is made by a plan that, before each stretch past the patrols, waits until a look ahead on a copy of the sim shows the stretch going unseen, as a careful player watching the patrols would. The look ahead runs only in the generator; the fixture is an ordinary command log. | `tools/make_m6_fixtures.gd` |
+| D16 | The m6-stealth fixture is made by a plan that, before each of six stretches, waits until a look ahead on a copy of the sim (every 10 ticks) shows the stretch and 420 ticks more, past a guard's 400-tick memory, with nobody alerted: a careful player watching the patrols. The look ahead runs only in the generator; the fixture is an ordinary command log. The route needs the maintenance room as a hiding place between the stairs and the server room, and the hack done from (2, 1, 7): the hall's east patrol and the stairs roamer cover the corridor the spec's route names, and the west patrol sees the rest of the server room through its doorway. Guards may glimpse the player (amber) without being alerted; the contract counts alerts only. | `ef04a51` |
 
 ### Debt
 
