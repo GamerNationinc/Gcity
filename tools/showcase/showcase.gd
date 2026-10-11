@@ -78,6 +78,7 @@ func _ready() -> void:
 	bus.subscribe(HackSystem.EVENT_COMPLETED, _on_hack)
 	bus.subscribe(BuildSystem.EVENT_OPENING, _on_opening)
 	bus.subscribe(BuildSystem.EVENT_CHECK_FAILED, _on_check_failed)
+	bus.subscribe(SiteSystem.EVENT_SPAWNED, _on_site_spawned)
 	_scenario.call("setup", _sim, self)
 
 
@@ -155,7 +156,7 @@ func _build_stage() -> void:
 	_header = _label2d(17, Vector2(18, 12))
 	layer.add_child(_header)
 	_legend = _label2d(16, Vector2(900, 12))
-	_legend.text = "KEY\nblue  = player\ngreen = guard/camera unaware\namber = suspicious / remembers\nred   = alerted\ncone  = what it can see\nrings = noise"
+	_legend.text = "KEY\nblue  = player\ngreen = guard/camera unaware\namber = suspicious / remembers\nred   = alerted\ncone  = what it can see\nrings = noise\nred dot = alarm sensor\ncyan post = hack target\nyellow dots = patrol route"
 	layer.add_child(_legend)
 	var banner := ColorRect.new()
 	banner.color = Color(0, 0, 0, 0.7)
@@ -282,6 +283,81 @@ func _on_check_failed(p: Dictionary) -> void:
 	note("Door check FAILED: %s's %s is %d, over the door's limit" % [_who(actor), p["standing"], value], 2)
 
 
+## A site appeared: name its agents, and draw its parcels, exfil zone, sensors, hack
+## targets and patrol routes, which the sim holds but nothing else would show.
+func _on_site_spawned(p: Dictionary) -> void:
+	var site: StringName = p["site"]
+	var ox: int = p["x"]
+	var oy: int = p["y"]
+	var oz: int = p["z"]
+	var origin: Vector3i = Vector3i(ox, oy, oz)
+	var content: ContentDb = _sim.get_system(ContentDb.SYSTEM_ID)
+	var t: Dictionary = content.get_entry(SiteSystem.KIND_SITE, site)
+	var perception: PerceptionSystem = SimAssembly.perception_of(_sim)
+	var fresh: int = 0
+	for agent: int in perception.agent_ids():
+		if not _names.has(agent):
+			fresh += 1
+			_names[agent] = "Guard %d" % (_names.size() + 1)
+	var pieces: Array = t["pieces"]
+	note("site.spawn \"%s\": %d pieces and %d guards appeared in one step" % [site, pieces.size(), fresh], 1)
+	var land: LandSystem = SimAssembly.land_of(_sim)
+	var parcels: Array = t["parcels"]
+	for v: Variant in parcels:
+		var pr: Dictionary = v
+		var pid: String = pr["id"]
+		var land_id: StringName = SiteSystem.parcel_id(site, pid)
+		_footprint_slab(pr["footprint"], origin, Color(0.55, 0.35, 0.15, 0.35))
+		var f: Array = pr["footprint"]
+		var first: Array = f[0]
+		var fx: int = first[0]
+		var fz: int = first[1]
+		pin("parcel_" + String(land_id), Vector3(origin.x + fx + 0.5, 0.3, origin.z + fz + 0.5), "parcel owned by '%s'" % land.owner_of(land_id), Color(1.0, 0.75, 0.45))
+	_footprint_slab(t["exfil"], origin, Color(0.2, 0.9, 0.4, 0.35))
+	var ex: Array = t["exfil"]
+	var c0: Array = ex[0]
+	var ex_x: int = c0[0]
+	var ex_z: int = c0[1]
+	pin("exfil_" + String(site), Vector3(origin.x + ex_x + 1.5, 0.3, origin.z + ex_z + 1.0), "EXIT ZONE\n(leave here with the goods)", Color(0.5, 1.0, 0.6))
+	var targets: Dictionary = SimAssembly.hacks_of(_sim).snapshot()["targets"]
+	for k: Variant in targets:
+		var target_id: int = k
+		var rec: Dictionary = targets[k]
+		var cell: Array = rec["cell"]
+		var cx: int = cell[0]
+		var cy: int = cell[1]
+		var cz: int = cell[2]
+		var box: MeshInstance3D = _box(Vector3(0.35, 0.9, 0.35), Color(0.2, 0.95, 1.0))
+		box.position = Vector3(cx + 0.5, cy + 0.45, cz + 0.5)
+		_extra.add_child(box)
+		pin("hack_%d" % target_id, Vector3(cx + 0.5, cy + 1.4, cz + 0.5), "hack target: %s" % rec["target"], Color(0.6, 1.0, 1.0))
+	for agent: int in perception.agent_ids():
+		var route_s: String = perception.route_of(agent)
+		if route_s.is_empty():
+			continue
+		var route: Dictionary = content.get_entry(PerceptionSystem.KIND_ROUTE, StringName(route_s))
+		var ro: Vector3i = perception.route_origin_of(agent)
+		var cells: Array = route["cells"]
+		for rc: Variant in cells:
+			var rv: Vector3i = PathingSystem._vec(rc) + ro
+			var dot: MeshInstance3D = _box(Vector3(0.18, 0.05, 0.18), Color(0.95, 0.95, 0.5))
+			dot.position = Vector3(rv.x + 0.5, rv.y + 0.06, rv.z + 0.5)
+			_extra.add_child(dot)
+
+
+func _footprint_slab(footprint: Variant, origin: Vector3i, colour: Color) -> void:
+	var f: Array = footprint
+	var lo: Vector2i = Vector2i(1 << 30, 1 << 30)
+	var hi: Vector2i = Vector2i(-(1 << 30), -(1 << 30))
+	for v: Variant in f:
+		var pair: Array = v
+		var x: int = pair[0]
+		var z: int = pair[1]
+		lo = Vector2i(mini(lo.x, x), mini(lo.y, z))
+		hi = Vector2i(maxi(hi.x, x), maxi(hi.y, z))
+	slab(Vector3(origin.x + lo.x, 0.0, origin.z + lo.y), Vector2(hi.x - lo.x, hi.y - lo.y), colour)
+
+
 func _on_hack(p: Dictionary) -> void:
 	var actor: int = p["actor"]
 	var applied: bool = p["applied"]
@@ -382,6 +458,8 @@ func _sync(dt: float) -> void:
 			label_text += "\nHEAT %d" % heat
 			_sync_heat_bar(actor, feet, heat)
 		tag.text = label_text
+	# sensors: a dot on each watched piece, red while live, green once spoofed
+	_sync_sensors()
 	# noise rings
 	for c: MeshInstance3D in _ring_nodes:
 		c.queue_free()
@@ -407,6 +485,35 @@ func _sync(dt: float) -> void:
 		node.position = ring["pos"]
 		add_child(node)
 		_ring_nodes.append(node)
+
+
+var _sensor_nodes: Dictionary = {}
+
+
+func _sync_sensors() -> void:
+	var sensors: SensorSystem = SimAssembly.sensors_of(_sim)
+	var build: BuildSystem = SimAssembly.build_of(_sim)
+	var recs: Dictionary = sensors.snapshot()["sensors"]
+	for k: Variant in recs:
+		var piece: int = k
+		if not build.has_piece(piece):
+			continue
+		var node: MeshInstance3D
+		if _sensor_nodes.has(piece):
+			node = _sensor_nodes[piece]
+		else:
+			node = MeshInstance3D.new()
+			var sphere := SphereMesh.new()
+			sphere.radius = 0.16
+			sphere.height = 0.32
+			node.mesh = sphere
+			_sensor_nodes[piece] = node
+			add_child(node)
+			var cells: Array[Vector3i] = build.cells_of_piece(piece)
+			var a: Vector3 = Vector3(cells[0]) + Vector3(0.5, 0.5, 0.5)
+			var b: Vector3 = Vector3(cells[cells.size() - 1]) + Vector3(0.5, 0.5, 0.5)
+			node.position = (a + b) / 2.0 + Vector3(0, 0.45, 0)
+		node.material_override = _material(Color(0.3, 1.0, 0.4) if sensors.is_spoofed(piece) else Color(1.0, 0.15, 0.15))
 
 
 func _sync_cone(actor: int, feet: Vector3, colour: Color) -> void:
