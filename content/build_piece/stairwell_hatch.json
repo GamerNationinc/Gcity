@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "An open stairwell through a floor: a hatch frame that starts open, so stairs can climb through it.",
+	"kind": "hatch",
+	"material": "scrap_steel",
+	"open_cost": 0,
+	"value": 0,
+	"starts_open": true,
+	"lock": "",
+	"latched": false,
+	"check": {"standing": "", "max": 0}
+}

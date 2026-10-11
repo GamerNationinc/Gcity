@@ -326,20 +326,22 @@ func excavate(cells: Array[Vector3i]) -> Error:
 
 ## Whether an actor can stand in `cell` (M6 spec claim 1): the cell is not solid, is on
 ## a storey in range, and is held up by the ground (storey 0), bedrock (the lowest
-## storey, where excavated), a horizontal face piece under it, or something solid
-## directly below it (a cell piece, or earth).
+## storey, where excavated), something solid directly below it (a cell piece, or earth;
+## whatever face lies between), or a closed horizontal face piece under it.
 func is_standable(cell: Vector3i) -> bool:
 	if not is_storey_in_range(cell.y) or is_solid(cell):
 		return false
 	if cell.y == MIN_STOREY:
+		return true
+	# something solid directly below holds you up whatever lies between: the top of a
+	# flight of stairs under an open stairwell hatch is stood on (M6 claim 13)
+	if is_solid(cell + Vector3i(0, -1, 0)):
 		return true
 	var under: String = face_key(cell, "ny")
 	var floor_id: int = face_piece_at(under)
 	if floor_id != EntityIds.NONE:
 		# an open horizontal opening is a hole (M6 claim 3)
 		return not is_open(floor_id)
-	if is_solid(cell + Vector3i(0, -1, 0)):
-		return true
 	return cell.y == GROUND_CELL_Y and not _holes.has(under)
 
 

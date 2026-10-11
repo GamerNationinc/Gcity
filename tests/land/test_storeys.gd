@@ -175,3 +175,25 @@ func test_the_uncut_ground_face_blocks_sight_and_passage_and_a_hole_does_not() -
 	assert_false(_build.blocks_sight(grate_face) or _build.blocks_passage(grate_face), "the hole lets both through")
 	var side: String = BuildSystem.face_key(_cell(0, 0, 0), "px")
 	assert_false(_build.blocks_sight(side), "a bare face above ground blocks nothing")
+
+
+## M6 claim 13: the top of a flight of stairs is stood on even under an open stairwell
+## hatch (something solid below holds you up whatever face lies between), while an open
+## hatch over nothing is still a hole.
+func test_an_open_hatch_over_stairs_is_stood_on_and_over_air_is_a_hole() -> void:
+	var db := ContentDb.new()
+	assert_eq(ContentLoader.load_all(db), OK, "content")
+	var sim: SimRoot = SimAssembly.build(20261040, db)
+	var build: BuildSystem = SimAssembly.build_of(sim)
+	var base: Vector3i = Vector3i(700, 0, 700)
+	var dig: Array[Vector3i] = [base + Vector3i(0, -1, 0), base + Vector3i(0, -1, -1), base + Vector3i(1, -1, 0), base + Vector3i(1, -1, -1)]
+	var entries: Array[Dictionary] = [
+		{"piece": &"foundation_block", "cell": base + Vector3i(-1, 0, 0), "facing": ""},
+		{"piece": &"foundation_block", "cell": base + Vector3i(2, 0, 0), "facing": ""},
+		{"piece": &"stair_steel", "cell": base + Vector3i(0, -1, 0), "facing": "nz"},
+		{"piece": &"stairwell_hatch", "cell": base + Vector3i(0, -1, 0), "facing": "py"},
+		{"piece": &"stairwell_hatch", "cell": base + Vector3i(1, -1, 0), "facing": "py"},
+	]
+	assert_eq(build.spawn_batch(dig, entries).size(), 5, "stairs under an open hatch, and an open hatch over a dug cell")
+	assert_true(build.is_standable(base), "the stairs' top is stood on")
+	assert_false(build.is_standable(base + Vector3i(1, 0, 0)), "the other hatch is a hole")
