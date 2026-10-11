@@ -33,6 +33,10 @@ const COMMAND_CLOSE: StringName = &"opening.close"
 ## {piece, open, actor}: an opening changed state (M6 claim 3); sensors and run records
 ## listen for it.
 const EVENT_OPENING: StringName = &"opening.changed"
+## {actor, piece, standing, value}: an opener above a piece's check opened it anyway
+## (M6 claim 10); the piece's watching camera raises the alarm (sim/threat).
+const EVENT_CHECK_FAILED: StringName = &"build.check_failed"
+const KIND_STANDING: StringName = &"standing"
 const STAT_HP: StringName = &"piece_hp"
 const STAT_NOISE: StringName = &"breach_noise"
 const CELL: int = 1000
@@ -70,6 +74,8 @@ var _excavated: Dictionary = {}
 ## func(actor: int, tag: StringName) -> bool: the actor carries the credential (installed
 ## at assembly from the item system); unset, every lock stays shut
 var _credential: Callable = Callable()
+## (actor, standing) -> int: the opener's standing for a piece's check (StandingSystem)
+var _standing: Callable = Callable()
 ## func(cell: Vector3i) -> bool: the cell is inside an enclosed volume (installed at
 ## assembly from the portal graph); unset, every latch stays shut
 var _inside: Callable = Callable()
@@ -159,6 +165,10 @@ func set_credential_check(check: Callable) -> void:
 	_credential = check
 
 
+func set_standing_check(check: Callable) -> void:
+	_standing = check
+
+
 func set_inside_check(check: Callable) -> void:
 	_inside = check
 
@@ -208,6 +218,15 @@ func validate_content() -> Error:
 		var latched: bool = t["latched"]
 		if not opening_kind and (starts_open or not lock.is_empty() or latched):
 			return _content_fail("build_piece/%s has an opening's state but is not an opening" % template)
+		if typeof(t.get("check")) != TYPE_DICTIONARY:
+			return _content_fail("build_piece/%s needs a check" % template)
+		var check: Dictionary = t["check"]
+		if typeof(check.get("standing")) != TYPE_STRING or typeof(check.get("max")) != TYPE_INT:
+			return _content_fail("build_piece/%s check needs a standing and a max" % template)
+		var standing: String = check["standing"]
+		var limit: int = check["max"]
+		if not standing.is_empty() and (not opening_kind or not _content.has(KIND_STANDING, StringName(standing)) or limit < 0):
+			return _content_fail("build_piece/%s checks '%s' but is not an opening or names no standing" % [template, standing])
 	if not has_root:
 		return _content_fail("piece_kind/foundation must exist: it is the root of support")
 	return OK
@@ -432,7 +451,23 @@ func set_open(actor: int, id: int, open: bool) -> bool:
 	var record: Dictionary = _pieces[id]
 	record["open"] = open
 	_events.emit(EVENT_OPENING, {"piece": id, "open": open, "actor": actor})
+	if open:
+		_check(actor, id)
 	return true
+
+
+## A piece's check (M6 claim 10): never refuses, only tells when the opener is too hot.
+func _check(actor: int, id: int) -> void:
+	var t: Dictionary = _content.get_entry(KIND_PIECE, template_of(id))
+	var check: Dictionary = t["check"]
+	var standing_s: String = check["standing"]
+	if standing_s.is_empty() or not _standing.is_valid():
+		return
+	var standing: StringName = StringName(standing_s)
+	var value: int = _standing.call(actor, standing)
+	var limit: int = check["max"]
+	if value > limit:
+		_events.emit(EVENT_CHECK_FAILED, {"actor": actor, "piece": id, "standing": standing, "value": value})
 
 
 ## A face piece's canonical face key ("" for a cell piece), without copying the record.

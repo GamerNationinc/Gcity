@@ -86,6 +86,7 @@ static func build(seed: int, content: ContentDb) -> SimRoot:
 	var standing: StandingSystem = StandingSystem.new(content, actors, land, events)
 	if standing.attach(sim) != OK:
 		return null
+	build.set_standing_check(standing.standing_of)
 	var quests: QuestSystem = QuestSystem.new(content, actors, items, events)
 	if quests.attach(sim) != OK:
 		return null

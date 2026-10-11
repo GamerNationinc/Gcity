@@ -7,5 +7,6 @@
 	"value": 0,
 	"starts_open": false,
 	"lock": "",
-	"latched": true
+	"latched": true,
+	"check": {"standing": "", "max": 0}
 }

@@ -1,0 +1,12 @@
+{
+	"schema_version": 1,
+	"description": "Cold Storage's front door (M6 spec claim 10): keycard lock; opening it while your heat is over 300 tells the lobby camera.",
+	"kind": "door",
+	"material": "scrap_steel",
+	"open_cost": 40,
+	"value": 0,
+	"starts_open": false,
+	"lock": "cold_storage_keycard",
+	"latched": false,
+	"check": {"standing": "heat", "max": 300}
+}
