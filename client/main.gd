@@ -4,7 +4,8 @@
 ## reload. The client never writes sim state; every action is SimRoot.submit().
 ##
 ## `--demo` after `--` plays a scripted sequence through the same action path, for
-## unattended playtests and screenshots; `--demo-quit=<s>` quits after that many seconds.
+## unattended playtests and screenshots, timed in sim seconds (ticks over
+## `SimRoot.TICK_HZ`, M5 debt 13); `--demo-quit=<s>` quits after that many.
 ## `--screenshot=<path>` with `--screenshot-at=<s>` saves the rendered frame at that
 ## demo time as PNG (tools/screenshot.sh wraps this under a virtual display).
 extends Control
@@ -55,11 +56,10 @@ func _ready() -> void:
 			_screenshot_at_s = float(arg.trim_prefix("--screenshot-at="))
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	var sim: SimRoot = _host.sim()
 	_advance_setup(sim)
 	if _demo:
-		_demo_t += delta
 		while _demo_next < _demo_script.size():
 			var step: Array = _demo_script[_demo_next]
 			var at: float = step[0]
@@ -76,6 +76,11 @@ func _process(delta: float) -> void:
 			get_tree().quit()
 			return
 	_render(sim)
+
+
+func _physics_process(_delta: float) -> void:
+	if _demo:
+		_demo_t += 1.0 / SimRoot.TICK_HZ  # sim-driven demo clock, see plot_view
 
 
 ## Saves the frame just drawn. Loud on failure: a missing screenshot must not pass
