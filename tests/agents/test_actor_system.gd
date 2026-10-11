@@ -184,6 +184,6 @@ func test_death_is_one_event_and_drops_what_the_actor_wields() -> void:
 	assert_eq(died, [{"actor": a, "x": 3500, "y": 1000, "z": -2500}], "one actor.died, where it fell")
 	assert_eq(_actors.wielded(a), EntityIds.NONE, "a dead actor wields nothing")
 	assert_eq(_stats.get_inherits(pistol), -1, "and the weapon no longer inherits from it")
-	assert_eq(_items.container_of(pistol), ItemSystem.inventory_of(a), "the weapon itself stays where it was (the corpse system moves it)")
+	assert_eq(_items.container_of(pistol), &"corpse.1", "and the corpse system, listening, has laid it in the body")
 	assert_eq(_actors.damage_node(a, &"body", 1), 0, "nothing left to damage")
 	assert_eq(died.size(), 1, "dying is once")
