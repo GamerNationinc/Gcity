@@ -119,6 +119,38 @@ func test_on_the_stairwell_hatch_the_button_climbs_down() -> void:
 	assert_true(_accepted(choice), "the sim takes it")
 
 
+## The side route (claim 13) needs the mantle onto the yard crate: the button offers
+## it facing the crate, and then the window above it.
+func test_facing_the_yard_crate_the_button_mantles_onto_it() -> void:
+	_setup()
+	_stand(O + Vector3i(11, 0, 1))
+	var choice: Dictionary = Interact.choose(_sim, _player, "nx")
+	assert_eq(choice.get("kind"), CorpseSystem.COMMAND_TAKE, "the keycard in it comes first")
+	assert_true(_accepted(choice), "taken")
+	choice = Interact.choose(_sim, _player, "nx")
+	assert_eq(choice.get("kind"), MovementSystem.COMMAND_MANTLE, "then the mantle: %s" % choice.get("label"))
+	assert_true(_label(choice).begins_with("climb onto storage crate"), "named: %s" % choice.get("label"))
+	assert_true(_accepted(choice), "the sim takes it")
+	_sim.step_n(60)
+	assert_eq(BuildSystem.cell_of(_actors.position_of(_player)), O + Vector3i(10, 1, 1), "on the crate")
+	choice = Interact.choose(_sim, _player, "nx")
+	assert_eq(choice.get("kind"), BuildSystem.COMMAND_OPEN, "and the window ahead: %s" % choice.get("label"))
+
+
+func test_facing_a_one_cell_gap_the_button_jumps_it() -> void:
+	_setup()
+	var build: BuildSystem = SimAssembly.build_of(_sim)
+	var far: Vector3i = Vector3i(200, 0, 200)
+	for x: int in [0, 4]:
+		assert_true(build.place(_player, &"foundation_block", BuildSystem.cell_centre(far + Vector3i(x, 0, 0)), "") > 0, "foundation")
+	assert_true(build.place(_player, &"floor_panel", BuildSystem.cell_centre(far + Vector3i(1, 0, 0)), "py") > 0, "west deck")
+	assert_true(build.place(_player, &"floor_panel", BuildSystem.cell_centre(far + Vector3i(3, 0, 0)), "py") > 0, "east deck")
+	_stand(far + Vector3i(1, 1, 0))
+	var choice: Dictionary = Interact.choose(_sim, _player, "px")
+	assert_eq(choice.get("kind"), MovementSystem.COMMAND_JUMP, "jump: %s" % choice.get("label"))
+	assert_true(_accepted(choice), "the sim takes it")
+
+
 func test_nothing_in_reach_offers_nothing() -> void:
 	_setup()
 	_stand(Vector3i(0, 0, 30))

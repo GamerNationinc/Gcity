@@ -3,7 +3,8 @@
 ## "payload"}, or {} for nothing. In order: the fixer in reach (take the contract, or
 ## deliver it), a body, pile or crate in reach with something in it (take the first
 ## thing), the face ahead (cut it with a wielded tool, else open or close an opening),
-## something to climb here or ahead, then a grate or hatch underfoot (open or close it,
+## something to climb here or ahead, a crate to climb onto or a gap to jump ahead (the
+## side route's mantle, M6 claim 2), then a grate or hatch underfoot (open or close it,
 ## or cut it): a climb comes first, so the open hatch at a stair's top is climbed down. Reads the sim only; the caller submits.
 class_name Interact extends RefCounted
 
@@ -21,6 +22,8 @@ static func choose(sim: SimRoot, player: int, facing: String) -> Dictionary:
 		choice = _ahead(sim, player, facing)
 	if choice.is_empty():
 		choice = _climb(sim, player, facing)
+	if choice.is_empty():
+		choice = _mantle_or_jump(sim, player, facing)
 	if choice.is_empty():
 		choice = _ahead(sim, player, "ny")
 	return choice
@@ -108,6 +111,18 @@ static func _climb(sim: SimRoot, player: int, facing: String) -> Dictionary:
 	for id: int in candidates:
 		if id != EntityIds.NONE and not movement.climb_destination(here, id).is_empty():
 			return {"label": "climb %s" % _name(build.template_of(id)), "kind": MovementSystem.COMMAND_CLIMB, "payload": {"actor": player, "piece": id}}
+	return {}
+
+
+static func _mantle_or_jump(sim: SimRoot, player: int, facing: String) -> Dictionary:
+	var movement: MovementSystem = SimAssembly.movement_of(sim)
+	var here: Vector3i = BuildSystem.cell_of(SimAssembly.actors_of(sim).position_of(player))
+	var d: Vector3i = _step(facing)
+	if not movement.mantle_destination(here, d.x, d.z).is_empty():
+		var piece: int = SimAssembly.build_of(sim).cell_piece_at(here + d)
+		return {"label": "climb onto %s" % _name(SimAssembly.build_of(sim).template_of(piece)), "kind": MovementSystem.COMMAND_MANTLE, "payload": {"actor": player, "dx": d.x, "dz": d.z}}
+	if not movement.jump_destination(here, d.x, d.z).is_empty():
+		return {"label": "jump the gap", "kind": MovementSystem.COMMAND_JUMP, "payload": {"actor": player, "dx": d.x, "dz": d.z}}
 	return {}
 
 
