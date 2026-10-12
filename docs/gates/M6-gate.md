@@ -52,9 +52,11 @@ Counts are filled in at submission.
    plain words: the counters stay at zero and Marlow pays 2000 credits.
 3. `DEMO=cold_storage tools/screenshot.sh out.png 7.5` and `… 17` → the contract
    view on the device; the front door with its prompt.
-3a. `tools/playtest.sh cold_storage_stealth 1` → a bot plays the whole job through the
-   real client (stick, context button, hacking pane), headless:
-   `PLAYTEST PASS … contract completed …`. (Deck runs are for what only the Deck can
+3a. `tools/test.sh playtest` → bots play the whole job through the real client
+   (stick, context button, hacking pane), headless, by the under route
+   (`cold_storage_stealth`) and the side route (`cold_storage_side`: the junction box
+   hacked, onto the crate, the window cut): `PLAYTEST PASS … contract completed …` for
+   each. CI runs this stage on every push. (Deck runs are for what only the Deck can
    answer: frame times, feel, Steam.)
 4. Launch, walk east along the street to the purple figure labelled *Marlow (fixer)*.
    → The prompt reads `[D-pad left] take Marlow's contract: Cold Storage`.
