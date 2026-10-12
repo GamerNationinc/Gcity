@@ -70,6 +70,20 @@ func _stairs() -> int:
 	return stair
 
 
+## Pathing's climb links (claim 6) find a stair whose foot is the cell, whichever side
+## of it the stair stands: east, west, north and south.
+func test_climb_links_find_a_stair_on_every_side() -> void:
+	for side: Array in [[Vector3i(1, 0, 0), "nx"], [Vector3i(-1, 0, 0), "px"], [Vector3i(0, 0, 1), "nz"], [Vector3i(0, 0, -1), "pz"]]:
+		_setup()
+		var d: Vector3i = side[0]
+		var facing: String = side[1]
+		assert_true(_build.place(_player, &"foundation_block", _at(3 * d.x, 0, 3 * d.z), "") > 0, "foundation")
+		assert_true(_build.place(_player, &"floor_panel", _at(2 * d.x, 0, 2 * d.z), "py") > 0, "deck")
+		var stair: int = _build.place(_player, &"stair_steel", _at(d.x, 0, d.z), facing)
+		assert_true(stair > 0, "stair facing %s" % facing)
+		assert_eq(_movement.climb_links(_cell(0, 0, 0)), [[stair, _cell(d.x, 1, d.z)]] as Array[Array], "the stair %s of the cell, up to its top" % facing)
+
+
 func test_climb_a_stair_up_and_down_at_its_ticks() -> void:
 	_setup()
 	var stair: int = _stairs()
