@@ -52,6 +52,10 @@ Counts are filled in at submission.
    plain words: the counters stay at zero and Marlow pays 2000 credits.
 3. `DEMO=cold_storage tools/screenshot.sh out.png 7.5` and `… 17` → the contract
    view on the device; the front door with its prompt.
+3a. `tools/playtest.sh cold_storage_stealth 1` → a bot plays the whole job through the
+   real client (stick, context button, hacking pane), headless:
+   `PLAYTEST PASS … contract completed …`. (Deck runs are for what only the Deck can
+   answer: frame times, feel, Steam.)
 4. Launch, walk east along the street to the purple figure labelled *Marlow (fixer)*.
    → The prompt reads `[D-pad left] take Marlow's contract: Cold Storage`.
 5. Press D-pad left. → Cold Storage appears to the east, its exit zone outlined green.
@@ -107,6 +111,8 @@ Counts are filled in at submission.
 | D15 | `grate_steel` is a new material (hp 150, cutter, noise reach 6 m); both grates use it (D1). | `6eb873d` |
 | D17 | The world view's camera cone is drawn from the sim's own line of sight, ray by ray; it is the camera's sight on its storey, not hearing. The cold_storage demo leaves out the M4 guards, whose street it crosses. | `b60c007` |
 | D18 | The context button is D-pad left / G (`world_interact`): A is taken by building in the world set. | `4e29918` |
+| D19 | Found by the cloud playtest (`tools/playtest.sh cold_storage_stealth`, a bot playing the job through the real client): a guard on a post (no route) never returned to it after investigating, against M4's own m4-break-contact claim. Posts now walk back and face their way; every M4 and M6 fixture hash moved. | `b3f6d75` |
+| D20 | Found by the same playtest: on the open hatch at a stair's top the context button offered to close the hatch; a climb now comes before the floor underfoot. | `ca1f31f` |
 | D16 | The m6-stealth fixture is made by a plan that, before each of six stretches, waits until a look ahead on a copy of the sim (every 10 ticks) shows the stretch and 420 ticks more, past a guard's 400-tick memory, with nobody alerted: a careful player watching the patrols. The look ahead runs only in the generator; the fixture is an ordinary command log. The route needs the maintenance room as a hiding place between the stairs and the server room, and the hack done from (2, 1, 7): the hall's east patrol and the stairs roamer cover the corridor the spec's route names, and the west patrol sees the rest of the server room through its doorway. Guards may glimpse the player (amber) without being alerted; the contract counts alerts only. | `ef04a51` |
 
 ### Debt

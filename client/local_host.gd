@@ -17,6 +17,9 @@ func _ready() -> void:
 	# SimRoot.TICK_HZ the sim would run at the wrong speed, so fail loudly.
 	assert(Engine.physics_ticks_per_second == SimRoot.TICK_HZ,
 		"physics_ticks_per_second (%d) must equal SimRoot.TICK_HZ (%d)" % [Engine.physics_ticks_per_second, SimRoot.TICK_HZ])
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("--seed="):
+			seed_override = arg.trim_prefix("--seed=").to_int()  # a reproducible run (playtests)
 	var seed: int = seed_override if seed_override != 0 else randi()
 	_content = ContentDb.new()
 	var load_err: Error = ContentLoader.load_all(_content)

@@ -255,6 +255,7 @@ tools/test.sh              # everything, in CI order (fitness, scripts, unit, re
 tools/test.sh unit         # headless test suite only
 tools/test.sh replay       # every fixture twice, hashes diffed
 tools/screenshot.sh out.png 12   # PNG of the client demo at 12 s, no GPU needed
+tools/playtest.sh cold_storage_stealth [seed]   # a bot plays a loop through the real client
 python3 -m unittest discover -s tools/tests -t .
 $(tools/godot.sh) --path . # open the project in the pinned editor
 ```

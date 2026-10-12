@@ -109,6 +109,12 @@ var _frame_usec: PackedInt32Array = PackedInt32Array()
 var _demo_loop: bool = false
 ## "" for the M5 demo; "cold_storage" for the M6 one (claim 19)
 var _demo_name: String = ""
+## `--playtest=<name>`: a bot from tools/playtest/<name>.gd plays through this view's
+## own actions (walking, the context button, the device), one call a physics tick
+## before the sim steps; it quits the game with its verdict. None otherwise.
+var _bot: RefCounted = null
+## the bot's stick this tick (the same path a pad's stick takes)
+var _bot_input: Vector2 = Vector2.ZERO
 var _demo_loops: int = 0
 
 
@@ -128,6 +134,8 @@ func _ready() -> void:
 			_demo_loop = true
 		elif arg.begins_with("--demo-script="):
 			_demo_name = arg.trim_prefix("--demo-script=")
+		elif arg.begins_with("--playtest="):
+			_bot = _load_bot(arg.trim_prefix("--playtest="))
 	_piece_templates = _host.content().ids(&"build_piece")
 	_glyphs.set_deck(_steam.is_deck())
 	_glyphs.set_controller_active(_steam.is_deck() or not Input.get_connected_joypads().is_empty())
@@ -643,7 +651,11 @@ func _physics_process(_delta: float) -> void:
 		return
 	var sim: SimRoot = _host.sim()
 	var input: Vector2 = Vector2.ZERO
-	if _demo:
+	if _bot != null:
+		_bot_input = Vector2.ZERO
+		_bot.call("tick", self)
+		input = _bot_input
+	elif _demo:
 		if _demo_walk_ticks > 0:
 			_demo_walk_ticks -= 1
 			input = _demo_walk_dir
@@ -651,15 +663,96 @@ func _physics_process(_delta: float) -> void:
 		input = Input.get_vector("world_move_left", "world_move_right", "world_move_forward", "world_move_back")
 	if _device_raised or input.length_squared() < 0.01 or not SimAssembly.actors_of(sim).is_alive(_player):
 		return
-	var speed: int = SimAssembly.movement_of(sim).speed_of(_player)
-	var forward: Vector2 = Vector2(-sin(_yaw), -cos(_yaw))
+	var step: Vector2i = move_step(_yaw, input, SimAssembly.movement_of(sim).speed_of(_player))
+	if step == Vector2i.ZERO:
+		return
+	_submit(sim, &"actor.move", {"actor": _player, "dx": step.x, "dz": step.y})
+
+
+## The actor.move a stick `input` makes facing `yaw` at `speed` mm a tick: what the
+## player's stick does, and what a playtest bot's look ahead replays.
+static func move_step(yaw: float, input: Vector2, speed: int) -> Vector2i:
+	var forward: Vector2 = Vector2(-sin(yaw), -cos(yaw))
 	var right: Vector2 = Vector2(forward.y, -forward.x)
 	var world: Vector2 = (right * input.x - forward * input.y).limit_length(1.0) * float(speed)
-	var dx: int = roundi(world.x)
-	var dz: int = roundi(world.y)
-	if dx == 0 and dz == 0:
-		return
-	_submit(sim, &"actor.move", {"actor": _player, "dx": dx, "dz": dz})
+	return Vector2i(roundi(world.x), roundi(world.y))
+
+
+# ---------------------------------------------------------------- playtest seam
+
+func _load_bot(name: String) -> RefCounted:
+	var script: GDScript = load("res://tools/playtest/%s.gd" % name)
+	if script == null or not script.can_instantiate():
+		push_error("playtest: no bot '%s'" % name)
+		get_tree().quit(2)
+		return null
+	var made: Variant = script.new()
+	var bot: RefCounted = made
+	return bot
+
+
+## For a playtest bot: the sim, the player, and the player's own inputs; `submit` is
+## for kit-up only (what a fixture's setup would do), never for play.
+func submit(kind: StringName, payload: Dictionary) -> void:
+	_submit(_host.sim(), kind, payload)
+
+
+func sim() -> SimRoot:
+	return _host.sim()
+
+
+func player() -> int:
+	return _player if _setup_stage >= READY else 0
+
+
+func is_ready() -> bool:
+	return _setup_stage >= READY
+
+
+## Turns to face along an axis ("px", "nx", "pz", "nz"): the way the context button
+## and the stick then point.
+func face(facing: String) -> void:
+	_yaw = yaw_of(facing)
+
+
+static func yaw_of(facing: String) -> float:
+	match facing:
+		"px":
+			return -PI / 2.0
+		"nx":
+			return PI / 2.0
+		"pz":
+			return PI
+	return 0.0
+
+
+func yaw() -> float:
+	return _yaw
+
+
+## The stick this tick, as a pad would give it.
+func stick(input: Vector2) -> void:
+	_bot_input = input
+
+
+## A world or device action, exactly as a button press performs it ("interact",
+## "device", "device:device_select", ...).
+func press(action: String) -> void:
+	_perform(action)
+
+
+func device_raised() -> bool:
+	return _device_raised
+
+
+func open_app() -> StringName:
+	return _shell.open_app()
+
+
+## Ends the run with a verdict line the playtest script reads.
+func finish(verdict: String, ok: bool) -> void:
+	print("PLAYTEST %s %s" % ["PASS" if ok else "FAIL", verdict])
+	get_tree().quit(0 if ok else 1)
 
 
 func _place_camera(sim: SimRoot) -> void:
@@ -845,7 +938,7 @@ func _advance_setup(sim: SimRoot) -> void:
 ## The M4 building's guards, as agent.spawn payloads; none in the Cold Storage demo,
 ## whose street they would cover (Cold Storage brings its own).
 func _m4_guards() -> Array[Dictionary]:
-	if _demo_name == "cold_storage":
+	if _demo_name == "cold_storage" or _bot != null:
 		return [] as Array[Dictionary]
 	return SiteSystem.agent_commands(_host.content(), &"m4_test_building", GUARD_PROFILES[_guard_profile])
 
@@ -1013,7 +1106,12 @@ func _aimed_target(sim: SimRoot) -> int:
 
 
 func _facing_ahead() -> String:
-	var forward: Vector2 = Vector2(-sin(_yaw), -cos(_yaw))
+	return facing_of_yaw(_yaw)
+
+
+## The axis a yaw points along most: what the context button and building face.
+static func facing_of_yaw(yaw: float) -> String:
+	var forward: Vector2 = Vector2(-sin(yaw), -cos(yaw))
 	if absf(forward.x) > absf(forward.y):
 		return "px" if forward.x > 0.0 else "nx"
 	return "pz" if forward.y > 0.0 else "nz"
