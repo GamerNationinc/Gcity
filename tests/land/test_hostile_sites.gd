@@ -14,7 +14,7 @@ func test_every_hostile_site_is_refused() -> void:
 		if f.ends_with(".json"):
 			files.append(f)
 	files.sort()
-	assert_eq(files.size(), 4, "four hostile sites")
+	assert_eq(files.size(), 5, "five hostile sites")
 	for f: String in files:
 		var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(DIR.path_join(f)))
 		if typeof(parsed) != TYPE_DICTIONARY:

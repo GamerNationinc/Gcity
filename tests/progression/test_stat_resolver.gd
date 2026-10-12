@@ -379,6 +379,14 @@ func test_restore_round_trips_and_rejects_hostile_input() -> void:
 	d = snap.duplicate(true)
 	_sub(d, "tags")[2] = ["t", "a"]
 	hostile.append(d)
+	# mutation survivors: an entity's bases that are not a dictionary, and a modifier
+	# whose class is unknown though its source is a good id
+	d = snap.duplicate(true)
+	_sub(d, "bases")[1] = 5
+	hostile.append(d)
+	d = snap.duplicate(true)
+	_sub(d, "modifiers")[h2] = {"entity": 2, "stat": &"recoil", "class": &"nope", "value": 1, "source": &"s", "tags": []}
+	hostile.append(d)
 	d = snap.duplicate(true)
 	_sub(d, "inherits")[1] = 2
 	hostile.append(d)

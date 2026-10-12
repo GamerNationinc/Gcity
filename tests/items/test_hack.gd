@@ -316,6 +316,10 @@ func test_the_snapshot_restores_exactly_and_rejects_hostile_state() -> void:
 	var bad: Dictionary = snap.duplicate(true)
 	bad["next"] = -1
 	hostile.append(bad)
+	# ids start at 1: a counter of 0 is refused even with no targets to contradict it
+	# (a mutation survivor)
+	bad = {"targets": {}, "running": {}, "logins": {}, "next": 0, "completed": 0}
+	hostile.append(bad)
 	bad = snap.duplicate(true)
 	var targets: Dictionary = bad["targets"]
 	var rec: Dictionary = targets[a]

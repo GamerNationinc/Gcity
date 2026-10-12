@@ -273,3 +273,15 @@ func test_snapshot_restore_round_trip_and_rejections() -> void:
 	var fresh: BuildSystem = SimAssembly.build_of(SimAssembly.build(SEED, db))
 	assert_eq(fresh.restore(bad), ERR_INVALID_DATA, "bad face axis rejected")
 	assert_eq(fresh.piece_ids(), [] as Array[int], "nothing restored")
+	# each coordinate of a piece's cell must be an int, the last as much as the first
+	# (a mutation survivor)
+	for axis: int in 3:
+		bad = _build.snapshot().duplicate(true)
+		pieces = bad["pieces"]
+		rec = pieces[_build.piece_ids()[1]]
+		var typed: Array = rec["cell"]
+		var cell: Array = [typed[0], typed[1], typed[2]]  # a plain array: Array[int] (and its duplicate) would refuse the string
+		cell[axis] = "0"
+		rec["cell"] = cell
+		fresh = SimAssembly.build_of(SimAssembly.build(SEED, db))
+		assert_eq(fresh.restore(bad), ERR_INVALID_DATA, "a non-int cell coordinate %d rejected" % axis)

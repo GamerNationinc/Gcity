@@ -1,0 +1,90 @@
+{
+	"description": "a parcel with no height (floor 0, ceiling 0): not a volume; everything else is sound",
+	"expect": "refused_at_assembly",
+	"entries": {
+		"site": {
+			"schema_version": 1,
+			"description": "hostile site (M6 claim 22 corpus)",
+			"district": "starter_ghetto",
+			"owner": "zz_corp",
+			"parcels": [
+				{
+					"id": "yard",
+					"footprint": [
+						[
+							-2,
+							-2
+						],
+						[
+							5,
+							-2
+						],
+						[
+							5,
+							5
+						],
+						[
+							-2,
+							5
+						]
+					],
+					"floor": 0,
+					"ceiling": 0,
+					"district": "",
+					"owner": ""
+				}
+			],
+			"excavate": [],
+			"pieces": [
+				{
+					"piece": "foundation_block",
+					"cell": [
+						0,
+						0,
+						0
+					],
+					"facing": "",
+					"sensor": "",
+					"squad": 0
+				},
+				{
+					"piece": "floor_panel",
+					"cell": [
+						0,
+						0,
+						0
+					],
+					"facing": "py",
+					"sensor": "",
+					"squad": 0
+				}
+			],
+			"agents": [],
+			"hack_targets": [],
+			"containers": [],
+			"placement": [
+				0,
+				0,
+				0
+			],
+			"exfil": [
+				[
+					6,
+					6
+				],
+				[
+					9,
+					6
+				],
+				[
+					9,
+					9
+				],
+				[
+					6,
+					9
+				]
+			]
+		}
+	}
+}
