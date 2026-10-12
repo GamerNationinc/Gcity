@@ -17,6 +17,7 @@ signs the file; a wrong decision is superseded by a new ADR, never edited in pla
 | [ADR-009](ADR-009-magazine-model.md) | Magazines as ordered containers | M1, item system | **accepted** 2026-09-20 |
 | [ADR-010](ADR-010-hub-interior-simulation.md) | Hub interiors simulated while the player is elsewhere? | M7 | proposed |
 | [ADR-011](ADR-011-movement-model.md) | Movement model: grid moves with gravity, or free physics | M6 | **accepted** 2026-10-08 (C) |
+| [ADR-012](ADR-012-module-production.md) | Module production — modules that brew outputs over sim time | post-M6 (schema v2 from whichever milestone ships it) | proposed |
 
 Where the design doc already states a working assumption, the ADR records it as the
 proposed decision so the assumption is visible and signable rather than implicit.
