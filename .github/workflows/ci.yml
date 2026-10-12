@@ -38,3 +38,5 @@ jobs:
         run: tools/test.sh unit
       - name: Replay fixtures twice, diff hashes
         run: tools/test.sh replay
+      - name: Playtests (bots play through the real client)
+        run: tools/test.sh playtest

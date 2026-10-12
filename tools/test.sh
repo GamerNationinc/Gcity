@@ -6,6 +6,8 @@
 #   tools/test.sh scripts    engine static analysis of every .gd file
 #   tools/test.sh unit       headless test suite
 #   tools/test.sh replay [fixture]   replay fixtures twice each and diff the hashes
+#   tools/test.sh playtest   every bot in tools/playtest/ plays its loop through the real
+#                            client, headless, on seed 1 (CLAUDE.md §8: the cloud plays first)
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
@@ -73,12 +75,30 @@ stage_replay() {
 	return "$status"
 }
 
+stage_playtest() {
+	echo "== playtests"
+	engine
+	local status=0
+	for bot in tools/playtest/*.gd; do
+		local name
+		name="$(basename "$bot" .gd)"
+		if tools/playtest.sh "$name" 1; then
+			echo "ok   $name"
+		else
+			echo "FAIL $name"
+			status=1
+		fi
+	done
+	return "$status"
+}
+
 case "${1:-all}" in
-	all) stage_fitness; stage_scripts; stage_unit; stage_replay ;;
+	all) stage_fitness; stage_scripts; stage_unit; stage_replay; stage_playtest ;;
 	fitness) stage_fitness ;;
 	scripts) stage_scripts ;;
 	unit) stage_unit ;;
 	replay) shift; stage_replay "$@" ;;
+	playtest) stage_playtest ;;
 	*) echo "unknown stage: $1" >&2; exit 2 ;;
 esac
 echo "== all stages passed"

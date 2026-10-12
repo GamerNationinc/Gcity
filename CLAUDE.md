@@ -251,7 +251,7 @@ standards doc §4.1.
 ## 12. How to run things
 
 ```
-tools/test.sh              # everything, in CI order (fitness, scripts, unit, replay)
+tools/test.sh              # everything, in CI order (fitness, scripts, unit, replay, playtest)
 tools/test.sh unit         # headless test suite only
 tools/test.sh replay       # every fixture twice, hashes diffed
 tools/screenshot.sh out.png 12   # PNG of the client demo at 12 s, no GPU needed
