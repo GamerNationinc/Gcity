@@ -107,7 +107,7 @@ static func _encode(value: Variant, depth: int) -> Variant:
 			return value
 		TYPE_INT:
 			var i: int = value
-			if absi(i) >= MAX_EXACT_INT:
+			if i <= -MAX_EXACT_INT or i >= MAX_EXACT_INT:  # not absi: it overflows at int64's minimum
 				return "int:%d" % i
 			return i
 		TYPE_FLOAT:
@@ -176,7 +176,8 @@ func _decode(value: Variant, depth: int) -> Variant:
 				if parsed.is_empty():
 					return _fail("malformed big integer '%s'" % s)
 				var i: int = parsed[0]
-				if absi(i) < MAX_EXACT_INT:
+				# a comparison, not absi: absi of int64's minimum overflows to itself
+				if i > -MAX_EXACT_INT and i < MAX_EXACT_INT:
 					return _fail("big integer '%s' is out of its range" % s)
 				return i
 			if s.begins_with("str:"):

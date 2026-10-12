@@ -180,6 +180,29 @@ static func _structure(e: Dictionary) -> Dictionary:
 	return records["i:15"]
 
 
+## One past int64's maximum is out of range, never wrapped to its minimum, and the
+## minimum itself loads (a mutation survivor found that it did not: absi of it
+## overflowed, so a save holding it was refused).
+func test_one_past_the_largest_int_is_refused_not_wrapped() -> void:
+	var text: String = _save(_populated())
+	var regex := RegEx.new()
+	regex.compile("\"int:-?[0-9]+\"")
+	var first: RegExMatch = regex.search(text)
+	assert_true(first != null, "the save holds an int")
+	if first == null:
+		return
+	var head: String = text.substr(0, first.get_start())
+	var tail: String = text.substr(first.get_end())
+	assert_false(SaveFile.parse(head + "\"int:9223372036854775808\"" + tail).is_valid(), "9223372036854775808 is refused")
+	assert_false(SaveFile.parse(head + "\"int:-9223372036854775809\"" + tail).is_valid(), "and one below the minimum")
+	var minimum: SaveFile = SaveFile.parse(head + "\"int:-9223372036854775808\"" + tail)
+	assert_true(minimum.is_valid(), "the minimum itself parses: %s" % minimum.error)
+	var sim: SimRoot = _populated()
+	sim.rng().state = -9223372036854775807 - 1
+	var loaded: SimRoot = _load(_save(sim))
+	assert_true(loaded != null and loaded.rng().state == -9223372036854775807 - 1, "and a save holding it round-trips")
+
+
 func test_committed_fuzz_corpus_never_loads() -> void:
 	var dir: DirAccess = DirAccess.open(FUZZ_DIR)
 	assert_true(dir != null, "corpus directory exists")
