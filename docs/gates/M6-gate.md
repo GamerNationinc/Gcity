@@ -114,7 +114,7 @@ Counts are filled in at submission.
 | # | Debt | Kind | Due |
 |---|---|---|---|
 | 1 | Guards do not open doors. | scope | M7 |
-| 2 | `BuildSystem.supported_set` runs over every piece on each place, remove or breach. `tools/bench_build.gd` on a desktop Xeon (2.1 GHz, idle): 93 pieces (the M4 building) p50 2.60 ms, p99 4.71, max 10.47; 401 pieces (with Cold Storage) p50 12.23 ms, p99 21.21, max 25.55, against the 2.0 ms gameplay line. Each change is a one-off spike, not a sustained cost, but at Cold Storage's size cutting a door costs about half a frame on this machine. The Deck figure decides; an incremental check (only the pieces connected to the change) is the likely fix and a `sim/land` change of its own. | performance | the Deck run |
+| 2 | `BuildSystem.supported_set` was over budget at Cold Storage's size (desktop, idle: 401 pieces p50 12.23 ms, max 25.55). It now walks a standing support graph each insert and removal updates for its own piece: 401 pieces p50 0.63 ms, p99 1.46, max 2.29; 93 pieces p50 0.11 ms (`tools/bench_build.gd`). Same results in the same order: every replay reproduces its hash, and a 10 000-case property compares it with a full recount. The Deck figure is confirmed in the gate's one Deck run. | performance (fixed) | the gate's Deck run |
 | 3 | A site's `door_camera` sensor is not tied to a living camera agent: killing the lobby camera does not blind the door. | fidelity | M8 |
 | 4 | Guards of different squads or sites treat each other as contacts until factions (M8). | scope | M8 |
 | 5 | The test runner counted a test that hit a runtime script error as passed; `tools/test.sh` always caught it through `check_test_log.py`, and the runner now fails the test itself (`bca1e44`). | tooling (closed) | — |

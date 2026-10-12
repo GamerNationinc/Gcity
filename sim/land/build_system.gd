@@ -63,6 +63,12 @@ var _events: EventBus
 ##   "facing": "" | px/nx/pz/nz (a cell piece of orientation `facing`: M6 claim 2),
 ##   "open": bool (openings only; M6 claim 3)}
 var _pieces: Dictionary = {}
+## Derived from _pieces, never snapshotted (rebuilt on restore): the support graph.
+## cell -> [piece ids touching it]; piece id -> its neighbours in id order (pieces
+## touching its cells or a face-adjacent cell); piece id -> [max span, rooted].
+var _cell_ids: Dictionary = {}
+var _adjacent: Dictionary = {}
+var _support_facts: Dictionary = {}
 ## derived: "x,y,z" -> piece id (cell pieces); "x,y,z|axis" -> piece id (face pieces)
 var _occupied: Dictionary = {}
 ## ground faces ("x,-1,z|y") a piece has been set into: the ground there is cut for good,
@@ -563,21 +569,17 @@ func cells_of_piece(id: int) -> Array[Vector3i]:
 
 
 ## Piece ids whose support distance from a ground foundation is within their span.
-## Recomputed over the whole set on every change (M3 assumption: sizes are small;
-## claim 10 records the cost).
+## Recomputed over the whole set on every change (M3 assumption), but over a standing
+## support graph that each insert and removal updates for its own piece (_index_add,
+## _index_remove), so a change at Cold Storage's 400 pieces stays inside its budget
+## (G6 debt 2, tools/bench_build.gd). Breadth first from the roots in id order,
+## neighbours in id order: the same depths in the same order as a full rebuild.
 func supported_set() -> Dictionary:
-	var by_cell: Dictionary = {}
-	for id: int in _pieces:
-		for c: Vector3i in cells_of_piece(id):
-			var key: String = cell_key(c)
-			if not by_cell.has(key):
-				by_cell[key] = [] as Array[int]
-			var list: Array[int] = by_cell[key]
-			list.append(id)
 	var depth: Dictionary = {}
 	var frontier: Array[int] = []
 	for id: int in piece_ids():
-		if kind_of(id) == &"foundation" and cell_of_piece(id).y == GROUND_CELL_Y:
+		var facts: Array = _support_facts[id]
+		if facts[1]:
 			depth[id] = 0
 			frontier.append(id)
 	var head: int = 0
@@ -585,25 +587,95 @@ func supported_set() -> Dictionary:
 		var id: int = frontier[head]
 		head += 1
 		var d: int = depth[id]
-		var neighbours: Array[int] = []
-		for c: Vector3i in cells_of_piece(id):
-			for offset: Vector3i in [Vector3i.ZERO, Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 1, 0), Vector3i(0, -1, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]:
-				var key: String = cell_key(c + offset)
-				if by_cell.has(key):
-					var list: Array[int] = by_cell[key]
-					for other: int in list:
-						if not neighbours.has(other):
-							neighbours.append(other)
-		neighbours.sort()
+		var neighbours: Array[int] = _adjacent[id]
 		for other: int in neighbours:
 			if depth.has(other):
 				continue
-			var span: int = _max_span(other)
+			var facts: Array = _support_facts[other]
+			var span: int = facts[0]
 			if d + 1 > span:
 				continue
 			depth[other] = d + 1
 			frontier.append(other)
 	return depth
+
+
+## The cells a piece touches, read from its record without parsing its face key.
+func _support_cells(id: int) -> Array[Vector3i]:
+	var record: Dictionary = _pieces[id]
+	var c: Array = record["cell"]
+	var cx: int = c[0]
+	var cy: int = c[1]
+	var cz: int = c[2]
+	var lower: Vector3i = Vector3i(cx, cy, cz)
+	var cells: Array[Vector3i] = [lower]
+	var face: String = record["face"]
+	if not face.is_empty():
+		# a face key ends in its axis; the face's other cell neighbours the lower one
+		match face.unicode_at(face.length() - 1):
+			0x78:  # x
+				cells.append(lower + Vector3i(1, 0, 0))
+			0x79:  # y
+				cells.append(lower + Vector3i(0, 1, 0))
+			_:
+				cells.append(lower + Vector3i(0, 0, 1))
+	return cells
+
+
+## Adds a piece just written to _pieces to the support graph.
+func _index_add(id: int) -> void:
+	var record: Dictionary = _pieces[id]
+	var template: StringName = record["template"]
+	var t: Dictionary = _content.get_entry(KIND_PIECE, template)
+	var m: Dictionary = _content.get_entry(KIND_MATERIAL, LandSystem._as_name(t["material"]))
+	var cells: Array[Vector3i] = _support_cells(id)
+	var rooted: bool = LandSystem._as_name(t["kind"]) == &"foundation" and cells[0].y == GROUND_CELL_Y
+	_support_facts[id] = [m["max_span"], rooted]
+	var seen: Dictionary = {}
+	for cell: Vector3i in cells:
+		for offset: Vector3i in _NEIGHBOURHOOD:
+			var near: Variant = _cell_ids.get(cell + offset)
+			if near != null:
+				var list: Array[int] = near
+				for other: int in list:
+					if other != id:
+						seen[other] = true
+	var mine: Array[int] = []
+	mine.assign(seen.keys())
+	mine.sort()
+	_adjacent[id] = mine
+	for other: int in mine:
+		var theirs: Array[int] = _adjacent[other]
+		theirs.insert(theirs.bsearch(id), id)
+	for cell: Vector3i in cells:
+		if not _cell_ids.has(cell):
+			_cell_ids[cell] = [] as Array[int]
+		var here: Array[int] = _cell_ids[cell]
+		here.append(id)
+
+
+## Takes a piece still in _pieces out of the support graph.
+func _index_remove(id: int) -> void:
+	var mine: Array[int] = _adjacent[id]
+	for other: int in mine:
+		var theirs: Array[int] = _adjacent[other]
+		theirs.remove_at(theirs.bsearch(id))
+	for cell: Vector3i in _support_cells(id):
+		var here: Array[int] = _cell_ids[cell]
+		here.erase(id)
+		if here.is_empty():
+			_cell_ids.erase(cell)
+	_adjacent.erase(id)
+	_support_facts.erase(id)
+
+
+## Rebuilds the support graph from _pieces (after a restore), in id order.
+func _reindex() -> void:
+	_cell_ids = {}
+	_adjacent = {}
+	_support_facts = {}
+	for id: int in piece_ids():
+		_index_add(id)
 
 
 func is_supported(id: int) -> bool:
@@ -618,6 +690,8 @@ func _max_span(id: int) -> int:
 # ---------------------------------------------------------------- operations
 
 const INVALID_SLOT: String = "!"
+## A cell and its six face neighbours: what supports what (supported_set).
+const _NEIGHBOURHOOD: Array[Vector3i] = [Vector3i.ZERO, Vector3i(1, 0, 0), Vector3i(-1, 0, 0), Vector3i(0, 1, 0), Vector3i(0, -1, 0), Vector3i(0, 0, 1), Vector3i(0, 0, -1)]
 
 
 ## Where `template` would go in `cell` with `facing`: its face key, "" for a cell
@@ -719,6 +793,7 @@ func _insert(id: int, template: StringName, cell: Vector3i, face: String, facing
 	var starts_open: bool = t["starts_open"]
 	_pieces[id] = {"template": template, "cell": [lower.x, lower.y, lower.z] as Array[int], "face": face, "facing": facing if face.is_empty() else "", "open": starts_open}
 	_occupied[face if not face.is_empty() else cell_key(cell)] = id
+	_index_add(id)
 
 
 func _uninsert(id: int) -> void:
@@ -729,6 +804,7 @@ func _uninsert(id: int) -> void:
 	var cy: int = c[1]
 	var cz: int = c[2]
 	_occupied.erase(face if not face.is_empty() else cell_key(Vector3i(cx, cy, cz)))
+	_index_remove(id)
 	_pieces.erase(id)
 
 
@@ -766,8 +842,10 @@ func place(actor: int, template: StringName, position: Vector3i, facing: String)
 	var starts_open: bool = t["starts_open"]
 	_pieces[id] = {"template": template, "cell": [lower.x, lower.y, lower.z] as Array[int], "face": face, "facing": piece_facing, "open": starts_open}
 	_occupied[face if not face.is_empty() else cell_key(cell)] = id
+	_index_add(id)
 	if not supported_set().has(id):
 		_occupied.erase(face if not face.is_empty() else cell_key(cell))
+		_index_remove(id)
 		_pieces.erase(id)
 		return EntityIds.NONE
 	if not face.is_empty() and face.ends_with("|y") and lower.y == GROUND_CELL_Y - 1:
@@ -874,6 +952,7 @@ func _drop(id: int) -> void:
 	var record: Dictionary = _pieces[id]
 	var face: String = record["face"]
 	_occupied.erase(face if not face.is_empty() else cell_key(cell_of_piece(id)))
+	_index_remove(id)
 	_pieces.erase(id)
 	_stats.forget_entity(id)
 
@@ -1036,6 +1115,7 @@ func restore(state: Dictionary) -> Error:
 			return _restore_fail("excavated %s is not a basement cell" % ek)
 		excavated[ek] = true
 	_pieces = pieces
+	_reindex()
 	_occupied = occupied
 	_holes = holes
 	_breaching = breaching

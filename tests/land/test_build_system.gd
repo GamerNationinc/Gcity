@@ -201,6 +201,87 @@ func test_property_every_present_piece_is_supported_after_any_sequence() -> void
 	assert_true(placed > 500 and removed > 200, "the sequence exercised both operations (%d, %d)" % [placed, removed])
 
 
+## G6 debt 2: supported_set walks a standing support graph that each insert and
+## removal updates for its own piece. Over 10 000 generated places and removals (and a
+## restore every 500), it equals a from-scratch breadth-first search written here from
+## the public reads alone: the same pieces at the same depths, in the same order.
+func test_property_the_support_graph_matches_a_full_recount() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = SEED_SUPPORT + 1
+	_setup()
+	var db: ContentDb = _sim.get_system(&"content")
+	var templates: Array[StringName] = db.ids(&"build_piece")
+	var facings: Array[String] = ["", "px", "nx", "py", "ny", "pz", "nz"]
+	var failures: int = 0
+	var restores: int = 0
+	for case: int in PROPERTY_CASES:
+		if rng.randi_range(0, 3) > 0 or _build.piece_ids().is_empty():
+			var t: StringName = &"foundation_block" if rng.randi_range(0, 9) < 3 else templates[rng.randi_range(0, templates.size() - 1)]
+			var cy: int = [0, 0, 1, 1, 1, 2, 3][rng.randi_range(0, 6)]
+			var facing: String = facings[rng.randi_range(0, facings.size() - 1)]
+			_build.place(_player, t, _at(rng.randi_range(0, 5), cy, rng.randi_range(0, 5)), facing)
+		else:
+			var ids: Array[int] = _build.piece_ids()
+			_build.remove(_player, ids[rng.randi_range(0, ids.size() - 1)])
+		if case % 500 == 499:
+			var snap: Dictionary = _build.snapshot()
+			assert_eq(_build.restore(snap), OK, "restore %d" % case)
+			restores += 1
+		var got: Array = _pairs(_build.supported_set())
+		var want: Array = _pairs(_recount(db))
+		if got != want:
+			failures += 1
+			if failures <= 3:
+				fail("case %d: support graph %s, recount %s" % [case, str(got), str(want)])
+	assert_eq(failures, 0, "the support graph matched a full recount every time")
+	assert_eq(restores, PROPERTY_CASES / 500, "restores exercised")
+
+
+static func _pairs(d: Dictionary) -> Array:
+	var out: Array = []
+	for k: Variant in d:
+		out.append([k, d[k]])
+	return out
+
+
+## Breadth first from ground foundations in id order, neighbours (pieces touching a
+## piece's cells or a face-adjacent cell) in id order, within each piece's span.
+func _recount(db: ContentDb) -> Dictionary:
+	var ids: Array[int] = _build.piece_ids()
+	var depth: Dictionary = {}
+	var frontier: Array[int] = []
+	for id: int in ids:
+		if _build.kind_of(id) == &"foundation" and _build.cell_of_piece(id).y == 0:
+			depth[id] = 0
+			frontier.append(id)
+	var head: int = 0
+	while head < frontier.size():
+		var id: int = frontier[head]
+		head += 1
+		var near: Array[int] = []
+		for c: Vector3i in _build.cells_of_piece(id):
+			for other: int in ids:
+				if other == id or near.has(other):
+					continue
+				for oc: Vector3i in _build.cells_of_piece(other):
+					var d: Vector3i = oc - c
+					if absi(d.x) + absi(d.y) + absi(d.z) <= 1:
+						near.append(other)
+						break
+		near.sort()
+		for other: int in near:
+			if depth.has(other):
+				continue
+			var m: Dictionary = db.get_entry(&"material", _build.material_of(other))
+			var span: int = m["max_span"]
+			var dd: int = depth[id]
+			if dd + 1 > span:
+				continue
+			depth[other] = dd + 1
+			frontier.append(other)
+	return depth
+
+
 func _check_invariants(db: ContentDb) -> String:
 	var ids: Array[int] = _build.piece_ids()
 	var occupied: Dictionary = {}
