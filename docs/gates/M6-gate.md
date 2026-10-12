@@ -30,7 +30,7 @@ signs the gate. Spec: [`docs/specs/M6-cold-storage.md`](../specs/M6-cold-storage
 | 20 fixtures | `tools/fixture_driver.gd`, `tools/make_m6_fixtures.gd`, `tests/sim/test_m6_fixtures.gd`: m6-front, m6-front-hot, m6-side, m6-fall, m6-loud, m6-death, m6-city-death, m6-hack-interrupt, m6-stealth (all counters zero, the ghost rate); showcase `stealth_run` replays m6-stealth | `b096f10` … `ae772ec`, `ef04a51`, `980ce2a` | built, 9 of 9 |
 | 21 snapshot and save v2 | save schema 2, migration from real version-1 saves, the save property over every new command | `b8a9394` | built |
 | 22 schemas and corpus | every new kind has a schema; hostile commands and hostile site files | `4fa91f4` and with each claim | built |
-| 23 mutation testing | `tools/mutate.py`, weekly sharded CI job | `46580c3` | built; **no full score yet** (the scheduled job gives it) |
+| 23 mutation testing | `tools/mutate.py`, weekly sharded CI job; a 40-mutant sample (shards 1, 11, 21, 31 of 40) scored 31/40 = 77.5 % (95 % interval 62.5–87.7 %); eight of its nine survivors now fail a test, one of them a real bug (int64's minimum did not round-trip a save, `b422f70`) | `46580c3`, `8667f5b`, `b422f70`, and the hostile-input tests after it | built; **the 400-mutant score** comes from the scheduled job, which runs on the default branch |
 | 24 the Deck run | — | — | **not started** (needs the Deck) |
 
 ## 2. Verification report
@@ -114,7 +114,7 @@ Counts are filled in at submission.
 | # | Debt | Kind | Due |
 |---|---|---|---|
 | 1 | Guards do not open doors. | scope | M7 |
-| 2 | `BuildSystem.supported_set` costs about 2.2 ms per change at 93 pieces; not yet measured on the Deck. | performance | before the Deck run |
+| 2 | `BuildSystem.supported_set` runs over every piece on each place, remove or breach. `tools/bench_build.gd` on a desktop Xeon (2.1 GHz, idle): 93 pieces (the M4 building) p50 2.60 ms, p99 4.71, max 10.47; 401 pieces (with Cold Storage) p50 12.23 ms, p99 21.21, max 25.55, against the 2.0 ms gameplay line. Each change is a one-off spike, not a sustained cost, but at Cold Storage's size cutting a door costs about half a frame on this machine. The Deck figure decides; an incremental check (only the pieces connected to the change) is the likely fix and a `sim/land` change of its own. | performance | the Deck run |
 | 3 | A site's `door_camera` sensor is not tied to a living camera agent: killing the lobby camera does not blind the door. | fidelity | M8 |
 | 4 | Guards of different squads or sites treat each other as contacts until factions (M8). | scope | M8 |
 | 5 | The test runner counted a test that hit a runtime script error as passed; `tools/test.sh` always caught it through `check_test_log.py`, and the runner now fails the test itself (`bca1e44`). | tooling (closed) | — |
