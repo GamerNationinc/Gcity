@@ -214,44 +214,66 @@ func climb_links(here: Vector3i) -> Array[Array]:
 ## one cell: the piece's kind allows it, there is headroom above the actor, and no
 ## blocking face stands between it and the piece or the ledge.
 func mantle(actor: int, dx: int, dz: int) -> bool:
-	if not _can_start(actor, MOVE_MANTLE) or absi(dx) + absi(dz) != 1:
+	if not _can_start(actor, MOVE_MANTLE):
 		return false
-	var here: Vector3i = BuildSystem.cell_of(_actors.position_of(actor))
-	var d: Vector3i = Vector3i(dx, 0, dz)
-	var piece: int = _build.cell_piece_at(here + d)
-	if piece == EntityIds.NONE or not _build.is_mantleable(piece):
-		return false
-	var to: Vector3i = here + d + UP
-	if not _build.is_standable(to) or _build.is_solid(here + UP):
-		return false
-	if _build.face_piece_at(BuildSystem.face_key(here, "py")) != EntityIds.NONE:
-		return false
-	var facing: String = _facing_toward(here, here + d)
-	if _blocks(BuildSystem.face_key(here, facing)) or _blocks(BuildSystem.face_key(here + UP, facing)):
+	var to: Array[Vector3i] = mantle_destination(BuildSystem.cell_of(_actors.position_of(actor)), dx, dz)
+	if to.is_empty():
 		return false
 	var t: Dictionary = _actors.profile_data(actor)
 	var ticks: int = t["mantle_ticks"]
-	return _start(actor, MOVE_MANTLE, to, ticks)
+	return _start(actor, MOVE_MANTLE, to[0], ticks)
+
+
+## Where a mantle from `here` in (dx, dz) lands: [cell], or [] when it cannot (mantle's
+## rules, without the mover's state). The client's context button reads it (claim 19).
+func mantle_destination(here: Vector3i, dx: int, dz: int) -> Array[Vector3i]:
+	var none: Array[Vector3i] = []
+	if absi(dx) + absi(dz) != 1:
+		return none
+	var d: Vector3i = Vector3i(dx, 0, dz)
+	var piece: int = _build.cell_piece_at(here + d)
+	if piece == EntityIds.NONE or not _build.is_mantleable(piece):
+		return none
+	var to: Vector3i = here + d + UP
+	if not _build.is_standable(to) or _build.is_solid(here + UP):
+		return none
+	if _build.face_piece_at(BuildSystem.face_key(here, "py")) != EntityIds.NONE:
+		return none
+	var facing: String = _facing_toward(here, here + d)
+	if _blocks(BuildSystem.face_key(here, facing)) or _blocks(BuildSystem.face_key(here + UP, facing)):
+		return none
+	return [to] as Array[Vector3i]
 
 
 ## Starts a jump across a one-cell gap in (dx, dz) on the same storey: the middle cell
 ## holds nobody up and is empty, the landing cell is standable, and neither face
 ## crossed blocks. Jumps never gain height.
 func jump(actor: int, dx: int, dz: int) -> bool:
-	if not _can_start(actor, MOVE_JUMP) or absi(dx) + absi(dz) != 1:
+	if not _can_start(actor, MOVE_JUMP):
 		return false
-	var here: Vector3i = BuildSystem.cell_of(_actors.position_of(actor))
+	var to: Array[Vector3i] = jump_destination(BuildSystem.cell_of(_actors.position_of(actor)), dx, dz)
+	if to.is_empty():
+		return false
+	var t: Dictionary = _actors.profile_data(actor)
+	var ticks: int = t["jump_ticks"]
+	return _start(actor, MOVE_JUMP, to[0], ticks)
+
+
+## Where a jump from `here` in (dx, dz) lands: [cell], or [] when it cannot (jump's
+## rules, without the mover's state). The client's context button reads it (claim 19).
+func jump_destination(here: Vector3i, dx: int, dz: int) -> Array[Vector3i]:
+	var none: Array[Vector3i] = []
+	if absi(dx) + absi(dz) != 1:
+		return none
 	var d: Vector3i = Vector3i(dx, 0, dz)
 	var middle: Vector3i = here + d
 	var to: Vector3i = here + d * 2
 	if _build.is_solid(middle) or _build.is_standable(middle) or not _build.is_standable(to):
-		return false
+		return none
 	var facing: String = _facing_toward(here, middle)
 	if _blocks(BuildSystem.face_key(here, facing)) or _blocks(BuildSystem.face_key(middle, facing)):
-		return false
-	var t: Dictionary = _actors.profile_data(actor)
-	var ticks: int = t["jump_ticks"]
-	return _start(actor, MOVE_JUMP, to, ticks)
+		return none
+	return [to] as Array[Vector3i]
 
 
 func _can_start(actor: int, move_id: StringName) -> bool:
