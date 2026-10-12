@@ -53,10 +53,12 @@ Counts are filled in at submission.
 3. `DEMO=cold_storage tools/screenshot.sh out.png 7.5` and `… 17` → the contract
    view on the device; the front door with its prompt.
 3a. `tools/test.sh playtest` → bots play the whole job through the real client
-   (stick, context button, hacking pane), headless, by the under route
-   (`cold_storage_stealth`) and the side route (`cold_storage_side`: the junction box
-   hacked, onto the crate, the window cut): `PLAYTEST PASS … contract completed …` for
-   each. CI runs this stage on every push. (Deck runs are for what only the Deck can
+   (stick, context button, hacking pane), headless, by all three routes: under
+   (`cold_storage_stealth`), side (`cold_storage_side`: the junction box hacked, onto
+   the crate, the window cut) and front (`cold_storage_front`: the keycard, the front
+   door, past the lobby post): `PLAYTEST PASS … contract completed …` for each. CI runs
+   this stage on every push. The front route cannot be done unseen: the lobby post
+   faces the door (the spec names it a static post; recorded as a finding, not changed). (Deck runs are for what only the Deck can
    answer: frame times, feel, Steam.)
 4. Launch, walk east along the street to the purple figure labelled *Marlow (fixer)*.
    → The prompt reads `[D-pad left] take Marlow's contract: Cold Storage`.

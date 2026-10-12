@@ -78,17 +78,27 @@ stage_replay() {
 stage_playtest() {
 	echo "== playtests"
 	engine
-	local status=0
+	# the bots are independent runs of their own: play them side by side
+	local dir status=0
+	dir="$(mktemp -d)"
+	local names=()
 	for bot in tools/playtest/*.gd; do
 		local name
 		name="$(basename "$bot" .gd)"
-		if tools/playtest.sh "$name" 1; then
+		names+=("$name")
+		( tools/playtest.sh "$name" 1 > "$dir/$name.log" 2>&1; echo $? > "$dir/$name.code" ) &
+	done
+	wait
+	for name in "${names[@]}"; do
+		cat "$dir/$name.log"
+		if [[ "$(cat "$dir/$name.code")" == "0" ]]; then
 			echo "ok   $name"
 		else
 			echo "FAIL $name"
 			status=1
 		fi
 	done
+	rm -rf "$dir"
 	return "$status"
 }
 
