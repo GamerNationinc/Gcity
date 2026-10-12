@@ -109,6 +109,16 @@ func test_at_the_stairs_the_button_climbs() -> void:
 	assert_true(_accepted(choice), "the sim takes it")
 
 
+## Found by the cloud playtest: on the open hatch at the top of the basement stairs,
+## the button climbs down rather than offering to close the hatch underfoot.
+func test_on_the_stairwell_hatch_the_button_climbs_down() -> void:
+	_setup()
+	_stand(O + Vector3i(7, 0, 5))
+	var choice: Dictionary = Interact.choose(_sim, _player, "nx")
+	assert_eq(choice.get("kind"), MovementSystem.COMMAND_CLIMB, "climb, not the hatch: %s" % choice.get("label"))
+	assert_true(_accepted(choice), "the sim takes it")
+
+
 func test_nothing_in_reach_offers_nothing() -> void:
 	_setup()
 	_stand(Vector3i(0, 0, 30))

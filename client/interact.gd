@@ -2,8 +2,9 @@
 ## player stands, facing `facing` ("px", "nx", "pz" or "nz"), as {"label", "kind",
 ## "payload"}, or {} for nothing. In order: the fixer in reach (take the contract, or
 ## deliver it), a body, pile or crate in reach with something in it (take the first
-## thing), the face ahead, then the floor underfoot (cut it with a wielded tool, else
-## open or close an opening: a grate or hatch below), something to climb here or ahead. Reads the sim only; the caller submits.
+## thing), the face ahead (cut it with a wielded tool, else open or close an opening),
+## something to climb here or ahead, then a grate or hatch underfoot (open or close it,
+## or cut it): a climb comes first, so the open hatch at a stair's top is climbed down. Reads the sim only; the caller submits.
 class_name Interact extends RefCounted
 
 const UP: Vector3i = Vector3i(0, 1, 0)
@@ -19,9 +20,9 @@ static func choose(sim: SimRoot, player: int, facing: String) -> Dictionary:
 	if choice.is_empty():
 		choice = _ahead(sim, player, facing)
 	if choice.is_empty():
-		choice = _ahead(sim, player, "ny")
-	if choice.is_empty():
 		choice = _climb(sim, player, facing)
+	if choice.is_empty():
+		choice = _ahead(sim, player, "ny")
 	return choice
 
 
