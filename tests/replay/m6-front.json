@@ -4309,7 +4309,7 @@
 			"tick": 491
 		}
 	],
-	"expected_hash": "54d571a549452feb8c63d20fc6162bb13765d9bcef289b382afd52af53521caa",
+	"expected_hash": "a85e566bef223c97dc0df7fdc98201e3b774bb4f2d5a218927caac9d99ce8857",
 	"name": "m6-front",
 	"schema_version": 1,
 	"seed": 20261200,

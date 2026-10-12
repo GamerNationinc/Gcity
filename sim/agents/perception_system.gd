@@ -34,7 +34,9 @@ var _events: EventBus
 ## actor id -> {"profile": StringName, "facing": int (degrees), "squad": int, "route": String,
 ##   "home": int (the facing it spawned with, which a sweep pans about: M6 claim 8),
 ##   "origin": [x, y, z] cell its route's cells are measured from (a site's origin, M6
-##   claim 12; zero for agent.spawn)}
+##   claim 12; zero for agent.spawn),
+##   "post": [x, y, z] the cell it was spawned in, which a guard with no route returns
+##   to (M4 claim 13: investigates, then returns to post)}
 var _agents: Dictionary = {}
 ## observer -> contact -> {"aw": int, "last": [x, y, z] or [], "memory": int, "alerted": bool}
 var _contacts: Dictionary = {}
@@ -139,6 +141,26 @@ func route_of(actor: int) -> String:
 
 
 ## The cell an agent's route cells are measured from (M6 claim 12).
+## The cell an agent was posted to (where it spawned), or ZERO for a non-agent.
+func post_of(actor: int) -> Vector3i:
+	if not _agents.has(actor):
+		return Vector3i.ZERO
+	var rec: Dictionary = _agents[actor]
+	var p: Array = rec["post"]
+	var px: int = p[0]
+	var py: int = p[1]
+	var pz: int = p[2]
+	return Vector3i(px, py, pz)
+
+
+## The facing an agent was posted with (a sweep pans about it), or 0 for a non-agent.
+func home_facing_of(actor: int) -> int:
+	if not _agents.has(actor):
+		return 0
+	var rec: Dictionary = _agents[actor]
+	return rec["home"]
+
+
 func route_origin_of(actor: int) -> Vector3i:
 	if not _agents.has(actor):
 		return Vector3i.ZERO
@@ -557,7 +579,8 @@ func spawn(profile: StringName, cell: Vector3i, facing: int, squad: int, route: 
 	var c: int = BuildSystem.CELL
 	var err: Error = _actors.set_position(actor, Vector3i(cell.x * c + c / 2, cell.y * c, cell.z * c + c / 2))
 	assert(err == OK, "a cell within MAX_CELL is within MAX_COORD")
-	_agents[actor] = {"profile": profile, "facing": facing, "squad": squad, "route": route, "home": facing, "origin": [origin.x, origin.y, origin.z] as Array[int]}
+	_agents[actor] = {"profile": profile, "facing": facing, "squad": squad, "route": route, "home": facing, "origin": [origin.x, origin.y, origin.z] as Array[int],
+		"post": [cell.x, cell.y, cell.z] as Array[int]}
 	return actor
 
 
@@ -669,9 +692,9 @@ func restore(state: Dictionary) -> Error:
 		var rec: Dictionary = agents_in[key]
 		if not _actors.has_actor(id):
 			return _restore_fail("agent %d is not an actor" % id)
-		if rec.size() != 6 or typeof(rec.get("profile")) != TYPE_STRING_NAME and typeof(rec.get("profile")) != TYPE_STRING \
+		if rec.size() != 7 or typeof(rec.get("profile")) != TYPE_STRING_NAME and typeof(rec.get("profile")) != TYPE_STRING \
 				or typeof(rec.get("facing")) != TYPE_INT or typeof(rec.get("squad")) != TYPE_INT or typeof(rec.get("route")) != TYPE_STRING \
-				or typeof(rec.get("home")) != TYPE_INT or typeof(rec.get("origin")) != TYPE_ARRAY:
+				or typeof(rec.get("home")) != TYPE_INT or typeof(rec.get("origin")) != TYPE_ARRAY or typeof(rec.get("post")) != TYPE_ARRAY:
 			return _restore_fail("agent %d record" % id)
 		var profile_s: String = rec["profile"]
 		var facing: int = rec["facing"]
@@ -693,7 +716,18 @@ func restore(state: Dictionary) -> Error:
 			if absi(n) > BuildSystem.MAX_CELL:
 				return _restore_fail("agent %d origin" % id)
 			origin.append(n)
-		agents[id] = {"profile": StringName(profile_s), "facing": facing, "squad": squad, "route": route, "home": home, "origin": origin}
+		var post_in: Array = rec["post"]
+		if post_in.size() != 3:
+			return _restore_fail("agent %d post" % id)
+		var post: Array[int] = []
+		for v: Variant in post_in:
+			if typeof(v) != TYPE_INT:
+				return _restore_fail("agent %d post" % id)
+			var n: int = v
+			if absi(n) > BuildSystem.MAX_CELL:
+				return _restore_fail("agent %d post" % id)
+			post.append(n)
+		agents[id] = {"profile": StringName(profile_s), "facing": facing, "squad": squad, "route": route, "home": home, "origin": origin, "post": post}
 	var contacts_in: Dictionary = state["contacts"]
 	var contacts: Dictionary = {}
 	for key: Variant in contacts_in:

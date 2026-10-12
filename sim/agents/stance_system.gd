@@ -45,7 +45,9 @@ var _pathing: PathingSystem
 var _squads: SquadSystem
 ## stance name -> Callable(ctx: Dictionary) -> int (0..1 000 000)
 var _scorers: Dictionary = {}
-## agent -> {"stance": StringName, "since": int, "score": int, "waypoint": int, "goal": [] | [x, y, z]}
+## agent -> {"stance": StringName, "since": int, "score": int, "waypoint": int, "goal": [] | [x, y, z],
+##   "away": bool (it left hold for another stance: a guard with no route returns to its
+##   post and its facing, M4 claim 13, then is back)}
 var _stances: Dictionary = {}
 var _fires: int = 0
 var _scored: int = 0
@@ -337,7 +339,7 @@ func tick(sim: SimRoot) -> void:
 			continue
 		var rec: Dictionary = _record(agent)
 		if rec.is_empty():
-			rec = {"stance": STANCE_HOLD, "since": tick_now, "score": 0, "waypoint": 0, "goal": [] as Array[int]}
+			rec = {"stance": STANCE_HOLD, "since": tick_now, "score": 0, "waypoint": 0, "goal": [] as Array[int], "away": false}
 		if tick_now % SCORE_EVERY == agent % SCORE_EVERY:
 			_scored += 1
 			var current: StringName = rec["stance"]
@@ -349,6 +351,8 @@ func tick(sim: SimRoot) -> void:
 				rec["stance"] = choice["stance"]
 				rec["since"] = tick_now
 				rec["goal"] = [] as Array[int]
+				if rec["stance"] != STANCE_HOLD:
+					rec["away"] = true
 				_pathing.cancel(agent)
 		_execute(sim, agent, rec)
 		_stances[agent] = rec
@@ -379,6 +383,17 @@ func _execute(sim: SimRoot, agent: int, rec: Dictionary) -> void:
 					rec["waypoint"] = waypoint
 					goal = PathingSystem._vec(route[waypoint])
 				wants_goal = true
+			elif rec["away"]:
+				# a post: back to it after an investigation or a fight, then face the way
+				# it faces (M4 claim 13), and it is back
+				var post: Vector3i = _perception.post_of(agent)
+				if here != post:
+					goal = post
+					wants_goal = true
+				else:
+					if _perception.sweep_facing(agent, sim.get_tick()) < 0:
+						_perception.set_facing(agent, _perception.home_facing_of(agent))
+					rec["away"] = false
 		STANCE_ADVANCE:
 			if _squads.has_assignment(agent):
 				# the squad planner's entry edge: take the door, or cover the window
@@ -523,8 +538,9 @@ func restore(state: Dictionary) -> Error:
 			return _restore_fail("agent %d is not an agent" % agent)
 		var rec: Dictionary = in_all[key]
 		var stance_v: Variant = rec.get("stance")
-		if rec.size() != 5 or (typeof(stance_v) != TYPE_STRING_NAME and typeof(stance_v) != TYPE_STRING) or typeof(rec.get("since")) != TYPE_INT \
-				or typeof(rec.get("score")) != TYPE_INT or typeof(rec.get("waypoint")) != TYPE_INT or typeof(rec.get("goal")) != TYPE_ARRAY:
+		if rec.size() != 6 or (typeof(stance_v) != TYPE_STRING_NAME and typeof(stance_v) != TYPE_STRING) or typeof(rec.get("since")) != TYPE_INT \
+				or typeof(rec.get("score")) != TYPE_INT or typeof(rec.get("waypoint")) != TYPE_INT or typeof(rec.get("goal")) != TYPE_ARRAY \
+				or typeof(rec.get("away")) != TYPE_BOOL:
 			return _restore_fail("agent %d record" % agent)
 		var stance_s: String = stance_v
 		var stance: StringName = StringName(stance_s)
@@ -539,7 +555,8 @@ func restore(state: Dictionary) -> Error:
 		var goal: Array[int] = [] as Array[int]
 		if not goal_in.is_empty():
 			goal = PathingSystem._arr(PathingSystem._vec(goal_in))
-		out[agent] = {"stance": stance, "since": since, "score": score, "waypoint": waypoint, "goal": goal}
+		var away: bool = rec["away"]
+		out[agent] = {"stance": stance, "since": since, "score": score, "waypoint": waypoint, "goal": goal, "away": away}
 	_stances = out
 	_fires = fires
 	_scored = scored

@@ -3169,7 +3169,7 @@
 			"tick": 189
 		}
 	],
-	"expected_hash": "d010e33e086176efb3c2196809a8d2c7ce8ecfe3791e277b0d58c5a013ed8aad",
+	"expected_hash": "ef1db72bc70e2aff5d9c0baaae8477887371b4b09ecb75733a8ed034cb2bcb8d",
 	"name": "m4-radio-off",
 	"schema_version": 1,
 	"seed": 20261100,

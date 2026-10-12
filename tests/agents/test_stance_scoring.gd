@@ -165,6 +165,16 @@ func test_a_heard_shot_is_investigated_then_forgotten_back_to_hold() -> void:
 	assert_eq(_perception.facing_of(guard), 0, "faced the way it walked")
 	_sim.step_n(420)  # memory of the shot fades
 	assert_eq(_stances.stance_of(guard), &"hold", "nothing found, nothing remembered: back to hold")
+	# M4 claim 13 (m4-break-contact): a guard on a post, with no route, returns to it
+	var back: int = -1
+	for i: int in 400:
+		_sim.step()
+		if BuildSystem.cell_of(_actors.position_of(guard)) == _cell(0, 0):
+			back = i
+			break
+	assert_true(back >= 0, "walked back to its post")
+	_sim.step_n(3)
+	assert_eq(_perception.facing_of(guard), 180, "and faces the way its post faces")
 	assert_eq(_stances.fire_count(), 0, "never fired")
 
 

@@ -5,8 +5,9 @@
 ##   taken from a freshly built sim over the current content (so it is empty);
 ## - an old build piece gets no facing and its template's starting open state, as if
 ##   placed now;
-## - an old agent's home facing is the facing it has, and its route origin the world
-##   origin, as every agent's was before sites.
+## - an old agent's home facing is the facing it has, its route origin the world
+##   origin, as every agent's was before sites, and its post the cell it stands in;
+##   an old stance has not left its post (M4 claim 13's return to post).
 ## The result is then restored like any save, so every system still validates it.
 class_name SaveMigration extends RefCounted
 
@@ -33,6 +34,7 @@ static func v1_to_v2(old: Dictionary, fresh: SimRoot, content: ContentDb) -> Dic
 				state[key] = _copy(now[key])
 	_pieces(systems, content)
 	_agents(systems)
+	_stances(systems)
 	return snapshot
 
 
@@ -72,6 +74,52 @@ static func _pieces(systems: Dictionary, content: ContentDb) -> void:
 			rec["open"] = starts_open
 
 
+## An old stance record never left its post: "away" false.
+static func _stances(systems: Dictionary) -> void:
+	var stances_v: Variant = systems.get(StanceSystem.SYSTEM_ID)
+	if typeof(stances_v) != TYPE_DICTIONARY:
+		return
+	var stances_sys: Dictionary = stances_v
+	var table_v: Variant = stances_sys.get("stances")
+	if typeof(table_v) != TYPE_DICTIONARY:
+		return
+	var table: Dictionary = table_v
+	for k: Variant in table:
+		if typeof(table[k]) != TYPE_DICTIONARY:
+			continue
+		var rec: Dictionary = table[k]
+		if not rec.has("away"):
+			rec["away"] = false
+
+
+## The cell an actor stands in, from the actors' snapshot; ZERO if it cannot be read.
+static func _cell_of_actor(systems: Dictionary, id: Variant) -> Array[int]:
+	var none: Array[int] = [0, 0, 0]
+	var actors_v: Variant = systems.get(ActorSystem.SYSTEM_ID)
+	if typeof(actors_v) != TYPE_DICTIONARY:
+		return none
+	var actors_sys: Dictionary = actors_v
+	var table_v: Variant = actors_sys.get("actors")
+	if typeof(table_v) != TYPE_DICTIONARY:
+		return none
+	var table: Dictionary = table_v
+	var rec_v: Variant = table.get(id)
+	if typeof(rec_v) != TYPE_DICTIONARY:
+		return none
+	var rec: Dictionary = rec_v
+	var pos_v: Variant = rec.get("pos")
+	if typeof(pos_v) != TYPE_ARRAY:
+		return none
+	var pos: Array = pos_v
+	if pos.size() != 3 or typeof(pos[0]) != TYPE_INT or typeof(pos[1]) != TYPE_INT or typeof(pos[2]) != TYPE_INT:
+		return none
+	var x: int = pos[0]
+	var y: int = pos[1]
+	var z: int = pos[2]
+	var cell: Vector3i = BuildSystem.cell_of(Vector3i(x, y, z))
+	return [cell.x, cell.y, cell.z] as Array[int]
+
+
 static func _agents(systems: Dictionary) -> void:
 	var perception_v: Variant = systems.get(PerceptionSystem.SYSTEM_ID)
 	if typeof(perception_v) != TYPE_DICTIONARY:
@@ -89,3 +137,5 @@ static func _agents(systems: Dictionary) -> void:
 			rec["home"] = rec["facing"]
 		if not rec.has("origin"):
 			rec["origin"] = [0, 0, 0] as Array[int]
+		if not rec.has("post"):
+			rec["post"] = _cell_of_actor(systems, k)
