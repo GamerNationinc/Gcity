@@ -189,6 +189,12 @@ Target is a locked **40 fps on Steam Deck** — 25 ms, allocated per subsystem i
 standards doc §4.1.
 
 - **Deck numbers are the only numbers that count.** Desktop benchmarks are a smoke signal.
+- **Deck runs are scarce; spend them only when nothing else can answer** (approver's
+  instruction, 2026-10-12). Everything that can run in the cloud runs there first:
+  playing the game loops through the real client and sim, tests, benches, replays,
+  screenshots. A desktop measurement already over budget is reason enough to fix it;
+  don't wait for the Deck to confirm. Batch what truly needs the Deck (frame times
+  under thermal load, input feel, Steam) into one run per gate.
 - Report **1% and 0.1% lows**, never averages.
 - Any heavy system must be **time-sliceable and interruptible**. Meshing, flood fill,
   pathfinding and utility scoring all run on a budget, not to completion.
