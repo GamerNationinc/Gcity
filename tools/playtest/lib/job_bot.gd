@@ -43,7 +43,10 @@ func tick(view: Node) -> void:
 	if sim.get_tick() > LIMIT:
 		view.call("finish", "ran past %d ticks at step %d" % [LIMIT, _plan.step], false)
 		return
+	var before: int = _plan.step
 	_plan.tick(view)
+	if OS.has_environment("PLAYTEST_DEBUG") and _plan.step != before and not _plan.done():
+		print("  STEP %d %s at tick %d" % [_plan.step, str(_plan.steps[_plan.step][0]), sim.get_tick()])
 	if not _plan.failure.is_empty():
 		view.call("finish", _plan.failure, false)
 	elif _plan.done():

@@ -6,6 +6,8 @@
 # SCENE=<res path> selects a scene other than the project main scene (e.g. the M1 range).
 # RESOLUTION=<w>x<h> renders at another window size (default 1280x800, the Deck's).
 # DEMO=<name> plays another demo script (the world view's --demo-script, e.g. cold_storage).
+# PLAYTEST=<bot> shoots a playtest bot's run instead (tools/playtest/<bot>.gd, seed 1);
+# the seconds are sim time, and the run goes on to the bot's verdict.
 set -euo pipefail
 root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$root"
@@ -17,9 +19,14 @@ case "$out" in /*) abs="$out" ;; *) abs="$root/$out" ;; esac
 res="${RESOLUTION:-1280x800}"
 [[ "$res" =~ ^[0-9]+x[0-9]+$ ]] || { echo "screenshot.sh: RESOLUTION must be <w>x<h>" >&2; exit 2; }
 quit_at="$(python3 -c "print(float('$at') + 1.0)")"
-xvfb-run -a -s "-screen 0 ${res}x24" "$godot" --path . ${SCENE:+"$SCENE"} \
+if [[ -n "${PLAYTEST:-}" ]]; then
+	run=(--fixed-fps 40 res://client/world_view.tscn -- "--playtest=$PLAYTEST" --seed=1)
+else
+	run=(${SCENE:+"$SCENE"} -- --demo ${DEMO:+"--demo-script=$DEMO"} "--demo-quit=$quit_at")
+fi
+xvfb-run -a -s "-screen 0 ${res}x24" "$godot" --path . \
 	--rendering-driver opengl3 --audio-driver Dummy --resolution "$res" \
-	-- --demo ${DEMO:+"--demo-script=$DEMO"} "--demo-quit=$quit_at" "--screenshot=$abs" "--screenshot-at=$at" 2>&1 \
+	"${run[@]}" "--screenshot=$abs" "--screenshot-at=$at" 2>&1 \
 	| grep -E "screenshot|SCRIPT ERROR|ERROR: screenshot" || true
 [[ -s "$abs" ]] || { echo "screenshot.sh: no file written at $abs" >&2; exit 1; }
 echo "$abs"

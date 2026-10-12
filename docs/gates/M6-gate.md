@@ -60,6 +60,9 @@ Counts are filled in at submission.
    this stage on every push. The front route cannot be done unseen: the lobby post
    faces the door (the spec names it a static post; recorded as a finding, not changed). (Deck runs are for what only the Deck can
    answer: frame times, feel, Steam.)
+   `PLAYTEST=cold_storage_side tools/screenshot.sh out.png 82.5` and `… 122.5` → that
+   run drawn: on the crate, cutting the window (`M6-playtest-side-window.png`); the
+   hacking pane over the world while the terminal is hacked (`M6-playtest-side-hack.png`).
 4. Launch, walk east along the street to the purple figure labelled *Marlow (fixer)*.
    → The prompt reads `[D-pad left] take Marlow's contract: Cold Storage`.
 5. Press D-pad left. → Cold Storage appears to the east, its exit zone outlined green.

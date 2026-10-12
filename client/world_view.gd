@@ -635,6 +635,14 @@ func _process(delta: float) -> void:
 			_save_capture()
 			get_tree().quit()
 			return
+	elif _bot != null:
+		# a playtest's screenshot is taken at a sim time, like the demo's
+		if not _screenshot_path.is_empty() and float(sim.get_tick()) / SimRoot.TICK_HZ >= _screenshot_at_s:
+			_sync_scene(sim)
+			_place_camera(sim)
+			_render(sim)
+			await RenderingServer.frame_post_draw
+			_save_screenshot()
 	elif not _device_raised:
 		var look: float = Input.get_action_strength("world_look_right") - Input.get_action_strength("world_look_left")
 		_yaw -= look * LOOK_SPEED * delta
